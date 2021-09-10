@@ -55,6 +55,14 @@ RequiredModules = @(
     @{
         ModuleName = 'AsBuiltReport.Core';
         ModuleVersion = '1.1.0'
+    },
+    @{
+        ModuleName = 'ActiveDirectory';
+        ModuleVersion = '1.0'
+    },
+    @{
+        ModuleName = 'PSPKI';
+        ModuleVersion = '3.7.2'
     }
 )
 
