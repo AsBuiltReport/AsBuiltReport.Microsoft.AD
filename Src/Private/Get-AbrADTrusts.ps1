@@ -37,11 +37,11 @@ function Get-AbrADTrusts {
                         'Target' = $Item.Target
                         'Direction' = $Item.Direction
                         'IntraForest' = ConvertTo-TextYN $Item.IntraForest
-                        'Selective Authentication' = $Item.SelectiveAuthentication
-                        'SID Filtering Forest Aware' = $Item.SIDFilteringForestAware
-                        'SID Filtering Quarantined' = $Item.SIDFilteringQuarantined
+                        'Selective Authentication' = ConvertTo-TextYN $Item.SelectiveAuthentication
+                        'SID Filtering Forest Aware' = ConvertTo-TextYN $Item.SIDFilteringForestAware
+                        'SID Filtering Quarantined' = ConvertTo-TextYN $Item.SIDFilteringQuarantined
                         'Trust Type' = $Item.TrustType
-                        'Uplevel Only' = $Item.UplevelOnly
+                        'Uplevel Only' = ConvertTo-TextYN $Item.UplevelOnly
                     }
                     $OutObj += [pscustomobject]$inobj
                 }
