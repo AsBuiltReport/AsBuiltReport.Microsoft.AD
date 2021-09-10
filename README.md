@@ -40,6 +40,8 @@ Below are the instructions on how to install, configure and generate a Microsoft
 <!-- ********** Update supported AD versions ********** -->
 The Microsoft AD As Built Report supports the following AD versions;
 
+- 2008, 2008 R2, 2012, 2016, 2019
+
 ### PowerShell
 This report is compatible with the following PowerShell versions;
 
@@ -52,6 +54,8 @@ This report is compatible with the following PowerShell versions;
 PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
+- [ActiveDirectory](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
+- [PSPKI](https://www.powershellgallery.com/packages/PSPKI/3.7.2)
 
 ### Linux & macOS
 * .NET Core is required for cover page image support on Linux and macOS operating systems.
@@ -134,4 +138,13 @@ There are 6 levels (0-5) of detail granularity for each section as follows;
 The **Healthcheck** schema is used to toggle health checks on or off.
 
 ## :computer: Examples
-<!-- ********** Add some examples. Use other AsBuiltReport modules as a guide. ********** -->
+
+There is one example listed below on running the AsBuiltReport script against a Microsoft Active Directory Array target. Refer to the `README.md` file in the main AsBuiltReport project repository for more examples.
+
+- The following creates a Microsoft Active Directory Array As-Built report in HTML & Word formats in the folder C:\scripts\.
+
+```powershell
+PS C:\>New-AsBuiltReport -Report Microsoft.AD -Target 10.10.30.20 -Credential (Get-Credential) -Format HTML,Word -OutputPath C:\scripts\
+```
+
+## :x: Known Issues
