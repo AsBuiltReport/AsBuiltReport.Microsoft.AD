@@ -16,6 +16,11 @@ function Get-AbrADDomainController {
     #>
     [CmdletBinding()]
     param (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            [string]
+            $Domain
     )
 
     begin {
@@ -23,27 +28,18 @@ function Get-AbrADDomainController {
     }
 
     process {
-        $Data = (Get-ADForest).Domains
         $OutObj = @()
-        if ($Data) {
-            foreach ($Item in $Data.Split(" ")) {
-                $Domain =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
-                foreach ($DC in $Domain) {
+        if ($Domain) {
+            foreach ($Item in $Domain) {
+                $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                foreach ($DC in $DCs) {
                     $DCs = Get-ADDomainController -Server $DC
                     $inObj = [ordered] @{
                         'DC Name' = $DCs.Name
                         'Domain Name' = $DCs.Domain
                         'Site' = $DCs.Site
-                        'Global Catalog' = Switch ($DCs.IsGlobalCatalog) {
-                            'True' { 'Yes' }
-                            'False' { 'No' }
-                            default { $DCs.IsGlobalCatalog }
-                        }
-                        'Read Only' = Switch ($DCs.IsReadOnly) {
-                            'True' { 'Yes' }
-                            'False' { 'No' }
-                            default { $DCs.IsReadOnly }
-                        }
+                        'Global Catalog' = ConvertTo-TextYN $DCs.IsGlobalCatalog
+                        'Read Only' = ConvertTo-TextYN $DCs.IsReadOnly
                         'IP Address' = $DCs.IPv4Address
                     }
                     $OutObj += [pscustomobject]$inobj
@@ -51,7 +47,7 @@ function Get-AbrADDomainController {
             }
 
             $TableParams = @{
-                Name = "AD Domain Controller Summary Information - $($ForestInfo)"
+                Name = "AD Domain Controller Summary Information - $($Domain.ToString().ToUpper())"
                 List = $false
                 ColumnWidths = 25, 25, 15, 10, 10, 15
             }
@@ -61,12 +57,13 @@ function Get-AbrADDomainController {
             $OutObj | Table @TableParams
         }
         Section -Style Heading5 'Active Directory Domain Controller Hardware Summary' {
-            $Data = (Get-ADForest).Domains
+            Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
+            BlankLine
             $OutObj = @()
-            if ($Data) {
-                foreach ($Item in $Data.Split(" ")) {
-                    $Domain =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
-                    foreach ($DC in $Domain) {
+            if ($Domain) {
+                foreach ($Item in $Domain) {
+                    $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                    foreach ($DC in $DCs) {
                         $HW = Invoke-Command -ComputerName $DC -ScriptBlock { Get-ComputerInfo }
                         $inObj = [ordered] @{
                             'Name' = $DC
@@ -83,7 +80,7 @@ function Get-AbrADDomainController {
                 }
 
                 $TableParams = @{
-                    Name = "AD Domain Controller Hardware Information - $($ForestInfo)"
+                    Name = "AD Domain Controller Hardware Information - $($Domain.ToString().ToUpper())"
                     List = $true
                     ColumnWidths = 40, 60
                 }
@@ -94,12 +91,13 @@ function Get-AbrADDomainController {
             }
         }
         Section -Style Heading5 'Active Directory Domain Controller NTDS Summary' {
-            $Data = (Get-ADForest).Domains
+            Paragraph "The following section provides a summary of the Domain Controller NTDS file size on $($Domain.ToString().ToUpper())."
+            BlankLine
             $OutObj = @()
-            if ($Data) {
-                foreach ($Item in $Data.Split(" ")) {
-                    $Domain =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
-                    foreach ($DC in $Domain) {
+            if ($Domain) {
+                foreach ($Item in $Domain) {
+                    $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                    foreach ($DC in $DCs) {
                         $NTDS = Invoke-Command -ComputerName $DC -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
                         $size = Invoke-Command -ComputerName $DC -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
                         $inObj = [ordered] @{
@@ -112,7 +110,7 @@ function Get-AbrADDomainController {
                 }
 
                 $TableParams = @{
-                    Name = "Domain Controller NTDS Database File Usage Information - $($ForestInfo)"
+                    Name = "Domain Controller NTDS Database File Usage Information - $($Domain.ToString().ToUpper())"
                     List = $false
                     ColumnWidths = 40, 40, 20
                 }

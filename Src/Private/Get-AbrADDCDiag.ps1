@@ -16,6 +16,11 @@ function Get-AbrADDCDiag {
     #>
     [CmdletBinding()]
     param (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            [string]
+            $Domain
     )
 
     begin {
@@ -30,7 +35,7 @@ function Get-AbrADDCDiag {
                 [string]$DomainController
             )
             $result = dcdiag /s:$DomainController
-            $result | select-string -pattern '\. (.*) \b(passed|failed)\b test (.*)' | foreach {
+            $result | select-string -pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
                 $obj = @{
                     TestName = $_.Matches.Groups[3].Value
                     TestResult = $_.Matches.Groups[2].Value
@@ -39,18 +44,17 @@ function Get-AbrADDCDiag {
                 [pscustomobject]$obj
             }
         }
-        $Data = (Get-ADForest).Domains
         $OutObj = @()
-        if ($Data) {
-            foreach ($Item in $Data.Split(" ")) {
-                $Domain =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
-                foreach ($DC in $Domain) {
+        if ($Domain) {
+            foreach ($Item in $Domain) {
+                $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                foreach ($DC in $DCs) {
                     $DCDIAG = Invoke-DcDiag -DomainController $DC | Where-Object {$_.TestResult -eq "failed"}
-                    foreach ($a in $DCDIAG) {
+                    foreach ($Result in $DCDIAG) {
                         $inObj = [ordered] @{
                             'DC Name' = $DC
-                            'Test Name' = $a.TestName
-                            'Result' = $a.TestResult
+                            'Test Name' = $Result.TestName
+                            'Result' = $Result.TestResult
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
@@ -58,7 +62,7 @@ function Get-AbrADDCDiag {
             }
 
             $TableParams = @{
-                Name = "AD Domain Controller DCDiag Information - $($ForestInfo)"
+                Name = "AD Domain Controller DCDiag Information - $($Domain.ToString().ToUpper())"
                 List = $false
                 ColumnWidths = 35, 35, 30
             }

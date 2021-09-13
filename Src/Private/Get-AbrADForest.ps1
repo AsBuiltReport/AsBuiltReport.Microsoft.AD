@@ -41,7 +41,7 @@ function Get-AbrADForest {
                 $inObj = [ordered] @{
                     'Forest Name' = $Item.RootDomain
                     'Forest Functional Level' = $Item.ForestMode
-                    'Schema Version' = "ObjectVersion $ADnumber, Correspond to $server" 
+                    'Schema Version' = "ObjectVersion $ADnumber, Correspond to $server"
                     'Domains' = $Item.Domains -join '; '
                     'Global Catalogs' = $Item.GlobalCatalogs -join '; '
                     'Application Partitions' = $Item.ApplicationPartitions
@@ -63,7 +63,7 @@ function Get-AbrADForest {
             $OutObj | Table @TableParams
         }
         Section -Style Heading5 'Active Directory Optional Features Summary' {
-            Paragraph "The following section provides a summary of the enabled Optional Features on $($ForestInfo)."
+            Paragraph "The following section provides a summary of the enabled Optional Features."
             BlankLine
             $Data = Get-ADOptionalFeature -Filter *
             $OutObj = @()

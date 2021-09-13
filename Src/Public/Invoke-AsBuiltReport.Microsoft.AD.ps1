@@ -43,45 +43,43 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $Data = Get-ADForest
         $ForestInfo =  $Data.RootDomain.toUpper()
         #region Forest Section
-        Section -Style Heading1 "Report for Active Directory $($ForestInfo.toUpper())" {
+        Section -Style Heading1 "Report for Active Directory Forest $($ForestInfo.toUpper())" {
             Paragraph "The following section provides a summary of the Active Directory Infrastructure configuration for $($ForestInfo)."
             BlankLine
             #region Forest Section
             Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -gt 0) {
-                Section -Style Heading2 'Active Directory Forest Information' {
+                Section -Style Heading2 "Active Directory Forest Information."  {
                     Get-AbrADForest
-                    Section -Style Heading3 'Active Directory FSMO Information' {
-                        Paragraph "The following section provides a summary of the Active Directory FSMO on $($ForestInfo)."
-                        BlankLine
-                        Get-AbrADFSMO
-                    }
-                    Get-AbrADTrusts
-                }
-                Section -Style Heading3 'Active Directory Domain Information' {
-                    Paragraph "The following section provides a summary of the AD Domain Information on $($ForestInfo)."
-                    BlankLine
-                    Get-AbrADDomain
-                    Section -Style Heading4 'Active Directory Domain Site Information' {
-                        Paragraph "The following section provides a summary of the Active Directory Sites on $($ForestInfo)."
+                    Section -Style Heading3 'Active Directory Domain Site Summary' {
+                        Paragraph "The following section provides a summary of the Active Directory Sites on."
                         BlankLine
                         Get-AbrADSite
                     }
-                    Section -Style Heading4 'Active Directory Domain Controller Information' {
-                        Paragraph "The following section provides a summary of the Active Directory DC on $($ForestInfo)."
+                }
+                foreach ($Domain in (Get-ADForest | Select-Object -ExpandProperty Domains)) {
+                    Section -Style Heading3 "Active Directory Information for Domain $($Domain.ToString().ToUpper())" {
+                        Paragraph "The following section provides a summary of the AD Domain Information."
                         BlankLine
-                        Get-AbrADDomainController
-                        if ($HealthCheck.DomainController.Diagnostic) {
-                            Section -Style Heading4 'Active Directory DCDiag Information' {
-                                Paragraph "The following section provides a summary of the Active Directory DC Diagnostic on $($ForestInfo)."
-                                BlankLine
-                                Get-AbrADDCDiag
+                        Get-AbrADDomain -Domain $Domain
+                        Get-AbrADFSMO -Domain $Domain
+                        Get-AbrADTrust -Domain $Domain
+                        Section -Style Heading4 'Active Directory Domain Controller Information' {
+                            Paragraph "The following section provides a summary of the Active Directory DC)."
+                            BlankLine
+                            Get-AbrADDomainController -Domain $Domain
+                            if ($HealthCheck.DomainController.Diagnostic) {
+                                Section -Style Heading4 'Active Directory DCDiag Information' {
+                                    Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                                    BlankLine
+                                    Get-AbrADDCDiag -Domain $Domain
+                                }
                             }
                         }
                     }
-                }
-            }
-        }#endregion Cluster Section
+                }#endregion Domain Section
+            }#endregion AD Section
+        }#endregion AD Section
 	}
 	#endregion foreach loop
 }
