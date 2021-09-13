@@ -14,6 +14,7 @@ function ConvertTo-FileSizeString {
 
     #>
     [CmdletBinding()]
+    [OutputType([String])]
     Param
         (
         [Parameter (
@@ -22,22 +23,22 @@ function ConvertTo-FileSizeString {
             [int64]
             $Size
         )
-    
+
     switch ($Size)
         {
-        {$_ -gt 1TB} 
+        {$_ -gt 1TB}
             {[string]::Format("{0:0.00} TB", $Size / 1TB); break}
-        {$_ -gt 1GB} 
+        {$_ -gt 1GB}
             {[string]::Format("{0:0.00} GB", $Size / 1GB); break}
-        {$_ -gt 1MB} 
+        {$_ -gt 1MB}
             {[string]::Format("{0:0.00} MB", $Size / 1MB); break}
-        {$_ -gt 1KB} 
+        {$_ -gt 1KB}
             {[string]::Format("{0:0.00} KB", $Size / 1KB); break}
         {$_ -gt 0}
             {[string]::Format("{0} B", $Size); break}
         {$_ -eq 0}
             {"0 KB"; break}
-        default  
+        default
             {"0 KB"}
         }
     } # end >> function Format-FileSize
