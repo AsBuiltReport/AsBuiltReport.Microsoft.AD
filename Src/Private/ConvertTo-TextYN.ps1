@@ -14,19 +14,20 @@ function ConvertTo-TextYN {
 
     #>
     [CmdletBinding()]
+    [OutputType([String])]
     Param
         (
         [Parameter (
             Position = 0,
             Mandatory)]
             [string]
-            $Input
+            $TEXT
         )
-    
-    switch ($Input)
+
+    switch ($TEXT)
         {
-        {"True"} {"Yes"; break}
-        {"False"} {"No"; break}
-        default {$Input}
+            "True" {"Yes"; break}
+            "False" {"No"; break}
+            default {$TEXT}
         }
     } # end
