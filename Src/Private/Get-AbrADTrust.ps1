@@ -24,7 +24,7 @@ function Get-AbrADTrust {
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Forest information."
+        Write-PscriboMessage "Collecting AD Trust information."
     }
 
     process {
