@@ -57,7 +57,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         Get-AbrADSite
                     }
                 }
-                foreach ($Domain in (Get-ADForest | Select-Object -ExpandProperty Domains)) {
+                foreach ($Domain in ( Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending )) {
                     Section -Style Heading3 "Active Directory Information for Domain $($Domain.ToString().ToUpper())" {
                         Paragraph "The following section provides a summary of the AD Domain Information."
                         BlankLine
@@ -65,7 +65,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         Get-AbrADFSMO -Domain $Domain
                         Get-AbrADTrust -Domain $Domain
                         Section -Style Heading4 'Active Directory Domain Controller Information' {
-                            Paragraph "The following section provides a summary of the Active Directory DC)."
+                            Paragraph "The following section provides a summary of the Active Directory DC."
                             BlankLine
                             Get-AbrADDomainController -Domain $Domain
                             if ($HealthCheck.DomainController.Diagnostic) {
@@ -75,6 +75,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Get-AbrADDCDiag -Domain $Domain
                                 }
                             }
+                            Get-AbrADOU -Domain $Domain
                         }
                     }
                 }#endregion Domain Section
