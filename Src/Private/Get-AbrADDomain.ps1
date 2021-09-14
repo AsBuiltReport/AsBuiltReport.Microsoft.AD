@@ -103,11 +103,7 @@ function Get-AbrADDomain {
                     $PasswordPolicy = Get-ADDefaultDomainPasswordPolicy -Identity $Item
                     $inObj = [ordered] @{
                         'Domain Name' = $Item
-                        'Complexity Enabled' = Switch ($PasswordPolicy.ComplexityEnabled) {
-                            "True" { "Yes" }
-                            "False" { "No" }
-                            default {$PasswordPolicy.ComplexityEnabled}
-                        }
+                        'Complexity Enabled' = ConvertTo-TextYN $PasswordPolicy.ComplexityEnabled
                         'Distinguished Name' = $PasswordPolicy.DistinguishedName
                         'Lockout Duration' = $PasswordPolicy.LockoutDuration.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
                         'Lockout Threshold' = $PasswordPolicy.LockoutThreshold
@@ -116,12 +112,7 @@ function Get-AbrADDomain {
                         'Min Password Age' = $PasswordPolicy.MinPasswordAge.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
                         'Min Password Length' = $PasswordPolicy.MinPasswordLength
                         'Password History Count' = $PasswordPolicy.PasswordHistoryCount
-                        'Reversible Encryption Enabled' = Switch ($PasswordPolicy.ReversibleEncryptionEnabled) {
-                            "True" { "Yes" }
-                            "False" { "No" }
-                            default {$PasswordPolicy.ReversibleEncryptionEnabled}
-                        }
-
+                        'Reversible Encryption Enabled' = ConvertTo-TextYN $PasswordPolicy.ReversibleEncryptionEnabled
                     }
                     $OutObj += [pscustomobject]$inobj
                 }
