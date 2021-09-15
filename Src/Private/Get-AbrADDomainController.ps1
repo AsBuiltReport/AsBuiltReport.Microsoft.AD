@@ -28,21 +28,27 @@ function Get-AbrADDomainController {
     }
 
     process {
+        Write-PscriboMessage "Collecting AD Domain Controller Summary information."
         $OutObj = @()
         if ($Domain) {
             foreach ($Item in $Domain) {
                 $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
                 foreach ($DC in $DCs) {
-                    $DCs = Get-ADDomainController -Server $DC
-                    $inObj = [ordered] @{
-                        'DC Name' = $DCs.Name
-                        'Domain Name' = $DCs.Domain
-                        'Site' = $DCs.Site
-                        'Global Catalog' = ConvertTo-TextYN $DCs.IsGlobalCatalog
-                        'Read Only' = ConvertTo-TextYN $DCs.IsReadOnly
-                        'IP Address' = $DCs.IPv4Address
+                    try {
+                        $DCInfo = Get-ADDomainController -Server $DC
+                        $inObj = [ordered] @{
+                            'DC Name' = $DCInfo.Name
+                            'Domain Name' = $DCInfo.Domain
+                            'Site' = $DCInfo.Site
+                            'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
+                            'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
+                            'IP Address' = $DCInfo.IPv4Address
+                        }
+                        $OutObj += [pscustomobject]$inobj
                     }
-                    $OutObj += [pscustomobject]$inobj
+                    catch {
+                        Write-Verbose "WARNING: Could not connect to DC $DC"
+                    }
                 }
             }
 
@@ -56,6 +62,7 @@ function Get-AbrADDomainController {
             }
             $OutObj | Table @TableParams
         }
+        Write-PscriboMessage "Collecting AD Domain Controller Hardware information."
         Section -Style Heading5 'Active Directory Domain Controller Hardware Summary' {
             Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
             BlankLine
@@ -65,17 +72,19 @@ function Get-AbrADDomainController {
                     $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
                     foreach ($DC in $DCs) {
                         $HW = Invoke-Command -ComputerName $DC -ScriptBlock { Get-ComputerInfo }
-                        $inObj = [ordered] @{
-                            'Name' = $DC
-                            'WindowsProductName' = $HW.WindowsProductName
-                            'Manufacturer' = $HW.CsManufacturer
-                            'CsModel' = $HW.CsModel
-                            'Bios Type' = $HW.BiosFirmwareType
-                            'CPU Socket' = $HW.CsNumberOfProcessors
-                            'CPU Cores' = $HW.CsNumberOfLogicalProcessors
-                            'Total RAM' = ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                        if ($HW) {
+                            $inObj = [ordered] @{
+                                'Name' = $HW.CsDNSHostName
+                                'WindowsProductName' = $HW.WindowsProductName
+                                'Manufacturer' = $HW.CsManufacturer
+                                'CsModel' = $HW.CsModel
+                                'Bios Type' = $HW.BiosFirmwareType
+                                'CPU Socket' = $HW.CsNumberOfProcessors
+                                'CPU Cores' = $HW.CsNumberOfLogicalProcessors
+                                'Total RAM' = ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                            }
+                            $OutObj += [pscustomobject]$inobj
                         }
-                        $OutObj += [pscustomobject]$inobj
                     }
                 }
 
@@ -90,6 +99,7 @@ function Get-AbrADDomainController {
                 $OutObj | Table @TableParams
             }
         }
+        Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
         Section -Style Heading5 'Active Directory Domain Controller NTDS Summary' {
             Paragraph "The following section provides a summary of the Domain Controller NTDS file size on $($Domain.ToString().ToUpper())."
             BlankLine
@@ -100,12 +110,14 @@ function Get-AbrADDomainController {
                     foreach ($DC in $DCs) {
                         $NTDS = Invoke-Command -ComputerName $DC -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
                         $size = Invoke-Command -ComputerName $DC -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
-                        $inObj = [ordered] @{
-                            'Name' = $DC
-                            'DSA Database File' = $NTDS
-                            'Size' = ConvertTo-FileSizeString $size
+                        if ( $NTDS -and $size ) {
+                            $inObj = [ordered] @{
+                                'Name' = $DC
+                                'DSA Database File' = $NTDS
+                                'Size' = ConvertTo-FileSizeString $size
+                            }
+                            $OutObj += [pscustomobject]$inobj
                         }
-                        $OutObj += [pscustomobject]$inobj
                     }
                 }
 
