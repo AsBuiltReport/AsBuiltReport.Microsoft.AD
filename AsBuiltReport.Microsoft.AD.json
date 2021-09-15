@@ -23,6 +23,9 @@
     "HealthCheck": {
         "DomainController": {
             "Diagnostic": true
+        },
+        "Site": {
+            "Replication": true
         }
     }
 }
