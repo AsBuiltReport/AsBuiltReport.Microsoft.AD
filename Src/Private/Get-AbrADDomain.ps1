@@ -141,18 +141,17 @@ function Get-AbrADDomain {
                             $inObj = [ordered] @{
                                 'Name' = $Account.Name
                                 'SamAccountName' = $Account.SamAccountName
-                                'Created' = $Account.Created
+                                'Created' = ($Account.Created).ToUniversalTime().toString("r")
                                 'Enabled' = ConvertTo-TextYN $Account.Enabled
                                 'DNS Host Name' = $Account.DNSHostName
                                 'Host Computers' = $Account.HostComputers
                                 'Retrieve Managed Password' = $Account.PrincipalsAllowedToRetrieveManagedPassword
                                 'Primary Group' = $Account.PrimaryGroup
-                                'Last Logon Date' = $Account.LastLogonDate
+                                'Last Logon Date' = if ($Account.LastLogonDate) {($Account.LastLogonDate).ToUniversalTime().toString("r")}
                                 'Locked Out' = ConvertTo-TextYN $Account.LockedOut
                                 'Logon Count' = $Account.logonCount
                                 'Password Expired' = ConvertTo-TextYN $Account.PasswordExpired
-                                'Password Last Set' = $Account.PasswordLastSet
-
+                                'Password Last Set' = ($Account.PasswordLastSet).ToUniversalTime().toString("r")
                             }
                             $OutObj += [pscustomobject]$inobj
                         }
