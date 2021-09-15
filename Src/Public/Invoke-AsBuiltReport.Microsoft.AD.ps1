@@ -57,6 +57,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         Get-AbrADSite
                     }
                 }
+            }
+            if ($InfoLevel.Domain -gt 0) {
                 foreach ($Domain in ( Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending )) {
                     Section -Style Heading3 "Active Directory Information for Domain $($Domain.ToString().ToUpper())" {
                         Paragraph "The following section provides a summary of the AD Domain Information."
@@ -75,12 +77,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Get-AbrADDCDiag -Domain $Domain
                                 }
                             }
+                            Get-AbrADSiteReplication -Domain $Domain
                             Get-AbrADOU -Domain $Domain
                         }
                     }
                 }#endregion Domain Section
             }#endregion AD Section
         }#endregion AD Section
-	}
-	#endregion foreach loop
+	}#endregion foreach loop
 }
