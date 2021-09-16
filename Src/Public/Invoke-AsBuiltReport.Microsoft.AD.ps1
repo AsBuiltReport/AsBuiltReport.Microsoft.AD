@@ -49,9 +49,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #region Forest Section
             Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -gt 0) {
-                Section -Style Heading2 "Active Directory Forest Information."  {
+                Section -Style Heading2 "Forest Information."  {
                     Get-AbrADForest
-                    Section -Style Heading3 'Active Directory Domain Site Summary' {
+                    Section -Style Heading3 'Domain Site Summary' {
                         Paragraph "The following section provides a summary of the Active Directory Sites on."
                         BlankLine
                         Get-AbrADSite
@@ -60,28 +60,40 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             }
             if ($InfoLevel.Domain -gt 0) {
                 foreach ($Domain in ( Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending )) {
-                    Section -Style Heading3 "Active Directory Information for Domain $($Domain.ToString().ToUpper())" {
-                        Paragraph "The following section provides a summary of the AD Domain Information."
-                        BlankLine
-                        Get-AbrADDomain -Domain $Domain
-                        Get-AbrADFSMO -Domain $Domain
-                        Get-AbrADTrust -Domain $Domain
-                        Section -Style Heading4 'Active Directory Domain Controller Information' {
-                            Paragraph "The following section provides a summary of the Active Directory DC."
-                            BlankLine
-                            Get-AbrADDomainController -Domain $Domain
-                            if ($HealthCheck.DomainController.Diagnostic) {
-                                Section -Style Heading4 'Active Directory DCDiag Information' {
-                                    Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                    try {
+                        if (Get-ADDomain $Domain -ErrorAction Stop) {
+                            Section -Style Heading3 "Active Directory Information for domain $($Domain.ToString().ToUpper())" {
+                                Paragraph "The following section provides a summary of the AD Domain Information."
+                                BlankLine
+                                Get-AbrADDomain -Domain $Domain
+                                Get-AbrADFSMO -Domain $Domain
+                                Get-AbrADTrust -Domain $Domain
+                                Section -Style Heading4 'Domain Controller Information' {
+                                    Paragraph "The following section provides a summary of the Active Directory DC."
                                     BlankLine
-                                    Get-AbrADDCDiag -Domain $Domain
+                                    Get-AbrADDomainController -Domain $Domain
+                                    if ($HealthCheck.DomainController.Diagnostic) {
+                                        Section -Style Heading4 'DCDiag Information' {
+                                            Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                                            BlankLine
+                                            Get-AbrADDCDiag -Domain $Domain
+                                        }
+                                    }
+                                    $DCs = Get-ADDomain -Identity $Domain | Select-Object -ExpandProperty ReplicaDirectoryServers
+                                    foreach ($DC in $DCs){
+                                        Get-AbrADInfrastructureService -Domain $Domain -DC $DC
+                                    }
+                                    Get-AbrADSiteReplication -Domain $Domain
+                                    Get-AbrADOU -Domain $Domain
                                 }
                             }
-                            Get-AbrADSiteReplication -Domain $Domain
-                            Get-AbrADOU -Domain $Domain
                         }
                     }
-                }#endregion Domain Section
+                    catch {
+                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
+                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                    }
+                }
             }#endregion AD Section
         }#endregion AD Section
 	}#endregion foreach loop
