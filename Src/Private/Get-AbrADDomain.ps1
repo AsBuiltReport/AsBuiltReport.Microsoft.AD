@@ -31,56 +31,72 @@ function Get-AbrADDomain {
         $OutObj = @()
         if ($Domain) {
             foreach ($Item in $Domain) {
-                $Domains = Get-ADDomain -Identity $Item
-                $inObj = [ordered] @{
-                    'Domain Name' = $Domains.Name
-                    'NetBIOS Name' = $Domains.NetBIOSName
-                    'Domain SID' = $Domains.DomainSID
-                    'Domain Functional Level' = $Domains.DomainMode
-                    'Domains' = $Domains.Domains
-                    'Forest' = $Domains.Forest
-                    'Parent Domain' = $Domains.ParentDomain
-                    'Replica Directory Servers' = $Domains.ReplicaDirectoryServers -join '; '
-                    'Child Domains' = $Domains.ChildDomains -join '; '
-                    'Computers Container' = $Domains.ComputersContainer
-                    'Distinguished Name' = $Domains.DistinguishedName
-                    'Domain Controllers Container' = $Domains.DomainControllersContainer
-                    'Systems Container' = $Domains.SystemsContainer
-                    'Users Container' = $Domains.UsersContainer
-                    'ReadOnly Replica Directory Servers' = $Domains.ReadOnlyReplicaDirectoryServers
+                Write-PscriboMessage "Collecting AD Domain information from $Item."
+                try {
+                    $DomainInfo = Get-ADDomain $Item -ErrorAction Stop
+                    if ($DomainInfo) {
+                        $inObj = [ordered] @{
+                            'Domain Name' = $DomainInfo.Name
+                            'NetBIOS Name' = $DomainInfo.NetBIOSName
+                            'Domain SID' = $DomainInfo.DomainSID
+                            'Domain Functional Level' = $DomainInfo.DomainMode
+                            'Domains' = $DomainInfo.Domains
+                            'Forest' = $DomainInfo.Forest
+                            'Parent Domain' = $DomainInfo.ParentDomain
+                            'Replica Directory Servers' = if ($DomainInfo.ReplicaDirectoryServers) {$DomainInfo.ReplicaDirectoryServers -join '; '}
+                            'Child Domains' = $DomainInfo.ChildDomains -join '; '
+                            'Computers Container' = $DomainInfo.ComputersContainer
+                            'Distinguished Name' = $DomainInfo.DistinguishedName
+                            'Domain Controllers Container' = $DomainInfo.DomainControllersContainer
+                            'Systems Container' = $DomainInfo.SystemsContainer
+                            'Users Container' = $DomainInfo.UsersContainer
+                            'ReadOnly Replica Directory Servers' = $DomainInfo.ReadOnlyReplicaDirectoryServers
+                        }
+                        $OutObj += [pscustomobject]$inobj
+                    }
                 }
-                $OutObj += [pscustomobject]$inobj
+                catch {
+                    Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
+                }
+                finally {
+                    $TableParams = @{
+                        Name = "AD Domain Summary Information - $($Domain.ToString().ToUpper())"
+                        List = $true
+                        ColumnWidths = 40, 60
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    if ($OutObj) {$OutObj | Table @TableParams}
+                }
             }
-
-            $TableParams = @{
-                Name = "AD Domain Summary Information - $($Domain.ToString().ToUpper())"
-                List = $true
-                ColumnWidths = 40, 60
-            }
-            if ($Report.ShowTableCaptions) {
-                $TableParams['Caption'] = "- $($TableParams.Name)"
-            }
-            $OutObj | Table @TableParams
         }
-        Section -Style Heading5 'Active Directory Domain Object Count Summary' {
+        Section -Style Heading5 'Domain Object Count Summary' {
             Paragraph "The following section provides a summary of the Active Directory Object Count on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
             if ($Domain) {
                 foreach ($Item in $Domain) {
-                    $GlobalCatalog = Get-ADDomainController -Discover -Service GlobalCatalog
-                    $Computers = (Get-ADComputer -Filter * -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
-                    #$Servers = (Get-ADComputer -LDAPFilter "(&(objectClass=Computer)(operatingSystem=*Windows server*))" -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
-                    $Users = (Get-ADUser -filter * -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
-                    $Group = (Get-ADGroup -filter * -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
-                    $inObj = [ordered] @{
-                        'Domain Name' = $Item
-                        'Computer Count' = $Computers.Count
-                        #'Servers Count' = $Servers.Count
-                        'Users Count' = $Users.Count
-                        'Group Count' = $Group.Count
+                    Write-PscriboMessage "Collecting the Active Directory Object Count from $Item."
+                    try {
+                        $GlobalCatalog = Get-ADDomainController -Discover -Service GlobalCatalog
+                        $Computers = (Get-ADComputer -Filter * -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
+                        #$Servers = (Get-ADComputer -LDAPFilter "(&(objectClass=Computer)(operatingSystem=*Windows server*))" -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
+                        $Users = (Get-ADUser -filter * -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
+                        $Group = (Get-ADGroup -filter * -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
+                        $inObj = [ordered] @{
+                            'Domain Name' = $Item
+                            'Computer Count' = $Computers.Count
+                            #'Servers Count' = $Servers.Count
+                            'Users Count' = $Users.Count
+                            'Group Count' = $Group.Count
+                        }
+                        $OutObj += [pscustomobject]$inobj
                     }
-                    $OutObj += [pscustomobject]$inobj
+                    catch {
+                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
+                        Write-Warning $_.Exception.Message
+                    }
                 }
 
                 $TableParams = @{
@@ -91,30 +107,37 @@ function Get-AbrADDomain {
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
-                $OutObj | Table @TableParams
+                if ($OutObj) {$OutObj | Table @TableParams}
             }
         }
-        Section -Style Heading5 'Active Directory Default Domain Password Policy Summary' {
+        Section -Style Heading5 'Default Domain Password Policy Summary' {
             Paragraph "The following section provides a summary of the Default Domain Password Policy on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
             if ($Domain) {
                 foreach ($Item in $Domain) {
-                    $PasswordPolicy = Get-ADDefaultDomainPasswordPolicy -Identity $Item
-                    $inObj = [ordered] @{
-                        'Domain Name' = $Item
-                        'Complexity Enabled' = ConvertTo-TextYN $PasswordPolicy.ComplexityEnabled
-                        'Distinguished Name' = $PasswordPolicy.DistinguishedName
-                        'Lockout Duration' = $PasswordPolicy.LockoutDuration.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
-                        'Lockout Threshold' = $PasswordPolicy.LockoutThreshold
-                        'Lockout Observation Window' = $PasswordPolicy.LockoutObservationWindow.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
-                        'Max Password Age' = $PasswordPolicy.MaxPasswordAge.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
-                        'Min Password Age' = $PasswordPolicy.MinPasswordAge.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
-                        'Min Password Length' = $PasswordPolicy.MinPasswordLength
-                        'Password History Count' = $PasswordPolicy.PasswordHistoryCount
-                        'Reversible Encryption Enabled' = ConvertTo-TextYN $PasswordPolicy.ReversibleEncryptionEnabled
+                    Write-PscriboMessage "Collecting the Active Directory Default Domain Password Policy from $Item."
+                    try {
+                        $PasswordPolicy = Get-ADDefaultDomainPasswordPolicy -Identity $Item
+                        $inObj = [ordered] @{
+                            'Domain Name' = $Item
+                            'Complexity Enabled' = ConvertTo-TextYN $PasswordPolicy.ComplexityEnabled
+                            'Distinguished Name' = $PasswordPolicy.DistinguishedName
+                            'Lockout Duration' = $PasswordPolicy.LockoutDuration.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
+                            'Lockout Threshold' = $PasswordPolicy.LockoutThreshold
+                            'Lockout Observation Window' = $PasswordPolicy.LockoutObservationWindow.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
+                            'Max Password Age' = $PasswordPolicy.MaxPasswordAge.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
+                            'Min Password Age' = $PasswordPolicy.MinPasswordAge.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
+                            'Min Password Length' = $PasswordPolicy.MinPasswordLength
+                            'Password History Count' = $PasswordPolicy.PasswordHistoryCount
+                            'Reversible Encryption Enabled' = ConvertTo-TextYN $PasswordPolicy.ReversibleEncryptionEnabled
+                        }
+                        $OutObj += [pscustomobject]$inobj
                     }
-                    $OutObj += [pscustomobject]$inobj
+                    catch {
+                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
+                        Write-Warning $_.Exception.Message
+                    }
                 }
 
                 $TableParams = @{
@@ -125,36 +148,43 @@ function Get-AbrADDomain {
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
-                $OutObj | Table @TableParams
+                if ($OutObj) {$OutObj | Table @TableParams}
             }
         }
-        Section -Style Heading5 'Active Directory Group Managed Service Accounts Summary' {
+        Section -Style Heading5 'Group Managed Service Accounts (GMSA) Summary' {
             Paragraph "The following section provides a summary of the Group Managed Service Accounts on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
             if ($Domain) {
                 foreach ($Item in $Domain) {
-                    $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1
-                    foreach ($DC in $DCs) {
-                        $GMSA = Get-ADServiceAccount -Filter * -Server $DCs -Properties *
-                        foreach ($Account in $GMSA) {
-                            $inObj = [ordered] @{
-                                'Name' = $Account.Name
-                                'SamAccountName' = $Account.SamAccountName
-                                'Created' = ($Account.Created).ToUniversalTime().toString("r")
-                                'Enabled' = ConvertTo-TextYN $Account.Enabled
-                                'DNS Host Name' = $Account.DNSHostName
-                                'Host Computers' = $Account.HostComputers
-                                'Retrieve Managed Password' = $Account.PrincipalsAllowedToRetrieveManagedPassword
-                                'Primary Group' = $Account.PrimaryGroup
-                                'Last Logon Date' = if ($Account.LastLogonDate) {($Account.LastLogonDate).ToUniversalTime().toString("r")}
-                                'Locked Out' = ConvertTo-TextYN $Account.LockedOut
-                                'Logon Count' = $Account.logonCount
-                                'Password Expired' = ConvertTo-TextYN $Account.PasswordExpired
-                                'Password Last Set' = ($Account.PasswordLastSet).ToUniversalTime().toString("r")
+                    Write-PscriboMessage "Collecting the Active Directory Group Managed Service Accounts from $Item."
+                    try {
+                        $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1
+                        foreach ($DC in $DCs) {
+                            $GMSA = Get-ADServiceAccount -Filter * -Server $DCs -Properties *
+                            foreach ($Account in $GMSA) {
+                                $inObj = [ordered] @{
+                                    'Name' = $Account.Name
+                                    'SamAccountName' = $Account.SamAccountName
+                                    'Created' = ($Account.Created).ToUniversalTime().toString("r")
+                                    'Enabled' = ConvertTo-TextYN $Account.Enabled
+                                    'DNS Host Name' = $Account.DNSHostName
+                                    'Host Computers' = $Account.HostComputers
+                                    'Retrieve Managed Password' = $Account.PrincipalsAllowedToRetrieveManagedPassword
+                                    'Primary Group' = $Account.PrimaryGroup
+                                    'Last Logon Date' = if ($Account.LastLogonDate) {($Account.LastLogonDate).ToUniversalTime().toString("r")}
+                                    'Locked Out' = ConvertTo-TextYN $Account.LockedOut
+                                    'Logon Count' = $Account.logonCount
+                                    'Password Expired' = ConvertTo-TextYN $Account.PasswordExpired
+                                    'Password Last Set' = ($Account.PasswordLastSet).ToUniversalTime().toString("r")
+                                }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                            $OutObj += [pscustomobject]$inobj
                         }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
+                        Write-Warning $_.Exception.Message
                     }
                 }
 
@@ -166,7 +196,7 @@ function Get-AbrADDomain {
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
-                $OutObj | Table @TableParams
+                if ($OutObj) {$OutObj | Table @TableParams}
             }
         }
     }
