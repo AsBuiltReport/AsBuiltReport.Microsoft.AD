@@ -53,7 +53,7 @@ function Get-AbrADSite {
             }
             $OutObj | Table @TableParams
         }
-        Section -Style Heading4 'Active Directory Site Links Summary' {
+        Section -Style Heading4 'Site Links Summary' {
             Paragraph "The following section provides a summary of the Active Directory Site Link information."
             BlankLine
             $Data = Get-ADReplicationSiteLink -Filter * -Properties *

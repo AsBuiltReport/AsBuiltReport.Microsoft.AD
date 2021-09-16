@@ -28,7 +28,7 @@ function Get-AbrADFSMO {
     }
 
     process {
-        Section -Style Heading4 'Active Directory FSMO Information' {
+        Section -Style Heading4 'Flexible Single Master Operations (FSMO) Information' {
             Paragraph "The following section provides a summary of the Active Directory FSMO for Domain $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -45,7 +45,7 @@ function Get-AbrADFSMO {
                 $OutObj += [pscustomobject]$inobj
 
                 $TableParams = @{
-                    Name = "AD FSMO Server Information - $($Domain)"
+                    Name = "FSMO Server Information - $($Domain)"
                     List = $true
                     ColumnWidths = 40, 60
                 }

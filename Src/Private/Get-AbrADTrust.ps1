@@ -28,7 +28,7 @@ function Get-AbrADTrust {
     }
 
     process {
-        Section -Style Heading5 'Active Directory Trust Summary' {
+        Section -Style Heading5 'Trust Summary' {
             Paragraph "The following section provides a summary of Active Directory Trust information on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()

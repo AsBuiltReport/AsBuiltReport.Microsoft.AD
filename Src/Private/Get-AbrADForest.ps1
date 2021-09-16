@@ -62,7 +62,7 @@ function Get-AbrADForest {
             }
             $OutObj | Table @TableParams
         }
-        Section -Style Heading5 'Active Directory Optional Features Summary' {
+        Section -Style Heading5 'Optional Features Summary' {
             Paragraph "The following section provides a summary of the enabled Optional Features."
             BlankLine
             $Data = Get-ADOptionalFeature -Filter *

@@ -28,7 +28,7 @@ function Get-AbrADOU {
     }
 
     process {
-        Section -Style Heading5 'Active Directory Organizational Unit Summary' {
+        Section -Style Heading5 'Organizational Unit Summary' {
             Paragraph "The following section provides a summary of Active Directory OU information on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
