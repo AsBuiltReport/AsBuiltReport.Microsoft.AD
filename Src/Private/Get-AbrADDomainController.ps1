@@ -37,7 +37,7 @@ function Get-AbrADDomainController {
                     try {
                         $DCInfo = Get-ADDomainController -Server $DC
                         $inObj = [ordered] @{
-                            'DC Name' = $DCInfo.Name
+                            'DC Name' = ($DCInfo.Name).ToString().ToUpper()
                             'Domain Name' = $DCInfo.Domain
                             'Site' = $DCInfo.Site
                             'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
@@ -47,7 +47,7 @@ function Get-AbrADDomainController {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-Verbose "WARNING: Could not connect to DC $DC"
+                        Write-PscriboMessage "WARNING: Could not connect to DC $DC"
                     }
                 }
             }
@@ -63,7 +63,7 @@ function Get-AbrADDomainController {
             $OutObj | Table @TableParams
         }
         Write-PscriboMessage "Collecting AD Domain Controller Hardware information."
-        Section -Style Heading5 'Active Directory Domain Controller Hardware Summary' {
+        Section -Style Heading5 'Domain Controller Hardware Summary' {
             Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -100,7 +100,7 @@ function Get-AbrADDomainController {
             }
         }
         Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
-        Section -Style Heading5 'Active Directory Domain Controller NTDS Summary' {
+        Section -Style Heading5 'Domain Controller NTDS Summary' {
             Paragraph "The following section provides a summary of the Domain Controller NTDS file size on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -130,6 +130,49 @@ function Get-AbrADDomainController {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Table @TableParams
+            }
+            Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
+            Section -Style Heading5 'Domain Controller Time Source Summary' {
+                Paragraph "The following section provides a summary of the Domain Controller Time Source configuration on $($Domain.ToString().ToUpper())."
+                BlankLine
+                $OutObj = @()
+                if ($Domain) {
+                    foreach ($Item in $Domain) {
+                        $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                        foreach ($DC in $DCs) {
+                            $NtpServer = Invoke-Command -ComputerName $DC -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
+                            $SourceType = Invoke-Command -ComputerName $DC -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
+
+                            if ( $NtpServer -and $SourceType ) {
+                                $inObj = [ordered] @{
+                                    'Name' = $DC
+                                    'Time Server' = Switch ($NtpServer) {
+                                        'time.windows.com,0x8' {"Domain Hierarchy"}
+                                        'time.windows.com' {"Domain Hierarchy"}
+                                        '0x8' {"Domain Hierarchy"}
+                                        default {$NtpServer}
+                                    }
+                                    'Type' = Switch ($SourceType) {
+                                        'NTP' {"MANUAL (NTP)"}
+                                        'NT5DS' {"DOMHIER"}
+                                        default {$SourceType}
+                                    }
+                                }
+                                $OutObj += [pscustomobject]$inobj
+                            }
+                        }
+                    }
+
+                    $TableParams = @{
+                        Name = "Domain Controller Time Source Configuration - $($Domain.ToString().ToUpper())"
+                        List = $false
+                        ColumnWidths = 40, 40, 20
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    $OutObj | Table @TableParams
+                }
             }
         }
     }
