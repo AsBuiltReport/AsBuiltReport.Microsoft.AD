@@ -7,8 +7,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .NOTES
         Version:        0.1.0
         Author:         Jonathan Colon
-        Twitter:
-        Github:
+        Twitter:        @jcolonfzenpr
+        Github:         rebelinux
         Credits:        Iain Brighton (@iainbrighton) - PScribo module
 
     .LINK
@@ -84,17 +84,35 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         Get-AbrADInfrastructureService -Domain $Domain -DC $DC
                                     }
                                     Get-AbrADSiteReplication -Domain $Domain
+                                    Get-AbrADGPO -Domain $Domain
                                     Get-AbrADOU -Domain $Domain
                                 }
                             }
                         }
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
                         Write-PscriboMessage -IsWarning $_.Exception.Message
+                        throw
                     }
                 }
             }#endregion AD Section
+            if ($InfoLevel.DNS -gt 0) {
+                foreach ($Domain in ( Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending )) {
+                    try {
+                        if (Get-ADDomain $Domain -ErrorAction Stop) {
+                            Section -Style Heading3 "Domain Name System Information for domain $($Domain.ToString().ToUpper())" {
+                                Paragraph "The following section provides a summary of the Domain Name System Information."
+                                BlankLine
+                                Get-AbrADDNSInfrastructure -Domain $Domain -DC $DC
+                            }
+                        }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                        throw
+                    }
+                }
+            }
         }#endregion AD Section
 	}#endregion foreach loop
 }
