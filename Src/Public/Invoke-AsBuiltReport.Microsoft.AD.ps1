@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.1.0
+        Version:        0.2.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -92,7 +92,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning $_.Exception.Message
-                        throw
+                        continue
                     }
                 }
             }#endregion AD Section
@@ -106,10 +106,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                 Get-AbrADDNSInfrastructure -Domain $Domain -DC $DC
                             }
                         }
+                        $DCs = Get-ADDomain $Domain | Select-Object -ExpandProperty ReplicaDirectoryServers
+                        foreach ($DC in $DCs){
+                            Get-AbrADDNSZone -Domain $Domain -DC $DC
+                        }
                     }
                     catch {
                         Write-PscriboMessage -IsWarning $_.Exception.Message
-                        throw
+                        continue
                     }
                 }
             }
