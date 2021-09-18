@@ -31,7 +31,7 @@ function Get-AbrADDomain {
         $OutObj = @()
         if ($Domain) {
             foreach ($Item in $Domain) {
-                Write-PscriboMessage "Collecting AD Domain information from $Item."
+                Write-PscriboMessage "Collecting Active Directory Domain information from $Item."
                 try {
                     $DomainInfo = Get-ADDomain $Item -ErrorAction Stop
                     if ($DomainInfo) {
@@ -43,8 +43,8 @@ function Get-AbrADDomain {
                             'Domains' = $DomainInfo.Domains
                             'Forest' = $DomainInfo.Forest
                             'Parent Domain' = $DomainInfo.ParentDomain
-                            'Replica Directory Servers' = if ($DomainInfo.ReplicaDirectoryServers) {$DomainInfo.ReplicaDirectoryServers -join '; '}
-                            'Child Domains' = $DomainInfo.ChildDomains -join '; '
+                            'Replica Directory Servers' = $DomainInfo.ReplicaDirectoryServers
+                            'Child Domains' = $DomainInfo.ChildDomains
                             'Computers Container' = $DomainInfo.ComputersContainer
                             'Distinguished Name' = $DomainInfo.DistinguishedName
                             'Domain Controllers Container' = $DomainInfo.DomainControllersContainer
@@ -57,18 +57,18 @@ function Get-AbrADDomain {
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
+                    Write-PscriboMessage $_.Exception.Message
                 }
-                finally {
-                    $TableParams = @{
-                        Name = "AD Domain Summary Information - $($Domain.ToString().ToUpper())"
-                        List = $true
-                        ColumnWidths = 40, 60
-                    }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    if ($OutObj) {$OutObj | Table @TableParams}
+
+                $TableParams = @{
+                    Name = "AD Domain Summary Information - $($Domain.ToString().ToUpper())"
+                    List = $true
+                    ColumnWidths = 40, 60
                 }
+                if ($Report.ShowTableCaptions) {
+                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                }
+                if ($OutObj) {$OutObj | Table @TableParams}
             }
         }
         Section -Style Heading5 'Domain Object Count Summary' {
@@ -95,7 +95,7 @@ function Get-AbrADDomain {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
-                        Write-Warning $_.Exception.Message
+                        Write-PscriboMessage $_.Exception.Message
                     }
                 }
 
@@ -136,7 +136,7 @@ function Get-AbrADDomain {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
-                        Write-Warning $_.Exception.Message
+                        Write-PscriboMessage $_.Exception.Message
                     }
                 }
 
@@ -161,22 +161,22 @@ function Get-AbrADDomain {
                     try {
                         $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1
                         foreach ($DC in $DCs) {
-                            $GMSA = Get-ADServiceAccount -Filter * -Server $DCs -Properties *
+                            $GMSA = Get-ADServiceAccount -Filter * -Server $DC -Properties *
                             foreach ($Account in $GMSA) {
                                 $inObj = [ordered] @{
                                     'Name' = $Account.Name
                                     'SamAccountName' = $Account.SamAccountName
-                                    'Created' = ($Account.Created).ToUniversalTime().toString("r")
+                                    'Created' = $Account.Created
                                     'Enabled' = ConvertTo-TextYN $Account.Enabled
                                     'DNS Host Name' = $Account.DNSHostName
                                     'Host Computers' = $Account.HostComputers
                                     'Retrieve Managed Password' = $Account.PrincipalsAllowedToRetrieveManagedPassword
                                     'Primary Group' = $Account.PrimaryGroup
-                                    'Last Logon Date' = if ($Account.LastLogonDate) {($Account.LastLogonDate).ToUniversalTime().toString("r")}
+                                    'Last Logon Date' = $Account.LastLogonDate
                                     'Locked Out' = ConvertTo-TextYN $Account.LockedOut
                                     'Logon Count' = $Account.logonCount
                                     'Password Expired' = ConvertTo-TextYN $Account.PasswordExpired
-                                    'Password Last Set' = ($Account.PasswordLastSet).ToUniversalTime().toString("r")
+                                    'Password Last Set' =  $Account.PasswordLastSet
                                 }
                                 $OutObj += [pscustomobject]$inobj
                             }
@@ -184,7 +184,7 @@ function Get-AbrADDomain {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
-                        Write-Warning $_.Exception.Message
+                        Write-PscriboMessage $_.Exception.Message
                     }
                 }
 

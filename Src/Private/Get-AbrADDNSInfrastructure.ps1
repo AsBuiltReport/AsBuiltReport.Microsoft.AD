@@ -122,7 +122,11 @@ function Get-AbrADDNSInfrastructure {
                                     'NoRefresh Interval' = $DNSSetting.NoRefreshInterval
                                     'Refresh Interval' = $DNSSetting.RefreshInterval
                                     'Scavenging Interval' = $DNSSetting.ScavengingInterval
-                                    'Last Scavenge Time' = if ($DNSSetting.LastScavengeTime) {$DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy")}
+                                    'Last Scavenge Time' = Switch ($DNSSetting.LastScavengeTime) {
+                                        !$Null {$DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy")}
+                                        default {$DNSSetting.LastScavengeTime}
+
+                                    }
                                     'Scavenging State' = Switch ($DNSSetting.ScavengingState) {
                                         "True" {"Enabled"}
                                         "False" {"Disabled"}
