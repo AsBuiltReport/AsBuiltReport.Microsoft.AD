@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.1.0
+        Version:        0.2.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -61,7 +61,7 @@ function Get-AbrADSiteReplication {
 
                 }
 
-                if ($Healthcheck.Site.Replication) {
+                if ($HealthCheck.Site.Replication) {
                     $OutObj | Where-Object { $_.'Enabled' -ne 'Yes'} | Set-Style -Style Warning -Property 'Enabled'
                 }
 
@@ -81,7 +81,7 @@ function Get-AbrADSiteReplication {
             Paragraph "The following section provides a summary of the Active Directory Site Replication Failure information."
             BlankLine
             $OutObj = @()
-            if (($Healthcheck.Site.Replication) -and (Get-ADReplicationFailure -Target $Domain -Scope Domain)) {
+            if (($HealthCheck.Site.Replication) -and (Get-ADReplicationFailure -Target $Domain -Scope Domain)) {
                 foreach ($Item in $Domain) {
                     $Failures =  Get-ADReplicationFailure -Target $Domain -Scope Domain
                     foreach ($Fails in $Failures) {
@@ -97,8 +97,8 @@ function Get-AbrADSiteReplication {
                     }
                 }
 
-                if ($Healthcheck.Site.Replication) {
-                    $OutObj | Where-Object { $_.'Enabled' -ne 'Yes'} | Set-Style -Style Warning -Property 'Enabled'
+                if ($HealthCheck.Site.Replication) {
+                    $OutObj | Where-Object {$NULL -notlike $_.'Last Error'} | Set-Style -Style Warning -Property 'Last Error', 'Failure Type', 'Failure Count', 'First Failure Time'
                 }
 
                 $TableParams = @{

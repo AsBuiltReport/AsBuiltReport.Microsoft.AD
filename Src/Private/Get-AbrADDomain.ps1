@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.1.0
+        Version:        0.2.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -186,6 +186,10 @@ function Get-AbrADDomain {
                         Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
                         Write-Warning $_.Exception.Message
                     }
+                }
+
+                if ($HealthCheck.Domain.GMSA) {
+                    $OutObj | Where-Object { $_.'Enabled' -notlike 'Yes'} | Set-Style -Style Warning -Property 'Enabled'
                 }
 
                 $TableParams = @{
