@@ -39,7 +39,7 @@ Below are the instructions on how to install, configure and generate a Microsoft
 
 ## :floppy_disk: Supported Versions
 <!-- ********** Update supported AD versions ********** -->
-The Microsoft AD As Built Report supports the following AD versions;
+The Microsoft AD As Built Report supports the following Active Directory versions;
 
 - 2008, 2008 R2, 2012, 2016, 2019
 
@@ -70,8 +70,7 @@ PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are require
 ❗ If you are unable to install .NET Core, you must set `ShowCoverPageImage` to `False` in the report JSON configuration file.
 
 ### :closed_lock_with_key: Required Privileges
-<!-- ********** Define required privileges ********** -->
-<!-- ********** Try to follow best practices to define least privileges ********** -->
+A Microsoft AD As Built Report can be generated with Active Directory Forest level privileges.
 
 ## :package: Module Installation
 
