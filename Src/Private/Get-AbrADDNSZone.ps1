@@ -21,12 +21,14 @@ function Get-AbrADDNSZone {
             Mandatory)]
             [string]
             $Domain,
+            [PSCredential]
+            $Cred,
             [string]
             $DC
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Domain Name System Zone information of $DC."
+        Write-PscriboMessage "Discovering Actve Directory Domain Name System Zone information on $Domain."
     }
 
     process {
@@ -34,9 +36,12 @@ function Get-AbrADDNSZone {
             Paragraph "The following section provides a summary of the Domain Name System Zone Configuration information."
             BlankLine
             $OutObj = @()
-            if ($Domain -and $DC) {
-                $DNSSetting = Get-DnsServerZone -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "False"}
+            if ($DC) {
+                Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC"
+                $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False"}}
                 foreach ($Zones in $DNSSetting) {
+                    Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
                     $inObj = [ordered] @{
                         'Zone Name' = $Zones.ZoneName
                         'Zone Type' = $Zones.ZoneType
@@ -59,8 +64,10 @@ function Get-AbrADDNSZone {
                 }
                 $OutObj | Table @TableParams
             }
-            $DNSSetting = Get-DnsServerZone -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ReplicationScope -eq "Domain"}
-            $Zones = Get-DnsServerZoneDelegation -ComputerName $DC -Name $DNSSetting.ZoneName
+            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+            Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC"
+            $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ReplicationScope -eq "Domain"} | Select-Object -ExpandProperty ZoneName }
+            $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneDelegation -Name $using:DNSSetting}
             if ($Zones) {
                 Section -Style Heading5 "Domain Name System Zone Delegation of $($DC.ToString().ToUpper().Split(".")[0])" {
                     Paragraph "The following section provides a summary of the Domain Name System Zone Delegation information."
@@ -70,6 +77,7 @@ function Get-AbrADDNSZone {
                         if ($Zones) {
                             foreach ($Delegations in $Zones) {
                                 if ($Delegations) {
+                                    Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Delegations.ZoneName)' on $DC"
                                     $inObj = [ordered] @{
                                         'Zone Name' = $Delegations.ZoneName
                                         'Child Zone' = $Delegations.ChildZoneName
@@ -97,9 +105,12 @@ function Get-AbrADDNSZone {
                 Paragraph "The following section provides a summary of the Domain Name System Reverse Lookup Zone Configuration information."
                 BlankLine
                 $OutObj = @()
-                if ($Domain -and $DC) {
-                    $DNSSetting = Get-DnsServerZone -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "True"}
+                if ($DC) {
+                    Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC"
+                    $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                    $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "True"}}
                     foreach ($Zones in $DNSSetting) {
+                        Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
                         $inObj = [ordered] @{
                             'Zone Name' = $Zones.ZoneName
                             'Zone Type' = $Zones.ZoneType
@@ -128,9 +139,12 @@ function Get-AbrADDNSZone {
             Paragraph "The following section provides a summary of the Domain Name System Zone Aging properties information."
             BlankLine
             $OutObj = @()
-            $DNSSetting = Get-DnsServerZone -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "False"}
-            $Zones = Get-DnsServerZoneAging -ComputerName $DC -Name $DNSSetting.ZoneName
+            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+            Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC"
+            $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False"} | Select-Object -ExpandProperty ZoneName }
+            $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneAging -Name $using:DNSSetting}
             foreach ($Settings in $Zones) {
+                Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Settings.ZoneName)' on $DC"
                 $inObj = [ordered] @{
                     'Zone Name' = $Settings.ZoneName
                     'Aging Enabled' = ConvertTo-TextYN $Settings.AgingEnabled

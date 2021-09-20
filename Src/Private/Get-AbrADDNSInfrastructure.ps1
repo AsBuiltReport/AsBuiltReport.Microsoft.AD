@@ -21,12 +21,11 @@ function Get-AbrADDNSInfrastructure {
             Mandatory)]
             [string]
             $Domain,
-            [string]
-            $DC
+            $Session
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Domain Name System Infrastructure information for $DC."
+        Write-PscriboMessage "Discovering Active Directory Domain Name System Infrastructure information for $Domain"
     }
 
     process {
@@ -36,10 +35,12 @@ function Get-AbrADDNSInfrastructure {
             $OutObj = @()
             if ($Domain) {
                 foreach ($Item in $Domain) {
-                    $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                    $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                    if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
                     foreach ($DC in $DCs) {
+                        Write-PscriboMessage "Collectin Domain Name System Infrastructure information on '$($DC)'."
                         try {
-                            $DNSSetting = Get-DnsServerSetting -ComputerName $DC
+                            $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerSetting -ComputerName $using:DC}
                             $inObj = [ordered] @{
                                 'DC Name' = $($DNSSetting.ComputerName.ToString().ToUpper().Split(".")[0])
                                 'Build Number' = $DNSSetting.BuildNumber
@@ -73,10 +74,12 @@ function Get-AbrADDNSInfrastructure {
                 $OutObj = @()
                 if ($Domain) {
                     foreach ($Item in $Domain) {
-                        $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                        if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
                         foreach ($DC in $DCs) {
+                            Write-PscriboMessage "Collectin Domain Name System Infrastructure information on '$($DC)'."
                             try {
-                                $DNSSetting = Get-DnsServerResponseRateLimiting -ComputerName $DC
+                                $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerResponseRateLimiting -ComputerName $using:DC}
                                 $inObj = [ordered] @{
                                     'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                     'Status' = $DNSSetting.Mode
@@ -113,10 +116,12 @@ function Get-AbrADDNSInfrastructure {
                 $OutObj = @()
                 if ($Domain) {
                     foreach ($Item in $Domain) {
-                        $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                        if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
                         foreach ($DC in $DCs) {
+                            Write-PscriboMessage "Collectin Domain Name System Infrastructure information on '$($DC)'."
                             try {
-                                $DNSSetting = Get-DnsServerScavenging -ComputerName $DC
+                                $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerScavenging -ComputerName $using:DC}
                                 $inObj = [ordered] @{
                                     'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                     'NoRefresh Interval' = $DNSSetting.NoRefreshInterval
@@ -159,11 +164,13 @@ function Get-AbrADDNSInfrastructure {
                 $OutObj = @()
                 if ($Domain) {
                     foreach ($Item in $Domain) {
-                        $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                        if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
                         foreach ($DC in $DCs) {
+                            Write-PscriboMessage "Collectin Domain Name System Infrastructure information on '$($DC)'."
                             try {
-                                $DNSSetting = Get-DnsServerForwarder -ComputerName $DC
-                                $Recursion = Get-DnsServerRecursion -ComputerName $DC | Select-Object -ExpandProperty Enable
+                                $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerForwarder -ComputerName $using:DC}
+                                $Recursion = Invoke-Command -Session $Session {Get-DnsServerRecursion -ComputerName $using:DC | Select-Object -ExpandProperty Enable}
                                 $inObj = [ordered] @{
                                     'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                     'IP Address' = $DNSSetting.IPAddress
@@ -197,10 +204,12 @@ function Get-AbrADDNSInfrastructure {
                 $OutObj = @()
                 if ($Domain) {
                     foreach ($Item in $Domain) {
-                        $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                        if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
                         foreach ($DC in $DCs) {
+                            Write-PscriboMessage "Collectin Domain Name System Infrastructure information on '$($DC)'."
                             try {
-                                $DNSSetting = Get-DnsServerRecursionScope -ComputerName $DC
+                                $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerRecursionScope -ComputerName $using:DC}
                                 $inObj = [ordered] @{
                                     'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                     'Zone Name' = Switch ($DNSSetting.Name) {

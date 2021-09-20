@@ -16,16 +16,21 @@ function Get-AbrADForest {
     #>
     [CmdletBinding()]
     param (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            $Session
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Forest information."
+        Write-PscriboMessage "Discovering Active Directory forest information."
     }
 
     process {
-        $Data = Get-ADForest
+        $Data = Invoke-Command -Session $Session {Get-ADForest}
         $ForestInfo =  $Data.RootDomain.toUpper()
-        $ADVersion = Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object objectVersion
+        Write-PscriboMessage "Discovered Active Directory information of forest $ForestInfo."
+        $ADVersion = Invoke-Command -Session $Session {Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object objectVersion}
         $ADnumber = $ADVersion -replace "@{objectVersion=","" -replace "}",""
         If ($ADnumber -eq '88') {$server = 'Windows Server 2019'}
         ElseIf ($ADnumber -eq '87') {$server = 'Windows Server 2016'}
@@ -37,6 +42,7 @@ function Get-AbrADForest {
         ElseIf ($ADnumber -eq '30') {$server = 'Windows Server 2003'}
         $OutObj = @()
         if ($Data) {
+            Write-PscriboMessage "Collecting Active Directory information of forest $ForestInfo."
             foreach ($Item in $Data) {
                 $inObj = [ordered] @{
                     'Forest Name' = $Item.RootDomain
@@ -65,11 +71,14 @@ function Get-AbrADForest {
         Section -Style Heading5 'Optional Features Summary' {
             Paragraph "The following section provides a summary of the enabled Optional Features."
             BlankLine
-            $Data = Get-ADOptionalFeature -Filter *
+            Write-PscriboMessage "Discovering Optional Features enabled on forest $ForestInfo."
+            $Data = Invoke-Command -Session $Session {Get-ADOptionalFeature -Filter *}
             $OutObj = @()
             if ($Data) {
+                Write-PscriboMessage "Discovered Optional Features enabled on forest $ForestInfo."
                 foreach ($Item in $Data) {
-                    $Forest = Get-ADForest
+                    Write-PscriboMessage "Collecting Optional Features '$($Item.Name)'"
+                    $Forest = Invoke-Command -Session $Session {Get-ADForest}
                     $inObj = [ordered] @{
                         'Name' = $Item.Name
                         'Required Forest Mode' = $Item.RequiredForestMode

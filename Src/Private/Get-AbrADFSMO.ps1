@@ -20,11 +20,12 @@ function Get-AbrADFSMO {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain
+            $Domain,
+            $Session
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD FSMO information."
+        Write-PscriboMessage "Discovering Active Directory FSMO information of domain $ForestInfo."
     }
 
     process {
@@ -33,8 +34,9 @@ function Get-AbrADFSMO {
             BlankLine
             $OutObj = @()
             if ($Domain) {
-                $DomainData = Get-ADDomain $Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator
-                $ForestData = Get-ADForest $Domain | Select-Object DomainNamingMaster, SchemaMaster
+                $DomainData = Invoke-Command -Session $Session {Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator}
+                $ForestData = Invoke-Command -Session $Session {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
+                Write-PscriboMessage "Discovered Active Directory FSMO information of domain $Domain."
                 $inObj = [ordered] @{
                     'Infrastructure Master Server' = $DomainData.InfrastructureMaster
                     'RID Master Server' = $DomainData.RIDMaster

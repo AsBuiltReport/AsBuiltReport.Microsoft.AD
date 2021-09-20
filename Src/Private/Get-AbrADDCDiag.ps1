@@ -20,11 +20,14 @@ function Get-AbrADDCDiag {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain
+            $Domain,
+            [string]
+            $DC,
+            $Session
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD DCDiag information."
+        Write-PscriboMessage "Discovering Active Directory DCDiag information for domain $Domain."
     }
 
     process {
@@ -34,7 +37,7 @@ function Get-AbrADDCDiag {
                 [ValidateNotNullOrEmpty()]
                 [string]$DomainController
             )
-            $result = dcdiag /s:$DomainController
+            $result = Invoke-Command -Session $TempPssSession {dcdiag /s:$using:DomainController}
             $result | select-string -pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
                 $obj = @{
                     TestName = $_.Matches.Groups[3].Value
@@ -45,20 +48,18 @@ function Get-AbrADDCDiag {
             }
         }
         $OutObj = @()
-        if ($Domain) {
-            foreach ($Item in $Domain) {
-                $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
-                foreach ($DC in $DCs) {
-                    $DCDIAG = Invoke-DcDiag -DomainController $DC | Where-Object {$_.TestResult -eq "failed"}
-                    foreach ($Result in $DCDIAG) {
-                        $inObj = [ordered] @{
-                            'DC Name' = $DC
-                            'Test Name' = $Result.TestName
-                            'Result' = $Result.TestResult
-                        }
-                        $OutObj += [pscustomobject]$inobj
-                    }
+        if ($DC) {
+            Write-PscriboMessage "Discovering Active Directory DCDiag information for DC $DC."
+            $DCDIAG = Invoke-DcDiag -DomainController $DC
+            Write-PscriboMessage "Discovered Active Directory DCDiag information for DC $DC."
+            foreach ($Result in $DCDIAG) {
+                Write-PscriboMessage "Collecting Active Directory DCDiag test '$($Result.TestName)' for DC $DC."
+                $inObj = [ordered] @{
+                    'DC Name' = $DC
+                    'Test Name' = $Result.TestName
+                    'Result' = $Result.TestResult
                 }
+                $OutObj += [pscustomobject]$inobj
             }
 
             $TableParams = @{

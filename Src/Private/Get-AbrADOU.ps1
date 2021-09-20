@@ -20,11 +20,12 @@ function Get-AbrADOU {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain
+            $Domain,
+            $Session
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Organizational Unit information."
+        Write-PscriboMessage "Discovering Active Directory Organizational Unit information on domain $Domain"
     }
 
     process {
@@ -33,13 +34,16 @@ function Get-AbrADOU {
             BlankLine
             $OutObj = @()
             if ($Domain) {
-                $DC = Get-ADDomainController -Discover -Domain $Domain | Select-Object -ExpandProperty HostName
-                $OUs = Get-ADOrganizationalUnit -Server $DC -Searchbase (Get-ADDomain -Identity $Domain).distinguishedName -Filter *
+                $DC = Invoke-Command -Session $Session -ScriptBlock {Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName}
+                Write-PscriboMessage "Discovered Active Directory Organizational Unit information on DC $DC"
+                $OUs = Invoke-Command -Session $Session -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter *}
                 foreach ($OU in $OUs) {
+                    Write-PscriboMessage "Collecting information of Active Directory Organizational Unit $OU"
                     $GPOArray = @()
                     [array]$GPOs = $OU.LinkedGroupPolicyObjects
                     foreach ($Object in $GPOs) {
                         $GP = Get-GPO -Guid $Object.Split(",")[0].Split("=")[1]
+                        Write-PscriboMessage "Collecting linked GPO: '$($GP.DisplayName)' on Organizational Unit $OU"
                         $GPOArray += $GP.DisplayName
                     }
                     $inObj = [ordered] @{

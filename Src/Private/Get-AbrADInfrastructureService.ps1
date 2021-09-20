@@ -20,26 +20,30 @@ function Get-AbrADInfrastructureService {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain,
-            [string]
-            $DC
+            $DC,
+            [pscredential]
+            $Cred
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Domain Controller Infrastructure Services information of $DC."
+        Write-PscriboMessage "Discovering Active Directory DC Infrastructure Services information of $DC."
     }
 
     process {
-        $Available = Invoke-Command -ComputerName $DC -ScriptBlock {Get-Service "W32Time" | Select-Object DisplayName, Name, Status}
+        Write-PscriboMessage "Discovering AD Domain Controller Time Source information for $DC."
+        $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+        $Available = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service "W32Time" | Select-Object DisplayName, Name, Status}
         if ($Available) {
+            Write-PscriboMessage "Discovered Active Directory DC Infrastructure Services information of $DC."
             Section -Style Heading5 "Domain Controller Infrastructure Services Status of $($DC.ToString().ToUpper().Split(".")[0])" {
                 Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                 BlankLine
                 $OutObj = @()
-                if ($Domain -and $DC) {
+                if ($DC) {
                     $Services = @('DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time')
                     foreach ($Service in $Services) {
-                        $Status = Invoke-Command -ComputerName $DC -ScriptBlock {Get-Service $using:Service | Select-Object DisplayName, Name, Status}
+                        $Status = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service $using:Service | Select-Object DisplayName, Name, Status}
+                        Write-PscriboMessage "Collecting Domain Controller '$($Status.DisplayName)' Services status on $DC."
                         $inObj = [ordered] @{
                             'Display Name' = $Status.DisplayName
                             'Short Name' = $Status.Name

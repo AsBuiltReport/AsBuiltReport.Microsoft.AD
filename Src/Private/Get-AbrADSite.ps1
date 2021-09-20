@@ -16,29 +16,34 @@ function Get-AbrADSite {
     #>
     [CmdletBinding()]
     param (
-
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            $Session
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Domain Sites information."
+        Write-PscriboMessage "Discovering Active Directory Sites information of forest $ForestInfo"
     }
 
     process {
-        $Data = Get-ADReplicationSite -Filter * -Properties *
+        $Data =  Invoke-Command -Session $Session {Get-ADReplicationSite -Filter * -Properties *}
         $OutObj = @()
         if ($Data) {
+            Write-PscriboMessage "Discovered Active Directory Sites information of forest $ForestInfo"
             foreach ($Item in $Data) {
+                Write-PscriboMessage "Collecting '$($Item.Name)' Site"
                 $SubnetArray = @()
                 $Subnets = $Item.Subnets
                 foreach ($Object in $Subnets) {
-                    $SubnetName = Get-ADReplicationSubnet $Object
+                    $SubnetName =  Invoke-Command -Session $Session {Get-ADReplicationSubnet $using:Object}
                     $SubnetArray += $SubnetName.Name
                 }
                 $inObj = [ordered] @{
                     'Site Name' = $Item.Name
                     'Description' = $Item.Description
                     'Creation Date' = ($Item.createTimeStamp).ToUniversalTime().toString("r")
-                    'Subnets' = $SubnetArray -join ", "
+                    'Subnets' = $SubnetArray
                 }
                 $OutObj += [pscustomobject]$inobj
             }
@@ -56,14 +61,16 @@ function Get-AbrADSite {
         Section -Style Heading4 'Site Links Summary' {
             Paragraph "The following section provides a summary of the Active Directory Site Link information."
             BlankLine
-            $Data = Get-ADReplicationSiteLink -Filter * -Properties *
+            $Data =  Invoke-Command -Session $Session {Get-ADReplicationSiteLink -Filter * -Properties *}
             $OutObj = @()
             if ($Data) {
+                Write-PscriboMessage "Discovered Active Directory Sites Link information of forest $ForestInfo"
                 foreach ($Item in $Data) {
+                    Write-PscriboMessage "Collecting '$($Item.Name)' Site Link"
                     $SiteArray = @()
                     $Sites = $Item.siteList
                     foreach ($Object in $Sites) {
-                        $SiteName = Get-ADReplicationSite -Identity $Object
+                        $SiteName =  Invoke-Command -Session $Session {Get-ADReplicationSite -Identity $using:Object}
                         $SiteArray += $SiteName.Name
                     }
                     $inObj = [ordered] @{
@@ -71,7 +78,7 @@ function Get-AbrADSite {
                         'Cost' = $Item.Cost
                         'Replication Frequency' = "$($Item.ReplicationFrequencyInMinutes) min"
                         'Transport Protocol' = $Item.InterSiteTransportProtocol
-                        'Sites' = $SiteArray -join ", "
+                        'Sites' = $SiteArray
                     }
                     $OutObj += [pscustomobject]$inobj
                 }

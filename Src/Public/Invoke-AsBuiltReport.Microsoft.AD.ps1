@@ -34,14 +34,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     #region foreach loop
     foreach ($System in $Target) {
         Try {
-            Write-PScriboMessage "Connecting to AD System '$System'."
-            $ADSystem = Get-ADForest -Server $System -Credential $Credential -ErrorAction Stop
+            Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
+            $TempPssSession = New-PSSession $System -Credential $Credential -Authentication Default
+            $ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
         } Catch {
             Write-Verbose "Unable to connect to the $System"
             throw
         }
-        $Data = Get-ADForest
-        $ForestInfo =  $Data.RootDomain.toUpper()
+        $global:ForestInfo =  $ADSystem.RootDomain.toUpper()
         #region Forest Section
         Section -Style Heading1 "Report for Active Directory Forest $($ForestInfo.toUpper())" {
             Paragraph "The following section provides a summary of the Active Directory Infrastructure configuration for $($ForestInfo)."
@@ -50,42 +50,45 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -gt 0) {
                 Section -Style Heading2 "Forest Information."  {
-                    Get-AbrADForest
+                    Get-AbrADForest -Session $TempPssSession
                     Section -Style Heading3 'Domain Site Summary' {
                         Paragraph "The following section provides a summary of the Active Directory Sites on."
                         BlankLine
-                        Get-AbrADSite
+                        Get-AbrADSite -Session $TempPssSession
                     }
                 }
             }
             if ($InfoLevel.Domain -gt 0) {
-                foreach ($Domain in ( Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending )) {
+                foreach ($Domain in (Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                     try {
-                        if (Get-ADDomain $Domain -ErrorAction Stop) {
+                        if (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}) {
                             Section -Style Heading3 "Active Directory Information for domain $($Domain.ToString().ToUpper())" {
                                 Paragraph "The following section provides a summary of the AD Domain Information."
                                 BlankLine
-                                Get-AbrADDomain -Domain $Domain
-                                Get-AbrADFSMO -Domain $Domain
-                                Get-AbrADTrust -Domain $Domain
+                                Get-AbrADDomain -Domain $Domain -Session $TempPssSession
+                                Get-AbrADFSMO -Domain $Domain -Session $TempPssSession
+                                Get-AbrADTrust -Domain $Domain -Session $TempPssSession -Cred $Credential
                                 Section -Style Heading4 'Domain Controller Information' {
-                                    Paragraph "The following section provides a summary of the Active Directory DC."
+                                    Paragraph "The following section provides a summary of the Active Directory Domain Controller."
                                     BlankLine
-                                    Get-AbrADDomainController -Domain $Domain
+                                    Get-AbrADDomainController -Domain $Domain -Session $TempPssSession -Cred $Credential
                                     if ($HealthCheck.DomainController.Diagnostic) {
                                         Section -Style Heading4 'DCDiag Information' {
                                             Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
                                             BlankLine
-                                            Get-AbrADDCDiag -Domain $Domain
+                                            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                            foreach ($DC in $DCs){
+                                                Get-AbrADDCDiag -Domain $Domain -Session $TempPssSession -DC $DC
+                                            }
                                         }
                                     }
-                                    $DCs = Get-ADDomain -Identity $Domain | Select-Object -ExpandProperty ReplicaDirectoryServers
+                                    $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                     foreach ($DC in $DCs){
-                                        Get-AbrADInfrastructureService -Domain $Domain -DC $DC
+                                        Get-AbrADInfrastructureService -DC $DC -Cred $Credential
                                     }
-                                    Get-AbrADSiteReplication -Domain $Domain
-                                    Get-AbrADGPO -Domain $Domain
-                                    Get-AbrADOU -Domain $Domain
+                                    Get-AbrADSiteReplication -Domain $Domain -Session $TempPssSession
+                                    Get-AbrADGPO -Domain $Domain -Session $TempPssSession
+                                    Get-AbrADOU -Domain $Domain -Session $TempPssSession
                                 }
                             }
                         }
@@ -97,18 +100,18 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                 }
             }#endregion AD Section
             if ($InfoLevel.DNS -gt 0) {
-                foreach ($Domain in ( Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending )) {
+                foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                     try {
-                        if (Get-ADDomain $Domain -ErrorAction Stop) {
+                        if (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}) {
                             Section -Style Heading3 "Domain Name System Information for domain $($Domain.ToString().ToUpper())" {
                                 Paragraph "The following section provides a summary of the Domain Name System Information."
                                 BlankLine
-                                Get-AbrADDNSInfrastructure -Domain $Domain -DC $DC
+                                Get-AbrADDNSInfrastructure -Domain $Domain -Session $TempPssSession
                             }
                         }
-                        $DCs = Get-ADDomain $Domain | Select-Object -ExpandProperty ReplicaDirectoryServers
+                        $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                         foreach ($DC in $DCs){
-                            Get-AbrADDNSZone -Domain $Domain -DC $DC
+                            Get-AbrADDNSZone -Domain $Domain -DC $DC -Cred $Credential
                         }
                     }
                     catch {

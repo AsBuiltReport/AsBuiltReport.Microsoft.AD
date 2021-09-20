@@ -20,21 +20,23 @@ function Get-AbrADDomain {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain
+            $Domain,
+            $Session
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Domain information."
+        Write-PscriboMessage "Discovering AD Domain information on forest $Forestinfo."
     }
 
     process {
         $OutObj = @()
         if ($Domain) {
             foreach ($Item in $Domain) {
-                Write-PscriboMessage "Collecting Active Directory Domain information from $Item."
                 try {
-                    $DomainInfo = Get-ADDomain $Item -ErrorAction Stop
+                    $DomainInfo =  Invoke-Command -Session $Session {Get-ADDomain $using:Item -ErrorAction Stop}
+                    Write-PscriboMessage "Discovered Active Directory Domain information of domain $Domain."
                     if ($DomainInfo) {
+                        Write-PscriboMessage "Collectin Domain information of '$($DomainInfo.Name)'."
                         $inObj = [ordered] @{
                             'Domain Name' = $DomainInfo.Name
                             'NetBIOS Name' = $DomainInfo.NetBIOSName
@@ -77,13 +79,13 @@ function Get-AbrADDomain {
             $OutObj = @()
             if ($Domain) {
                 foreach ($Item in $Domain) {
-                    Write-PscriboMessage "Collecting the Active Directory Object Count from $Item."
+                    Write-PscriboMessage "Collecting the Active Directory Object Count of domain $Item."
                     try {
-                        $GlobalCatalog = Get-ADDomainController -Discover -Service GlobalCatalog
-                        $Computers = (Get-ADComputer -Filter * -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
+                        $GlobalCatalog =  "$(Invoke-Command -Session $Session {Get-ADDomainController -Discover -Service GlobalCatalog | Select-Object -ExpandProperty HostName}):3268"
+                        $Computers =  Invoke-Command -Session $Session {(Get-ADComputer -Filter * -Server $using:GlobalCatalog -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
                         #$Servers = (Get-ADComputer -LDAPFilter "(&(objectClass=Computer)(operatingSystem=*Windows server*))" -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
-                        $Users = (Get-ADUser -filter * -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
-                        $Group = (Get-ADGroup -filter * -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
+                        $Users =  Invoke-Command -Session $Session {(Get-ADUser -filter * -Server $using:GlobalCatalog -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
+                        $Group =  Invoke-Command -Session $Session {(Get-ADGroup -filter * -Server $using:GlobalCatalog -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
                         $inObj = [ordered] @{
                             'Domain Name' = $Item
                             'Computer Count' = $Computers.Count
@@ -116,9 +118,9 @@ function Get-AbrADDomain {
             $OutObj = @()
             if ($Domain) {
                 foreach ($Item in $Domain) {
-                    Write-PscriboMessage "Collecting the Active Directory Default Domain Password Policy from $Item."
+                    Write-PscriboMessage "Collecting the Active Directory Default Domain Password Policy of domain $Item."
                     try {
-                        $PasswordPolicy = Get-ADDefaultDomainPasswordPolicy -Identity $Item
+                        $PasswordPolicy =  Invoke-Command -Session $Session {Get-ADDefaultDomainPasswordPolicy -Identity $using:Item}
                         $inObj = [ordered] @{
                             'Domain Name' = $Item
                             'Complexity Enabled' = ConvertTo-TextYN $PasswordPolicy.ComplexityEnabled
@@ -154,32 +156,32 @@ function Get-AbrADDomain {
         Section -Style Heading5 'Group Managed Service Accounts (GMSA) Summary' {
             Paragraph "The following section provides a summary of the Group Managed Service Accounts on $($Domain.ToString().ToUpper())."
             BlankLine
+            $Domain = "pharmax.local"
             $OutObj = @()
             if ($Domain) {
                 foreach ($Item in $Domain) {
-                    Write-PscriboMessage "Collecting the Active Directory Group Managed Service Accounts from $Item."
+                    Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts for $Item."
                     try {
-                        $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1
-                        foreach ($DC in $DCs) {
-                            $GMSA = Get-ADServiceAccount -Filter * -Server $DC -Properties *
-                            foreach ($Account in $GMSA) {
-                                $inObj = [ordered] @{
-                                    'Name' = $Account.Name
-                                    'SamAccountName' = $Account.SamAccountName
-                                    'Created' = $Account.Created
-                                    'Enabled' = ConvertTo-TextYN $Account.Enabled
-                                    'DNS Host Name' = $Account.DNSHostName
-                                    'Host Computers' = $Account.HostComputers
-                                    'Retrieve Managed Password' = $Account.PrincipalsAllowedToRetrieveManagedPassword
-                                    'Primary Group' = $Account.PrimaryGroup
-                                    'Last Logon Date' = $Account.LastLogonDate
-                                    'Locked Out' = ConvertTo-TextYN $Account.LockedOut
-                                    'Logon Count' = $Account.logonCount
-                                    'Password Expired' = ConvertTo-TextYN $Account.PasswordExpired
-                                    'Password Last Set' =  $Account.PasswordLastSet
-                                }
-                                $OutObj += [pscustomobject]$inobj
+                        $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                        Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts from DC $DC."
+                        $GMSA = Invoke-Command -Session $TempPssSession {Get-ADServiceAccount -Filter * -Server $using:DC -Properties *}
+                        foreach ($Account in $GMSA) {
+                            $inObj = [ordered] @{
+                                'Name' = $Account.Name
+                                'SamAccountName' = $Account.SamAccountName
+                                'Created' = $Account.Created
+                                'Enabled' = ConvertTo-TextYN $Account.Enabled
+                                'DNS Host Name' = $Account.DNSHostName
+                                'Host Computers' = $Account.HostComputers
+                                'Retrieve Managed Password' = $Account.PrincipalsAllowedToRetrieveManagedPassword
+                                'Primary Group' = $Account.PrimaryGroup
+                                'Last Logon Date' = $Account.LastLogonDate
+                                'Locked Out' = ConvertTo-TextYN $Account.LockedOut
+                                'Logon Count' = $Account.logonCount
+                                'Password Expired' = ConvertTo-TextYN $Account.PasswordExpired
+                                'Password Last Set' =  $Account.PasswordLastSet
                             }
+                            $OutObj += [pscustomobject]$inobj
                         }
                     }
                     catch {

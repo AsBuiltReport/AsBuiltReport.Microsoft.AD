@@ -20,7 +20,10 @@ function Get-AbrADDomainController {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain
+            $Domain,
+            $Session,
+            [PSCredential]
+            $Cred
     )
 
     begin {
@@ -28,14 +31,17 @@ function Get-AbrADDomainController {
     }
 
     process {
-        Write-PscriboMessage "Collecting AD Domain Controller Summary information."
         $OutObj = @()
         if ($Domain) {
             foreach ($Item in $Domain) {
-                $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
+                $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                 foreach ($DC in $DCs) {
+                    Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                     try {
-                        $DCInfo = Get-ADDomainController -Server $DC
+                        Write-PscriboMessage "Collecting AD Domain Controller Summary information of $DC."
+                        $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                        $DCInfo = Invoke-Command -Session $DCPssSession {Get-ADDomainController -Identity $using:DC}
                         $inObj = [ordered] @{
                             'DC Name' = ($DCInfo.Name).ToString().ToUpper()
                             'Domain Name' = $DCInfo.Domain
@@ -62,15 +68,18 @@ function Get-AbrADDomainController {
             }
             $OutObj | Table @TableParams
         }
-        Write-PscriboMessage "Collecting AD Domain Controller Hardware information."
+        Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
         Section -Style Heading5 'Domain Controller Hardware Summary' {
             Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
             if ($Domain) {
                 foreach ($Item in $Domain) {
-                    $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                    Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
+                    $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                    Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                     foreach ($DC in $DCs) {
+                        Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
                         $HW = Invoke-Command -ComputerName $DC -ScriptBlock { Get-ComputerInfo }
                         if ($HW) {
                             $inObj = [ordered] @{
@@ -106,10 +115,14 @@ function Get-AbrADDomainController {
             $OutObj = @()
             if ($Domain) {
                 foreach ($Item in $Domain) {
-                    $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                    Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
+                    $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                    Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                     foreach ($DC in $DCs) {
-                        $NTDS = Invoke-Command -ComputerName $DC -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
-                        $size = Invoke-Command -ComputerName $DC -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
+                        Write-PscriboMessage "Collecting AD Domain Controller NTDS information for $DC."
+                        $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                        $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
+                        $size = Invoke-Command -Session $DCPssSession -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
                         if ( $NTDS -and $size ) {
                             $inObj = [ordered] @{
                                 'Name' = $DC
@@ -138,10 +151,14 @@ function Get-AbrADDomainController {
                 $OutObj = @()
                 if ($Domain) {
                     foreach ($Item in $Domain) {
-                        $DCs =  Get-ADDomain -Identity $Item | Select-Object -ExpandProperty ReplicaDirectoryServers
+                        Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
+                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                        Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                         foreach ($DC in $DCs) {
-                            $NtpServer = Invoke-Command -ComputerName $DC -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
-                            $SourceType = Invoke-Command -ComputerName $DC -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
+                            Write-PscriboMessage "Collecting AD Domain Controller Time Source information for $DC."
+                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                            $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
+                            $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
 
                             if ( $NtpServer -and $SourceType ) {
                                 $inObj = [ordered] @{

@@ -20,11 +20,12 @@ function Get-AbrADGPO {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain
+            $Domain,
+            $Session
             )
 
     begin {
-        Write-PscriboMessage "Collecting Active Directory Group Policy Objects information for $($Domain.ToString().ToUpper())."
+        Write-PscriboMessage "Discovering Active Directory Group Policy Objects information for $($Domain.ToString().ToUpper())."
     }
 
     process {
@@ -33,8 +34,10 @@ function Get-AbrADGPO {
             BlankLine
             $OutObj = @()
             if ($Domain) {
-                $GPOs = Get-GPO -Domain $Domain -All
+                $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
+                Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain."
                 foreach ($GPO in $GPOs) {
+                    Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'."
                     $inObj = [ordered] @{
                         'Display Name' = $GPO.DisplayName
                         'GpoStatus' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()

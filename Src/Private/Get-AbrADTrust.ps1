@@ -20,11 +20,14 @@ function Get-AbrADTrust {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain
+            $Domain,
+            $Session,
+            [PSCredential]
+            $Cred
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Trust information."
+        Write-PscriboMessage "Collecting AD Trust information of $($Domain.ToString().ToUpper())."
     }
 
     process {
@@ -33,23 +36,35 @@ function Get-AbrADTrust {
             BlankLine
             $OutObj = @()
             if ($Domain) {
-                $GlobalCatalog = Get-ADDomainController -Discover -Service GlobalCatalog
-                $Trust = Get-ADTrust -Identity $Domain -Server "$($GlobalCatalog.name):3268"
-                $inObj = [ordered] @{
-                    'Name' = $Trust.Name
-                    'Distinguished Name' =  $Trust.DistinguishedName
-                    'Source' = $Trust.Source
-                    'Target' = $Trust.Target
-                    'Direction' = $Trust.Direction
-                    'IntraForest' = ConvertTo-TextYN $Trust.IntraForest
-                    'Selective Authentication' = ConvertTo-TextYN $Trust.SelectiveAuthentication
-                    'SID Filtering Forest Aware' = ConvertTo-TextYN $Trust.SIDFilteringForestAware
-                    'SID Filtering Quarantined' = ConvertTo-TextYN $Trust.SIDFilteringQuarantined
-                    'Trust Type' = $Trust.TrustType
-                    'Uplevel Only' = ConvertTo-TextYN $Trust.UplevelOnly
+                try {
+                    $DC = Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                    Write-PScriboMessage "Discovered '$(($DC | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
+                    $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                    $Trusts = Invoke-Command -Session $DCPssSession {Get-ADTrust -Filter *}
+                    if ($Trusts) {Write-PScriboMessage "Discovered created trusts in domain $Domain"}
+                    foreach ($Trust in $Trusts) {
+                        Write-PscriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
+                        $inObj = [ordered] @{
+                            'Name' = $Trust.Name
+                            'Distinguished Name' =  $Trust.DistinguishedName
+                            'Source' = $Trust.Source
+                            'Target' = $Trust.Target
+                            'Direction' = $Trust.Direction
+                            'IntraForest' =  ConvertTo-TextYN $Trust.IntraForest
+                            'Selective Authentication' =  ConvertTo-TextYN $Trust.SelectiveAuthentication
+                            'SID Filtering Forest Aware' =  ConvertTo-TextYN $Trust.SIDFilteringForestAware
+                            'SID Filtering Quarantined' =  ConvertTo-TextYN $Trust.SIDFilteringQuarantined
+                            'Trust Type' = $Trust.TrustType
+                            'Uplevel Only' = ConvertTo-TextYN $Trust.UplevelOnly
+                        }
+                        $OutObj += [pscustomobject]$inobj
+                    }
                 }
-                $OutObj += [pscustomobject]$inobj
-            }
+                catch {
+                    Write-PScriboMessage "WARNING: Could not connect to domain $Item"
+                    Write-PScriboMessage $_.Exception.Message
+                    }
+                }
 
             $TableParams = @{
                 Name = "Active Directory Trusts Information - $($Domain.ToString().ToUpper())"
