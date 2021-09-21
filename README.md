@@ -63,19 +63,20 @@ PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are require
 
 ### Linux & macOS
 
-* .NET Core is required for cover page image support on Linux and macOS operating systems.
+- .NET Core is required for cover page image support on Linux and macOS operating systems.
   - [Installing .NET Core for macOS](https://docs.microsoft.com/en-us/dotnet/core/install/macos)
   - [Installing .NET Core for Linux](https://docs.microsoft.com/en-us/dotnet/core/install/linux)
 
 ❗ If you are unable to install .NET Core, you must set `ShowCoverPageImage` to `False` in the report JSON configuration file.
 
 ### :closed_lock_with_key: Required Privileges
+
 A Microsoft AD As Built Report can be generated with Active Directory Enterprise Forest level privileges. Due to the limitations of the WinRM protocol, a domain-joined machine is needed, also it is required to use the FQDN of the DC instead of its IP address.
 [Reference](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_troubleshooting?view=powershell-7.1#how-to-use-an-ip-address-in-a-remote-command)
 
 ## :package: Module Installation
 
-### PowerShell v5.x on if running on a DC server
+### PowerShell v5.x running on a Domain Controller server
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module AsBuiltReport.Microsoft.AD
@@ -84,7 +85,7 @@ Install-WindowsFeature RSAT-AD-PowerShell
 Install-WindowsFeature GPMC
 ```
 
-### PowerShell v5.x on if running on Windows 10 Client Machine
+### PowerShell v5.x running on Windows 10 client computer
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module AsBuiltReport.Microsoft.AD
