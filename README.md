@@ -78,8 +78,8 @@ A Microsoft AD As Built Report can be generated with Active Directory Enterprise
 ### PowerShell v5.x on if running on a DC server
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
-install-module AsBuiltReport.Microsoft.AD
-install-module PSPKI
+Install-Module AsBuiltReport.Microsoft.AD
+Install-Module PSPKI
 Install-WindowsFeature RSAT-AD-PowerShell
 Install-WindowsFeature GPMC
 ```
@@ -87,8 +87,8 @@ Install-WindowsFeature GPMC
 ### PowerShell v5.x on if running on Windows 10 Client Machine
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
-install-module AsBuiltReport.Microsoft.AD
-install-module PSPKI
+Install-Module AsBuiltReport.Microsoft.AD
+Install-Module PSPKI
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -online -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0'
 ```
