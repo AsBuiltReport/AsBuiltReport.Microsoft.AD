@@ -170,7 +170,7 @@ There is one example listed below on running the AsBuiltReport script against a 
 - The following creates a Microsoft Active Directory Array As-Built report in HTML & Word formats in the folder C:\scripts\.
 
 ```powershell
-PS C:\>New-AsBuiltReport -Report Microsoft.AD -Target DC.FQDM/NO_IP -Credential (Get-Credential) -Format HTML,Word -OutputPath C:\scripts\
+PS C:\>New-AsBuiltReport -Report Microsoft.AD -Target DC.FQDN/NO_IP -Credential (Get-Credential) -Format HTML,Word -OutputPath C:\scripts\
 ```
 
 ## :x: Known Issues
