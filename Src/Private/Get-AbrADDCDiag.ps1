@@ -49,19 +49,19 @@ function Get-AbrADDCDiag {
         }
         $OutObj = @()
         if ($DC) {
-            Write-PscriboMessage "Discovering Active Directory DCDiag information for DC $DC."
-            $DCDIAG = Invoke-DcDiag -DomainController $DC
-            Write-PscriboMessage "Discovered Active Directory DCDiag information for DC $DC."
-            foreach ($Result in $DCDIAG) {
-                Write-PscriboMessage "Collecting Active Directory DCDiag test '$($Result.TestName)' for DC $DC."
-                $inObj = [ordered] @{
-                    'DC Name' = $DC
-                    'Test Name' = $Result.TestName
-                    'Result' = $Result.TestResult
+            try {
+                Write-PscriboMessage "Discovering Active Directory DCDiag information for DC $DC."
+                $DCDIAG = Invoke-DcDiag -DomainController $DC
+                Write-PscriboMessage "Discovered Active Directory DCDiag information for DC $DC."
+                foreach ($Result in $DCDIAG) {
+                    Write-PscriboMessage "Collecting Active Directory DCDiag test '$($Result.TestName)' for DC $DC."
+                    $inObj = [ordered] @{
+                        'DC Name' = $DC
+                        'Test Name' = $Result.TestName
+                        'Result' = $Result.TestResult
+                    }
+                    $OutObj += [pscustomobject]$inobj
                 }
-                $OutObj += [pscustomobject]$inobj
-            }
-
             $TableParams = @{
                 Name = "AD Domain Controller DCDiag Information - $($Domain.ToString().ToUpper())"
                 List = $false
@@ -72,6 +72,11 @@ function Get-AbrADDCDiag {
             }
             $OutObj | Table @TableParams
         }
+        catch {
+            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+            Write-PScriboMessage -IsDebug $_.Exception.Message
+        }
+    }
     }
 
     end {}

@@ -34,26 +34,31 @@ function Get-AbrADOU {
             BlankLine
             $OutObj = @()
             if ($Domain) {
-                $DC = Invoke-Command -Session $Session -ScriptBlock {Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName}
-                Write-PscriboMessage "Discovered Active Directory Organizational Unit information on DC $DC"
-                $OUs = Invoke-Command -Session $Session -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter *}
-                foreach ($OU in $OUs) {
-                    Write-PscriboMessage "Collecting information of Active Directory Organizational Unit $OU"
-                    $GPOArray = @()
-                    [array]$GPOs = $OU.LinkedGroupPolicyObjects
-                    foreach ($Object in $GPOs) {
-                        $GP = Get-GPO -Guid $Object.Split(",")[0].Split("=")[1]
-                        Write-PscriboMessage "Collecting linked GPO: '$($GP.DisplayName)' on Organizational Unit $OU"
-                        $GPOArray += $GP.DisplayName
+                try {
+                    $DC = Invoke-Command -Session $Session -ScriptBlock {Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName}
+                    Write-PscriboMessage "Discovered Active Directory Organizational Unit information on DC $DC. (Organizational Unit)"
+                    $OUs = Invoke-Command -Session $Session -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter *}
+                    foreach ($OU in $OUs) {
+                        Write-PscriboMessage "Collecting information of Active Directory Organizational Unit $OU. (Organizational Unit)"
+                        $GPOArray = @()
+                        [array]$GPOs = $OU.LinkedGroupPolicyObjects
+                        foreach ($Object in $GPOs) {
+                            $GP = Get-GPO -Guid $Object.Split(",")[0].Split("=")[1]
+                            Write-PscriboMessage "Collecting linked GPO: '$($GP.DisplayName)' on Organizational Unit $OU. (Organizational Unit)"
+                            $GPOArray += $GP.DisplayName
+                        }
+                        $inObj = [ordered] @{
+                            'Name' = $OU.Name
+                            'Distinguished Name' = $OU.DistinguishedName
+                            'Linked GPO' = $GPOArray -join ", "
+                        }
+                        $OutObj += [pscustomobject]$inobj
                     }
-                    $inObj = [ordered] @{
-                        'Name' = $OU.Name
-                        'Distinguished Name' = $OU.DistinguishedName
-                        'Linked GPO' = $GPOArray -join ", "
-                    }
-                    $OutObj += [pscustomobject]$inobj
                 }
-
+                catch {
+                    Write-PscriboMessage -IsWarning "WARNING: Could not connect to DC: $DC (Group Policy Objects)"
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                }
                 $TableParams = @{
                     Name = "Active Directory Organizational Unit Information - $($Domain.ToString().ToUpper())"
                     List = $false

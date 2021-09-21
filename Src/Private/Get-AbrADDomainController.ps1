@@ -53,7 +53,8 @@ function Get-AbrADDomainController {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-PscriboMessage "WARNING: Could not connect to DC $DC"
+                        Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
                     }
                 }
             }
@@ -79,20 +80,27 @@ function Get-AbrADDomainController {
                     $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                     Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                     foreach ($DC in $DCs) {
-                        Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
-                        $HW = Invoke-Command -ComputerName $DC -ScriptBlock { Get-ComputerInfo }
-                        if ($HW) {
-                            $inObj = [ordered] @{
-                                'Name' = $HW.CsDNSHostName
-                                'WindowsProductName' = $HW.WindowsProductName
-                                'Manufacturer' = $HW.CsManufacturer
-                                'CsModel' = $HW.CsModel
-                                'Bios Type' = $HW.BiosFirmwareType
-                                'CPU Socket' = $HW.CsNumberOfProcessors
-                                'CPU Cores' = $HW.CsNumberOfLogicalProcessors
-                                'Total RAM' = ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                        try {
+                            Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
+                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                            $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
+                            if ($HW) {
+                                $inObj = [ordered] @{
+                                    'Name' = $HW.CsDNSHostName
+                                    'WindowsProductName' = $HW.WindowsProductName
+                                    'Manufacturer' = $HW.CsManufacturer
+                                    'CsModel' = $HW.CsModel
+                                    'Bios Type' = $HW.BiosFirmwareType
+                                    'CPU Socket' = $HW.CsNumberOfProcessors
+                                    'CPU Cores' = $HW.CsNumberOfLogicalProcessors
+                                    'Total RAM' = ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                                }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                            $OutObj += [pscustomobject]$inobj
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                            Write-PscriboMessage -IsDebug $_.Exception.Message
                         }
                     }
                 }
@@ -119,17 +127,23 @@ function Get-AbrADDomainController {
                     $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                     Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                     foreach ($DC in $DCs) {
-                        Write-PscriboMessage "Collecting AD Domain Controller NTDS information for $DC."
-                        $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                        $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
-                        $size = Invoke-Command -Session $DCPssSession -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
-                        if ( $NTDS -and $size ) {
-                            $inObj = [ordered] @{
-                                'Name' = $DC
-                                'DSA Database File' = $NTDS
-                                'Size' = ConvertTo-FileSizeString $size
+                        try {
+                            Write-PscriboMessage "Collecting AD Domain Controller NTDS information for $DC."
+                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                            $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
+                            $size = Invoke-Command -Session $DCPssSession -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
+                            if ( $NTDS -and $size ) {
+                                $inObj = [ordered] @{
+                                    'Name' = $DC
+                                    'DSA Database File' = $NTDS
+                                    'Size' = ConvertTo-FileSizeString $size
+                                }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                            $OutObj += [pscustomobject]$inobj
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                            Write-PscriboMessage -IsDebug $_.Exception.Message
                         }
                     }
                 }
@@ -155,27 +169,33 @@ function Get-AbrADDomainController {
                         $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                         Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                         foreach ($DC in $DCs) {
-                            Write-PscriboMessage "Collecting AD Domain Controller Time Source information for $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                            $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
-                            $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
+                            try {
+                                Write-PscriboMessage "Collecting AD Domain Controller Time Source information for $DC."
+                                $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                                $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
+                                $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
 
-                            if ( $NtpServer -and $SourceType ) {
-                                $inObj = [ordered] @{
-                                    'Name' = $DC
-                                    'Time Server' = Switch ($NtpServer) {
-                                        'time.windows.com,0x8' {"Domain Hierarchy"}
-                                        'time.windows.com' {"Domain Hierarchy"}
-                                        '0x8' {"Domain Hierarchy"}
-                                        default {$NtpServer}
+                                if ( $NtpServer -and $SourceType ) {
+                                    $inObj = [ordered] @{
+                                        'Name' = $DC
+                                        'Time Server' = Switch ($NtpServer) {
+                                            'time.windows.com,0x8' {"Domain Hierarchy"}
+                                            'time.windows.com' {"Domain Hierarchy"}
+                                            '0x8' {"Domain Hierarchy"}
+                                            default {$NtpServer}
+                                        }
+                                        'Type' = Switch ($SourceType) {
+                                            'NTP' {"MANUAL (NTP)"}
+                                            'NT5DS' {"DOMHIER"}
+                                            default {$SourceType}
+                                        }
                                     }
-                                    'Type' = Switch ($SourceType) {
-                                        'NTP' {"MANUAL (NTP)"}
-                                        'NT5DS' {"DOMHIER"}
-                                        default {$SourceType}
-                                    }
+                                    $OutObj += [pscustomobject]$inobj
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                                Write-PscriboMessage -IsDebug $_.Exception.Message
                             }
                         }
                     }

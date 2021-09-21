@@ -34,19 +34,24 @@ function Get-AbrADGPO {
             BlankLine
             $OutObj = @()
             if ($Domain) {
-                $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
-                Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain."
-                foreach ($GPO in $GPOs) {
-                    Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'."
-                    $inObj = [ordered] @{
-                        'Display Name' = $GPO.DisplayName
-                        'GpoStatus' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
-                        'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
-                        'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
+                try {
+                    $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
+                    Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                    foreach ($GPO in $GPOs) {
+                        Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
+                        $inObj = [ordered] @{
+                            'Display Name' = $GPO.DisplayName
+                            'GpoStatus' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                            'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
+                            'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
+                        }
+                        $OutObj += [pscustomobject]$inobj
                     }
-                    $OutObj += [pscustomobject]$inobj
                 }
-
+                catch {
+                    Write-PscriboMessage -IsWarning "WARNING: Could not connect to Domain $Domian (Group Policy Objects)"
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                }
                 $TableParams = @{
                     Name = "Group Policy Objects Information."
                     List = $false

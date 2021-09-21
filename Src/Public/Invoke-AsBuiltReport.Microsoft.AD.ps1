@@ -38,7 +38,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $TempPssSession = New-PSSession $System -Credential $Credential -Authentication Default
             $ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
         } Catch {
-            Write-Verbose "Unable to connect to the $System"
+            Write-Verbose "Unable to connect to the Domain Controller: $System"
             throw
         }
         $global:ForestInfo =  $ADSystem.RootDomain.toUpper()
@@ -49,13 +49,16 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #region Forest Section
             Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -gt 0) {
-                Section -Style Heading2 "Forest Information."  {
-                    Get-AbrADForest -Session $TempPssSession
-                    Section -Style Heading3 'Domain Site Summary' {
-                        Paragraph "The following section provides a summary of the Active Directory Sites on."
-                        BlankLine
+                try {
+                    Section -Style Heading2 "Forest Information."  {
+                        Get-AbrADForest -Session $TempPssSession
                         Get-AbrADSite -Session $TempPssSession
                     }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."
+                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    continue
                 }
             }
             if ($InfoLevel.Domain -gt 0) {
@@ -73,18 +76,32 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     BlankLine
                                     Get-AbrADDomainController -Domain $Domain -Session $TempPssSession -Cred $Credential
                                     if ($HealthCheck.DomainController.Diagnostic) {
-                                        Section -Style Heading4 'DCDiag Information' {
-                                            Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
-                                            BlankLine
-                                            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                                            foreach ($DC in $DCs){
-                                                Get-AbrADDCDiag -Domain $Domain -Session $TempPssSession -DC $DC
+                                        try {
+                                            Section -Style Heading4 'DCDiag Information' {
+                                                Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                                                BlankLine
+                                                $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                                foreach ($DC in $DCs){
+                                                    Get-AbrADDCDiag -Domain $Domain -Session $TempPssSession -DC $DC
+                                                }
                                             }
                                         }
+                                        catch {
+                                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
+                                            Write-PScriboMessage -IsDebug $_.Exception.Message
+                                            continue
+                                        }
                                     }
-                                    $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                                    foreach ($DC in $DCs){
-                                        Get-AbrADInfrastructureService -DC $DC -Cred $Credential
+                                    try {
+                                        $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                        foreach ($DC in $DCs){
+                                            Get-AbrADInfrastructureService -DC $DC -Cred $Credential
+                                        }
+                                    }
+                                    catch {
+                                        Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
+                                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                                        continue
                                     }
                                     Get-AbrADSiteReplication -Domain $Domain -Session $TempPssSession
                                     Get-AbrADGPO -Domain $Domain -Session $TempPssSession
@@ -94,7 +111,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         }
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Domain"
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
                         continue
                     }
                 }
@@ -115,7 +133,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         }
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Domain"
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
                         continue
                     }
                 }

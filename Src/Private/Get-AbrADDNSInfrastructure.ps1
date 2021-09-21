@@ -29,7 +29,7 @@ function Get-AbrADDNSInfrastructure {
     }
 
     process {
-        Section -Style Heading4 "Domain Name System Infrastructure Summary" {
+        Section -Style Heading4 "Infrastructure Summary" {
             Paragraph "The following section provides a summary of the Domain Name System Infrastructure configuration."
             BlankLine
             $OutObj = @()
@@ -38,7 +38,7 @@ function Get-AbrADDNSInfrastructure {
                     $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                     if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
                     foreach ($DC in $DCs) {
-                        Write-PscriboMessage "Collectin Domain Name System Infrastructure information on '$($DC)'."
+                        Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
                         try {
                             $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerSetting -ComputerName $using:DC}
                             $inObj = [ordered] @{
@@ -52,8 +52,8 @@ function Get-AbrADDNSInfrastructure {
                             $OutObj += [pscustomobject]$inobj
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
-                            throw
+                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                            Write-PscriboMessage -IsDebug $_.Exception.Message
                         }
                     }
                 }
@@ -68,7 +68,7 @@ function Get-AbrADDNSInfrastructure {
                 }
                 $OutObj | Table @TableParams
             }
-            Section -Style Heading5 "Domain Name System Response Rate Limiting Summary" {
+            Section -Style Heading5 "Response Rate Limiting (RRL) Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Response Rate Limiting configuration."
                 BlankLine
                 $OutObj = @()
@@ -77,7 +77,7 @@ function Get-AbrADDNSInfrastructure {
                         $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                         if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
                         foreach ($DC in $DCs) {
-                            Write-PscriboMessage "Collectin Domain Name System Infrastructure information on '$($DC)'."
+                            Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
                             try {
                                 $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerResponseRateLimiting -ComputerName $using:DC}
                                 $inObj = [ordered] @{
@@ -93,8 +93,8 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
-                                throw
+                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                                Write-PscriboMessage -IsDebug $_.Exception.Message
                             }
                         }
                     }
@@ -110,7 +110,7 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Domain Name System Scavenging Summary" {
+            Section -Style Heading5 "Scavenging Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Scavenging configuration."
                 BlankLine
                 $OutObj = @()
@@ -119,7 +119,7 @@ function Get-AbrADDNSInfrastructure {
                         $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                         if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
                         foreach ($DC in $DCs) {
-                            Write-PscriboMessage "Collectin Domain Name System Infrastructure information on '$($DC)'."
+                            Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
                             try {
                                 $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerScavenging -ComputerName $using:DC}
                                 $inObj = [ordered] @{
@@ -141,8 +141,8 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
-                                throw
+                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                                Write-PscriboMessage -IsDebug $_.Exception.Message
                             }
                         }
                     }
@@ -158,7 +158,7 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Domain Name System Forwarder Summary" {
+            Section -Style Heading5 "Forwarder Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Forwarder configuration."
                 BlankLine
                 $OutObj = @()
@@ -167,7 +167,7 @@ function Get-AbrADDNSInfrastructure {
                         $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                         if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
                         foreach ($DC in $DCs) {
-                            Write-PscriboMessage "Collectin Domain Name System Infrastructure information on '$($DC)'."
+                            Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
                             try {
                                 $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerForwarder -ComputerName $using:DC}
                                 $Recursion = Invoke-Command -Session $Session {Get-DnsServerRecursion -ComputerName $using:DC | Select-Object -ExpandProperty Enable}
@@ -181,8 +181,8 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
-                                throw
+                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                                Write-PscriboMessage -IsDebug $_.Exception.Message
                             }
                         }
                     }
@@ -198,7 +198,7 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Domain Name System Zone Scope Recursion Summary" {
+            Section -Style Heading5 "Zone Scope Recursion Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Zone Scope Recursion configuration."
                 BlankLine
                 $OutObj = @()
@@ -207,7 +207,7 @@ function Get-AbrADDNSInfrastructure {
                         $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                         if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
                         foreach ($DC in $DCs) {
-                            Write-PscriboMessage "Collectin Domain Name System Infrastructure information on '$($DC)'."
+                            Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
                             try {
                                 $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerRecursionScope -ComputerName $using:DC}
                                 $inObj = [ordered] @{
@@ -222,8 +222,8 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
-                                throw
+                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                                Write-PscriboMessage -IsDebug $_.Exception.Message
                             }
                         }
                     }

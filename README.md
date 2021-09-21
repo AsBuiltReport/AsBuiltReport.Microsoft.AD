@@ -74,7 +74,7 @@ A Microsoft AD As Built Report can be generated with Active Directory Forest lev
 
 ## :package: Module Installation
 
-### PowerShell v5.x on if running in a DC server
+### PowerShell v5.x on if running on a DC server
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 install-module AsBuiltReport.Microsoft.AD
@@ -83,7 +83,7 @@ Install-WindowsFeature RSAT-AD-PowerShell
 Install-WindowsFeature GPMC
 ```
 
-### PowerShell v5.x on if running in Windows 10 Client Machine
+### PowerShell v5.x on if running on Windows 10 Client Machine
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 install-module AsBuiltReport.Microsoft.AD

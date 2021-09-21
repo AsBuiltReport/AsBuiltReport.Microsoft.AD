@@ -29,22 +29,23 @@ function Get-AbrADSiteReplication {
     }
 
     process {
-        Write-PscriboMessage "Collecting AD Domain Sites Replication Summary."
+        Write-PscriboMessage "Collecting AD Domain Sites Replication Summary. (Sites Replication)"
         Section -Style Heading4 'Site Replication Summary' {
             Paragraph "The following section provides a summary of the Active Directory Site Replication information."
             BlankLine
             $OutObj = @()
             if ($Domain) {
-                Write-PscriboMessage "Discovering Active Directory Sites Replication information on $Domain."
+                Write-PscriboMessage "Discovering Active Directory Sites Replication information on $Domain. (Sites Replication)"
                 foreach ($Item in $Domain) {
                     try {
                         $DCs = Invoke-Command -Session $Session -ScriptBlock {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                         foreach ($DC in $DCs) {
                             $Replication = Invoke-Command -Session $Session -ScriptBlock {Get-ADReplicationConnection -Server $using:DC -Properties *}
-                            Write-PscriboMessage "Collecting Active Directory Sites Replication information on $DC."
+                            if ($Replication) {Write-PscriboMessage "Collecting Active Directory Sites Replication information on $DC. (Sites Replication)"}
                             foreach ($Repl in $Replication) {
                                 $inObj = [ordered] @{
                                     'DC Name' = $DC
+                                    'GUID' = $Repl.ObjectGUID
                                     'Description' = $Repl.Description
                                     'Replicate From Directory Server' = $Repl.ReplicateFromDirectoryServer
                                     'Replicate To Directory Server' = $DC
@@ -59,7 +60,9 @@ function Get-AbrADSiteReplication {
                         }
                     }
                     catch {
-                        Write-PscriboMessage "WARNING: Could not connect to DC $DC"
+                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to DC $DC (Sites Replication)"
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
+
                     }
                 }
 
@@ -78,26 +81,32 @@ function Get-AbrADSiteReplication {
                 $OutObj | Table @TableParams
             }
         }
-        Write-PscriboMessage "Discovering Active Directory Sites Replication Failure on $Domain."
+        Write-PscriboMessage "Discovering Active Directory Sites Replication Failure on $Domain. (Sites Replication Failure)"
         if (($HealthCheck.Site.Replication) -and (Invoke-Command -Session $Session -ScriptBlock {Get-ADReplicationFailure -Target $using:Domain -Scope Domain})) {
             Section -Style Heading4 'Site Replication Failure Summary' {
                 Paragraph "The following section provides a summary of the Active Directory Site Replication Failure information."
                 BlankLine
                 $OutObj = @()
                 foreach ($Item in $Domain) {
-                    Write-PscriboMessage "Discovered Active Directory Sites Replication Failure on $Domain."
-                    $Failures =  Invoke-Command -Session $Session -ScriptBlock {Get-ADReplicationFailure -Target $using:Domain -Scope Domain}
-                    foreach ($Fails in $Failures) {
-                        Write-PscriboMessage "Collecting Active Directory Sites Replication Failure on '$($Fails.Server)'."
-                            $inObj = [ordered] @{
-                                'Server Name' = $Fails.Server
-                                'Partner' = $Fails.Partner
-                                'Last Error' = $Fails.LastError
-                                'Failure Type' =  $Fails.FailureType
-                                'Failure Count' = $Fails.FailureCount
-                                'First Failure Time' = ($Fails.FirstFailureTime).ToUniversalTime().toString("r")
-                            }
-                        $OutObj += [pscustomobject]$inobj
+                    try {
+                        Write-PscriboMessage "Discovered Active Directory Sites Replication Failure on $Item. (Sites Replication Failure)"
+                        $Failures =  Invoke-Command -Session $Session -ScriptBlock {Get-ADReplicationFailure -Target $using:Domain -Scope Domain}
+                        foreach ($Fails in $Failures) {
+                            Write-PscriboMessage "Collecting Active Directory Sites Replication Failure on '$($Fails.Server)'. (Sites Replication Failure)"
+                                $inObj = [ordered] @{
+                                    'Server Name' = $Fails.Server
+                                    'Partner' = $Fails.Partner
+                                    'Last Error' = $Fails.LastError
+                                    'Failure Type' =  $Fails.FailureType
+                                    'Failure Count' = $Fails.FailureCount
+                                    'First Failure Time' = ($Fails.FirstFailureTime).ToUniversalTime().toString("r")
+                                }
+                            $OutObj += [pscustomobject]$inobj
+                        }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to Domain $Domian (Sites Replication Failure)"
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
                     }
                 }
 

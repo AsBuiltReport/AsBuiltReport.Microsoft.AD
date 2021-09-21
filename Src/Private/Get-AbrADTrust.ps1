@@ -61,8 +61,8 @@ function Get-AbrADTrust {
                     }
                 }
                 catch {
-                    Write-PScriboMessage "WARNING: Could not connect to domain $Item"
-                    Write-PScriboMessage $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                    Write-PScriboMessage -IsDebug $_.Exception.Message
                     }
                 }
 

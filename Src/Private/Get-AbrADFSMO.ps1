@@ -34,17 +34,23 @@ function Get-AbrADFSMO {
             BlankLine
             $OutObj = @()
             if ($Domain) {
-                $DomainData = Invoke-Command -Session $Session {Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator}
-                $ForestData = Invoke-Command -Session $Session {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
-                Write-PscriboMessage "Discovered Active Directory FSMO information of domain $Domain."
-                $inObj = [ordered] @{
-                    'Infrastructure Master Server' = $DomainData.InfrastructureMaster
-                    'RID Master Server' = $DomainData.RIDMaster
-                    'PDC Emulator Name' = $DomainData.PDCEmulator
-                    'Domain Naming Master Server' = $ForestData.DomainNamingMaster
-                    'Schema Master Server' = $ForestData.SchemaMaster
+                try {
+                    $DomainData = Invoke-Command -Session $Session {Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator}
+                    $ForestData = Invoke-Command -Session $Session {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
+                    Write-PscriboMessage "Discovered Active Directory FSMO information of domain $Domain."
+                    $inObj = [ordered] @{
+                        'Infrastructure Master Server' = $DomainData.InfrastructureMaster
+                        'RID Master Server' = $DomainData.RIDMaster
+                        'PDC Emulator Name' = $DomainData.PDCEmulator
+                        'Domain Naming Master Server' = $ForestData.DomainNamingMaster
+                        'Schema Master Server' = $ForestData.SchemaMaster
+                    }
+                    $OutObj += [pscustomobject]$inobj
                 }
-                $OutObj += [pscustomobject]$inobj
+                catch {
+                    Write-PscriboMessage -IsWarning "Error: Could not connect to domain $Domain"
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                }
 
                 $TableParams = @{
                     Name = "FSMO Server Information - $($Domain)"

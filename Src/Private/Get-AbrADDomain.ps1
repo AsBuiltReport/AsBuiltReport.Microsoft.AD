@@ -59,7 +59,7 @@ function Get-AbrADDomain {
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
-                    Write-PscriboMessage $_.Exception.Message
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
                 }
 
                 $TableParams = @{
@@ -97,7 +97,7 @@ function Get-AbrADDomain {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
-                        Write-PscriboMessage $_.Exception.Message
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
                     }
                 }
 
@@ -138,7 +138,7 @@ function Get-AbrADDomain {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
-                        Write-PscriboMessage $_.Exception.Message
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
                     }
                 }
 
@@ -186,7 +186,7 @@ function Get-AbrADDomain {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
-                        Write-PscriboMessage $_.Exception.Message
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
                     }
                 }
 

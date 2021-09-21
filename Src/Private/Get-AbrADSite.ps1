@@ -27,36 +27,47 @@ function Get-AbrADSite {
     }
 
     process {
-        $Data =  Invoke-Command -Session $Session {Get-ADReplicationSite -Filter * -Properties *}
-        $OutObj = @()
-        if ($Data) {
-            Write-PscriboMessage "Discovered Active Directory Sites information of forest $ForestInfo"
-            foreach ($Item in $Data) {
-                Write-PscriboMessage "Collecting '$($Item.Name)' Site"
-                $SubnetArray = @()
-                $Subnets = $Item.Subnets
-                foreach ($Object in $Subnets) {
-                    $SubnetName =  Invoke-Command -Session $Session {Get-ADReplicationSubnet $using:Object}
-                    $SubnetArray += $SubnetName.Name
+        Section -Style Heading3 'Domain Site Summary' {
+            Paragraph "The following section provides a summary of the Active Directory Sites on."
+            BlankLine
+            $Data =  Invoke-Command -Session $Session {Get-ADReplicationSite -Filter * -Properties *}
+            $OutObj = @()
+            if ($Data) {
+                Write-PscriboMessage "Discovered Active Directory Sites information of forest $ForestInfo"
+                foreach ($Item in $Data) {
+                    try {
+                        Write-PscriboMessage "Collecting '$($Item.Name)' Site"
+                        $SubnetArray = @()
+                        $Subnets = $Item.Subnets
+                        foreach ($Object in $Subnets) {
+                            $SubnetName =  Invoke-Command -Session $Session {Get-ADReplicationSubnet $using:Object}
+                            $SubnetArray += $SubnetName.Name
+                        }
+                        $inObj = [ordered] @{
+                            'Site Name' = $Item.Name
+                            'Description' = $Item.Description
+                            'Creation Date' = ($Item.createTimeStamp).ToUniversalTime().toString("r")
+                            'Subnets' = $SubnetArray
+                        }
+                        $OutObj += [pscustomobject]$inobj
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."
+                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                        continue
+                    }
                 }
-                $inObj = [ordered] @{
-                    'Site Name' = $Item.Name
-                    'Description' = $Item.Description
-                    'Creation Date' = ($Item.createTimeStamp).ToUniversalTime().toString("r")
-                    'Subnets' = $SubnetArray
-                }
-                $OutObj += [pscustomobject]$inobj
-            }
 
-            $TableParams = @{
-                Name = "AD Domain Controller Summary Information - $($ForestInfo)"
-                List = $false
-                ColumnWidths = 25, 30, 25, 20
+                $TableParams = @{
+                    Name = "AD Domain Controller Summary Information - $($ForestInfo)"
+                    List = $false
+                    ColumnWidths = 25, 30, 25, 20
+                }
+                if ($Report.ShowTableCaptions) {
+                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                }
+                $OutObj | Table @TableParams
             }
-            if ($Report.ShowTableCaptions) {
-                $TableParams['Caption'] = "- $($TableParams.Name)"
-            }
-            $OutObj | Table @TableParams
         }
         Section -Style Heading4 'Site Links Summary' {
             Paragraph "The following section provides a summary of the Active Directory Site Link information."
@@ -66,21 +77,28 @@ function Get-AbrADSite {
             if ($Data) {
                 Write-PscriboMessage "Discovered Active Directory Sites Link information of forest $ForestInfo"
                 foreach ($Item in $Data) {
-                    Write-PscriboMessage "Collecting '$($Item.Name)' Site Link"
-                    $SiteArray = @()
-                    $Sites = $Item.siteList
-                    foreach ($Object in $Sites) {
-                        $SiteName =  Invoke-Command -Session $Session {Get-ADReplicationSite -Identity $using:Object}
-                        $SiteArray += $SiteName.Name
+                    try {
+                        Write-PscriboMessage "Collecting '$($Item.Name)' Site Link"
+                        $SiteArray = @()
+                        $Sites = $Item.siteList
+                        foreach ($Object in $Sites) {
+                            $SiteName =  Invoke-Command -Session $Session {Get-ADReplicationSite -Identity $using:Object}
+                            $SiteArray += $SiteName.Name
+                        }
+                        $inObj = [ordered] @{
+                            'Site Link Name' = $Item.Name
+                            'Cost' = $Item.Cost
+                            'Replication Frequency' = "$($Item.ReplicationFrequencyInMinutes) min"
+                            'Transport Protocol' = $Item.InterSiteTransportProtocol
+                            'Sites' = $SiteArray
+                        }
+                        $OutObj += [pscustomobject]$inobj
                     }
-                    $inObj = [ordered] @{
-                        'Site Link Name' = $Item.Name
-                        'Cost' = $Item.Cost
-                        'Replication Frequency' = "$($Item.ReplicationFrequencyInMinutes) min"
-                        'Transport Protocol' = $Item.InterSiteTransportProtocol
-                        'Sites' = $SiteArray
+                    catch {
+                        Write-PscriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."
+                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                        continue
                     }
-                    $OutObj += [pscustomobject]$inobj
                 }
 
                 $TableParams = @{
