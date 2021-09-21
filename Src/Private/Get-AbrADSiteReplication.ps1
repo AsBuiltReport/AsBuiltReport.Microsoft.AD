@@ -38,6 +38,7 @@ function Get-AbrADSiteReplication {
                 Write-PscriboMessage "Discovering Active Directory Sites Replication information on $Domain. (Sites Replication)"
                 foreach ($Item in $Domain) {
                     try {
+                        # TODO Why is this working? only God knows! (Investigate)
                         $DCs = Invoke-Command -Session $Session -ScriptBlock {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                         foreach ($DC in $DCs) {
                             $Replication = Invoke-Command -Session $Session -ScriptBlock {Get-ADReplicationConnection -Server $using:DC -Properties *}

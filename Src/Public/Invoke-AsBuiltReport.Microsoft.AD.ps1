@@ -32,6 +32,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 	# Update/rename the $System variable and build out your code within the ForEach loop. The ForEach loop enables AsBuiltReport to generate an as built configuration against multiple defined targets.
 
     #region foreach loop
+    #---------------------------------------------------------------------------------------------#
+    #                                 Connection Section                                          #
+    #---------------------------------------------------------------------------------------------#
     foreach ($System in $Target) {
         Try {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
@@ -42,11 +45,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             throw
         }
         $global:ForestInfo =  $ADSystem.RootDomain.toUpper()
-        #region Forest Section
+        #---------------------------------------------------------------------------------------------#
+        #                                 Forest Section                                              #
+        #---------------------------------------------------------------------------------------------#
         Section -Style Heading1 "Report for Active Directory Forest $($ForestInfo.toUpper())" {
             Paragraph "The following section provides a summary of the Active Directory Infrastructure configuration for $($ForestInfo)."
             BlankLine
-            #region Forest Section
             Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -gt 0) {
                 try {
@@ -61,6 +65,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     continue
                 }
             }
+            #---------------------------------------------------------------------------------------------#
+            #                                 Domain Section                                              #
+            #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.Domain -gt 0) {
                 foreach ($Domain in (Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                     try {
@@ -116,7 +123,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         continue
                     }
                 }
-            }#endregion AD Section
+            }
+            #---------------------------------------------------------------------------------------------#
+            #                                 DNS Section                                                 #
+            #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.DNS -gt 0) {
                 foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                     try {

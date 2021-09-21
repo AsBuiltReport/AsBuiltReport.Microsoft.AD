@@ -70,7 +70,8 @@ PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are require
 ❗ If you are unable to install .NET Core, you must set `ShowCoverPageImage` to `False` in the report JSON configuration file.
 
 ### :closed_lock_with_key: Required Privileges
-A Microsoft AD As Built Report can be generated with Active Directory Forest level privileges.
+A Microsoft AD As Built Report can be generated with Active Directory Enterprise Forest level privileges. Due to the limitations of the WinRM protocol, a domain-joined machine is needed, also it is required to use the FQDN of the DC instead of its IP address.
+[Reference](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_troubleshooting?view=powershell-7.1#how-to-use-an-ip-address-in-a-remote-command)
 
 ## :package: Module Installation
 
@@ -169,7 +170,7 @@ There is one example listed below on running the AsBuiltReport script against a 
 - The following creates a Microsoft Active Directory Array As-Built report in HTML & Word formats in the folder C:\scripts\.
 
 ```powershell
-PS C:\>New-AsBuiltReport -Report Microsoft.AD -Target 10.10.30.20 -Credential (Get-Credential) -Format HTML,Word -OutputPath C:\scripts\
+PS C:\>New-AsBuiltReport -Report Microsoft.AD -Target DC.FQDM/NO_IP -Credential (Get-Credential) -Format HTML,Word -OutputPath C:\scripts\
 ```
 
 ## :x: Known Issues
