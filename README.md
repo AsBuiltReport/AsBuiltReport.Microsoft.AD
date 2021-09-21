@@ -186,3 +186,6 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 ```
 
 ## :x: Known Issues
+
+- WinRM issues using the Domain Controller IPAddress instead of the FQDN.
+- No Mac/Linux support due to ActiveDirectory & GroupPolicy module .Net Framework dependency
