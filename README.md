@@ -166,9 +166,7 @@ The **Healthcheck** schema is used to toggle health checks on or off.
 
 ## :computer: Examples
 
-There is one example listed below on running the AsBuiltReport script against a Microsoft Active Directory Domain Controller target. Refer to the `README.md` file in the main AsBuiltReport project repository for more examples.
-
-- The following creates a Microsoft Active Directory As-Built report in HTML & Word formats in the folder C:\scripts\.
+There are a few examples listed below on running the AsBuiltReport script against a Microsoft Active Directory Domain Controller target. Refer to the `README.md` file in the main AsBuiltReport project repository for more examples.
 
 ```powershell
 
