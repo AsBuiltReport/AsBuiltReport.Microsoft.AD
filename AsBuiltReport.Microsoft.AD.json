@@ -1,9 +1,9 @@
 {
     "Report": {
         "Name": "Microsoft AD As Built Report",
-        "Version": "0.2.0",
+        "Version": "1.0",
         "Status": "Released",
-        "ShowCoverPageImage": false,
+        "ShowCoverPageImage": true,
         "ShowTableOfContents": true,
         "ShowHeaderFooter": true,
         "ShowTableCaptions": true

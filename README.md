@@ -63,11 +63,7 @@ PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are require
 
 ### Linux & macOS
 
-- .NET Core is required for cover page image support on Linux and macOS operating systems.
-  - [Installing .NET Core for macOS](https://docs.microsoft.com/en-us/dotnet/core/install/macos)
-  - [Installing .NET Core for Linux](https://docs.microsoft.com/en-us/dotnet/core/install/linux)
-
-❗ If you are unable to install .NET Core, you must set `ShowCoverPageImage` to `False` in the report JSON configuration file.
+This report does not support Linux or Mac due to the fact that the ActiveDirectory/GroupPolicy modules are dependent on the .NET Framework. Until Microsoft migrates these modules to native PowerShell Core, only PowerShell >= (5.x, 7) will be supported on Windows.
 
 ### :closed_lock_with_key: Required Privileges
 
@@ -149,16 +145,12 @@ The **Options** schema allows certain options within the report to be toggled on
 
 The **InfoLevel** schema allows configuration of each section of the report at a granular level. The following sections can be set.
 
-There are 6 levels (0-5) of detail granularity for each section as follows;
+There are 2 levels (0-1) of detail granularity for each section as follows;
 
 | Setting | InfoLevel         | Description                                                                                                                                |
 |:-------:|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 |    0    | Disabled          | Does not collect or display any information                                                                                                |
 |    1    | Enabled / Summary | Provides summarised information for a collection of objects                                                                                |
-|    2    | Adv Summary       | Provides condensed, detailed information for a collection of objects                                                                       |
-|    3    | Detailed          | Provides detailed information for individual objects                                                                                       |
-|    4    | Adv Detailed      | Provides detailed information for individual objects, as well as information for associated objects                                        |
-|    5    | Comprehensive     | Provides comprehensive information for individual objects, such as advanced configuration settings                                         |
 
 ### Healthcheck
 
@@ -186,5 +178,5 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 
 ## :x: Known Issues
 
-- WinRM issues using the Domain Controller IPAddress instead of the FQDN.
-- No Mac/Linux support due to ActiveDirectory & GroupPolicy module .Net Framework dependency
+- Issues with WinRM when using the IP address instead of the "Fully Qualified Domain Name".
+- No Linux/Mac support until Microsoft migrates the ActiveDirectory/GroupPolicy modules to PowerShell Core.
