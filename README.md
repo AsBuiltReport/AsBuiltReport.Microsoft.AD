@@ -34,53 +34,75 @@ Microsoft AD As Built Report is a PowerShell module which works in conjunction w
 Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for more detailed information about this project.
 
 # :beginner: Getting Started
+
 Below are the instructions on how to install, configure and generate a Microsoft AD As Built report.
 
 ## :floppy_disk: Supported Versions
 <!-- ********** Update supported AD versions ********** -->
-The Microsoft AD As Built Report supports the following AD versions;
+The Microsoft AD As Built Report supports the following Active Directory versions;
+
+- 2008, 2008 R2, 2012, 2016, 2019
 
 ### PowerShell
+
 This report is compatible with the following PowerShell versions;
 
 <!-- ********** Update supported PowerShell versions ********** -->
 | Windows PowerShell 5.1 |     PowerShell 7    |
 |:----------------------:|:--------------------:|
 |   :white_check_mark:   | :white_check_mark: |
+
 ## :wrench: System Requirements
 <!-- ********** Update system requirements ********** -->
 PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
+- [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
+- [PSPKI Module](https://www.powershellgallery.com/packages/PSPKI/3.7.2)
+- [GroupPolicy Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps)
 
 ### Linux & macOS
-* .NET Core is required for cover page image support on Linux and macOS operating systems.
-    * [Installing .NET Core for macOS](https://docs.microsoft.com/en-us/dotnet/core/install/macos)
-    * [Installing .NET Core for Linux](https://docs.microsoft.com/en-us/dotnet/core/install/linux)
 
-❗ If you are unable to install .NET Core, you must set `ShowCoverPageImage` to `False` in the report JSON configuration file.
+This report does not support Linux or Mac due to the fact that the ActiveDirectory/GroupPolicy modules are dependent on the .NET Framework. Until Microsoft migrates these modules to native PowerShell Core, only PowerShell >= (5.x, 7) will be supported on Windows.
+
 ### :closed_lock_with_key: Required Privileges
-<!-- ********** Define required privileges ********** -->
-<!-- ********** Try to follow best practices to define least privileges ********** -->
+
+A Microsoft AD As Built Report can be generated with Active Directory Enterprise Forest level privileges. Due to the limitations of the WinRM protocol, a domain-joined machine is needed, also it is required to use the FQDN of the DC instead of its IP address.
+[Reference](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_troubleshooting?view=powershell-7.1#how-to-use-an-ip-address-in-a-remote-command)
 
 ## :package: Module Installation
 
-### PowerShell
+### PowerShell v5.x running on a Domain Controller server
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
-install-module AsBuiltReport.Microsoft.AD
+Install-Module AsBuiltReport.Microsoft.AD
+Install-Module PSPKI
+Install-WindowsFeature RSAT-AD-PowerShell
+Install-WindowsFeature GPMC
+```
+
+### PowerShell v5.x running on Windows 10 client computer
+<!-- ********** Add installation for any additional PowerShell module(s) ********** -->
+```powershell
+Install-Module AsBuiltReport.Microsoft.AD
+Install-Module PSPKI
+Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
+Add-WindowsCapability -online -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0'
 ```
 
 ### GitHub
+
 If you are unable to use the PowerShell Gallery, you can still install the module manually. Ensure you repeat the following steps for the [system requirements](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD#wrench-system-requirements) also.
 
 1. Download the code package / [latest release](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/releases/latest) zip from GitHub
 2. Extract the zip file
 3. Copy the folder `AsBuiltReport.Microsoft.AD` to a path that is set in `$env:PSModulePath`.
 4. Open a PowerShell terminal window and unblock the downloaded files with
+
     ```powershell
     $path = (Get-Module -Name AsBuiltReport.Microsoft.AD -ListAvailable).ModuleBase; Unblock-File -Path $path\*.psd1; Unblock-File -Path $path\Src\Public\*.ps1; Unblock-File -Path $path\Src\Private\*.ps1
     ```
+
 5. Close and reopen the PowerShell terminal window.
 
 _Note: You are not limited to installing the module to those example paths, you can add a new entry to the environment variable PSModulePath if you want to use another path._
@@ -90,6 +112,7 @@ _Note: You are not limited to installing the module to those example paths, you 
 The Microsoft AD As Built Report utilises a JSON file to allow configuration of report information, options, detail and healthchecks.
 
 A Microsoft AD report configuration file can be generated by executing the following command;
+
 ```powershell
 New-AsBuiltReportConfig -Report Microsoft.AD -FolderPath <User specified folder> -Filename <Optional>
 ```
@@ -101,6 +124,7 @@ All report settings can then be configured via the JSON file.
 The following provides information of how to configure each schema within the report's JSON file.
 
 ### Report
+
 The **Report** schema provides configuration of the Microsoft AD report information.
 
 | Sub-Schema          | Setting      | Default                        | Description                                                  |
@@ -114,24 +138,45 @@ The **Report** schema provides configuration of the Microsoft AD report informat
 | ShowTableCaptions   | true / false | true                           | Toggle to enable/disable table captions/numbering            |
 
 ### Options
+
 The **Options** schema allows certain options within the report to be toggled on or off.
 
 ### InfoLevel
+
 The **InfoLevel** schema allows configuration of each section of the report at a granular level. The following sections can be set.
 
-There are 6 levels (0-5) of detail granularity for each section as follows;
+There are 2 levels (0-1) of detail granularity for each section as follows;
 
 | Setting | InfoLevel         | Description                                                                                                                                |
 |:-------:|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 |    0    | Disabled          | Does not collect or display any information                                                                                                |
 |    1    | Enabled / Summary | Provides summarised information for a collection of objects                                                                                |
-|    2    | Adv Summary       | Provides condensed, detailed information for a collection of objects                                                                       |
-|    3    | Detailed          | Provides detailed information for individual objects                                                                                       |
-|    4    | Adv Detailed      | Provides detailed information for individual objects, as well as information for associated objects                                        |
-|    5    | Comprehensive     | Provides comprehensive information for individual objects, such as advanced configuration settings                                         |
 
 ### Healthcheck
+
 The **Healthcheck** schema is used to toggle health checks on or off.
 
 ## :computer: Examples
-<!-- ********** Add some examples. Use other AsBuiltReport modules as a guide. ********** -->
+
+There are a few examples listed below on running the AsBuiltReport script against a Microsoft Active Directory Domain Controller target. Refer to the `README.md` file in the main AsBuiltReport project repository for more examples.
+
+```powershell
+
+# Generate a Microsoft Active Directory As Built Report for Domain Controller Server 'admin-dc-01v.contoso.local' using specified credentials. Export report to HTML & DOCX formats. Use default report style. Append timestamp to report filename. Save reports to 'C:\Users\Jon\Documents'
+PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.local' -Username 'administrator@contoso.local' -Password 'P@ssw0rd' -Format Html,Word -OutputFolderPath 'C:\Users\Jon\Documents' -Timestamp
+
+# Generate a Microsoft Active Directory As Built Report for Domain Controller Server 'admin-dc-01v.contoso.local' using specified credentials and report configuration file. Export report to Text, HTML & DOCX formats. Use default report style. Save reports to 'C:\Users\Jon\Documents'. Display verbose messages to the console.
+PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.local' -Username 'administrator@contoso.local' -Password 'P@ssw0rd' -Format Text,Html,Word -OutputFolderPath 'C:\Users\Jon\Documents' -ReportConfigFilePath 'C:\Users\Jon\AsBuiltReport\AsBuiltReport.Microsoft.AD.json' -Verbose
+
+# Generate a Microsoft Active Directory As Built Report for Domain Controller Server 'admin-dc-01v.contoso.local' using stored credentials. Export report to HTML & Text formats. Use default report style. Highlight environment issues within the report. Save reports to 'C:\Users\Jon\Documents'.
+PS C:\> $Creds = Get-Credential
+PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.local' -Credential $Creds -Format Html,Text -OutputFolderPath 'C:\Users\Jon\Documents' -EnableHealthCheck
+
+# Generate a Microsoft Active Directory As Built Report for Domain Controller Server 'admin-dc-01v.contoso.local' using specified credentials. Export report to HTML & DOCX formats. Use default report style. Reports are saved to the user profile folder by default. Attach and send reports via e-mail.
+PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.local' -Username 'administrator@contoso.local' -Password 'P@ssw0rd' -Format Html,Word -OutputFolderPath 'C:\Users\Jon\Documents' -SendEmail
+```
+
+## :x: Known Issues
+
+- Issues with WinRM when using the IP address instead of the "Fully Qualified Domain Name".
+- No Linux/Mac support until Microsoft migrates the ActiveDirectory/GroupPolicy modules to PowerShell Core.

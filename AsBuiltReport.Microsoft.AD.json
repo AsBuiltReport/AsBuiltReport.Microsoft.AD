@@ -12,10 +12,27 @@
 
     },
     "InfoLevel": {
-		"_comment_": "Please refer to the AsBuiltReport project contributing guide for information about how to define InfoLevels.",
-        "_comment_": "0 = Disabled, 1 = Enabled / Summary, 2 = Adv Summary, 3 = Detailed, 4 = Adv Detailed, 5 = Comprehensive"
+        "_comment_": "0 = Disabled, 1 = Enabled",
+        "Forest": 1,
+        "Domain": 1,
+        "Site": 1,
+        "DHCP": 1,
+        "DNS": 1,
+        "CA": 1
     },
     "HealthCheck": {
-	
+        "Domain": {
+            "GMSA": true
+        },
+        "DomainController": {
+            "Diagnostic": true,
+            "Services": true
+        },
+        "Site": {
+            "Replication": true
+        },
+        "DNS": {
+            "Aging": true
+        }
     }
 }
