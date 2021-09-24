@@ -42,6 +42,7 @@ function Get-AbrADDomainController {
                         Write-PscriboMessage "Collecting AD Domain Controller Summary information of $DC."
                         $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                         $DCInfo = Invoke-Command -Session $DCPssSession {Get-ADDomainController -Identity $using:DC}
+                        Remove-PSSession -Session $DCPssSession
                         $inObj = [ordered] @{
                             'DC Name' = ($DCInfo.Name).ToString().ToUpper()
                             'Domain Name' = $DCInfo.Domain
@@ -84,6 +85,7 @@ function Get-AbrADDomainController {
                             Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
                             $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                             $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
+                            Remove-PSSession -Session $DCPssSession
                             if ($HW) {
                                 $inObj = [ordered] @{
                                     'Name' = $HW.CsDNSHostName
@@ -132,6 +134,7 @@ function Get-AbrADDomainController {
                             $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                             $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
                             $size = Invoke-Command -Session $DCPssSession -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
+                            Remove-PSSession -Session $DCPssSession
                             if ( $NTDS -and $size ) {
                                 $inObj = [ordered] @{
                                     'Name' = $DC
@@ -174,7 +177,7 @@ function Get-AbrADDomainController {
                                 $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                                 $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
                                 $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
-
+                                Remove-PSSession -Session $DCPssSession
                                 if ( $NtpServer -and $SourceType ) {
                                     $inObj = [ordered] @{
                                         'Name' = $DC

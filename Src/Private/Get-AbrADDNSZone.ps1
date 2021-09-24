@@ -54,6 +54,7 @@ function Get-AbrADDNSZone {
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
+                    Remove-PSSession -Session $DCPssSession
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
@@ -75,6 +76,7 @@ function Get-AbrADDNSZone {
                 Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                 $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ReplicationScope -eq "Domain"} | Select-Object -ExpandProperty ZoneName }
                 $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneDelegation -Name $using:DNSSetting}
+                Remove-PSSession -Session $DCPssSession
                 if ($Zones) {
                     Section -Style Heading5 "Zone Delegation of $($DC.ToString().ToUpper().Split(".")[0])" {
                         Paragraph "The following section provides a summary of the Domain Name System Zone Delegation information."
@@ -135,6 +137,7 @@ function Get-AbrADDNSZone {
                             }
                             $OutObj += [pscustomobject]$inobj
                         }
+                        Remove-PSSession -Session $DCPssSession
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
@@ -172,6 +175,7 @@ function Get-AbrADDNSZone {
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
+                    Remove-PSSession -Session $DCPssSession
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."

@@ -67,6 +67,7 @@ function Get-AbrADInfrastructureService {
                         }
                         $OutObj | Table @TableParams
                     }
+                    Remove-PSSession -Session $DCPssSession
                 }
             }
         }

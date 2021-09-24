@@ -59,6 +59,7 @@ function Get-AbrADTrust {
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
+                    Remove-PSSession -Session $DCPssSession
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
