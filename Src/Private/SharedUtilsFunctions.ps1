@@ -20,12 +20,15 @@ function ConvertTo-TextYN {
         [Parameter (
             Position = 0,
             Mandatory)]
+            [AllowEmptyString()]
             [string]
             $TEXT
         )
 
     switch ($TEXT)
         {
+            "" {"-"}
+            $Null {"-"}
             "True" {"Yes"; break}
             "False" {"No"; break}
             default {$TEXT}
