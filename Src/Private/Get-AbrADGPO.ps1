@@ -41,7 +41,7 @@ function Get-AbrADGPO {
                         Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
                         $inObj = [ordered] @{
                             'Display Name' = $GPO.DisplayName
-                            'GpoStatus' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                            'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
                             'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
                             'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
                         }
@@ -49,8 +49,7 @@ function Get-AbrADGPO {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "WARNING: Could not connect to Domain $Domian (Group Policy Objects)"
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
                 }
                 $TableParams = @{
                     Name = "Group Policy Objects Information."
