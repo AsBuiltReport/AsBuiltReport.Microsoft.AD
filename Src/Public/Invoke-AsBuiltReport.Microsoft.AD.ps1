@@ -61,7 +61,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning $_.Exception.Message
                     continue
                 }
             }
@@ -95,7 +95,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         }
                                         catch {
                                             Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
-                                            Write-PScriboMessage -IsDebug $_.Exception.Message
+                                            Write-PscriboMessage -IsWarning $_.Exception.Message
                                             continue
                                         }
                                     }
@@ -107,7 +107,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
-                                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                                        Write-PscriboMessage -IsWarning $_.Exception.Message
                                         continue
                                     }
                                     Get-AbrADSiteReplication -Domain $Domain -Session $TempPssSession
@@ -118,8 +118,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         }
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Domain"
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning $_.Exception.Message
                         continue
                     }
                 }
@@ -143,12 +142,31 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         }
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Domain"
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                        continue
+                    }
+                }
+            }
+            #---------------------------------------------------------------------------------------------#
+            #                                 DHCP Section                                                 #
+            #---------------------------------------------------------------------------------------------#
+            if ($InfoLevel.DHCP -gt 0) {
+                foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
+                    try {
+                        Section -Style Heading3 "DHCP Server Summary on Active Directory $($ForestInfo.toUpper())" {
+                            Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol"
+                            BlankLine
+                            Get-AbrADDHCPInfrastructure -Domain $Domain -Session $TempPssSession
+                        }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning $_.Exception.Message
                         continue
                     }
                 }
             }
         }#endregion AD Section
+        Write-PscriboMessage "Clearing PSSession $($TempPssSession.Id)"
+        Remove-PSSession -Session $TempPssSession
 	}#endregion foreach loop
 }
