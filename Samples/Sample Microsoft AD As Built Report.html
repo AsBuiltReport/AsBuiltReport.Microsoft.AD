@@ -1,0 +1,720 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>Microsoft AD As Built Report</title>
+<style type="text/css">
+html { height: 100%; -webkit-background-size: cover; -moz-background-size: cover; -o-background-size: cover; background-size: cover; background: #e6e6e6; }
+page { background: white; display: block; margin-top: 1rem; margin-left: auto; margin-right: auto; margin-bottom: 1rem; border-style: solid; border-width: 1px; border-color: #c6c6c6; }
+@media print { body, page { margin: 0; box-shadow: 0; } }
+hr { margin-top: 1.0rem; }
+ .portrait { background: white; width: 210mm; display: block; margin-top: 1rem; margin-left: auto; margin-right: auto; margin-bottom: 1rem; position: relative; border-style: solid; border-width: 1px; border-color: #c6c6c6; }
+ .landscape { background: white; width: 297mm; display: block; margin-top: 1rem; margin-left: auto; margin-right: auto; margin-bottom: 1rem; position: relative; border-style: solid; border-width: 1px; border-color: #c6c6c6; }
+ .TOC { font-family: 'Arial'; font-size: 1.33rem; text-align: left; font-weight: normal; color: #00a4ef; }
+ .TableDefaultHeading { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #fafafa; background-color: #00a4ef; }
+ .Warning { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #ffb900; }
+ .Heading1 { font-family: 'Arial'; font-size: 1.33rem; text-align: left; font-weight: normal; color: #00a4ef; }
+ .Heading5 { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #00a4ef; }
+ .Heading4 { font-family: 'Arial'; font-size: 0.92rem; text-align: left; font-weight: normal; color: #00a4ef; }
+ .TableDefaultAltRow { font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92rem; text-align: left; font-weight: normal; color: #000000; background-color: #d0ddee; }
+ .TableDefaultRow { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #565656; }
+ .Caption { font-family: 'Arial'; font-size: 0.83rem; text-align: center; font-weight: normal; font-style: italic; color: #565656; }
+ .Header { font-family: 'Arial'; font-size: 0.83rem; text-align: center; font-weight: normal; color: #565656; }
+ .Title2 { font-family: 'Arial'; font-size: 1.50rem; text-align: center; font-weight: normal; color: #00a4ef; }
+ .Title { font-family: 'Arial'; font-size: 2.00rem; text-align: center; font-weight: normal; color: #737373; }
+ .Critical { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #f25022; }
+ .Normal { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #565656; }
+ .Heading6 { font-family: 'Calibri','Candara','Segoe','Segoe UI','Optima','Arial','Sans-Serif'; font-size: 0.92rem; text-align: left; font-weight: normal; color: #1f3763; }
+ .Heading3 { font-family: 'Arial'; font-size: 1.00rem; text-align: left; font-weight: normal; color: #00a4ef; }
+ .OK { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #7fba00; }
+ .Footer { font-family: 'Arial'; font-size: 0.83rem; text-align: center; font-weight: normal; color: #565656; }
+ .Title3 { font-family: 'Arial'; font-size: 1.00rem; text-align: left; font-weight: normal; color: #00a4ef; }
+ .Heading2 { font-family: 'Arial'; font-size: 1.17rem; text-align: left; font-weight: normal; color: #00a4ef; }
+ .Info { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #00a4ef; }
+ table.borderless { padding: 0.08rem 0.33rem 0rem 0.33rem; border-style: none; border-collapse: collapse; }
+ table.borderless th { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #565656; padding: 0.08rem 0.33rem 0rem 0.33rem; border-style: none; border-collapse: collapse; }
+ table.borderless td { padding: 0.08rem 0.33rem 0rem 0.33rem; border-style: none; border-collapse: collapse; }
+ table.borderless tr:nth-child(odd) { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #565656; padding: 0.08rem 0.33rem 0rem 0.33rem; border-style: none; border-collapse: collapse; }
+ table.borderless tr:nth-child(even) { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #565656; padding: 0.08rem 0.33rem 0rem 0.33rem; border-style: none; border-collapse: collapse; }
+ table.tabledefault { padding: 0.08rem 0.17rem 0.13rem 0.17rem; border-style: solid; border-width: 0.02rem; border-color: #00a4ef; border-collapse: collapse; }
+ table.tabledefault th { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #fafafa; background-color: #00a4ef; padding: 0.08rem 0.17rem 0.13rem 0.17rem; border-style: solid; border-width: 0.02rem; border-color: #00a4ef; border-collapse: collapse; }
+ table.tabledefault td { padding: 0.08rem 0.17rem 0.13rem 0.17rem; border-style: solid; border-width: 0.02rem; border-color: #00a4ef; border-collapse: collapse; }
+ table.tabledefault tr:nth-child(odd) { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #565656; padding: 0.08rem 0.17rem 0.13rem 0.17rem; border-style: solid; border-width: 0.02rem; border-color: #00a4ef; border-collapse: collapse; }
+ table.tabledefault tr:nth-child(even) { font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #565656; padding: 0.08rem 0.17rem 0.13rem 0.17rem; border-style: solid; border-width: 0.02rem; border-color: #00a4ef; border-collapse: collapse; }
+</style></head><body>
+<div class="portrait"><div class="Normal" style="padding-top: 5.92rem; padding-left: 5.92rem; padding-bottom: 5.92rem; padding-right: 5.92rem;">
+
+<div style="min-height: 246.89999999999998mm" ><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><div class="Title">Microsoft AD As Built Report</div><br /><br /><div class="Title2">Zen PR Solutions</div><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="borderless"><tbody>
+<tr><th>Author:</th><td>Jonathan Colon</td></tr>
+<tr><th>Date:</th><td>Tuesday, September 21, 2021</td></tr>
+<tr><th>Version:</th><td>0.2.0</td></tr>
+</tbody></table>
+<br /></div>
+</div></div></div><div class="portrait"><div class="Normal" style="padding-top: 5.92rem; padding-left: 5.92rem; padding-bottom: 5.92rem; padding-right: 5.92rem;">
+<div style="min-height: 246.89999999999998mm" ><div><div class="Header">Microsoft AD As Built Report - v0.2.0</div><br /></div><h1 class="TOC">Table of Contents</h1><table>
+<tr><td>1</td><td><a href="#279ce7ae-5981-4852-8f11-b0a183677dbc" style="text-decoration: none;">Report for Active Directory Forest ZENPR.LOCAL</a></td></tr>
+<tr><td>1.1</td><td>&nbsp;&nbsp;&nbsp;<a href="#3348f078-975d-4acb-95e6-3d968800bfa5" style="text-decoration: none;">Forest Information.</a></td></tr>
+<tr><td>1.1.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#fe10588c-fb4b-42f2-ad19-c81b2567d710" style="text-decoration: none;">Optional Features Summary</a></td></tr>
+<tr><td>1.1.2</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#b6c733fc-0813-4c22-8a30-cda2a5340124" style="text-decoration: none;">Domain Site Summary</a></td></tr>
+<tr><td>1.1.3</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ea6aff1d-d45b-48cc-ac57-9202fb5a70af" style="text-decoration: none;">Site Links Summary</a></td></tr>
+<tr><td>1.2</td><td>&nbsp;&nbsp;&nbsp;<a href="#fcb01b26-2f46-4a1e-aead-8995e1b4e2e8" style="text-decoration: none;">Active Directory Information for domain ZENPR.LOCAL</a></td></tr>
+<tr><td>1.2.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#45f3c21d-37a6-4fb7-849f-f8e52a823217" style="text-decoration: none;">Domain Object Count Summary</a></td></tr>
+<tr><td>1.2.2</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ccfe53e9-e560-481d-90c7-43c85696cd29" style="text-decoration: none;">Default Domain Password Policy Summary</a></td></tr>
+<tr><td>1.2.3</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#29f0c216-a643-41c1-ab91-4077a6a9d85f" style="text-decoration: none;">Group Managed Service Accounts (GMSA) Summary</a></td></tr>
+<tr><td>1.2.4</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#581099cb-20ed-4727-8b8b-33eb7da29397" style="text-decoration: none;">Flexible Single Master Operations (FSMO) Information</a></td></tr>
+<tr><td>1.2.5</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#4d5b338b-fe61-44c9-869f-4464e2eecb67" style="text-decoration: none;">Trust Summary</a></td></tr>
+<tr><td>1.2.6</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#d706ac8f-cc30-41b3-a3cc-77048575f1e0" style="text-decoration: none;">Domain Controller Information</a></td></tr>
+<tr><td>1.2.6.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#2e9d5859-83b5-4b46-bea7-3247e2844626" style="text-decoration: none;">Domain Controller Hardware Summary</a></td></tr>
+<tr><td>1.2.6.2</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#9ff86c27-4b0a-4839-a8e5-15c446941175" style="text-decoration: none;">Domain Controller NTDS Summary</a></td></tr>
+<tr><td>1.2.6.2.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#e52391bd-cb2c-470b-b29b-410622ea8d21" style="text-decoration: none;">Domain Controller Time Source Summary</a></td></tr>
+<tr><td>1.2.6.3</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#7ce8ea39-5d0e-4be0-882c-11ff16b23ae0" style="text-decoration: none;">DCDiag Information</a></td></tr>
+<tr><td>1.2.6.4</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#af969dcc-3599-475e-8b8f-79fca496e1ad" style="text-decoration: none;">Domain Controller Infrastructure Services Status of SERVER-DC-01V</a></td></tr>
+<tr><td>1.2.6.5</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#3f08d8b1-72aa-4569-9a10-62a684c1a6c6" style="text-decoration: none;">Domain Controller Infrastructure Services Status of CAYEY-DC-01V</a></td></tr>
+<tr><td>1.2.6.6</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#b65fe724-6377-46f0-a004-5db5fd568b63" style="text-decoration: none;">Site Replication Summary</a></td></tr>
+<tr><td>1.2.6.7</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#8f0e8c85-2c05-463e-b41f-67eafd906fdf" style="text-decoration: none;">Site Replication Failure Summary</a></td></tr>
+<tr><td>1.2.6.8</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#15727382-09f6-40a9-9e7b-95e758e6ff12" style="text-decoration: none;">Group Policy Objects Summary for domain ZENPR</a></td></tr>
+<tr><td>1.2.6.9</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#3ce18ad6-057c-4b9d-abea-7c9831bfc39a" style="text-decoration: none;">Organizational Unit summary for domain ZENPR</a></td></tr>
+<tr><td>1.3</td><td>&nbsp;&nbsp;&nbsp;<a href="#58e9d2fb-d2fa-48e3-8fb3-9bab948e58db" style="text-decoration: none;">Active Directory Information for domain ACAD.ZENPR.LOCAL</a></td></tr>
+<tr><td>1.3.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#82b9cff5-8480-447f-9cf6-aa7a67e7303d" style="text-decoration: none;">Domain Object Count Summary</a></td></tr>
+<tr><td>1.3.2</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#31cf12b9-4704-4bdb-8ad3-b375a6254228" style="text-decoration: none;">Default Domain Password Policy Summary</a></td></tr>
+<tr><td>1.3.3</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#a05ec046-6fe8-448c-bee4-992125e09280" style="text-decoration: none;">Group Managed Service Accounts (GMSA) Summary</a></td></tr>
+<tr><td>1.3.4</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#3ee9c8fc-fb2d-40d4-a932-f8dfbf1dd004" style="text-decoration: none;">Flexible Single Master Operations (FSMO) Information</a></td></tr>
+<tr><td>1.3.5</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#29726a01-0203-4eaf-bf78-325eebc1c6ad" style="text-decoration: none;">Trust Summary</a></td></tr>
+<tr><td>1.3.6</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#9825116f-966f-45a5-bf87-80c850f319c1" style="text-decoration: none;">Domain Controller Information</a></td></tr>
+<tr><td>1.3.6.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#aa623934-a131-4c03-890e-a18322118653" style="text-decoration: none;">Domain Controller Hardware Summary</a></td></tr>
+<tr><td>1.3.6.2</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#2bcbbfb3-d492-4f23-9fee-efd06784d8b7" style="text-decoration: none;">Domain Controller NTDS Summary</a></td></tr>
+<tr><td>1.3.6.2.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#09e68b97-0aac-429c-96cb-627c57b041e2" style="text-decoration: none;">Domain Controller Time Source Summary</a></td></tr>
+<tr><td>1.3.6.3</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#cc8a24c0-06b5-4976-bfa9-c036de137e9e" style="text-decoration: none;">DCDiag Information</a></td></tr>
+<tr><td>1.3.6.4</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#23ba18f8-7db4-4d94-bdb4-6aa20341380d" style="text-decoration: none;">Domain Controller Infrastructure Services Status of ACADE-DC-01V</a></td></tr>
+<tr><td>1.3.6.5</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#5b1c0203-9db4-4743-8b7a-4e5a1882a6dc" style="text-decoration: none;">Site Replication Summary</a></td></tr>
+<tr><td>1.3.6.6</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#f4cb5bc1-093a-4874-bdda-a3cfc1c1e188" style="text-decoration: none;">Group Policy Objects Summary for domain ACAD</a></td></tr>
+<tr><td>1.3.6.7</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#dc3b61c8-79dc-48f7-8321-b9553b7f681e" style="text-decoration: none;">Organizational Unit summary for domain ACAD</a></td></tr>
+<tr><td>1.4</td><td>&nbsp;&nbsp;&nbsp;<a href="#0237b357-c95c-402f-9420-484c4598e2db" style="text-decoration: none;">Domain Name System Information for domain ZENPR.LOCAL</a></td></tr>
+<tr><td>1.4.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#83001168-5792-4b58-80a2-f0a2c0cfa9a2" style="text-decoration: none;">Infrastructure Summary</a></td></tr>
+<tr><td>1.4.1.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#b612931a-0f03-45bd-947c-569a07203d59" style="text-decoration: none;">Response Rate Limiting (RRL) Summary</a></td></tr>
+<tr><td>1.4.1.2</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#b59d1a6c-201b-4c25-9000-d7f9380de9dd" style="text-decoration: none;">Scavenging Summary</a></td></tr>
+<tr><td>1.4.1.3</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#689a7b38-9029-4f32-8fca-fefbc5772183" style="text-decoration: none;">Forwarder Summary</a></td></tr>
+<tr><td>1.4.1.4</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#dce4bc4e-41bf-4248-9332-943b5db7020d" style="text-decoration: none;">Zone Scope Recursion Summary</a></td></tr>
+<tr><td>1.5</td><td>&nbsp;&nbsp;&nbsp;<a href="#df3f3177-2769-46bf-9d5e-7cc93431d8a6" style="text-decoration: none;">Domain Name System Information for domain ACAD.ZENPR.LOCAL</a></td></tr>
+<tr><td>1.5.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#7f29c9c8-c7ee-40e6-a563-622253b27f34" style="text-decoration: none;">Infrastructure Summary</a></td></tr>
+<tr><td>1.5.1.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#18e2761f-3d75-4641-86eb-5c997df1e27e" style="text-decoration: none;">Response Rate Limiting (RRL) Summary</a></td></tr>
+<tr><td>1.5.1.2</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#99fa4d7f-ceac-401f-876c-8b76d1a9076e" style="text-decoration: none;">Scavenging Summary</a></td></tr>
+<tr><td>1.5.1.3</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#714ebff1-64a6-4719-9693-6560e3c15fca" style="text-decoration: none;">Forwarder Summary</a></td></tr>
+<tr><td>1.5.1.4</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#00b68f41-8e98-489b-8530-2770c0eadb4d" style="text-decoration: none;">Zone Scope Recursion Summary</a></td></tr>
+<tr><td>1.6</td><td>&nbsp;&nbsp;&nbsp;<a href="#1e280994-f3a4-40de-acf3-7a8de8c26c6c" style="text-decoration: none;">Domain Name System Zone Configuration of ACADE-DC-01V</a></td></tr>
+<tr><td>1.6.1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#a56896ca-16da-4780-87ef-b14891be08f3" style="text-decoration: none;">Reverse Lookup Zone Configuration of ACADE-DC-01V</a></td></tr>
+<tr><td>1.6.2</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#9663b7d4-a45c-477c-a73c-2025b4750544" style="text-decoration: none;">Zone Scope Aging properties of ACADE-DC-01V</a></td></tr>
+</table>
+</div><div><br /><div class="Footer">Page 2</div></div></div></div><div class="portrait"><div class="Normal" style="padding-top: 5.92rem; padding-left: 5.92rem; padding-bottom: 5.92rem; padding-right: 5.92rem;">
+<div style="min-height: 246.89999999999998mm" ><div><div class="Header">Microsoft AD As Built Report - v0.2.0</div><br /></div><a name="279ce7ae-5981-4852-8f11-b0a183677dbc"><h1 class="Heading1">1 Report for Active Directory Forest ZENPR.LOCAL</h1></a><div>The following section provides a summary of the Active Directory Infrastructure configuration for ZENPR.LOCAL.</div><br /><a name="3348f078-975d-4acb-95e6-3d968800bfa5"><h2 class="Heading2">1.1 Forest Information.</h2></a><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Forest Name</th><td>zenpr.local</td></tr>
+<tr><th>Forest Functional Level</th><td>Windows2016Forest</td></tr>
+<tr><th>Schema Version</th><td>ObjectVersion 88; PSComputerName=acade-dc-01v.acad.zenpr.local; RunspaceId=4e7fcc4f-b977-49e4-9293-28d66954c15f; PSShowComputerName=True, Correspond to </td></tr>
+<tr><th>Domains</th><td>acad.zenpr.local; zenpr.local</td></tr>
+<tr><th>Global Catalogs</th><td>Server-DC-01V.zenpr.local; acade-dc-01v.acad.zenpr.local</td></tr>
+<tr><th>Application Partitions</th><td>DC=DomainDnsZones,DC=acad,DC=zenpr,DC=local<br />DC=ForestDnsZones,DC=zenpr,DC=local<br />DC=DomainDnsZones,DC=zenpr,DC=local</td></tr>
+<tr><th>PartitionsContainer</th><td>CN=Partitions,CN=Configuration,DC=zenpr,DC=local</td></tr>
+<tr><th>SPN Suffixes</th><td>&nbsp;</td></tr>
+<tr><th>UPN Suffixes</th><td>&nbsp;</td></tr>
+</tbody></table>
+<div class="Caption">Table 1 - AD Forest Summary Information - ZENPR.LOCAL</div><br /></div>
+<a name="fe10588c-fb4b-42f2-ad19-c81b2567d710"><h3 class="Heading5">1.1.1 Optional Features Summary</h3></a><div>The following section provides a summary of the enabled Optional Features.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:30%; min-width:30%; width:30%" /><col style="max-width:30%; min-width:30%; width:30%" /></colgroup>
+<thead><tr><th>Name</th><th>Required Forest Mode</th><th>Forest</th></tr></thead><tbody>
+<tr><td>Recycle Bin Feature</td><td>Windows2008R2Forest</td><td>ZENPR.LOCAL</td></tr>
+<tr><td>Privileged Access Management Feature</td><td>Windows2016Forest</td><td>ZENPR.LOCAL</td></tr>
+</tbody></table>
+<div class="Caption">Table 2 - Active Directory Enabled Optional Features Information - ZENPR.LOCAL</div><br /></div>
+<a name="b6c733fc-0813-4c22-8a30-cda2a5340124"><h3 class="Heading3">1.1.2 Domain Site Summary</h3></a><div>The following section provides a summary of the Active Directory Sites on.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:30%; min-width:30%; width:30%" /><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>Site Name</th><th>Description</th><th>Creation Date</th><th>Subnets</th></tr></thead><tbody>
+<tr><td>Zenpr-HQ</td><td>Site of San Juan, PR HQ</td><td>Mon, 11 Jun 2018 00:59:59 GMT</td><td>10.9.1.0/24<br />192.168.0.0/16</td></tr>
+<tr><td>Cayey-Branch</td><td>Site of Cayey, PR Branch</td><td>Sat, 04 Sep 2021 00:35:15 GMT</td><td>10.10.0.0/16</td></tr>
+<tr><td>ACAD</td><td>&nbsp;</td><td>Sun, 05 Sep 2021 16:13:51 GMT</td><td>172.23.0.0/16</td></tr>
+</tbody></table>
+<div class="Caption">Table 3 - AD Domain Controller Summary Information - ZENPR.LOCAL</div><br /></div>
+<a name="ea6aff1d-d45b-48cc-ac57-9202fb5a70af"><h3 class="Heading4">1.1.3 Site Links Summary</h3></a><div>The following section provides a summary of the Active Directory Site Link information.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:30%; min-width:30%; width:30%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:25%; min-width:25%; width:25%" /></colgroup>
+<thead><tr><th>Site Link Name</th><th>Cost</th><th>Replication Frequency</th><th>Transport Protocol</th><th>Sites</th></tr></thead><tbody>
+<tr><td>Zenpr-to-All</td><td>100</td><td>15 min</td><td>IP</td><td>ACAD<br />Cayey-Branch<br />Zenpr-HQ</td></tr>
+<tr><td>ZENPR-to-ACAD</td><td>100</td><td>15 min</td><td>IP</td><td>ACAD<br />Zenpr-HQ</td></tr>
+</tbody></table>
+<div class="Caption">Table 4 - Site Links Information - ZENPR.LOCAL</div><br /></div>
+<a name="fcb01b26-2f46-4a1e-aead-8995e1b4e2e8"><h2 class="Heading3">1.2 Active Directory Information for domain ZENPR.LOCAL</h2></a><div>The following section provides a summary of the AD Domain Information.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Domain Name</th><td>zenpr</td></tr>
+<tr><th>NetBIOS Name</th><td>ZENPR</td></tr>
+<tr><th>Domain SID</th><td>S-1-5-21-2867495315-1194516362-180967319</td></tr>
+<tr><th>Domain Functional Level</th><td>Windows2016Domain</td></tr>
+<tr><th>Domains</th><td>&nbsp;</td></tr>
+<tr><th>Forest</th><td>zenpr.local</td></tr>
+<tr><th>Parent Domain</th><td>&nbsp;</td></tr>
+<tr><th>Replica Directory Servers</th><td>Server-DC-01V.zenpr.local<br />cayey-dc-01v.zenpr.local</td></tr>
+<tr><th>Child Domains</th><td>acad.zenpr.local</td></tr>
+<tr><th>Computers Container</th><td>CN=Computers,DC=zenpr,DC=local</td></tr>
+<tr><th>Distinguished Name</th><td>DC=zenpr,DC=local</td></tr>
+<tr><th>Domain Controllers Container</th><td>OU=Domain Controllers,DC=zenpr,DC=local</td></tr>
+<tr><th>Systems Container</th><td>CN=System,DC=zenpr,DC=local</td></tr>
+<tr><th>Users Container</th><td>CN=Users,DC=zenpr,DC=local</td></tr>
+<tr><th>ReadOnly Replica Directory Servers</th><td>&nbsp;</td></tr>
+</tbody></table>
+<div class="Caption">Table 5 - AD Domain Summary Information - ZENPR.LOCAL</div><br /></div>
+<a name="45f3c21d-37a6-4fb7-849f-f8e52a823217"><h3 class="Heading5">1.2.1 Domain Object Count Summary</h3></a><div>The following section provides a summary of the Active Directory Object Count on ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:20%; min-width:20%; width:20%" /><col style="max-width:20%; min-width:20%; width:20%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>Domain Name</th><th>Computer Count</th><th>Users Count</th><th>Group Count</th></tr></thead><tbody>
+<tr><td>zenpr.local</td><td>89</td><td>24</td><td>107</td></tr>
+</tbody></table>
+<div class="Caption">Table 6 - Active Directory Object Count Information - ZENPR.LOCAL</div><br /></div>
+<a name="ccfe53e9-e560-481d-90c7-43c85696cd29"><h3 class="Heading5">1.2.2 Default Domain Password Policy Summary</h3></a><div>The following section provides a summary of the Default Domain Password Policy on ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Domain Name</th><td>zenpr.local</td></tr>
+<tr><th>Complexity Enabled</th><td>Yes</td></tr>
+<tr><th>Distinguished Name</th><td>DC=zenpr,DC=local</td></tr>
+<tr><th>Lockout Duration</th><td>00 days 00 hours 30 minutes 00 seconds</td></tr>
+<tr><th>Lockout Threshold</th><td>0</td></tr>
+<tr><th>Lockout Observation Window</th><td>00 days 00 hours 30 minutes 00 seconds</td></tr>
+<tr><th>Max Password Age</th><td>42 days 00 hours 00 minutes 00 seconds</td></tr>
+<tr><th>Min Password Age</th><td>01 days 00 hours 00 minutes 00 seconds</td></tr>
+<tr><th>Min Password Length</th><td>7</td></tr>
+<tr><th>Password History Count</th><td>24</td></tr>
+<tr><th>Reversible Encryption Enabled</th><td>No</td></tr>
+</tbody></table>
+<div class="Caption">Table 7 - Default Domain Password Policy Information - ZENPR.LOCAL</div><br /></div>
+<a name="29f0c216-a643-41c1-ab91-4077a6a9d85f"><h3 class="Heading5">1.2.3 Group Managed Service Accounts (GMSA) Summary</h3></a><div>The following section provides a summary of the Group Managed Service Accounts on ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Name</th><td>SQLServer</td></tr>
+<tr><th>SamAccountName</th><td>SQLServer$</td></tr>
+<tr><th>Created</th><td>09/27/2020 14:14:22</td></tr>
+<tr><th>Enabled</th><td>Yes</td></tr>
+<tr><th>DNS Host Name</th><td>SQL-Cluster</td></tr>
+<tr><th>Host Computers</th><td>CN=SQL-CLUSTER-02V,OU=Member Servers,DC=zenpr,DC=local<br />CN=SQL-CLUSTER-01V,OU=Member Servers,DC=zenpr,DC=local</td></tr>
+<tr><th>Retrieve Managed Password</th><td>CN=SQL-CLUSTER-01V,OU=Member Servers,DC=zenpr,DC=local<br />CN=SQL-CLUSTER-02V,OU=Member Servers,DC=zenpr,DC=local</td></tr>
+<tr><th>Primary Group</th><td>CN=Domain Computers,CN=Users,DC=zenpr,DC=local</td></tr>
+<tr><th>Last Logon Date</th><td>09/27/2020 14:41:08</td></tr>
+<tr><th>Locked Out</th><td>No</td></tr>
+<tr><th>Logon Count</th><td>3</td></tr>
+<tr><th>Password Expired</th><td>No</td></tr>
+<tr><th>Password Last Set</th><td>09/27/2020 14:14:22</td></tr>
+</tbody></table>
+<br /></div>
+<div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Name</th><td>adfsgmsa</td></tr>
+<tr><th>SamAccountName</th><td>adfsgmsa$</td></tr>
+<tr><th>Created</th><td>10/07/2020 18:36:16</td></tr>
+<tr><th>Enabled</th><td>Yes</td></tr>
+<tr><th>DNS Host Name</th><td>ADFS.zenpr.local</td></tr>
+<tr><th>Host Computers</th><td>&nbsp;</td></tr>
+<tr><th>Retrieve Managed Password</th><td>CN=SERVER-ADFS-01V,OU=Member Servers,DC=zenpr,DC=local<br />CN=SERVER-ADFS-02V,OU=Member Servers,DC=zenpr,DC=local</td></tr>
+<tr><th>Primary Group</th><td>CN=Domain Computers,CN=Users,DC=zenpr,DC=local</td></tr>
+<tr><th>Last Logon Date</th><td>10/07/2020 18:36:17</td></tr>
+<tr><th>Locked Out</th><td>No</td></tr>
+<tr><th>Logon Count</th><td>40</td></tr>
+<tr><th>Password Expired</th><td>No</td></tr>
+<tr><th>Password Last Set</th><td>10/07/2020 18:36:16</td></tr>
+</tbody></table>
+<br /></div>
+<a name="581099cb-20ed-4727-8b8b-33eb7da29397"><h3 class="Heading4">1.2.4 Flexible Single Master Operations (FSMO) Information</h3></a><div>The following section provides a summary of the Active Directory FSMO for Domain ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Infrastructure Master Server</th><td>Server-DC-01V.zenpr.local</td></tr>
+<tr><th>RID Master Server</th><td>Server-DC-01V.zenpr.local</td></tr>
+<tr><th>PDC Emulator Name</th><td>Server-DC-01V.zenpr.local</td></tr>
+<tr><th>Domain Naming Master Server</th><td>Server-DC-01V.zenpr.local</td></tr>
+<tr><th>Schema Master Server</th><td>Server-DC-01V.zenpr.local</td></tr>
+</tbody></table>
+<div class="Caption">Table 8 - FSMO Server Information - zenpr.local</div><br /></div>
+<a name="4d5b338b-fe61-44c9-869f-4464e2eecb67"><h3 class="Heading5">1.2.5 Trust Summary</h3></a><div>The following section provides a summary of Active Directory Trust information on ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Name</th><td>acad.zenpr.local</td></tr>
+<tr><th>Distinguished Name</th><td>CN=acad.zenpr.local,CN=System,DC=zenpr,DC=local</td></tr>
+<tr><th>Source</th><td>DC=zenpr,DC=local</td></tr>
+<tr><th>Target</th><td>acad.zenpr.local</td></tr>
+<tr><th>Direction</th><td>BiDirectional</td></tr>
+<tr><th>IntraForest</th><td>Yes</td></tr>
+<tr><th>Selective Authentication</th><td>No</td></tr>
+<tr><th>SID Filtering Forest Aware</th><td>No</td></tr>
+<tr><th>SID Filtering Quarantined</th><td>No</td></tr>
+<tr><th>Trust Type</th><td>Uplevel</td></tr>
+<tr><th>Uplevel Only</th><td>No</td></tr>
+</tbody></table>
+<div class="Caption">Table 9 - Active Directory Trusts Information - ZENPR.LOCAL</div><br /></div>
+<a name="d706ac8f-cc30-41b3-a3cc-77048575f1e0"><h3 class="Heading4">1.2.6 Domain Controller Information</h3></a><div>The following section provides a summary of the Active Directory Domain Controller.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:15%; min-width:15%; width:15%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Domain Name</th><th>Site</th><th>Global Catalog</th><th>Read Only</th><th>IP Address</th></tr></thead><tbody>
+<tr><td>SERVER-DC-01V</td><td>zenpr.local</td><td>Zenpr-HQ</td><td>Yes</td><td>No</td><td>192.168.5.1</td></tr>
+<tr><td>CAYEY-DC-01V</td><td>zenpr.local</td><td>Cayey-Branch</td><td>No</td><td>No</td><td>10.10.33.1</td></tr>
+</tbody></table>
+<div class="Caption">Table 10 - AD Domain Controller Summary Information - ZENPR.LOCAL</div><br /></div>
+<a name="2e9d5859-83b5-4b46-bea7-3247e2844626"><h4 class="Heading5">1.2.6.1 Domain Controller Hardware Summary</h4></a><div>The following section provides a summary of the Domain Controller Hardware for ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Name</th><td>Server-DC-01V</td></tr>
+<tr><th>WindowsProductName</th><td>Windows Server 2019 Standard Evaluation</td></tr>
+<tr><th>Manufacturer</th><td>VMware, Inc.</td></tr>
+<tr><th>CsModel</th><td>VMware7,1</td></tr>
+<tr><th>Bios Type</th><td>Uefi</td></tr>
+<tr><th>CPU Socket</th><td>1</td></tr>
+<tr><th>CPU Cores</th><td>2</td></tr>
+<tr><th>Total RAM</th><td>4.00 GB</td></tr>
+</tbody></table>
+<br /></div>
+<div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Name</th><td>cayey-dc-01v</td></tr>
+<tr><th>WindowsProductName</th><td>Windows Server 2019 Standard Evaluation</td></tr>
+<tr><th>Manufacturer</th><td>VMware, Inc.</td></tr>
+<tr><th>CsModel</th><td>VMware7,1</td></tr>
+<tr><th>Bios Type</th><td>Uefi</td></tr>
+<tr><th>CPU Socket</th><td>1</td></tr>
+<tr><th>CPU Cores</th><td>2</td></tr>
+<tr><th>Total RAM</th><td>4.00 GB</td></tr>
+</tbody></table>
+<br /></div>
+<a name="9ff86c27-4b0a-4839-a8e5-15c446941175"><h4 class="Heading5">1.2.6.2 Domain Controller NTDS Summary</h4></a><div>The following section provides a summary of the Domain Controller NTDS file size on ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>Name</th><th>DSA Database File</th><th>Size</th></tr></thead><tbody>
+<tr><td>Server-DC-01V.zenpr.local</td><td>C:\Windows\NTDS\ntds.dit</td><td>54.00 MB</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>C:\Windows\NTDS\ntds.dit</td><td>38.00 MB</td></tr>
+</tbody></table>
+<div class="Caption">Table 11 - Domain Controller NTDS Database File Usage Information - ZENPR.LOCAL</div><br /></div>
+<a name="e52391bd-cb2c-470b-b29b-410622ea8d21"><h5 class="Heading5">1.2.6.2.1 Domain Controller Time Source Summary</h5></a><div>The following section provides a summary of the Domain Controller Time Source configuration on ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>Name</th><th>Time Server</th><th>Type</th></tr></thead><tbody>
+<tr><td>Server-DC-01V.zenpr.local</td><td>0.pool.ntp.org,1.pool.ntp.org,2.pool.ntp.org,3.pool.ntp.org,8</td><td>MANUAL (NTP)</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>Domain Hierarchy</td><td>DOMHIER</td></tr>
+</tbody></table>
+<div class="Caption">Table 12 - Domain Controller Time Source Configuration - ZENPR.LOCAL</div><br /></div>
+<a name="7ce8ea39-5d0e-4be0-882c-11ff16b23ae0"><h4 class="Heading4">1.2.6.3 DCDiag Information</h4></a><div>The following section provides a summary of the Active Directory DC Diagnostic.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:35%; min-width:35%; width:35%" /><col style="max-width:35%; min-width:35%; width:35%" /><col style="max-width:30%; min-width:30%; width:30%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Test Name</th><th>Result</th></tr></thead><tbody>
+<tr><td>Server-DC-01V.zenpr.local</td><td>Connectivity</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>Advertising</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>FrsEvent</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>DFSREvent</td><td>failed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>SysVolCheck</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>KccEvent</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>KnowsOfRoleHolders</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>MachineAccount</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>NCSecDesc</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>NetLogons</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>ObjectsReplicated</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>Replications</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>RidManager</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>Services</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>SystemLog</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>VerifyReferences</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>CrossRefValidation</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>CrossRefValidation</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>CrossRefValidation</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>LocatorCheck</td><td>passed</td></tr>
+<tr><td>Server-DC-01V.zenpr.local</td><td>Intersite</td><td>passed</td></tr>
+</tbody></table>
+<div class="Caption">Table 13 - AD Domain Controller DCDiag Information - ZENPR.LOCAL</div><br /></div>
+<div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:35%; min-width:35%; width:35%" /><col style="max-width:35%; min-width:35%; width:35%" /><col style="max-width:30%; min-width:30%; width:30%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Test Name</th><th>Result</th></tr></thead><tbody>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>Connectivity</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>Advertising</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>FrsEvent</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>DFSREvent</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>SysVolCheck</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>KccEvent</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>KnowsOfRoleHolders</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>MachineAccount</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>NCSecDesc</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>NetLogons</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>ObjectsReplicated</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>Replications</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>RidManager</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>Services</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>SystemLog</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>VerifyReferences</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>CrossRefValidation</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>CrossRefValidation</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>CrossRefValidation</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>LocatorCheck</td><td>passed</td></tr>
+<tr><td>cayey-dc-01v.zenpr.local</td><td>Intersite</td><td>passed</td></tr>
+</tbody></table>
+<div class="Caption">Table 14 - AD Domain Controller DCDiag Information - ZENPR.LOCAL</div><br /></div>
+<a name="af969dcc-3599-475e-8b8f-79fca496e1ad"><h4 class="Heading5">1.2.6.4 Domain Controller Infrastructure Services Status of SERVER-DC-01V</h4></a><div>The following section provides a summary of the Domain Controller Infrastructure services status.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>Display Name</th><th>Short Name</th><th>Status</th></tr></thead><tbody>
+<tr><td>DNS Server</td><td>DNS</td><td>Running</td></tr>
+<tr><td>DFS Replication</td><td>DFSR</td><td>Running</td></tr>
+<tr><td>Intersite Messaging</td><td>IsmServ</td><td>Running</td></tr>
+<tr><td>Kerberos Key Distribution Center</td><td>Kdc</td><td>Running</td></tr>
+<tr><td>NetLogon</td><td>Netlogon</td><td>Running</td></tr>
+<tr><td>Active Directory Domain Services</td><td>NTDS</td><td>Running</td></tr>
+<tr><td>Windows Time</td><td>W32Time</td><td>Running</td></tr>
+</tbody></table>
+<div class="Caption">Table 15 - Domain Controller Infrastructure Services Status Information.</div><br /></div>
+<a name="3f08d8b1-72aa-4569-9a10-62a684c1a6c6"><h4 class="Heading5">1.2.6.5 Domain Controller Infrastructure Services Status of CAYEY-DC-01V</h4></a><div>The following section provides a summary of the Domain Controller Infrastructure services status.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>Display Name</th><th>Short Name</th><th>Status</th></tr></thead><tbody>
+<tr><td>DNS Server</td><td>DNS</td><td>Running</td></tr>
+<tr><td>DFS Replication</td><td>DFSR</td><td>Running</td></tr>
+<tr><td>Intersite Messaging</td><td>IsmServ</td><td>Running</td></tr>
+<tr><td>Kerberos Key Distribution Center</td><td>Kdc</td><td>Running</td></tr>
+<tr><td>NetLogon</td><td>Netlogon</td><td>Running</td></tr>
+<tr><td>Active Directory Domain Services</td><td>NTDS</td><td>Running</td></tr>
+<tr><td>Windows Time</td><td>W32Time</td><td>Running</td></tr>
+</tbody></table>
+<div class="Caption">Table 16 - Domain Controller Infrastructure Services Status Information.</div><br /></div>
+<a name="b65fe724-6377-46f0-a004-5db5fd568b63"><h4 class="Heading4">1.2.6.6 Site Replication Summary</h4></a><div>The following section provides a summary of the Active Directory Site Replication information.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>DC Name</th><td>Server-DC-01V.zenpr.local</td></tr>
+<tr><th>GUID</th><td>d5a28ae4-ee92-47a4-872e-e4115bc8d1a5</td></tr>
+<tr><th>Description</th><td>&nbsp;</td></tr>
+<tr><th>Replicate From Directory Server</th><td>CN=NTDS Settings,CN=ACADE-DC-01V,CN=Servers,CN=ACAD,CN=Sites,CN=Configuration,DC=zenpr,DC=local</td></tr>
+<tr><th>Replicate To Directory Server</th><td>Server-DC-01V.zenpr.local</td></tr>
+<tr><th>Replicated Naming Contexts</th><td>DC=DomainDnsZones,DC=zenpr,DC=local<br />DC=ForestDnsZones,DC=zenpr,DC=local<br />CN=Schema,CN=Configuration,DC=zenpr,DC=local<br />CN=Configuration,DC=zenpr,DC=local<br />DC=zenpr,DC=local</td></tr>
+<tr><th>Transport Protocol</th><td>IP</td></tr>
+<tr><th>AutoGenerated</th><td>Yes</td></tr>
+<tr><th>Enabled</th><td>Yes</td></tr>
+<tr><th>Created</th><td>Sun, 05 Sep 2021 16:24:39 GMT</td></tr>
+</tbody></table>
+<br /></div>
+<div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>DC Name</th><td>cayey-dc-01v.zenpr.local</td></tr>
+<tr><th>GUID</th><td>9b7cbbe0-7c6f-4add-af4a-7b581a7bf5ca</td></tr>
+<tr><th>Description</th><td>&nbsp;</td></tr>
+<tr><th>Replicate From Directory Server</th><td>CN=NTDS Settings,CN=SERVER-DC-01V,CN=Servers,CN=Zenpr-HQ,CN=Sites,CN=Configuration,DC=zenpr,DC=local</td></tr>
+<tr><th>Replicate To Directory Server</th><td>cayey-dc-01v.zenpr.local</td></tr>
+<tr><th>Replicated Naming Contexts</th><td>DC=DomainDnsZones,DC=zenpr,DC=local<br />DC=ForestDnsZones,DC=zenpr,DC=local<br />CN=Schema,CN=Configuration,DC=zenpr,DC=local<br />CN=Configuration,DC=zenpr,DC=local<br />DC=zenpr,DC=local</td></tr>
+<tr><th>Transport Protocol</th><td>IP</td></tr>
+<tr><th>AutoGenerated</th><td>Yes</td></tr>
+<tr><th>Enabled</th><td>Yes</td></tr>
+<tr><th>Created</th><td>Sat, 04 Sep 2021 01:35:40 GMT</td></tr>
+</tbody></table>
+<br /></div>
+<a name="8f0e8c85-2c05-463e-b41f-67eafd906fdf"><h4 class="Heading4">1.2.6.7 Site Replication Failure Summary</h4></a><div>The following section provides a summary of the Active Directory Site Replication Failure information.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Server Name</th><td>Server-DC-01V.zenpr.local</td></tr>
+<tr><th>Partner</th><td>CN=NTDS Settings,CN=ACADE-DC-01V,CN=Servers,CN=ACAD,CN=Sites,CN=Configuration,DC=zenpr,DC=local</td></tr>
+<tr><th>Last Error</th><td style="font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #ffb900;">1256</td></tr>
+<tr><th>Failure Type</th><td style="font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #ffb900;">Link</td></tr>
+<tr><th>Failure Count</th><td style="font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #ffb900;">0</td></tr>
+<tr><th>First Failure Time</th><td style="font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #ffb900;">Tue, 21 Sep 2021 03:53:34 GMT</td></tr>
+</tbody></table>
+<br /></div>
+<div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Server Name</th><td>Server-DC-01V.zenpr.local</td></tr>
+<tr><th>Partner</th><td>CN=NTDS Settings,CN=CAYEY-DC-01V,CN=Servers,CN=Cayey-Branch,CN=Sites,CN=Configuration,DC=zenpr,DC=local</td></tr>
+<tr><th>Last Error</th><td style="font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #ffb900;">1256</td></tr>
+<tr><th>Failure Type</th><td style="font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #ffb900;">Link</td></tr>
+<tr><th>Failure Count</th><td style="font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #ffb900;">0</td></tr>
+<tr><th>First Failure Time</th><td style="font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #ffb900;">Tue, 21 Sep 2021 04:10:54 GMT</td></tr>
+</tbody></table>
+<br /></div>
+<a name="15727382-09f6-40a9-9e7b-95e758e6ff12"><h4 class="Heading5">1.2.6.8 Group Policy Objects Summary for domain ZENPR</h4></a><div>The following section provides a summary of the Group Policy Objects.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:45%; min-width:45%; width:45%" /><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /></colgroup>
+<thead><tr><th>Display Name</th><th>GpoStatus</th><th>Created</th><th>Modified</th></tr></thead><tbody>
+<tr><td>Assign-Applications</td><td>All Settings Enabled</td><td>03/10/2021</td><td>03/10/2021</td></tr>
+<tr><td>Certificate AutoEnrollment</td><td>User Settings Disabled</td><td>01/25/2020</td><td>06/30/2021</td></tr>
+<tr><td>Default Domain Policy</td><td>All Settings Enabled</td><td>06/10/2018</td><td>09/15/2020</td></tr>
+<tr><td>VEEAM_Disable_Firewall</td><td>All Settings Enabled</td><td>12/13/2019</td><td>09/08/2020</td></tr>
+<tr><td>Default Domain Controllers Policy</td><td>All Settings Enabled</td><td>06/10/2018</td><td>11/01/2020</td></tr>
+<tr><td>ProfileUnity</td><td>All Settings Enabled</td><td>06/08/2020</td><td>09/13/2021</td></tr>
+<tr><td>VEEAM_Local_Administrators</td><td>All Settings Enabled</td><td>12/13/2019</td><td>09/08/2020</td></tr>
+<tr><td>WSUS - Domain Policy</td><td>User Settings Disabled</td><td>02/23/2020</td><td>03/10/2021</td></tr>
+<tr><td>SCEP Configuration</td><td>All Settings Enabled</td><td>09/14/2020</td><td>10/04/2020</td></tr>
+<tr><td>Horizon-DEM</td><td>All Settings Enabled</td><td>03/01/2020</td><td>09/08/2020</td></tr>
+<tr><td>Linux-Settings-GPO</td><td>All Settings Enabled</td><td>05/22/2021</td><td>05/22/2021</td></tr>
+<tr><td>SCCM - Restricted Group and General Settings</td><td>All Settings Enabled</td><td>09/12/2020</td><td>09/12/2020</td></tr>
+<tr><td>LAPS Configuration</td><td>All Settings Enabled</td><td>11/01/2020</td><td>11/01/2020</td></tr>
+</tbody></table>
+<div class="Caption">Table 17 - Group Policy Objects Information.</div><br /></div>
+<a name="3ce18ad6-057c-4b9d-abea-7c9831bfc39a"><h4 class="Heading5">1.2.6.9 Organizational Unit summary for domain ZENPR</h4></a><div>The following section provides a summary of Active Directory OU information on ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:35%; min-width:35%; width:35%" /></colgroup>
+<thead><tr><th>Name</th><th>Distinguished Name</th><th>Linked GPO</th></tr></thead><tbody>
+<tr><td>Domain Controllers</td><td>OU=Domain Controllers,DC=zenpr,DC=local</td><td>Default Domain Controllers Policy</td></tr>
+<tr><td>Member Servers</td><td>OU=Member Servers,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>Configuration Manager</td><td>OU=Configuration Manager,DC=zenpr,DC=local</td><td>SCEP Configuration, SCCM - Restricted Group and General Settings</td></tr>
+<tr><td>EMC NAS servers</td><td>OU=EMC NAS servers,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>Computers</td><td>OU=Computers,OU=EMC NAS servers,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>VEEAM Servers</td><td>OU=VEEAM Servers,DC=zenpr,DC=local</td><td>VEEAM_Disable_Firewall, VEEAM_Local_Administrators</td></tr>
+<tr><td>VEEAM WorkStations</td><td>OU=VEEAM WorkStations,DC=zenpr,DC=local</td><td>VEEAM_Local_Administrators, VEEAM_Disable_Firewall</td></tr>
+<tr><td>VDI-Computers</td><td>OU=VDI-Computers,DC=zenpr,DC=local</td><td>Horizon-DEM</td></tr>
+<tr><td>Fortinet EMS</td><td>OU=Fortinet EMS,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>ProfileUnity VDI</td><td>OU=ProfileUnity VDI,DC=zenpr,DC=local</td><td>VEEAM_Local_Administrators, VEEAM_Disable_Firewall</td></tr>
+<tr><td>Servers</td><td>OU=Servers,OU=ProfileUnity VDI,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>Computers</td><td>OU=Computers,OU=ProfileUnity VDI,DC=zenpr,DC=local</td><td>ProfileUnity</td></tr>
+<tr><td>Configuration Manager Computers</td><td>OU=Configuration Manager Computers,DC=zenpr,DC=local</td><td>LAPS Configuration, SCEP Configuration</td></tr>
+<tr><td>Marketing</td><td>OU=Marketing,OU=VDI-Computers,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>Sales</td><td>OU=Sales,OU=VDI-Computers,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>HR</td><td>OU=HR,OU=VDI-Computers,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>Finances</td><td>OU=Finances,OU=VDI-Computers,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>Admins PC</td><td>OU=Admins PC,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>-</td><td>OU=-,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>LinuxMachines</td><td>OU=LinuxMachines,DC=zenpr,DC=local</td><td>Linux-Settings-GPO</td></tr>
+</tbody></table>
+<div class="Caption">Table 18 - Active Directory Organizational Unit Information - ZENPR.LOCAL</div><br /></div>
+<a name="58e9d2fb-d2fa-48e3-8fb3-9bab948e58db"><h2 class="Heading3">1.3 Active Directory Information for domain ACAD.ZENPR.LOCAL</h2></a><div>The following section provides a summary of the AD Domain Information.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Domain Name</th><td>acad</td></tr>
+<tr><th>NetBIOS Name</th><td>ACAD</td></tr>
+<tr><th>Domain SID</th><td>S-1-5-21-370360276-377477351-3184454278</td></tr>
+<tr><th>Domain Functional Level</th><td>Windows2016Domain</td></tr>
+<tr><th>Domains</th><td>&nbsp;</td></tr>
+<tr><th>Forest</th><td>zenpr.local</td></tr>
+<tr><th>Parent Domain</th><td>zenpr.local</td></tr>
+<tr><th>Replica Directory Servers</th><td>acade-dc-01v.acad.zenpr.local</td></tr>
+<tr><th>Child Domains</th><td>&nbsp;</td></tr>
+<tr><th>Computers Container</th><td>CN=Computers,DC=acad,DC=zenpr,DC=local</td></tr>
+<tr><th>Distinguished Name</th><td>DC=acad,DC=zenpr,DC=local</td></tr>
+<tr><th>Domain Controllers Container</th><td>OU=Domain Controllers,DC=acad,DC=zenpr,DC=local</td></tr>
+<tr><th>Systems Container</th><td>CN=System,DC=acad,DC=zenpr,DC=local</td></tr>
+<tr><th>Users Container</th><td>CN=Users,DC=acad,DC=zenpr,DC=local</td></tr>
+<tr><th>ReadOnly Replica Directory Servers</th><td>&nbsp;</td></tr>
+</tbody></table>
+<div class="Caption">Table 19 - AD Domain Summary Information - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="82b9cff5-8480-447f-9cf6-aa7a67e7303d"><h3 class="Heading5">1.3.1 Domain Object Count Summary</h3></a><div>The following section provides a summary of the Active Directory Object Count on ACAD.ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:20%; min-width:20%; width:20%" /><col style="max-width:20%; min-width:20%; width:20%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>Domain Name</th><th>Computer Count</th><th>Users Count</th><th>Group Count</th></tr></thead><tbody>
+<tr><td>acad.zenpr.local</td><td>1</td><td>4</td><td>44</td></tr>
+</tbody></table>
+<div class="Caption">Table 20 - Active Directory Object Count Information - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="31cf12b9-4704-4bdb-8ad3-b375a6254228"><h3 class="Heading5">1.3.2 Default Domain Password Policy Summary</h3></a><div>The following section provides a summary of the Default Domain Password Policy on ACAD.ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Domain Name</th><td>acad.zenpr.local</td></tr>
+<tr><th>Complexity Enabled</th><td>Yes</td></tr>
+<tr><th>Distinguished Name</th><td>DC=acad,DC=zenpr,DC=local</td></tr>
+<tr><th>Lockout Duration</th><td>00 days 00 hours 30 minutes 00 seconds</td></tr>
+<tr><th>Lockout Threshold</th><td>0</td></tr>
+<tr><th>Lockout Observation Window</th><td>00 days 00 hours 30 minutes 00 seconds</td></tr>
+<tr><th>Max Password Age</th><td>42 days 00 hours 00 minutes 00 seconds</td></tr>
+<tr><th>Min Password Age</th><td>01 days 00 hours 00 minutes 00 seconds</td></tr>
+<tr><th>Min Password Length</th><td>7</td></tr>
+<tr><th>Password History Count</th><td>24</td></tr>
+<tr><th>Reversible Encryption Enabled</th><td>No</td></tr>
+</tbody></table>
+<div class="Caption">Table 21 - Default Domain Password Policy Information - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="a05ec046-6fe8-448c-bee4-992125e09280"><h3 class="Heading5">1.3.3 Group Managed Service Accounts (GMSA) Summary</h3></a><div>The following section provides a summary of the Group Managed Service Accounts on ACAD.ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Name</th><td>SQLServer</td></tr>
+<tr><th>SamAccountName</th><td>SQLServer$</td></tr>
+<tr><th>Created</th><td>09/27/2020 14:14:22</td></tr>
+<tr><th>Enabled</th><td>Yes</td></tr>
+<tr><th>DNS Host Name</th><td>SQL-Cluster</td></tr>
+<tr><th>Host Computers</th><td>CN=SQL-CLUSTER-02V,OU=Member Servers,DC=zenpr,DC=local<br />CN=SQL-CLUSTER-01V,OU=Member Servers,DC=zenpr,DC=local</td></tr>
+<tr><th>Retrieve Managed Password</th><td>CN=SQL-CLUSTER-01V,OU=Member Servers,DC=zenpr,DC=local<br />CN=SQL-CLUSTER-02V,OU=Member Servers,DC=zenpr,DC=local</td></tr>
+<tr><th>Primary Group</th><td>CN=Domain Computers,CN=Users,DC=zenpr,DC=local</td></tr>
+<tr><th>Last Logon Date</th><td>09/27/2020 14:41:08</td></tr>
+<tr><th>Locked Out</th><td>No</td></tr>
+<tr><th>Logon Count</th><td>3</td></tr>
+<tr><th>Password Expired</th><td>No</td></tr>
+<tr><th>Password Last Set</th><td>09/27/2020 14:14:22</td></tr>
+</tbody></table>
+<br /></div>
+<div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Name</th><td>adfsgmsa</td></tr>
+<tr><th>SamAccountName</th><td>adfsgmsa$</td></tr>
+<tr><th>Created</th><td>10/07/2020 18:36:16</td></tr>
+<tr><th>Enabled</th><td>Yes</td></tr>
+<tr><th>DNS Host Name</th><td>ADFS.zenpr.local</td></tr>
+<tr><th>Host Computers</th><td>&nbsp;</td></tr>
+<tr><th>Retrieve Managed Password</th><td>CN=SERVER-ADFS-01V,OU=Member Servers,DC=zenpr,DC=local<br />CN=SERVER-ADFS-02V,OU=Member Servers,DC=zenpr,DC=local</td></tr>
+<tr><th>Primary Group</th><td>CN=Domain Computers,CN=Users,DC=zenpr,DC=local</td></tr>
+<tr><th>Last Logon Date</th><td>10/07/2020 18:36:17</td></tr>
+<tr><th>Locked Out</th><td>No</td></tr>
+<tr><th>Logon Count</th><td>40</td></tr>
+<tr><th>Password Expired</th><td>No</td></tr>
+<tr><th>Password Last Set</th><td>10/07/2020 18:36:16</td></tr>
+</tbody></table>
+<br /></div>
+<a name="3ee9c8fc-fb2d-40d4-a932-f8dfbf1dd004"><h3 class="Heading4">1.3.4 Flexible Single Master Operations (FSMO) Information</h3></a><div>The following section provides a summary of the Active Directory FSMO for Domain ACAD.ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Infrastructure Master Server</th><td>acade-dc-01v.acad.zenpr.local</td></tr>
+<tr><th>RID Master Server</th><td>acade-dc-01v.acad.zenpr.local</td></tr>
+<tr><th>PDC Emulator Name</th><td>acade-dc-01v.acad.zenpr.local</td></tr>
+<tr><th>Domain Naming Master Server</th><td>Server-DC-01V.zenpr.local</td></tr>
+<tr><th>Schema Master Server</th><td>Server-DC-01V.zenpr.local</td></tr>
+</tbody></table>
+<div class="Caption">Table 22 - FSMO Server Information - acad.zenpr.local</div><br /></div>
+<a name="29726a01-0203-4eaf-bf78-325eebc1c6ad"><h3 class="Heading5">1.3.5 Trust Summary</h3></a><div>The following section provides a summary of Active Directory Trust information on ACAD.ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Name</th><td>zenpr.local</td></tr>
+<tr><th>Distinguished Name</th><td>CN=zenpr.local,CN=System,DC=acad,DC=zenpr,DC=local</td></tr>
+<tr><th>Source</th><td>DC=acad,DC=zenpr,DC=local</td></tr>
+<tr><th>Target</th><td>zenpr.local</td></tr>
+<tr><th>Direction</th><td>BiDirectional</td></tr>
+<tr><th>IntraForest</th><td>Yes</td></tr>
+<tr><th>Selective Authentication</th><td>No</td></tr>
+<tr><th>SID Filtering Forest Aware</th><td>No</td></tr>
+<tr><th>SID Filtering Quarantined</th><td>No</td></tr>
+<tr><th>Trust Type</th><td>Uplevel</td></tr>
+<tr><th>Uplevel Only</th><td>No</td></tr>
+</tbody></table>
+<div class="Caption">Table 23 - Active Directory Trusts Information - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="9825116f-966f-45a5-bf87-80c850f319c1"><h3 class="Heading4">1.3.6 Domain Controller Information</h3></a><div>The following section provides a summary of the Active Directory Domain Controller.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:15%; min-width:15%; width:15%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Domain Name</th><th>Site</th><th>Global Catalog</th><th>Read Only</th><th>IP Address</th></tr></thead><tbody>
+<tr><td>ACADE-DC-01V</td><td>acad.zenpr.local</td><td>ACAD</td><td>Yes</td><td>No</td><td>172.23.4.1</td></tr>
+</tbody></table>
+<div class="Caption">Table 24 - AD Domain Controller Summary Information - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="aa623934-a131-4c03-890e-a18322118653"><h4 class="Heading5">1.3.6.1 Domain Controller Hardware Summary</h4></a><div>The following section provides a summary of the Domain Controller Hardware for ACAD.ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>Name</th><td>acade-dc-01v</td></tr>
+<tr><th>WindowsProductName</th><td>Windows Server 2019 Standard Evaluation</td></tr>
+<tr><th>Manufacturer</th><td>VMware, Inc.</td></tr>
+<tr><th>CsModel</th><td>VMware7,1</td></tr>
+<tr><th>Bios Type</th><td>Uefi</td></tr>
+<tr><th>CPU Socket</th><td>1</td></tr>
+<tr><th>CPU Cores</th><td>2</td></tr>
+<tr><th>Total RAM</th><td>4.00 GB</td></tr>
+</tbody></table>
+<div class="Caption">Table 25 - AD Domain Controller Hardware Information - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="2bcbbfb3-d492-4f23-9fee-efd06784d8b7"><h4 class="Heading5">1.3.6.2 Domain Controller NTDS Summary</h4></a><div>The following section provides a summary of the Domain Controller NTDS file size on ACAD.ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>Name</th><th>DSA Database File</th><th>Size</th></tr></thead><tbody>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>C:\Windows\NTDS\ntds.dit</td><td>36.00 MB</td></tr>
+</tbody></table>
+<div class="Caption">Table 26 - Domain Controller NTDS Database File Usage Information - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="09e68b97-0aac-429c-96cb-627c57b041e2"><h5 class="Heading5">1.3.6.2.1 Domain Controller Time Source Summary</h5></a><div>The following section provides a summary of the Domain Controller Time Source configuration on ACAD.ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>Name</th><th>Time Server</th><th>Type</th></tr></thead><tbody>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>Domain Hierarchy</td><td>DOMHIER</td></tr>
+</tbody></table>
+<div class="Caption">Table 27 - Domain Controller Time Source Configuration - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="cc8a24c0-06b5-4976-bfa9-c036de137e9e"><h4 class="Heading4">1.3.6.3 DCDiag Information</h4></a><div>The following section provides a summary of the Active Directory DC Diagnostic.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:35%; min-width:35%; width:35%" /><col style="max-width:35%; min-width:35%; width:35%" /><col style="max-width:30%; min-width:30%; width:30%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Test Name</th><th>Result</th></tr></thead><tbody>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>Connectivity</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>Advertising</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>FrsEvent</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>DFSREvent</td><td>failed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>SysVolCheck</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>KccEvent</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>KnowsOfRoleHolders</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>MachineAccount</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>NCSecDesc</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>NetLogons</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>ObjectsReplicated</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>Replications</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>RidManager</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>Services</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>SystemLog</td><td>failed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>VerifyReferences</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>CrossRefValidation</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>CrossRefValidation</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>CheckSDRefDom</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>CrossRefValidation</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>LocatorCheck</td><td>passed</td></tr>
+<tr><td>acade-dc-01v.acad.zenpr.local</td><td>Intersite</td><td>passed</td></tr>
+</tbody></table>
+<div class="Caption">Table 28 - AD Domain Controller DCDiag Information - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="23ba18f8-7db4-4d94-bdb4-6aa20341380d"><h4 class="Heading5">1.3.6.4 Domain Controller Infrastructure Services Status of ACADE-DC-01V</h4></a><div>The following section provides a summary of the Domain Controller Infrastructure services status.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>Display Name</th><th>Short Name</th><th>Status</th></tr></thead><tbody>
+<tr><td>DNS Server</td><td>DNS</td><td>Running</td></tr>
+<tr><td>DFS Replication</td><td>DFSR</td><td>Running</td></tr>
+<tr><td>Intersite Messaging</td><td>IsmServ</td><td>Running</td></tr>
+<tr><td>Kerberos Key Distribution Center</td><td>Kdc</td><td>Running</td></tr>
+<tr><td>NetLogon</td><td>Netlogon</td><td>Running</td></tr>
+<tr><td>Active Directory Domain Services</td><td>NTDS</td><td>Running</td></tr>
+<tr><td>Windows Time</td><td>W32Time</td><td>Running</td></tr>
+</tbody></table>
+<div class="Caption">Table 29 - Domain Controller Infrastructure Services Status Information.</div><br /></div>
+<a name="5b1c0203-9db4-4743-8b7a-4e5a1882a6dc"><h4 class="Heading4">1.3.6.5 Site Replication Summary</h4></a><div>The following section provides a summary of the Active Directory Site Replication information.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:60%; min-width:60%; width:60%" /></colgroup>
+<tbody>
+<tr><th>DC Name</th><td>acade-dc-01v.acad.zenpr.local</td></tr>
+<tr><th>GUID</th><td>739a49db-275b-4d09-81c8-ab9e5f393977</td></tr>
+<tr><th>Description</th><td>&nbsp;</td></tr>
+<tr><th>Replicate From Directory Server</th><td>CN=NTDS Settings,CN=SERVER-DC-01V,CN=Servers,CN=Zenpr-HQ,CN=Sites,CN=Configuration,DC=zenpr,DC=local</td></tr>
+<tr><th>Replicate To Directory Server</th><td>acade-dc-01v.acad.zenpr.local</td></tr>
+<tr><th>Replicated Naming Contexts</th><td>DC=DomainDnsZones,DC=acad,DC=zenpr,DC=local<br />DC=acad,DC=zenpr,DC=local<br />DC=ForestDnsZones,DC=zenpr,DC=local<br />CN=Schema,CN=Configuration,DC=zenpr,DC=local<br />CN=Configuration,DC=zenpr,DC=local</td></tr>
+<tr><th>Transport Protocol</th><td>IP</td></tr>
+<tr><th>AutoGenerated</th><td>Yes</td></tr>
+<tr><th>Enabled</th><td>Yes</td></tr>
+<tr><th>Created</th><td>Sun, 05 Sep 2021 16:26:31 GMT</td></tr>
+</tbody></table>
+<div class="Caption">Table 30 - Site Replication Information - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="f4cb5bc1-093a-4874-bdda-a3cfc1c1e188"><h4 class="Heading5">1.3.6.6 Group Policy Objects Summary for domain ACAD</h4></a><div>The following section provides a summary of the Group Policy Objects.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:45%; min-width:45%; width:45%" /><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /></colgroup>
+<thead><tr><th>Display Name</th><th>GpoStatus</th><th>Created</th><th>Modified</th></tr></thead><tbody>
+<tr><td>Default Domain Policy</td><td>All Settings Enabled</td><td>09/05/2021</td><td>09/05/2021</td></tr>
+<tr><td>Default Domain Controllers Policy</td><td>All Settings Enabled</td><td>09/05/2021</td><td>09/05/2021</td></tr>
+</tbody></table>
+<div class="Caption">Table 31 - Group Policy Objects Information.</div><br /></div>
+<a name="dc3b61c8-79dc-48f7-8321-b9553b7f681e"><h4 class="Heading5">1.3.6.7 Organizational Unit summary for domain ACAD</h4></a><div>The following section provides a summary of Active Directory OU information on ACAD.ZENPR.LOCAL.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:40%; min-width:40%; width:40%" /><col style="max-width:35%; min-width:35%; width:35%" /></colgroup>
+<thead><tr><th>Name</th><th>Distinguished Name</th><th>Linked GPO</th></tr></thead><tbody>
+<tr><td>Domain Controllers</td><td>OU=Domain Controllers,DC=acad,DC=zenpr,DC=local</td><td>Default Domain Controllers Policy</td></tr>
+<tr><td>Member Servers</td><td>OU=Member Servers,DC=acad,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>Acad Computers</td><td>OU=Acad Computers,DC=acad,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+<tr><td>SCCM Computers</td><td>OU=SCCM Computers,OU=Acad Computers,DC=acad,DC=zenpr,DC=local</td><td>&nbsp;</td></tr>
+</tbody></table>
+<div class="Caption">Table 32 - Active Directory Organizational Unit Information - ACAD.ZENPR.LOCAL</div><br /></div>
+<a name="0237b357-c95c-402f-9420-484c4598e2db"><h2 class="Heading3">1.4 Domain Name System Information for domain ZENPR.LOCAL</h2></a><div>The following section provides a summary of the Domain Name System Information.</div><br /><a name="83001168-5792-4b58-80a2-f0a2c0cfa9a2"><h3 class="Heading4">1.4.1 Infrastructure Summary</h3></a><div>The following section provides a summary of the Domain Name System Infrastructure configuration.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:30%; min-width:30%; width:30%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:9%; min-width:9%; width:9%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:11%; min-width:11%; width:11%" /><col style="max-width:30%; min-width:30%; width:30%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Build Number</th><th>IPv6</th><th>DnsSec</th><th>ReadOnly DC</th><th>Listening IP</th></tr></thead><tbody>
+<tr><td>SERVER-DC-01V</td><td>17763</td><td>Yes</td><td>No</td><td>No</td><td>192.168.5.1</td></tr>
+<tr><td>CAYEY-DC-01V</td><td>17763</td><td>Yes</td><td>No</td><td>No</td><td>fe80::b5fd:f35b:d81d:dfcd<br />10.10.33.1</td></tr>
+</tbody></table>
+<div class="Caption">Table 33 - Domain Name System Infrastructure Setting Information.</div><br /></div>
+<a name="b612931a-0f03-45bd-947c-569a07203d59"><h4 class="Heading5">1.4.1.1 Response Rate Limiting (RRL) Summary</h4></a><div>The following section provides a summary of the Domain Name System Response Rate Limiting configuration.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:30%; min-width:30%; width:30%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Status</th><th>Responses Per Sec</th><th>Errors Per Sec</th><th>Window In Sec</th><th>Leak Rate</th><th>Truncate Rate</th></tr></thead><tbody>
+<tr><td>SERVER-DC-01V</td><td>Disable</td><td>5</td><td>5</td><td>5</td><td>3</td><td>2</td></tr>
+<tr><td>CAYEY-DC-01V</td><td>Disable</td><td>5</td><td>5</td><td>5</td><td>3</td><td>2</td></tr>
+</tbody></table>
+<div class="Caption">Table 34 - Domain Name System Response Rate Limiting configuration.</div><br /></div>
+<a name="b59d1a6c-201b-4c25-9000-d7f9380de9dd"><h4 class="Heading5">1.4.1.2 Scavenging Summary</h4></a><div>The following section provides a summary of the Domain Name System Scavenging configuration.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /></colgroup>
+<thead><tr><th>DC Name</th><th>NoRefresh Interval</th><th>Refresh Interval</th><th>Scavenging Interval</th><th>Last Scavenge Time</th><th>Scavenging State</th></tr></thead><tbody>
+<tr><td>SERVER-DC-01V</td><td>7.00:00:00</td><td>7.00:00:00</td><td>7.00:00:00</td><td>&nbsp;</td><td>Enabled</td></tr>
+<tr><td>CAYEY-DC-01V</td><td>7.00:00:00</td><td>7.00:00:00</td><td>00:00:00</td><td>&nbsp;</td><td>Disabled</td></tr>
+</tbody></table>
+<div class="Caption">Table 35 - Domain Name System Scavenging configuration.</div><br /></div>
+<a name="689a7b38-9029-4f32-8fca-fefbc5772183"><h4 class="Heading5">1.4.1.3 Forwarder Summary</h4></a><div>The following section provides a summary of the Domain Name System Forwarder configuration.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:35%; min-width:35%; width:35%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>DC Name</th><th>IP Address</th><th>Timeout</th><th>Use Root Hint</th><th>Use Recursion</th></tr></thead><tbody>
+<tr><td>SERVER-DC-01V</td><td>192.168.1.2<br />192.168.1.1</td><td>3/s</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>CAYEY-DC-01V</td><td>192.168.5.1<br />192.168.1.1</td><td>3/s</td><td>Yes</td><td>Yes</td></tr>
+</tbody></table>
+<div class="Caption">Table 36 - Domain Name System Infrastructure Forwarder configuration.</div><br /></div>
+<a name="dce4bc4e-41bf-4248-9332-943b5db7020d"><h4 class="Heading5">1.4.1.4 Zone Scope Recursion Summary</h4></a><div>The following section provides a summary of the Domain Name System Zone Scope Recursion configuration.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:35%; min-width:35%; width:35%" /><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:20%; min-width:20%; width:20%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Zone Name</th><th>Forwarder</th><th>Use Recursion</th></tr></thead><tbody>
+<tr><td>SERVER-DC-01V</td><td>Root</td><td>192.168.1.2<br />192.168.1.1</td><td>Yes</td></tr>
+<tr><td>CAYEY-DC-01V</td><td>Root</td><td>192.168.5.1<br />192.168.1.1</td><td>Yes</td></tr>
+</tbody></table>
+<div class="Caption">Table 37 - Domain Name System Zone Scope Recursion configuration.</div><br /></div>
+<a name="df3f3177-2769-46bf-9d5e-7cc93431d8a6"><h2 class="Heading3">1.5 Domain Name System Information for domain ACAD.ZENPR.LOCAL</h2></a><div>The following section provides a summary of the Domain Name System Information.</div><br /><a name="7f29c9c8-c7ee-40e6-a563-622253b27f34"><h3 class="Heading4">1.5.1 Infrastructure Summary</h3></a><div>The following section provides a summary of the Domain Name System Infrastructure configuration.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:30%; min-width:30%; width:30%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:9%; min-width:9%; width:9%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:11%; min-width:11%; width:11%" /><col style="max-width:30%; min-width:30%; width:30%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Build Number</th><th>IPv6</th><th>DnsSec</th><th>ReadOnly DC</th><th>Listening IP</th></tr></thead><tbody>
+<tr><td>ACADE-DC-01V</td><td>17763</td><td>Yes</td><td>No</td><td>No</td><td>172.23.4.1</td></tr>
+</tbody></table>
+<div class="Caption">Table 41 - Domain Name System Infrastructure Setting Information.</div><br /></div>
+<a name="18e2761f-3d75-4641-86eb-5c997df1e27e"><h4 class="Heading5">1.5.1.1 Response Rate Limiting (RRL) Summary</h4></a><div>The following section provides a summary of the Domain Name System Response Rate Limiting configuration.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:30%; min-width:30%; width:30%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Status</th><th>Responses Per Sec</th><th>Errors Per Sec</th><th>Window In Sec</th><th>Leak Rate</th><th>Truncate Rate</th></tr></thead><tbody>
+<tr><td>ACADE-DC-01V</td><td>Disable</td><td>5</td><td>5</td><td>5</td><td>3</td><td>2</td></tr>
+</tbody></table>
+<div class="Caption">Table 42 - Domain Name System Response Rate Limiting configuration.</div><br /></div>
+<a name="99fa4d7f-ceac-401f-876c-8b76d1a9076e"><h4 class="Heading5">1.5.1.2 Scavenging Summary</h4></a><div>The following section provides a summary of the Domain Name System Scavenging configuration.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /></colgroup>
+<thead><tr><th>DC Name</th><th>NoRefresh Interval</th><th>Refresh Interval</th><th>Scavenging Interval</th><th>Last Scavenge Time</th><th>Scavenging State</th></tr></thead><tbody>
+<tr><td>ACADE-DC-01V</td><td>7.00:00:00</td><td>7.00:00:00</td><td>00:00:00</td><td>&nbsp;</td><td>Disabled</td></tr>
+</tbody></table>
+<div class="Caption">Table 43 - Domain Name System Scavenging configuration.</div><br /></div>
+<a name="714ebff1-64a6-4719-9693-6560e3c15fca"><h4 class="Heading5">1.5.1.3 Forwarder Summary</h4></a><div>The following section provides a summary of the Domain Name System Forwarder configuration.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:35%; min-width:35%; width:35%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>DC Name</th><th>IP Address</th><th>Timeout</th><th>Use Root Hint</th><th>Use Recursion</th></tr></thead><tbody>
+<tr><td>ACADE-DC-01V</td><td>192.168.5.1</td><td>3/s</td><td>Yes</td><td>Yes</td></tr>
+</tbody></table>
+<div class="Caption">Table 44 - Domain Name System Infrastructure Forwarder configuration.</div><br /></div>
+<a name="00b68f41-8e98-489b-8530-2770c0eadb4d"><h4 class="Heading5">1.5.1.4 Zone Scope Recursion Summary</h4></a><div>The following section provides a summary of the Domain Name System Zone Scope Recursion configuration.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:35%; min-width:35%; width:35%" /><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:20%; min-width:20%; width:20%" /><col style="max-width:20%; min-width:20%; width:20%" /></colgroup>
+<thead><tr><th>DC Name</th><th>Zone Name</th><th>Forwarder</th><th>Use Recursion</th></tr></thead><tbody>
+<tr><td>ACADE-DC-01V</td><td>Root</td><td>192.168.5.1</td><td>Yes</td></tr>
+</tbody></table>
+<div class="Caption">Table 45 - Domain Name System Zone Scope Recursion configuration.</div><br /></div>
+<a name="1e280994-f3a4-40de-acf3-7a8de8c26c6c"><h2 class="Heading4">1.6 Domain Name System Zone Configuration of ACADE-DC-01V</h2></a><div>The following section provides a summary of the Domain Name System Zone Configuration information.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /></colgroup>
+<thead><tr><th>Zone Name</th><th>Zone Type</th><th>Replication Scope</th><th>Dynamic Update</th><th>DS Integrated</th><th>Read Only</th><th>Signed</th></tr></thead><tbody>
+<tr><td>_msdcs.zenpr.local</td><td>Primary</td><td>Forest</td><td>Secure</td><td>Yes</td><td>No</td><td>No</td></tr>
+<tr><td>acad.zenpr.local</td><td>Primary</td><td>Domain</td><td>Secure</td><td>Yes</td><td>No</td><td>No</td></tr>
+<tr><td>TrustAnchors</td><td>Primary</td><td>Forest</td><td>None</td><td>Yes</td><td>No</td><td>No</td></tr>
+</tbody></table>
+<div class="Caption">Table 46 - Domain Name System Zone Information.</div><br /></div>
+<a name="a56896ca-16da-4780-87ef-b14891be08f3"><h3 class="Heading5">1.6.1 Reverse Lookup Zone Configuration of ACADE-DC-01V</h3></a><div>The following section provides a summary of the Domain Name System Reverse Lookup Zone Configuration information.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /><col style="max-width:12%; min-width:12%; width:12%" /></colgroup>
+<thead><tr><th>Zone Name</th><th>Zone Type</th><th>Replication Scope</th><th>Dynamic Update</th><th>DS Integrated</th><th>Read Only</th><th>Signed</th></tr></thead><tbody>
+<tr><td>0.23.172.in-addr.arpa</td><td>Primary</td><td>Domain</td><td>Secure</td><td>Yes</td><td>No</td><td>No</td></tr>
+<tr><td>0.in-addr.arpa</td><td>Primary</td><td>None</td><td>None</td><td>No</td><td>No</td><td>No</td></tr>
+<tr><td>127.in-addr.arpa</td><td>Primary</td><td>None</td><td>None</td><td>No</td><td>No</td><td>No</td></tr>
+<tr><td>255.in-addr.arpa</td><td>Primary</td><td>None</td><td>None</td><td>No</td><td>No</td><td>No</td></tr>
+</tbody></table>
+<div class="Caption">Table 47 - Domain Name System Zone Information.</div><br /></div>
+<a name="9663b7d4-a45c-477c-a73c-2025b4750544"><h3 class="Heading5">1.6.2 Zone Scope Aging properties of ACADE-DC-01V</h3></a><div>The following section provides a summary of the Domain Name System Zone Aging properties information.</div><br /><div style="word-break: break-word; overflow-wrap: anywhere; "><table class="tabledefault" style="width:100%; table-layout: fixed;"><colgroup><col style="max-width:25%; min-width:25%; width:25%" /><col style="max-width:10%; min-width:10%; width:10%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:15%; min-width:15%; width:15%" /><col style="max-width:35%; min-width:35%; width:35%" /></colgroup>
+<thead><tr><th>Zone Name</th><th>Aging Enabled</th><th>Refresh Interval</th><th>NoRefresh Interval</th><th>Available For Scavenge</th></tr></thead><tbody>
+<tr><td>_msdcs.zenpr.local</td><td>Yes</td><td>7.00:00:00</td><td>7.00:00:00</td><td>Sun, 12 Sep 2021 23:00:00 GMT</td></tr>
+<tr><td>acad.zenpr.local</td><td style="font-family: 'Arial'; font-size: 0.83rem; text-align: left; font-weight: normal; color: #000000; background-color: #ffb900;">No</td><td>7.00:00:00</td><td>7.00:00:00</td><td>&nbsp;</td></tr>
+<tr><td>TrustAnchors</td><td>Yes</td><td>7.00:00:00</td><td>7.00:00:00</td><td>Thu, 07 Jan 2021 16:00:00 GMT</td></tr>
+</tbody></table>
+<div class="Caption">Table 48 - Domain Name System Zone Aging properties Information.</div><br /></div>
+</div>
+<div><br /><div class="Footer">Page 3</div></div></div></div></body>

@@ -1,0 +1,23 @@
+name: Publish PowerShell Module
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-to-gallery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set PSRepository to Trusted for PowerShell Gallery
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+      - name: Install AsBuiltReport.Core module
+        shell: pwsh
+        run: |
+          Install-Module -Name AsBuiltReport.Core -Repository PSGallery -Force
+      - name: Publish module to PowerShell Gallery
+        shell: pwsh
+        run: |
+          Publish-Module -Path ./ -NuGetApiKey ${{ secrets.PSGALLERY_API_KEY }} -Verbose

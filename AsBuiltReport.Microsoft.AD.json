@@ -1,0 +1,38 @@
+{
+    "Report": {
+        "Name": "Microsoft AD As Built Report",
+        "Version": "1.0",
+        "Status": "Released",
+        "ShowCoverPageImage": true,
+        "ShowTableOfContents": true,
+        "ShowHeaderFooter": true,
+        "ShowTableCaptions": true
+    },
+    "Options": {
+
+    },
+    "InfoLevel": {
+        "_comment_": "0 = Disabled, 1 = Enabled",
+        "Forest": 1,
+        "Domain": 1,
+        "Site": 1,
+        "DHCP": 1,
+        "DNS": 1,
+        "CA": 1
+    },
+    "HealthCheck": {
+        "Domain": {
+            "GMSA": true
+        },
+        "DomainController": {
+            "Diagnostic": true,
+            "Services": true
+        },
+        "Site": {
+            "Replication": true
+        },
+        "DNS": {
+            "Aging": true
+        }
+    }
+}
