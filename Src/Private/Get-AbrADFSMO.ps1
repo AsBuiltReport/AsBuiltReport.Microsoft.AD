@@ -29,7 +29,7 @@ function Get-AbrADFSMO {
     }
 
     process {
-        Section -Style Heading4 'Flexible Single Master Operations (FSMO) Information' {
+        Section -Style Heading5 'Flexible Single Master Operations (FSMO) Information' {
             Paragraph "The following section provides a summary of the Active Directory FSMO for Domain $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()

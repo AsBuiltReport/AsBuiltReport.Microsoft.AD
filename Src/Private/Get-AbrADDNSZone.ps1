@@ -32,7 +32,7 @@ function Get-AbrADDNSZone {
     }
 
     process {
-        Section -Style Heading4 "Domain Name System Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
+        Section -Style Heading5 "Domain Name System Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
             Paragraph "The following section provides a summary of the Domain Name System Zone Configuration information."
             BlankLine
             $OutObj = @()
@@ -78,7 +78,7 @@ function Get-AbrADDNSZone {
                 $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneDelegation -Name $using:DNSSetting}
                 Remove-PSSession -Session $DCPssSession
                 if ($Zones) {
-                    Section -Style Heading5 "Zone Delegation of $($DC.ToString().ToUpper().Split(".")[0])" {
+                    Section -Style Heading6 "Zone Delegation of $($DC.ToString().ToUpper().Split(".")[0])" {
                         Paragraph "The following section provides a summary of the Domain Name System Zone Delegation information."
                         BlankLine
                         $OutObj = @()
@@ -115,7 +115,7 @@ function Get-AbrADDNSZone {
                 Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
                 Write-PscriboMessage -IsDebug $_.Exception.Message
             }
-            Section -Style Heading5 "Reverse Lookup Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
+            Section -Style Heading6 "Reverse Lookup Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
                 Paragraph "The following section provides a summary of the Domain Name System Reverse Lookup Zone Configuration information."
                 BlankLine
                 $OutObj = @()
@@ -155,7 +155,7 @@ function Get-AbrADDNSZone {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Zone Scope Aging properties of $($DC.ToString().ToUpper().Split(".")[0])" {
+            Section -Style Heading6 "Zone Scope Aging properties of $($DC.ToString().ToUpper().Split(".")[0])" {
                 Paragraph "The following section provides a summary of the Domain Name System Zone Aging properties information."
                 BlankLine
                 $OutObj = @()

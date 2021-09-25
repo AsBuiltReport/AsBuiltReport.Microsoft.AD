@@ -71,7 +71,7 @@ function Get-AbrADDomainController {
             $OutObj | Table @TableParams
         }
         Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
-        Section -Style Heading5 'Domain Controller Hardware Summary' {
+        Section -Style Heading6 'Domain Controller Hardware Summary' {
             Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -119,7 +119,7 @@ function Get-AbrADDomainController {
             }
         }
         Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
-        Section -Style Heading5 'Domain Controller NTDS Summary' {
+        Section -Style Heading6 'Domain Controller NTDS Summary' {
             Paragraph "The following section provides a summary of the Domain Controller NTDS file size on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -162,7 +162,7 @@ function Get-AbrADDomainController {
                 $OutObj | Table @TableParams
             }
             Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
-            Section -Style Heading5 'Domain Controller Time Source Summary' {
+            Section -Style Heading6 'Domain Controller Time Source Summary' {
                 Paragraph "The following section provides a summary of the Domain Controller Time Source configuration on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
