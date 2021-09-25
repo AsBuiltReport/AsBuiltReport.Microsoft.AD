@@ -30,16 +30,16 @@ function Get-AbrADForest {
         $Data = Invoke-Command -Session $Session {Get-ADForest}
         $ForestInfo =  $Data.RootDomain.toUpper()
         Write-PscriboMessage "Discovered Active Directory information of forest $ForestInfo."
-        $ADVersion = Invoke-Command -Session $Session {Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object objectVersion}
-        $ADnumber = $ADVersion -replace "@{objectVersion=","" -replace "}",""
-        If ($ADnumber -eq '88') {$server = 'Windows Server 2019'}
-        ElseIf ($ADnumber -eq '87') {$server = 'Windows Server 2016'}
-        ElseIf ($ADnumber -eq '69') {$server = 'Windows Server 2012 R2'}
-        ElseIf ($ADnumber -eq '56') {$server = 'Windows Server 2012'}
-        ElseIf ($ADnumber -eq '47') {$server = 'Windows Server 2008 R2'}
-        ElseIf ($ADnumber -eq '44') {$server = 'Windows Server 2008'}
-        ElseIf ($ADnumber -eq '31') {$server = 'Windows Server 2003 R2'}
-        ElseIf ($ADnumber -eq '30') {$server = 'Windows Server 2003'}
+        $ADVersion = Invoke-Command -Session $Session {Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion}
+        If ($ADVersion -eq '88') {$server = 'Windows Server 2019'}
+        ElseIf ($ADVersion -eq '87') {$server = 'Windows Server 2016'}
+        ElseIf ($ADVersion -eq '69') {$server = 'Windows Server 2012 R2'}
+        ElseIf ($ADVersion -eq '56') {$server = 'Windows Server 2012'}
+        ElseIf ($ADVersion -eq '47') {$server = 'Windows Server 2008 R2'}
+        ElseIf ($ADVersion -eq '44') {$server = 'Windows Server 2008'}
+        ElseIf ($ADVersion -eq '31') {$server = 'Windows Server 2003 R2'}
+        ElseIf ($ADVersion -eq '30') {$server = 'Windows Server 2003'}
+        $OutObj = @()
         $OutObj = @()
         if ($Data) {
             Write-PscriboMessage "Collecting Active Directory information of forest $ForestInfo."
@@ -47,7 +47,7 @@ function Get-AbrADForest {
                 $inObj = [ordered] @{
                     'Forest Name' = $Item.RootDomain
                     'Forest Functional Level' = $Item.ForestMode
-                    'Schema Version' = "ObjectVersion $ADnumber, Correspond to $server"
+                    'Schema Version' = "ObjectVersion $ADVersion, Correspond to $server"
                     'Domains' = $Item.Domains -join '; '
                     'Global Catalogs' = $Item.GlobalCatalogs -join '; '
                     'Application Partitions' = $Item.ApplicationPartitions
