@@ -29,7 +29,7 @@ function Get-AbrADDNSInfrastructure {
     }
 
     process {
-        Section -Style Heading4 "Infrastructure Summary" {
+        Section -Style Heading5 "Infrastructure Summary" {
             Paragraph "The following section provides a summary of the Domain Name System Infrastructure configuration."
             BlankLine
             $OutObj = @()
@@ -68,7 +68,7 @@ function Get-AbrADDNSInfrastructure {
                 }
                 $OutObj | Table @TableParams
             }
-            Section -Style Heading5 "Response Rate Limiting (RRL) Summary" {
+            Section -Style Heading6 "Response Rate Limiting (RRL) Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Response Rate Limiting configuration."
                 BlankLine
                 $OutObj = @()
@@ -110,7 +110,7 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Scavenging Summary" {
+            Section -Style Heading6 "Scavenging Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Scavenging configuration."
                 BlankLine
                 $OutObj = @()
@@ -158,7 +158,7 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Forwarder Summary" {
+            Section -Style Heading6 "Forwarder Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Forwarder configuration."
                 BlankLine
                 $OutObj = @()
@@ -198,7 +198,7 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Zone Scope Recursion Summary" {
+            Section -Style Heading6 "Zone Scope Recursion Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Zone Scope Recursion configuration."
                 BlankLine
                 $OutObj = @()
