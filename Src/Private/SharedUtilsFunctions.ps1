@@ -25,17 +25,16 @@ function ConvertTo-TextYN {
             $TEXT
         )
 
-    switch ($TEXT)
-        {
-            "" {"-"}
-            $Null {"-"}
+    switch ($TEXT) {
+            "" {"-"; break}
+            $Null {"-"; break}
             "True" {"Yes"; break}
             "False" {"No"; break}
             default {$TEXT}
         }
     } # end
 
-    function ConvertTo-FileSizeString {
+function ConvertTo-FileSizeString {
     <#
     .SYNOPSIS
     Used by As Built Report to convert bytes automatically to GB or TB based on size.
@@ -61,8 +60,7 @@ function ConvertTo-TextYN {
             $Size
         )
 
-    switch ($Size)
-        {
+    switch ($Size) {
         {$_ -gt 1TB}
             {[string]::Format("{0:0.00} TB", $Size / 1TB); break}
         {$_ -gt 1GB}
@@ -79,33 +77,106 @@ function ConvertTo-TextYN {
             {"0 KB"}
         }
     } # end >> function Format-FileSize
-    function Invoke-DcDiag {
+function Invoke-DcDiag {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to get the dcdiag tests for a Domain Controller.
+    .DESCRIPTION
+
+    .NOTES
+        Version:        0.2.0
+        Author:         Adam Bertram
+
+    .EXAMPLE
+
+    .LINK
+
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$DomainController
+    )
+    $result = Invoke-Command -Session $TempPssSession {dcdiag /s:$using:DomainController}
+    $result | select-string -pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
+        $obj = @{
+            TestName = $_.Matches.Groups[3].Value
+            TestResult = $_.Matches.Groups[2].Value
+            Entity = $_.Matches.Groups[1].Value
+        }
+        [pscustomobject]$obj
+    }
+}# end
+
+function ConvertTo-EmptyToFiller {
         <#
         .SYNOPSIS
-        Used by As Built Report to get the dcdiag tests for a Domain Controller.
+        Used by As Built Report to convert true or false automatically to Yes or No.
         .DESCRIPTION
 
         .NOTES
             Version:        0.2.0
-            Author:         Adam Bertram
+            Author:         LEE DAILEY
 
         .EXAMPLE
 
         .LINK
 
         #>
-        param(
-            [Parameter(Mandatory)]
-            [ValidateNotNullOrEmpty()]
-            [string]$DomainController
-        )
-        $result = Invoke-Command -Session $TempPssSession {dcdiag /s:$using:DomainController}
-        $result | select-string -pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
-            $obj = @{
-                TestName = $_.Matches.Groups[3].Value
-                TestResult = $_.Matches.Groups[2].Value
-                Entity = $_.Matches.Groups[1].Value
+        [CmdletBinding()]
+        [OutputType([String])]
+        Param
+            (
+            [Parameter (
+                Position = 0,
+                Mandatory)]
+                [AllowEmptyString()]
+                [string]
+                $TEXT
+            )
+
+        switch ($TEXT) {
+                "" {"-"; break}
+                $Null {"-"; break}
+                "True" {"Yes"; break}
+                "False" {"No"; break}
+                default {$TEXT}
             }
-            [pscustomobject]$obj
+        } # end
+
+function Convert-IpAddressToMaskLength {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to convert subnet mask to dotted notation.
+    .DESCRIPTION
+
+    .NOTES
+        Version:        0.2.0
+        Author:         Ronald Rink
+
+    .EXAMPLE
+
+    .LINK
+
+    #>
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param
+        (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            [string]
+            $SubnetMask
+        )
+
+    [IPAddress] $MASK = $SubnetMask
+    $octets = $MASK.IPAddressToString.Split('.')
+    foreach ($octet in $octets) {
+        while (0 -ne $octet) {
+            $octet = ($octet -shl 1) -band [byte]::MaxValue
+            $result++;
         }
     }
+    return $result;
+}
