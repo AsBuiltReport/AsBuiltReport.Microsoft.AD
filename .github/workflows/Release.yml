@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish-to-gallery:
-    runs-on: ubuntu-latest
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
       - name: Set PSRepository to Trusted for PowerShell Gallery
@@ -17,6 +17,14 @@ jobs:
         shell: pwsh
         run: |
           Install-Module -Name AsBuiltReport.Core -Repository PSGallery -Force
+      - name: Install PSPKI module
+        shell: pwsh
+        run: |
+          Install-Module -Name PSPKI -Repository PSGallery -Force
+      - name: Test Module Manifest
+        shell: pwsh
+        run: |
+          Test-ModuleManifest .\AsBuiltReport.Microsoft.AD.psd1
       - name: Publish module to PowerShell Gallery
         shell: pwsh
         run: |
