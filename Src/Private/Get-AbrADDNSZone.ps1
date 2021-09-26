@@ -91,7 +91,7 @@ function Get-AbrADDNSZone {
                                             'Zone Name' = $Delegations.ZoneName
                                             'Child Zone' = $Delegations.ChildZoneName
                                             'Name Server' = $Delegations.NameServer.RecordData.NameServer
-                                            'IP Address' = $Delegations.IPaddress.RecordData.IPv4Address.IPAddressToString
+                                            'IP Address' = $Delegations.IPaddress.RecordData.IPv4Address.ToString()
                                         }
                                         $OutObj += [pscustomobject]$inobj
                                     }
