@@ -5,7 +5,7 @@ function Get-AbrADDNSZone {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -171,7 +171,11 @@ function Get-AbrADDNSZone {
                             'Aging Enabled' = ConvertTo-TextYN $Settings.AgingEnabled
                             'Refresh Interval' = $Settings.RefreshInterval
                             'NoRefresh Interval' = $Settings.NoRefreshInterval
-                            'Available For Scavenge' = if ($Settings.AvailForScavengeTime) {($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")}
+                            'Available For Scavenge' = Switch ($Settings.AvailForScavengeTime) {
+                                "" {"-"}
+                                $Null {"-"}
+                                default {($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")}
+                            }
                         }
                         $OutObj += [pscustomobject]$inobj
                     }

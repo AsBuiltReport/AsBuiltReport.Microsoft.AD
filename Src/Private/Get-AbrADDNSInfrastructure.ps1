@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -128,8 +128,9 @@ function Get-AbrADDNSInfrastructure {
                                     'Refresh Interval' = $DNSSetting.RefreshInterval
                                     'Scavenging Interval' = $DNSSetting.ScavengingInterval
                                     'Last Scavenge Time' = Switch ($DNSSetting.LastScavengeTime) {
-                                        !$Null {$DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy")}
-                                        default {$DNSSetting.LastScavengeTime}
+                                        "" {"-"; break}
+                                        $Null {"-"; break}
+                                        default {$DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy")}
 
                                     }
                                     'Scavenging State' = Switch ($DNSSetting.ScavengingState) {

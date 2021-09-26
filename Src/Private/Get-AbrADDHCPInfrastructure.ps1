@@ -5,7 +5,7 @@ function Get-AbrADDHCPInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -40,7 +40,7 @@ function Get-AbrADDHCPInfrastructure {
                     $DHCPinDC = Invoke-Command -Session $Session { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} }
                     if ($DHCPinDC) {Write-PScriboMessage "Discovered '$(($DHCPinDC | Measure-Object).Count)' DHCP Servers in forest $($Domain)."}
                     foreach ($DHCPServers in $DHCPinDC) {
-                        Write-PScriboMessage "Collecting DHCP Server information from $($DHCPServers.DnsName.split(".", 2)[0])"
+                        Write-PScriboMessage "Collecting DHCP Server Setting information from $($DHCPServers.DnsName.split(".", 2)[0])"
                         $Setting = Invoke-Command -Session $Session { Get-DhcpServerSetting -ComputerName ($using:DHCPServers).DnsName }
                         $inObj = [ordered] @{
                             'DC Name' = $DHCPServers.DnsName.Split(".", 2)[0]
@@ -54,7 +54,7 @@ function Get-AbrADDHCPInfrastructure {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving $Domain Dhcp Servers."
+                    Write-PScriboMessage -IsWarning "Error: Retreiving Dhcp Server Setting from $($DHCPServers.DnsName.Split(".", 2)[0])."
                     Write-PScriboMessage -IsDebug $_.Exception.Message
                     }
                 }

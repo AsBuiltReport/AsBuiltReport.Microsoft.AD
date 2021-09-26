@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4Statistic {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -53,7 +53,7 @@ function Get-AbrADDHCPv4Statistic {
             }
 
             if ($HealthCheck.DHCP.Statistics) {
-                $OutObj | Where-Object { $_.'Percentage Available' -lt '5'} | Set-Style -Style Warning -Property 'Percentage Available','Percentage In Use'
+                $OutObj | Where-Object { $_.'Percentage In Use' -gt 95} | Set-Style -Style Warning -Property 'Percentage Available','Percentage In Use'
             }
 
             $TableParams = @{

@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -47,7 +47,7 @@ function Get-AbrADSiteReplication {
                                 $inObj = [ordered] @{
                                     'DC Name' = $DC
                                     'GUID' = $Repl.ObjectGUID
-                                    'Description' = $Repl.Description
+                                    'Description' = ConvertTo-EmptyToFiller $Repl.Description
                                     'Replicate From Directory Server' = $Repl.ReplicateFromDirectoryServer
                                     'Replicate To Directory Server' = $DC
                                     'Replicated Naming Contexts' = $Repl.ReplicatedNamingContexts

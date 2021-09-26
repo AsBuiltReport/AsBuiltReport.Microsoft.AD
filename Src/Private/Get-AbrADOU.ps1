@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -50,7 +50,7 @@ function Get-AbrADOU {
                         $inObj = [ordered] @{
                             'Name' = $OU.Name
                             'Distinguished Name' = $OU.DistinguishedName
-                            'Linked GPO' = $GPOArray -join ", "
+                            'Linked GPO' = ConvertTo-EmptyToFiller ($GPOArray -join ", ")
                         }
                         $OutObj += [pscustomobject]$inobj
                     }

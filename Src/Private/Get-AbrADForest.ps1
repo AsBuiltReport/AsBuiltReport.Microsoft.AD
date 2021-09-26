@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -52,8 +52,8 @@ function Get-AbrADForest {
                     'Global Catalogs' = $Item.GlobalCatalogs -join '; '
                     'Application Partitions' = $Item.ApplicationPartitions
                     'PartitionsContainer' = [string]$Item.PartitionsContainer
-                    'SPN Suffixes' = $Item.SPNSuffixes
-                    'UPN Suffixes' = $Item.UPNSuffixes
+                    'SPN Suffixes' = ConvertTo-EmptyToFiller $Item.SPNSuffixes
+                    'UPN Suffixes' = ConvertTo-EmptyToFiller $Item.UPNSuffixes
                 }
                 $OutObj += [pscustomobject]$inobj
             }

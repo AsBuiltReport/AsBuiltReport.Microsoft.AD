@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6Statistic {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -46,8 +46,8 @@ function Get-AbrADDHCPv6Statistic {
                             'Total Addresses' = ConvertTo-EmptyToFiller $Setting.TotalAddresses
                             'Addresses In Use' = ConvertTo-EmptyToFiller $Setting.AddressesInUse
                             'Addresses Available' = ConvertTo-EmptyToFiller $Setting.AddressesAvailable
-                            'Percentage In Use' = ConvertTo-EmptyToFiller $Setting.PercentageInUse
-                            'Percentage Available' = ConvertTo-EmptyToFiller $Setting.PercentageAvailable
+                            'Percentage In Use' = ConvertTo-EmptyToFiller ([math]::Round($Setting.PercentageInUse, 0))
+                            'Percentage Available' = ConvertTo-EmptyToFiller ([math]::Round($Setting.PercentageAvailable, 0))
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
@@ -59,7 +59,7 @@ function Get-AbrADDHCPv6Statistic {
                 }
 
             if ($HealthCheck.DHCP.Statistics) {
-                $OutObj | Where-Object { $_.'Percentage Available' -lt '5'} | Set-Style -Style Warning -Property 'Percentage Available','Percentage In Use'
+                $OutObj | Where-Object { $_.'Percentage In Use' -gt 95} | Set-Style -Style Warning -Property 'Percentage Available','Percentage In Use'
             }
             $TableParams = @{
                 Name = "DHCP Server IPv6 Statistics Information - $($Domain.ToString().ToUpper())"

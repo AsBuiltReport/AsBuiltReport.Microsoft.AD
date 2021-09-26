@@ -5,7 +5,7 @@ function ConvertTo-TextYN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         LEE DAILEY
 
     .EXAMPLE
@@ -41,7 +41,7 @@ function ConvertTo-FileSizeString {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         LEE DAILEY
 
     .EXAMPLE
@@ -84,7 +84,7 @@ function Invoke-DcDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Adam Bertram
 
     .EXAMPLE
@@ -111,12 +111,12 @@ function Invoke-DcDiag {
 function ConvertTo-EmptyToFiller {
         <#
         .SYNOPSIS
-        Used by As Built Report to convert true or false automatically to Yes or No.
+        Used by As Built Report to convert empty culumns to "-".
         .DESCRIPTION
 
         .NOTES
-            Version:        0.2.0
-            Author:         LEE DAILEY
+            Version:        0.3.0
+            Author:         Jonathan Colon
 
         .EXAMPLE
 
@@ -151,7 +151,7 @@ function Convert-IpAddressToMaskLength {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Ronald Rink
 
     .EXAMPLE
