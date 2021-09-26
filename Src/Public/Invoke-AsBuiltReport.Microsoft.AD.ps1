@@ -165,33 +165,64 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     Paragraph "The Dynamic Host Configuration Protocol (DHCP) is a network management protocol used on Internet Protocol (IP) networks for automatically assigning IP addresses and other communication parameters to devices connected to the network using a client/server architecture."
                     BlankLine
                     foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
-                        try {
-                            Section -Style Heading4 "Dynamic Host Configuration Protocol information for domain $($Domain.ToString().ToUpper())" {
-                                Paragraph "The following section provides a configuration summary of the Dynamic Host Configuration Protocol."
+                        Section -Style Heading4 "Dynamic Host Configuration Protocol information for domain $($Domain.ToString().ToUpper())" {
+                            Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
+                            BlankLine
+                            Get-AbrADDHCPInfrastructure -Domain $Domain -Session $TempPssSession
+                            Section -Style Heading5 "IPv4 Scope Information for Domain $($Domain.ToString().ToUpper())" {
+                                Paragraph "The following section provides a IPv4 configuration summary of the Dynamic Host Configuration Protocol."
                                 BlankLine
-                                Get-AbrADDHCPInfrastructure -Domain $Domain -Session $TempPssSession
-                                Get-AbrADDHCPv4Statistic -Domain $Domain -Session $TempPssSession
-                                Get-AbrADDHCPv6Statistic -Domain $Domain -Session $TempPssSession
-                                $DomainDHCPs = Invoke-Command -Session $Session { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
+                                try {
+                                    Get-AbrADDHCPv4Statistic -Domain $Domain -Session $TempPssSession
+                                }
+                                catch {
+                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from  $($Domain.ToString().ToUpper())."
+                                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                                }
+                                try {
+                                    Get-AbrADDHCPv4Failover -Domain $Domain -Session $TempPssSession
+                                }
+                                catch {
+                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Failover configuration from $($Domain.ToString().ToUpper())."
+                                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                                }
+                                $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
                                 foreach ($DHCPServer in $DomainDHCPs){
                                     try {
                                         Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                    }
+                                    catch {
+                                        Write-PScriboMessage -IsWarning $_.Exception.Message
+                                    }
+                                }
+                            }
+                            Section -Style Heading5 "IPv6 Scope Information for Domain $($Domain.ToString().ToUpper())" {
+                                Paragraph "The following section provides a IPv6 configuration summary of the Dynamic Host Configuration Protocol."
+                                BlankLine
+                                try {
+                                    Get-AbrADDHCPv6Statistic -Domain $Domain -Session $TempPssSession
+                                }
+                                catch {
+                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from $($Domain.ToString().ToUpper())."
+                                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                                }
+                                $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
+                                foreach ($DHCPServer in $DomainDHCPs){
+                                    try {
+                                        #Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning $_.Exception.Message
                                     }
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
-                            continue
+
                         }
                     }
                 }
             }
         }#endregion AD Section
-        Write-PscriboMessage "Clearing PSSession $($TempPssSession.Id)"
+        Write-PscriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
         Remove-PSSession -Session $TempPssSession
 	}#endregion foreach loop
 }
