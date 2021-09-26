@@ -48,7 +48,7 @@ function Get-AbrADFSMO {
                     $OutObj += [pscustomobject]$inobj
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "Error: Could not connect to domain $Domain"
+                    Write-PscriboMessage -IsWarning "Error: Could not get Flexible Single Master Operations (FSMO) Information from domain $Domain"
                     Write-PscriboMessage -IsDebug $_.Exception.Message
                 }
 
