@@ -46,20 +46,23 @@ function Get-AbrADDHCPv4Scope {
                             'Scope Id' = "$($Scope.ScopeId)/$($SubnetMask)"
                             'Scope Name' = $Scope.Name
                             'Scope Range' = "$($Scope.StartRange) - $($Scope.EndRange)"
-                            'Lease Duration' = $Scope.LeaseDuration
+                            'Lease Duration' = Switch ($Scope.LeaseDuration) {
+                                "10675199.02:48:05.4775807" {"Unlimited"}
+                                default {$Scope.LeaseDuration}
+                            }
                             'State' = $Scope.State
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scopes from $($Server)."
+                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scopes from $($Server.split(".", 2)[0])."
                     Write-PScriboMessage -IsDebug $_.Exception.Message
                 }
             }
 
             $TableParams = @{
-                Name = "IPv4 Scopes Information - $($Domain.ToString().ToUpper())"
+                Name = "IPv4 Scopes Information - $($Server.split(".", 2).ToUpper()[0])"
                 List = $false
                 ColumnWidths = 20, 20, 35, 15, 10
             }
@@ -93,7 +96,7 @@ function Get-AbrADDHCPv4Scope {
                     }
 
                     $TableParams = @{
-                        Name = "IPv4 Scope Statistics Information - $($Domain.ToString().ToUpper())"
+                        Name = "IPv4 Scope Statistics Information - $($Server.split(".", 2).ToUpper()[0])"
                         List = $false
                         ColumnWidths = 20, 20, 20, 20, 20
                     }
@@ -104,7 +107,7 @@ function Get-AbrADDHCPv4Scope {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope Statistics from $($Server)."
+                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope Statistics from $($Server.split(".", 2).ToUpper()[0])."
                 Write-PScriboMessage -IsDebug $_.Exception.Message
             }
             try {
@@ -136,7 +139,7 @@ function Get-AbrADDHCPv4Scope {
                     }
 
                     $TableParams = @{
-                        Name = "IPv4 Scope Failover Cofiguration Information - $($Server.ToString().ToUpper())"
+                        Name = "IPv4 Scope Failover Cofiguration Information - $($Server.split(".", 2).ToUpper()[0])"
                         List = $true
                         ColumnWidths = 40, 60
                     }
@@ -147,7 +150,7 @@ function Get-AbrADDHCPv4Scope {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope Failover Setting from $($Server)."
+                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope Failover Setting from $($Server.split(".", 2).ToUpper()[0])."
                 Write-PScriboMessage -IsDebug $_.Exception.Message
             }
             try {
@@ -178,7 +181,7 @@ function Get-AbrADDHCPv4Scope {
                     }
 
                     $TableParams = @{
-                        Name = "IPv4 Network Interface binding Information - $($Domain.ToString().ToUpper())"
+                        Name = "IPv4 Network Interface binding Information - $($Server.split(".", 2).ToUpper()[0])"
                         List = $false
                         ColumnWidths = 25, 25, 25, 25
                     }
@@ -189,7 +192,7 @@ function Get-AbrADDHCPv4Scope {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 interface binding from $($Server)."
+                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 interface binding from $($Server.split(".", 2).ToUpper()[0])."
                 Write-PScriboMessage -IsDebug $_.Exception.Message
             }
         }
