@@ -83,3 +83,20 @@
   - Added Site Replication Failure Summary.
   - Added Group Policy Objects Summary.
   - Added Organizational Unit summary.
+  - Added Domain Site summary information
+    - Added Domain Site Link summary information
+- Added Active Directory Domain summary Infomation
+  - Added Object Count summary Information
+  - Added Default Domain Password Policy Summary Information
+  - Added Group Managed Service Accounts (GMSA) Summary Information
+  - Added Flexible Single Master Operations (FSMO) Information
+  - Added Trust Summary information
+- Added Domain Controller Information
+  - Added Domain Controller Hardware Summary
+  - Added Domain Controller NTDS Summary
+  - Added Domain Controller Time Source Summary
+  - Added Domain Controller Infrastructure Services Status
+  - Added Site Replication Summary
+  - Added Site Replication Failure Summary
+  - Added Group Policy Objects Summary
+  - Added Organizational Unit summary
