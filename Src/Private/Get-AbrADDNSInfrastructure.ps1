@@ -131,7 +131,6 @@ function Get-AbrADDNSInfrastructure {
                                         "" {"-"; break}
                                         $Null {"-"; break}
                                         default {$DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy")}
-
                                     }
                                     'Scavenging State' = Switch ($DNSSetting.ScavengingState) {
                                         "True" {"Enabled"}

@@ -21,6 +21,7 @@ function ConvertTo-TextYN {
             Position = 0,
             Mandatory)]
             [AllowEmptyString()]
+
             [string]
             $TEXT
         )
@@ -77,6 +78,7 @@ function ConvertTo-FileSizeString {
             {"0 KB"}
         }
     } # end >> function Format-FileSize
+
 function Invoke-DcDiag {
     <#
     .SYNOPSIS

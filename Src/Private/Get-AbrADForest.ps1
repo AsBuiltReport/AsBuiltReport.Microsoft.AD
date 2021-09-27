@@ -40,7 +40,6 @@ function Get-AbrADForest {
         ElseIf ($ADVersion -eq '31') {$server = 'Windows Server 2003 R2'}
         ElseIf ($ADVersion -eq '30') {$server = 'Windows Server 2003'}
         $OutObj = @()
-        $OutObj = @()
         if ($Data) {
             Write-PscriboMessage "Collecting Active Directory information of forest $ForestInfo."
             foreach ($Item in $Data) {
