@@ -12,7 +12,7 @@
 RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.2.0'
+ModuleVersion = '0.3.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -55,10 +55,6 @@ RequiredModules = @(
     @{
         ModuleName = 'AsBuiltReport.Core';
         ModuleVersion = '1.1.0'
-    },
-    @{
-        ModuleName = 'ActiveDirectory';
-        ModuleVersion = '1.0'
     },
     @{
         ModuleName = 'PSPKI';
@@ -108,7 +104,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = 'AsBuiltReport', 'Report', 'Microsoft', 'AD', 'Active-Directory', 'Documentation', 'PScribo', 'PSEdition_Desktop', 'PSEdition_Core', 'Windows', 'MacOS', 'Linux'
+        Tags = 'AsBuiltReport', 'Report', 'Microsoft', 'AD', 'Active-Directory', 'Documentation', 'PScribo', 'PSEdition_Desktop', 'PSEdition_Core', 'Windows'
 
         # A URL to the license for this module.
         LicenseUri = 'https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/LICENSE'

@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADFSMO {
     }
 
     process {
-        Section -Style Heading4 'Flexible Single Master Operations (FSMO) Information' {
+        Section -Style Heading5 'Flexible Single Master Operations (FSMO) Information' {
             Paragraph "The following section provides a summary of the Active Directory FSMO for Domain $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -48,7 +48,7 @@ function Get-AbrADFSMO {
                     $OutObj += [pscustomobject]$inobj
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "Error: Could not connect to domain $Domain"
+                    Write-PscriboMessage -IsWarning "Error: Could not get Flexible Single Master Operations (FSMO) Information from domain $Domain"
                     Write-PscriboMessage -IsDebug $_.Exception.Message
                 }
 

@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -42,6 +42,7 @@ function Get-AbrADDomainController {
                         Write-PscriboMessage "Collecting AD Domain Controller Summary information of $DC."
                         $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                         $DCInfo = Invoke-Command -Session $DCPssSession {Get-ADDomainController -Identity $using:DC}
+                        Remove-PSSession -Session $DCPssSession
                         $inObj = [ordered] @{
                             'DC Name' = ($DCInfo.Name).ToString().ToUpper()
                             'Domain Name' = $DCInfo.Domain
@@ -70,7 +71,7 @@ function Get-AbrADDomainController {
             $OutObj | Table @TableParams
         }
         Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
-        Section -Style Heading5 'Domain Controller Hardware Summary' {
+        Section -Style Heading6 'Domain Controller Hardware Summary' {
             Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -84,6 +85,7 @@ function Get-AbrADDomainController {
                             Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
                             $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                             $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
+                            Remove-PSSession -Session $DCPssSession
                             if ($HW) {
                                 $inObj = [ordered] @{
                                     'Name' = $HW.CsDNSHostName
@@ -117,7 +119,7 @@ function Get-AbrADDomainController {
             }
         }
         Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
-        Section -Style Heading5 'Domain Controller NTDS Summary' {
+        Section -Style Heading6 'Domain Controller NTDS Summary' {
             Paragraph "The following section provides a summary of the Domain Controller NTDS file size on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -132,6 +134,7 @@ function Get-AbrADDomainController {
                             $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                             $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
                             $size = Invoke-Command -Session $DCPssSession -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
+                            Remove-PSSession -Session $DCPssSession
                             if ( $NTDS -and $size ) {
                                 $inObj = [ordered] @{
                                     'Name' = $DC
@@ -159,7 +162,7 @@ function Get-AbrADDomainController {
                 $OutObj | Table @TableParams
             }
             Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
-            Section -Style Heading5 'Domain Controller Time Source Summary' {
+            Section -Style Heading6 'Domain Controller Time Source Summary' {
                 Paragraph "The following section provides a summary of the Domain Controller Time Source configuration on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -174,7 +177,7 @@ function Get-AbrADDomainController {
                                 $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                                 $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
                                 $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
-
+                                Remove-PSSession -Session $DCPssSession
                                 if ( $NtpServer -and $SourceType ) {
                                     $inObj = [ordered] @{
                                         'Name' = $DC

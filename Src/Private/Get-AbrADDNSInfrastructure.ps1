@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADDNSInfrastructure {
     }
 
     process {
-        Section -Style Heading4 "Infrastructure Summary" {
+        Section -Style Heading5 "Infrastructure Summary" {
             Paragraph "The following section provides a summary of the Domain Name System Infrastructure configuration."
             BlankLine
             $OutObj = @()
@@ -68,7 +68,7 @@ function Get-AbrADDNSInfrastructure {
                 }
                 $OutObj | Table @TableParams
             }
-            Section -Style Heading5 "Response Rate Limiting (RRL) Summary" {
+            Section -Style Heading6 "Response Rate Limiting (RRL) Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Response Rate Limiting configuration."
                 BlankLine
                 $OutObj = @()
@@ -110,7 +110,7 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Scavenging Summary" {
+            Section -Style Heading6 "Scavenging Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Scavenging configuration."
                 BlankLine
                 $OutObj = @()
@@ -128,9 +128,9 @@ function Get-AbrADDNSInfrastructure {
                                     'Refresh Interval' = $DNSSetting.RefreshInterval
                                     'Scavenging Interval' = $DNSSetting.ScavengingInterval
                                     'Last Scavenge Time' = Switch ($DNSSetting.LastScavengeTime) {
-                                        !$Null {$DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy")}
-                                        default {$DNSSetting.LastScavengeTime}
-
+                                        "" {"-"; break}
+                                        $Null {"-"; break}
+                                        default {$DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy")}
                                     }
                                     'Scavenging State' = Switch ($DNSSetting.ScavengingState) {
                                         "True" {"Enabled"}
@@ -158,7 +158,7 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Forwarder Summary" {
+            Section -Style Heading6 "Forwarder Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Forwarder configuration."
                 BlankLine
                 $OutObj = @()
@@ -198,7 +198,7 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Zone Scope Recursion Summary" {
+            Section -Style Heading6 "Zone Scope Recursion Summary" {
                 Paragraph "The following section provides a summary of the Domain Name System Zone Scope Recursion configuration."
                 BlankLine
                 $OutObj = @()

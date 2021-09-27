@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -43,21 +43,20 @@ function Get-AbrADOU {
                         $GPOArray = @()
                         [array]$GPOs = $OU.LinkedGroupPolicyObjects
                         foreach ($Object in $GPOs) {
-                            $GP = Get-GPO -Guid $Object.Split(",")[0].Split("=")[1]
+                            $GP = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Guid ($using:Object).Split(",")[0].Split("=")[1]}
                             Write-PscriboMessage "Collecting linked GPO: '$($GP.DisplayName)' on Organizational Unit $OU. (Organizational Unit)"
                             $GPOArray += $GP.DisplayName
                         }
                         $inObj = [ordered] @{
                             'Name' = $OU.Name
                             'Distinguished Name' = $OU.DistinguishedName
-                            'Linked GPO' = $GPOArray -join ", "
+                            'Linked GPO' = ConvertTo-EmptyToFiller ($GPOArray -join ", ")
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "WARNING: Could not connect to DC: $DC (Group Policy Objects)"
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit)"
                 }
                 $TableParams = @{
                     Name = "Active Directory Organizational Unit Information - $($Domain.ToString().ToUpper())"

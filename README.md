@@ -67,7 +67,9 @@ This report does not support Linux or Mac due to the fact that the ActiveDirecto
 
 ### :closed_lock_with_key: Required Privileges
 
-A Microsoft AD As Built Report can be generated with Active Directory Enterprise Forest level privileges. Due to the limitations of the WinRM protocol, a domain-joined machine is needed, also it is required to use the FQDN of the DC instead of its IP address.
+A Microsoft AD As Built Report can be generated with Active Directory Enterprise Forest level privileges. Since this report relies extensively on the WinRM component, you should make sure that it is enabled and configured. [Reference](https://docs.microsoft.com/en-us/windows/win32/winrm/installation-and-configuration-for-windows-remote-management)
+
+Due to a limitation of the WinRM component, a domain-joined machine is needed, also it is required to use the FQDN of the DC instead of its IP address.
 [Reference](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_troubleshooting?view=powershell-7.1#how-to-use-an-ip-address-in-a-remote-command)
 
 ## :package: Module Installation

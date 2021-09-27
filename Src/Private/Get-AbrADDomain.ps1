@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -42,17 +42,17 @@ function Get-AbrADDomain {
                             'NetBIOS Name' = $DomainInfo.NetBIOSName
                             'Domain SID' = $DomainInfo.DomainSID
                             'Domain Functional Level' = $DomainInfo.DomainMode
-                            'Domains' = $DomainInfo.Domains
+                            'Domains' = ConvertTo-EmptyToFiller $DomainInfo.Domains
                             'Forest' = $DomainInfo.Forest
-                            'Parent Domain' = $DomainInfo.ParentDomain
+                            'Parent Domain' = ConvertTo-EmptyToFiller $DomainInfo.ParentDomain
                             'Replica Directory Servers' = $DomainInfo.ReplicaDirectoryServers
-                            'Child Domains' = $DomainInfo.ChildDomains
+                            'Child Domains' = ConvertTo-EmptyToFiller $DomainInfo.ChildDomains
                             'Computers Container' = $DomainInfo.ComputersContainer
                             'Distinguished Name' = $DomainInfo.DistinguishedName
                             'Domain Controllers Container' = $DomainInfo.DomainControllersContainer
                             'Systems Container' = $DomainInfo.SystemsContainer
                             'Users Container' = $DomainInfo.UsersContainer
-                            'ReadOnly Replica Directory Servers' = $DomainInfo.ReadOnlyReplicaDirectoryServers
+                            'ReadOnly Replica Directory Servers' = ConvertTo-EmptyToFiller $DomainInfo.ReadOnlyReplicaDirectoryServers
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
@@ -172,7 +172,7 @@ function Get-AbrADDomain {
                                 'Created' = $Account.Created
                                 'Enabled' = ConvertTo-TextYN $Account.Enabled
                                 'DNS Host Name' = $Account.DNSHostName
-                                'Host Computers' = $Account.HostComputers
+                                'Host Computers' = ConvertTo-EmptyToFiller $Account.HostComputers
                                 'Retrieve Managed Password' = $Account.PrincipalsAllowedToRetrieveManagedPassword
                                 'Primary Group' = $Account.PrimaryGroup
                                 'Last Logon Date' = $Account.LastLogonDate
