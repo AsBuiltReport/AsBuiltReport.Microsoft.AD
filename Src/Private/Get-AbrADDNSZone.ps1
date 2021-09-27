@@ -32,7 +32,6 @@ function Get-AbrADDNSZone {
     }
 
     process {
-
         Section -Style Heading5 "Domain Name System Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
             Paragraph "The following section provides a summary of the Domain Name System Zone Configuration information."
             BlankLine

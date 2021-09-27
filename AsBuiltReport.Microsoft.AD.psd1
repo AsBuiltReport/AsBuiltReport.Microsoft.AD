@@ -104,7 +104,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = 'AsBuiltReport', 'Report', 'Microsoft', 'AD', 'Active-Directory', 'Documentation', 'PScribo', 'PSEdition_Desktop', 'PSEdition_Core', 'Windows', 'MacOS', 'Linux'
+        Tags = 'AsBuiltReport', 'Report', 'Microsoft', 'AD', 'Active-Directory', 'Documentation', 'PScribo', 'PSEdition_Desktop', 'PSEdition_Core', 'Windows'
 
         # A URL to the license for this module.
         LicenseUri = 'https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/LICENSE'
