@@ -58,7 +58,6 @@ function Get-AbrADOU {
                 catch {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit)"
                 }
-
                 $TableParams = @{
                     Name = "Active Directory Organizational Unit Information - $($Domain.ToString().ToUpper())"
                     List = $false

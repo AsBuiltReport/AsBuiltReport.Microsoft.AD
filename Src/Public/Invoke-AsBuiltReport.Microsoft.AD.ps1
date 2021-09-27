@@ -216,7 +216,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     }
                                 }
                             }
-
                         }
                     }
                 }
