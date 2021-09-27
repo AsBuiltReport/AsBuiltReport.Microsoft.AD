@@ -33,6 +33,11 @@
         },
         "DNS": {
             "Aging": true
+        },
+        "DHCP": {
+            "Summary": true,
+            "Credential": true,
+            "Statistics": true
         }
     }
 }

@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -45,7 +45,7 @@ function Get-AbrADSite {
                         }
                         $inObj = [ordered] @{
                             'Site Name' = $Item.Name
-                            'Description' = $Item.Description
+                            'Description' = ConvertTo-EmptyToFiller $Item.Description
                             'Creation Date' = ($Item.createTimeStamp).ToUniversalTime().toString("r")
                             'Subnets' = $SubnetArray
                         }

@@ -5,7 +5,7 @@ function Get-AbrADDNSZone {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.2.0
+        Version:        0.3.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,8 @@ function Get-AbrADDNSZone {
     }
 
     process {
-        Section -Style Heading4 "Domain Name System Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
+
+        Section -Style Heading5 "Domain Name System Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
             Paragraph "The following section provides a summary of the Domain Name System Zone Configuration information."
             BlankLine
             $OutObj = @()
@@ -54,6 +55,7 @@ function Get-AbrADDNSZone {
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
+                    Remove-PSSession -Session $DCPssSession
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
@@ -75,8 +77,9 @@ function Get-AbrADDNSZone {
                 Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                 $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ReplicationScope -eq "Domain"} | Select-Object -ExpandProperty ZoneName }
                 $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneDelegation -Name $using:DNSSetting}
+                Remove-PSSession -Session $DCPssSession
                 if ($Zones) {
-                    Section -Style Heading5 "Zone Delegation of $($DC.ToString().ToUpper().Split(".")[0])" {
+                    Section -Style Heading6 "Zone Delegation of $($DC.ToString().ToUpper().Split(".")[0])" {
                         Paragraph "The following section provides a summary of the Domain Name System Zone Delegation information."
                         BlankLine
                         $OutObj = @()
@@ -89,7 +92,7 @@ function Get-AbrADDNSZone {
                                             'Zone Name' = $Delegations.ZoneName
                                             'Child Zone' = $Delegations.ChildZoneName
                                             'Name Server' = $Delegations.NameServer.RecordData.NameServer
-                                            'IP Address' = $Delegations.IPaddress.RecordData.IPv4Address.IPAddressToString
+                                            'IP Address' = $Delegations.IPaddress.RecordData.IPv4Address.ToString()
                                         }
                                         $OutObj += [pscustomobject]$inobj
                                     }
@@ -113,7 +116,7 @@ function Get-AbrADDNSZone {
                 Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
                 Write-PscriboMessage -IsDebug $_.Exception.Message
             }
-            Section -Style Heading5 "Reverse Lookup Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
+            Section -Style Heading6 "Reverse Lookup Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
                 Paragraph "The following section provides a summary of the Domain Name System Reverse Lookup Zone Configuration information."
                 BlankLine
                 $OutObj = @()
@@ -135,6 +138,7 @@ function Get-AbrADDNSZone {
                             }
                             $OutObj += [pscustomobject]$inobj
                         }
+                        Remove-PSSession -Session $DCPssSession
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
@@ -152,7 +156,7 @@ function Get-AbrADDNSZone {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading5 "Zone Scope Aging properties of $($DC.ToString().ToUpper().Split(".")[0])" {
+            Section -Style Heading6 "Zone Scope Aging properties of $($DC.ToString().ToUpper().Split(".")[0])" {
                 Paragraph "The following section provides a summary of the Domain Name System Zone Aging properties information."
                 BlankLine
                 $OutObj = @()
@@ -168,10 +172,15 @@ function Get-AbrADDNSZone {
                             'Aging Enabled' = ConvertTo-TextYN $Settings.AgingEnabled
                             'Refresh Interval' = $Settings.RefreshInterval
                             'NoRefresh Interval' = $Settings.NoRefreshInterval
-                            'Available For Scavenge' = if ($Settings.AvailForScavengeTime) {($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")}
+                            'Available For Scavenge' = Switch ($Settings.AvailForScavengeTime) {
+                                "" {"-"}
+                                $Null {"-"}
+                                default {($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")}
+                            }
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
+                    Remove-PSSession -Session $DCPssSession
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
