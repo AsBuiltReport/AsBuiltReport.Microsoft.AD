@@ -199,11 +199,11 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Section -Style Heading6 "IPv4 Scope Server Options Summary on $($DHCPServer.ToUpper().split(".", 2)[0])" {
                                                 Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
                                                 BlankLine
-                                                Get-AbrADDHCPv4ScopeServerOption -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                                Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
                                                 $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv4Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty ScopeId}
                                                 foreach ($Scope in $DHCPScopes) {
                                                     try {
-                                                        Get-AbrADDHCPv4PerScopeOption -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
+                                                        Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
                                                     }
                                                     catch {
                                                         Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."

@@ -71,7 +71,7 @@ function Get-AbrADDHCPv4Scope {
             }
             $OutObj | Table @TableParams
             try {
-                Section -Style Heading7 "IPv4 Scope Statistics Summary on $($Server.ToUpper().split(".", 2)[0])" {
+                Section -Style Heading6 "IPv4 Scope Statistics Summary on $($Server.ToUpper().split(".", 2)[0])" {
                     Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Statistics information."
                     BlankLine
                     $OutObj = @()
@@ -111,7 +111,7 @@ function Get-AbrADDHCPv4Scope {
                 Write-PScriboMessage -IsDebug $_.Exception.Message
             }
             try {
-                Section -Style Heading7 "IPv4 Scope Failover Summary on $($Server.ToUpper().split(".", 2)[0])" {
+                Section -Style Heading6 "IPv4 Scope Failover Summary on $($Server.ToUpper().split(".", 2)[0])" {
                     Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Failover information."
                     BlankLine
                     $OutObj = @()
@@ -154,7 +154,7 @@ function Get-AbrADDHCPv4Scope {
                 Write-PScriboMessage -IsDebug $_.Exception.Message
             }
             try {
-                Section -Style Heading7 "IPv4 Network Interface binding Summary on $($Server.ToUpper().split(".", 2)[0])" {
+                Section -Style Heading6 "IPv4 Network Interface binding Summary on $($Server.ToUpper().split(".", 2)[0])" {
                     Paragraph "The following section provides a summary of the IPv4 Network Interface binding."
                     BlankLine
                     $OutObj = @()
