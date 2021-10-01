@@ -1,4 +1,4 @@
-function Get-AbrADDHCPv4PerScopeOption {
+function Get-AbrADDHCPv4PerScopeSetting {
     <#
     .SYNOPSIS
     Used by As Built Report to retrieve Microsoft AD DHCP Servers Scopes Server Options from DHCP Servers
@@ -24,7 +24,6 @@ function Get-AbrADDHCPv4PerScopeOption {
             $Session,
             [string]
             $Server,
-            [string]
             $Scope
     )
 
@@ -68,6 +67,7 @@ function Get-AbrADDHCPv4PerScopeOption {
             }
             $OutObj | Table @TableParams
         }
+
     }
 
     end {}

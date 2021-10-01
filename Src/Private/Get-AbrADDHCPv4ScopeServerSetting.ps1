@@ -1,4 +1,4 @@
-function Get-AbrADDHCPv4ScopeServerOption {
+function Get-AbrADDHCPv4ScopeServerSetting {
     <#
     .SYNOPSIS
     Used by As Built Report to retrieve Microsoft AD DHCP Servers Scopes Server Options from DHCP Servers
@@ -62,6 +62,43 @@ function Get-AbrADDHCPv4ScopeServerOption {
             $TableParams['Caption'] = "- $($TableParams.Name)"
         }
         $OutObj | Table @TableParams
+        try {
+            Section -Style Heading6 "Scope DNS Setting information" {
+                Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope DNS Setting information."
+                BlankLine
+                $OutObj = @()
+                if ($Server) {
+                    $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv4DnsSetting -ComputerName $using:Server}
+                    Write-PScriboMessage "Discovered '$(($DHCPScopeOptions | Measure-Object).Count)' DHCP scopes dns setting from $($Server)."
+                    foreach ($Option in $DHCPScopeOptions) {
+                        Write-PscriboMessage "Collecting DHCP Server IPv4 Scope DNS Setting value from $($Server)."
+                        $inObj = [ordered] @{
+                            'Dynamic Updates' = $Option.DynamicUpdates
+                            'Dns Suffix' = ConvertTo-EmptyToFiller $Option.DnsSuffix
+                            'Name Protection' = ConvertTo-EmptyToFiller $Option.NameProtection
+                            'Update Dns RR For Older Clients' = ConvertTo-EmptyToFiller $Option.UpdateDnsRRForOlderClients
+                            'Disable Dns Ptr RR Update' = ConvertTo-EmptyToFiller $Option.DisableDnsPtrRRUpdate
+                            'Delete Dns RR On Lease Expiry' = ConvertTo-EmptyToFiller $Option.DeleteDnsRROnLeaseExpiry
+                        }
+                        $OutObj += [pscustomobject]$inobj
+                    }
+                }
+
+                $TableParams = @{
+                    Name = "IPv4 Scopes DNS Setting Information - $($Server.split(".", 2)[0])"
+                    List = $true
+                    ColumnWidths = 40, 60
+                }
+                if ($Report.ShowTableCaptions) {
+                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                }
+                $OutObj | Table @TableParams
+            }
+        }
+        catch {
+            Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope DNS Setting from $($Server.split(".", 2)[0])."
+            Write-PScriboMessage -IsDebug $_.Exception.Message
+        }
     }
 
     end {}
