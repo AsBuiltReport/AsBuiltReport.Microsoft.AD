@@ -1,7 +1,7 @@
 function Get-AbrADDHCPv4Scope {
     <#
     .SYNOPSIS
-    Used by As Built Report to retrieve Microsoft AD DHCP Servers Scopes from Domain Controller
+    Used by As Built Report to retrieve Microsoft Active Directory DHCP Servers Scopes.
     .DESCRIPTION
 
     .NOTES
