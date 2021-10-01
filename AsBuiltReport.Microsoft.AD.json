@@ -15,7 +15,6 @@
         "_comment_": "0 = Disabled, 1 = Enabled",
         "Forest": 1,
         "Domain": 1,
-        "Site": 1,
         "DHCP": 1,
         "DNS": 1,
         "CA": 1,
