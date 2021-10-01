@@ -52,7 +52,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             Paragraph "The following section provides a summary of the Active Directory Infrastructure configuration for $($ForestInfo)."
             BlankLine
             Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
-            if ($InfoLevel.Forest -gt 0) {
+            if ($InfoLevel.Forest -ge 1) {
                 try {
                     Section -Style Heading2 "Forest Information."  {
                         Paragraph "The Active Directory framework that holds the objects can be viewed at a number of levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest. A forest is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are accessible."
@@ -70,7 +70,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             #                                 Domain Section                                              #
             #---------------------------------------------------------------------------------------------#
-            if ($InfoLevel.Domain -gt 0) {
+            if ($InfoLevel.Domain -ge 1) {
                 Section -Style Heading3 "Active Directory Domain summary for forest $($ForestInfo.toUpper())" {
                     Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user or a group or it can be a hardware component, such as a computer or printer.Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain or an alternate version (which may end in .local)."
                     BlankLine
@@ -132,7 +132,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             #                                 DNS Section                                                 #
             #---------------------------------------------------------------------------------------------#
-            if ($InfoLevel.DNS -gt 0) {
+            if ($InfoLevel.DNS -ge 1) {
                 Section -Style Heading3 "Domain Name System summary for forest $($ForestInfo.toUpper())" {
                     Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
                     BlankLine
@@ -160,7 +160,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             #                                 DHCP Section                                                #
             #---------------------------------------------------------------------------------------------#
-            if ($InfoLevel.DHCP -gt 0) {
+            if ($InfoLevel.DHCP -ge 1) {
                 Section -Style Heading3 "Dynamic Host Configuration Protocol summary for forest $($ForestInfo.toUpper())" {
                     Paragraph "The Dynamic Host Configuration Protocol (DHCP) is a network management protocol used on Internet Protocol (IP) networks for automatically assigning IP addresses and other communication parameters to devices connected to the network using a client/server architecture."
                     BlankLine
@@ -193,6 +193,28 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     }
                                     catch {
                                         Write-PScriboMessage -IsWarning $_.Exception.Message
+                                    }
+                                    if ($InfoLevel.DHCP -ge 2) {
+                                        try {
+                                            Section -Style Heading6 "IPv4 Scope Server Options Summary on $($DHCPServer.ToUpper().split(".", 2)[0])" {
+                                                Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
+                                                BlankLine
+                                                Get-AbrADDHCPv4ScopeServerOption -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                                $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv4Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty ScopeId}
+                                                foreach ($Scope in $DHCPScopes) {
+                                                    try {
+                                                        Get-AbrADDHCPv4PerScopeOption -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
+                                                    }
+                                                    catch {
+                                                        Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
+                                                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        catch {
+                                            Write-PScriboMessage -IsWarning $_.Exception.Message
+                                        }
                                     }
                                 }
                             }
