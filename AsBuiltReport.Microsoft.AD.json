@@ -12,7 +12,7 @@
 
     },
     "InfoLevel": {
-        "_comment_": "0 = Disabled, 1 = Enabled",
+        "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary",
         "Forest": 1,
         "Domain": 1,
         "DHCP": 1,
@@ -22,7 +22,8 @@
     },
     "HealthCheck": {
         "Domain": {
-            "GMSA": true
+            "GMSA": true,
+            "GPO": true
         },
         "DomainController": {
             "Diagnostic": true,
