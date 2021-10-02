@@ -87,6 +87,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         Paragraph "The following section provides a summary of the Active Directory Domain Controller."
                                         BlankLine
                                         Get-AbrADDomainController -Domain $Domain -Session $TempPssSession -Cred $Credential
+                                        $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                        if ($InfoLevel.Domain -ge 2) {
+                                            foreach ($DC in $DCs){
+                                                Get-AbrADDCRoleFeature -DC $DC -Cred $Credential
+                                            }
+                                        }
                                         if ($HealthCheck.DomainController.Diagnostic) {
                                             try {
                                                 Section -Style Heading6 'DCDiag Information' {
@@ -179,13 +185,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from  $($Domain.ToString().ToUpper())."
                                     Write-PScriboMessage -IsDebug $_.Exception.Message
                                 }
-                                try {
-                                    Get-AbrADDHCPv4Failover -Domain $Domain -Session $TempPssSession
-                                }
-                                catch {
-                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Failover configuration from $($Domain.ToString().ToUpper())."
-                                    Write-PScriboMessage -IsDebug $_.Exception.Message
-                                }
                                 $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
                                 foreach ($DHCPServer in $DomainDHCPs){
                                     try {
@@ -225,20 +224,41 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Get-AbrADDHCPv6Statistic -Domain $Domain -Session $TempPssSession
                                 }
                                 catch {
-                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from $($Domain.ToString().ToUpper())."
+                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Statistics from $($Domain.ToString().ToUpper())."
                                     Write-PScriboMessage -IsDebug $_.Exception.Message
                                 }
                                 $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
                                 foreach ($DHCPServer in $DomainDHCPs){
                                     try {
-                                        #Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                        Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning $_.Exception.Message
                                     }
+                                    if ($InfoLevel.DHCP -ge 2) {
+                                        try {
+                                            Section -Style Heading6 "IPv6 Scope Server Options Summary on $($DHCPServer.ToUpper().split(".", 2)[0])" {
+                                                Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
+                                                BlankLine
+                                                Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                                $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv4Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty ScopeId}
+                                                foreach ($Scope in $DHCPScopes) {
+                                                    try {
+                                                        #Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
+                                                    }
+                                                    catch {
+                                                        Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
+                                                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        catch {
+                                            Write-PScriboMessage -IsWarning $_.Exception.Message
+                                        }
+                                    }
                                 }
                             }
-
                         }
                     }
                 }
