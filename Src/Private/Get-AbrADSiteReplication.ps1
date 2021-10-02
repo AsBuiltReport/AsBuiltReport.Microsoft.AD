@@ -82,8 +82,8 @@ function Get-AbrADSiteReplication {
                 $OutObj | Table @TableParams
             }
         }
-        Write-PscriboMessage "Discovering Active Directory Sites Replication Failure on $Domain. (Sites Replication Failure)"
         if (($HealthCheck.Site.Replication) -and (Invoke-Command -Session $Session -ScriptBlock {Get-ADReplicationFailure -Target $using:Domain -Scope Domain})) {
+            Write-PscriboMessage "Discovering Active Directory Sites Replication Failure on $Domain. (Sites Replication Failure)"
             Section -Style Heading5 'Site Replication Failure Summary' {
                 Paragraph "The following section provides a summary of the Active Directory Site Replication Failure information."
                 BlankLine
