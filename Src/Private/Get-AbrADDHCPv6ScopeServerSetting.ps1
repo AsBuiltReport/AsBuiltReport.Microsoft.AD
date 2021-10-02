@@ -41,8 +41,8 @@ function Get-AbrADDHCPv6ScopeServerSetting {
                     $inObj = [ordered] @{
                         'Name' = $Option.Name
                         'Option Id' = $Option.OptionId
+                        'Type' = ConvertTo-EmptyToFiller $Option.Type
                         'Value' = $Option.Value
-                        'Policy Name' = ConvertTo-EmptyToFiller $Option.PolicyName
                     }
                     $OutObj += [pscustomobject]$inobj
                 }

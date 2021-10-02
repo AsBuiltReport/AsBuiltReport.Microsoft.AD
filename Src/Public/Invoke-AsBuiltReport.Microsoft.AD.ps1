@@ -240,7 +240,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Section -Style Heading6 "IPv6 Scope Server Options Summary on $($DHCPServer.ToUpper().split(".", 2)[0])" {
                                                 Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
                                                 BlankLine
-                                                Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                                Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
                                                 $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv4Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty ScopeId}
                                                 foreach ($Scope in $DHCPScopes) {
                                                     try {
