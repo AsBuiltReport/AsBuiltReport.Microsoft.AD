@@ -70,52 +70,72 @@ function Get-AbrADDomainController {
             }
             $OutObj | Table @TableParams
         }
-        Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
-        Section -Style Heading6 'Domain Controller Hardware Summary' {
-            Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
-            BlankLine
-            $OutObj = @()
-            if ($Domain) {
-                foreach ($Item in $Domain) {
-                    Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
-                    $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                    Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
-                    foreach ($DC in $DCs) {
-                        try {
-                            Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                            $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
-                            Remove-PSSession -Session $DCPssSession
-                            if ($HW) {
-                                $inObj = [ordered] @{
-                                    'Name' = $HW.CsDNSHostName
-                                    'WindowsProductName' = $HW.WindowsProductName
-                                    'Manufacturer' = $HW.CsManufacturer
-                                    'CsModel' = $HW.CsModel
-                                    'Bios Type' = $HW.BiosFirmwareType
-                                    'CPU Socket' = $HW.CsNumberOfProcessors
-                                    'CPU Cores' = $HW.CsNumberOfLogicalProcessors
-                                    'Total RAM' = ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+        if ($InfoLevel.Domain -ge 2) {
+            Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
+            Section -Style Heading6 'Domain Controller Hardware Summary' {
+                Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
+                BlankLine
+                $OutObj = @()
+                if ($Domain) {
+                    foreach ($Item in $Domain) {
+                        Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
+                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                        Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
+                        foreach ($DC in $DCs) {
+                            try {
+                                Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
+                                $CimSession = New-CimSession $DC -Credential $Cred -Authentication Default
+                                $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                                $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
+                                $License =  Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
+                                $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
+                                $HWBIOS = Get-CimInstance -Class Win32_Bios -CimSession $CimSession
+                                Remove-PSSession -Session $DCPssSession
+                                Remove-CimSession $CimSession
+                                if ($HW) {
+                                    $inObj = [ordered] @{
+                                        'Name' = $HW.CsDNSHostName
+                                        'Windows Product Name' = $HW.WindowsProductName
+                                        'Windows Current Version' = $HW.WindowsCurrentVersion
+                                        'Windows Build Number' = $HW.OsVersion
+                                        'Windows Install Type' = $HW.WindowsInstallationType
+                                        'AD Domain' = $HW.CsDomain
+                                        'Windows Installation Date' = $HW.OsInstallDate
+                                        'Time Zone' = $HW.TimeZone
+                                        'License Type' = $License.ProductKeyChannel
+                                        'Partial Product Key' = $License.PartialProductKey
+                                        'Manufacturer' = $HW.CsManufacturer
+                                        'Model' = $HW.CsModel
+                                        'Serial Number' = $HostBIOS.SerialNumber
+                                        'Bios Type' = $HW.BiosFirmwareType
+                                        'BIOS Version' = $HostBIOS.Version
+                                        'Processor Manufacturer' = $HWCPU[0].Manufacturer
+                                        'Processor Model' = $HWCPU[0].Name
+                                        'Number of Processors' = $HWCPU.Length
+                                        'Number of CPU Cores' = $HWCPU[0].NumberOfCores
+                                        'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
+                                        'Physical Memory (GB)' = ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                                Write-PscriboMessage -IsDebug $_.Exception.Message
                             }
                         }
-                        catch {
-                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                            Write-PscriboMessage -IsDebug $_.Exception.Message
-                        }
                     }
-                }
 
-                $TableParams = @{
-                    Name = "AD Domain Controller Hardware Information - $($Domain.ToString().ToUpper())"
-                    List = $true
-                    ColumnWidths = 40, 60
+                    $TableParams = @{
+                        Name = "AD Domain Controller Hardware Information - $($Domain.ToString().ToUpper())"
+                        List = $true
+                        ColumnWidths = 40, 60
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    $OutObj | Table @TableParams
                 }
-                if ($Report.ShowTableCaptions) {
-                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                }
-                $OutObj | Table @TableParams
             }
         }
         Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
