@@ -68,94 +68,98 @@ function Get-AbrADDNSInfrastructure {
                 }
                 $OutObj | Table @TableParams
             }
-            Section -Style Heading6 "Response Rate Limiting (RRL) Summary" {
-                Paragraph "The following section provides a summary of the Domain Name System Response Rate Limiting configuration."
-                BlankLine
-                $OutObj = @()
-                if ($Domain) {
-                    foreach ($Item in $Domain) {
-                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                        if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
-                        foreach ($DC in $DCs) {
-                            Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
-                            try {
-                                $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerResponseRateLimiting -ComputerName $using:DC}
-                                $inObj = [ordered] @{
-                                    'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
-                                    'Status' = $DNSSetting.Mode
-                                    'Responses Per Sec' = $DNSSetting.ResponsesPerSec
-                                    'Errors Per Sec' = $DNSSetting.ErrorsPerSec
-                                    'Window In Sec' = $DNSSetting.WindowInSec
-                                    'Leak Rate' = $DNSSetting.LeakRate
-                                    'Truncate Rate' = $DNSSetting.TruncateRate
+            if ($InfoLevel.DNS -ge 2) {
+                Section -Style Heading6 "Response Rate Limiting (RRL) Summary" {
+                    Paragraph "The following section provides a summary of the Domain Name System Response Rate Limiting configuration."
+                    BlankLine
+                    $OutObj = @()
+                    if ($Domain) {
+                        foreach ($Item in $Domain) {
+                            $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                            if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
+                            foreach ($DC in $DCs) {
+                                Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
+                                try {
+                                    $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerResponseRateLimiting -ComputerName $using:DC}
+                                    $inObj = [ordered] @{
+                                        'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
+                                        'Status' = $DNSSetting.Mode
+                                        'Responses Per Sec' = $DNSSetting.ResponsesPerSec
+                                        'Errors Per Sec' = $DNSSetting.ErrorsPerSec
+                                        'Window In Sec' = $DNSSetting.WindowInSec
+                                        'Leak Rate' = $DNSSetting.LeakRate
+                                        'Truncate Rate' = $DNSSetting.TruncateRate
 
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
                                 }
-                                $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                                Write-PscriboMessage -IsDebug $_.Exception.Message
+                                catch {
+                                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                                }
                             }
                         }
-                    }
 
-                    $TableParams = @{
-                        Name = "Domain Name System Response Rate Limiting configuration."
-                        List = $false
-                        ColumnWidths = 30, 10, 12, 12, 12, 12, 12
+                        $TableParams = @{
+                            Name = "Domain Name System Response Rate Limiting configuration."
+                            List = $false
+                            ColumnWidths = 30, 10, 12, 12, 12, 12, 12
+                        }
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Table @TableParams
                     }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading6 "Scavenging Summary" {
-                Paragraph "The following section provides a summary of the Domain Name System Scavenging configuration."
-                BlankLine
-                $OutObj = @()
-                if ($Domain) {
-                    foreach ($Item in $Domain) {
-                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                        if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
-                        foreach ($DC in $DCs) {
-                            Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
-                            try {
-                                $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerScavenging -ComputerName $using:DC}
-                                $inObj = [ordered] @{
-                                    'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
-                                    'NoRefresh Interval' = $DNSSetting.NoRefreshInterval
-                                    'Refresh Interval' = $DNSSetting.RefreshInterval
-                                    'Scavenging Interval' = $DNSSetting.ScavengingInterval
-                                    'Last Scavenge Time' = Switch ($DNSSetting.LastScavengeTime) {
-                                        "" {"-"; break}
-                                        $Null {"-"; break}
-                                        default {$DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy")}
+            if ($InfoLevel.DNS -ge 2) {
+                Section -Style Heading6 "Scavenging Summary" {
+                    Paragraph "The following section provides a summary of the Domain Name System Scavenging configuration."
+                    BlankLine
+                    $OutObj = @()
+                    if ($Domain) {
+                        foreach ($Item in $Domain) {
+                            $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                            if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
+                            foreach ($DC in $DCs) {
+                                Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
+                                try {
+                                    $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerScavenging -ComputerName $using:DC}
+                                    $inObj = [ordered] @{
+                                        'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
+                                        'NoRefresh Interval' = $DNSSetting.NoRefreshInterval
+                                        'Refresh Interval' = $DNSSetting.RefreshInterval
+                                        'Scavenging Interval' = $DNSSetting.ScavengingInterval
+                                        'Last Scavenge Time' = Switch ($DNSSetting.LastScavengeTime) {
+                                            "" {"-"; break}
+                                            $Null {"-"; break}
+                                            default {$DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy")}
+                                        }
+                                        'Scavenging State' = Switch ($DNSSetting.ScavengingState) {
+                                            "True" {"Enabled"}
+                                            "False" {"Disabled"}
+                                            default {$DNSSetting.ScavengingState}
+                                        }
                                     }
-                                    'Scavenging State' = Switch ($DNSSetting.ScavengingState) {
-                                        "True" {"Enabled"}
-                                        "False" {"Disabled"}
-                                        default {$DNSSetting.ScavengingState}
-                                    }
+                                    $OutObj += [pscustomobject]$inobj
                                 }
-                                $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                                Write-PscriboMessage -IsDebug $_.Exception.Message
+                                catch {
+                                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                                }
                             }
                         }
-                    }
 
-                    $TableParams = @{
-                        Name = "Domain Name System Scavenging configuration."
-                        List = $false
-                        ColumnWidths = 25, 15, 15, 15, 15, 15
+                        $TableParams = @{
+                            Name = "Domain Name System Scavenging configuration."
+                            List = $false
+                            ColumnWidths = 25, 15, 15, 15, 15, 15
+                        }
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Table @TableParams
                     }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    $OutObj | Table @TableParams
                 }
             }
             Section -Style Heading6 "Forwarder Summary" {
@@ -198,45 +202,47 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading6 "Zone Scope Recursion Summary" {
-                Paragraph "The following section provides a summary of the Domain Name System Zone Scope Recursion configuration."
-                BlankLine
-                $OutObj = @()
-                if ($Domain) {
-                    foreach ($Item in $Domain) {
-                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                        if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
-                        foreach ($DC in $DCs) {
-                            Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
-                            try {
-                                $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerRecursionScope -ComputerName $using:DC}
-                                $inObj = [ordered] @{
-                                    'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
-                                    'Zone Name' = Switch ($DNSSetting.Name) {
-                                        "." {"Root"}
-                                        default {$DNSSetting.Name}
+            if ($InfoLevel.DNS -ge 2) {
+                Section -Style Heading6 "Zone Scope Recursion Summary" {
+                    Paragraph "The following section provides a summary of the Domain Name System Zone Scope Recursion configuration."
+                    BlankLine
+                    $OutObj = @()
+                    if ($Domain) {
+                        foreach ($Item in $Domain) {
+                            $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                            if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
+                            foreach ($DC in $DCs) {
+                                Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
+                                try {
+                                    $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerRecursionScope -ComputerName $using:DC}
+                                    $inObj = [ordered] @{
+                                        'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
+                                        'Zone Name' = Switch ($DNSSetting.Name) {
+                                            "." {"Root"}
+                                            default {$DNSSetting.Name}
+                                        }
+                                        'Forwarder' = $DNSSetting.Forwarder
+                                        'Use Recursion' = ConvertTo-TextYN $DNSSetting.EnableRecursion
                                     }
-                                    'Forwarder' = $DNSSetting.Forwarder
-                                    'Use Recursion' = ConvertTo-TextYN $DNSSetting.EnableRecursion
+                                    $OutObj += [pscustomobject]$inobj
                                 }
-                                $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                                Write-PscriboMessage -IsDebug $_.Exception.Message
+                                catch {
+                                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                                }
                             }
                         }
-                    }
 
-                    $TableParams = @{
-                        Name = "Domain Name System Zone Scope Recursion configuration."
-                        List = $false
-                        ColumnWidths = 35, 25, 20, 20
+                        $TableParams = @{
+                            Name = "Domain Name System Zone Scope Recursion configuration."
+                            List = $false
+                            ColumnWidths = 35, 25, 20, 20
+                        }
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Table @TableParams
                     }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    $OutObj | Table @TableParams
                 }
             }
         }
