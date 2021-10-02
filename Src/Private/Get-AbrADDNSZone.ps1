@@ -71,49 +71,51 @@ function Get-AbrADDNSZone {
                 }
                 $OutObj | Table @TableParams
             }
-            try {
-                $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
-                $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ReplicationScope -eq "Domain"} | Select-Object -ExpandProperty ZoneName }
-                $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneDelegation -Name $using:DNSSetting}
-                Remove-PSSession -Session $DCPssSession
-                if ($Zones) {
-                    Section -Style Heading6 "Zone Delegation of $($DC.ToString().ToUpper().Split(".")[0])" {
-                        Paragraph "The following section provides a summary of the Domain Name System Zone Delegation information."
-                        BlankLine
-                        $OutObj = @()
-                        if ($DC -and $DNSSetting -and $Zones) {
-                            if ($Zones) {
-                                foreach ($Delegations in $Zones) {
-                                    if ($Delegations) {
-                                        Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Delegations.ZoneName)' on $DC"
-                                        $inObj = [ordered] @{
-                                            'Zone Name' = $Delegations.ZoneName
-                                            'Child Zone' = $Delegations.ChildZoneName
-                                            'Name Server' = $Delegations.NameServer.RecordData.NameServer
-                                            'IP Address' = $Delegations.IPaddress.RecordData.IPv4Address.ToString()
+            if ($InfoLevel.DNS -ge 2) {
+                try {
+                    $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                    Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
+                    $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ReplicationScope -eq "Domain"} | Select-Object -ExpandProperty ZoneName }
+                    $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneDelegation -Name $using:DNSSetting}
+                    Remove-PSSession -Session $DCPssSession
+                    if ($Zones) {
+                        Section -Style Heading6 "Zone Delegation of $($DC.ToString().ToUpper().Split(".")[0])" {
+                            Paragraph "The following section provides a summary of the Domain Name System Zone Delegation information."
+                            BlankLine
+                            $OutObj = @()
+                            if ($DC -and $DNSSetting -and $Zones) {
+                                if ($Zones) {
+                                    foreach ($Delegations in $Zones) {
+                                        if ($Delegations) {
+                                            Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Delegations.ZoneName)' on $DC"
+                                            $inObj = [ordered] @{
+                                                'Zone Name' = $Delegations.ZoneName
+                                                'Child Zone' = $Delegations.ChildZoneName
+                                                'Name Server' = $Delegations.NameServer.RecordData.NameServer
+                                                'IP Address' = $Delegations.IPaddress.RecordData.IPv4Address.ToString()
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
                                         }
-                                        $OutObj += [pscustomobject]$inobj
                                     }
                                 }
-                            }
 
-                            $TableParams = @{
-                                Name = "Domain Name System Zone Delegation Information."
-                                List = $false
-                                ColumnWidths = 25, 25, 32, 18
+                                $TableParams = @{
+                                    Name = "Domain Name System Zone Delegation Information."
+                                    List = $false
+                                    ColumnWidths = 25, 25, 32, 18
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $OutObj | Table @TableParams
                             }
-                            if ($Report.ShowTableCaptions) {
-                                $TableParams['Caption'] = "- $($TableParams.Name)"
-                            }
-                            $OutObj | Table @TableParams
                         }
                     }
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                Write-PscriboMessage -IsDebug $_.Exception.Message
+                catch {
+                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                }
             }
             Section -Style Heading6 "Reverse Lookup Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
                 Paragraph "The following section provides a summary of the Domain Name System Reverse Lookup Zone Configuration information."
@@ -155,50 +157,52 @@ function Get-AbrADDNSZone {
                     $OutObj | Table @TableParams
                 }
             }
-            Section -Style Heading6 "Zone Scope Aging properties of $($DC.ToString().ToUpper().Split(".")[0])" {
-                Paragraph "The following section provides a summary of the Domain Name System Zone Aging properties information."
-                BlankLine
-                $OutObj = @()
-                try {
-                    $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                    Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
-                    $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False"} | Select-Object -ExpandProperty ZoneName }
-                    $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneAging -Name $using:DNSSetting}
-                    foreach ($Settings in $Zones) {
-                        Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Settings.ZoneName)' on $DC"
-                        $inObj = [ordered] @{
-                            'Zone Name' = $Settings.ZoneName
-                            'Aging Enabled' = ConvertTo-TextYN $Settings.AgingEnabled
-                            'Refresh Interval' = $Settings.RefreshInterval
-                            'NoRefresh Interval' = $Settings.NoRefreshInterval
-                            'Available For Scavenge' = Switch ($Settings.AvailForScavengeTime) {
-                                "" {"-"}
-                                $Null {"-"}
-                                default {($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")}
+            if ($InfoLevel.DNS -ge 2) {
+                Section -Style Heading6 "Zone Scope Aging properties of $($DC.ToString().ToUpper().Split(".")[0])" {
+                    Paragraph "The following section provides a summary of the Domain Name System Zone Aging properties information."
+                    BlankLine
+                    $OutObj = @()
+                    try {
+                        $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                        Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
+                        $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False"} | Select-Object -ExpandProperty ZoneName }
+                        $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneAging -Name $using:DNSSetting}
+                        foreach ($Settings in $Zones) {
+                            Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Settings.ZoneName)' on $DC"
+                            $inObj = [ordered] @{
+                                'Zone Name' = $Settings.ZoneName
+                                'Aging Enabled' = ConvertTo-TextYN $Settings.AgingEnabled
+                                'Refresh Interval' = $Settings.RefreshInterval
+                                'NoRefresh Interval' = $Settings.NoRefreshInterval
+                                'Available For Scavenge' = Switch ($Settings.AvailForScavengeTime) {
+                                    "" {"-"}
+                                    $Null {"-"}
+                                    default {($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")}
+                                }
                             }
+                            $OutObj += [pscustomobject]$inobj
                         }
-                        $OutObj += [pscustomobject]$inobj
+                        Remove-PSSession -Session $DCPssSession
                     }
-                    Remove-PSSession -Session $DCPssSession
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
-                }
+                    catch {
+                        Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                    }
 
-                if ($HealthCheck.DNS.Aging) {
-                    $OutObj | Where-Object { $_.'Aging Enabled' -ne 'Yes'} | Set-Style -Style Warning -Property 'Aging Enabled'
-                }
+                    if ($HealthCheck.DNS.Aging) {
+                        $OutObj | Where-Object { $_.'Aging Enabled' -ne 'Yes'} | Set-Style -Style Warning -Property 'Aging Enabled'
+                    }
 
-                $TableParams = @{
-                    Name = "Domain Name System Zone Aging properties Information."
-                    List = $false
-                    ColumnWidths = 25, 10, 15, 15, 35
+                    $TableParams = @{
+                        Name = "Domain Name System Zone Aging properties Information."
+                        List = $false
+                        ColumnWidths = 25, 10, 15, 15, 35
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    $OutObj | Table @TableParams
                 }
-                if ($Report.ShowTableCaptions) {
-                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                }
-                $OutObj | Table @TableParams
             }
         }
     }
