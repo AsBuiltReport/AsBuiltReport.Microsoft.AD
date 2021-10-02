@@ -158,8 +158,8 @@ The table below outlines the default and maximum **InfoLevel** settings for each
 | Sub-Schema   | Default Setting | Maximum Setting |
 |--------------|:---------------:|:---------------:|
 | Forest       |        1        |        1        |
-| Domain       |        1        |        1        |
-| DNS          |        1        |        1        |
+| Domain       |        1        |        2        |
+| DNS          |        1        |        2        |
 | DHCP         |        1        |        2        |
 | CA           |        1        |        1        |
 | Security     |        1        |        1        |
