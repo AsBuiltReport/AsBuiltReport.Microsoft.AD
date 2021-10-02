@@ -46,21 +46,24 @@ function Get-AbrADDCDiag {
                     }
                     $OutObj += [pscustomobject]$inobj
                 }
-            $TableParams = @{
-                Name = "AD Domain Controller DCDiag Information - $($Domain.ToString().ToUpper())"
-                List = $false
-                ColumnWidths = 35, 35, 30
+                if ($HealthCheck.DomainController.Diagnostic) {
+                    $OutObj | Where-Object { $_.'Result' -like 'failed'} | Set-Style -Style Critical -Property 'Result'
+                }
+                $TableParams = @{
+                    Name = "AD Domain Controller DCDiag Information - $($Domain.ToString().ToUpper())"
+                    List = $false
+                    ColumnWidths = 35, 35, 30
+                }
+                if ($Report.ShowTableCaptions) {
+                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                }
+                $OutObj | Table @TableParams
             }
-            if ($Report.ShowTableCaptions) {
-                $TableParams['Caption'] = "- $($TableParams.Name)"
+            catch {
+                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                Write-PScriboMessage -IsDebug $_.Exception.Message
             }
-            $OutObj | Table @TableParams
         }
-        catch {
-            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-            Write-PScriboMessage -IsDebug $_.Exception.Message
-        }
-    }
     }
 
     end {}
