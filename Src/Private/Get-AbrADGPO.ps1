@@ -60,6 +60,40 @@ function Get-AbrADGPO {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Table @TableParams
+                if ($HealthCheck.Domain.GPO) {
+                    try {
+                        Section -Style Heading5 "HealthCheck - Group Policy Objects Owner for domain $($Domain.ToString().ToUpper().Split(".")[0])" {
+                            Paragraph "The following section provides a summary of the Group Policy Objects Owners."
+                            BlankLine
+                            $OutObj = @()
+                            if ($Domain) {
+                                $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
+                                Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                                foreach ($GPO in $GPOs) {
+                                    Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
+                                    $inObj = [ordered] @{
+                                        'Display Name' = $GPO.DisplayName
+                                        'GPO Status' = $GPO.Owner
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
+                                $TableParams = @{
+                                    Name = "HealthCheck: Group Policy Objects Owner Information."
+                                    List = $false
+                                    ColumnWidths = 50, 50
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $OutObj | Table @TableParams
+                            }
+                        }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "Error: Connecting to remote server failed: WinRM cannot complete the operation. (Group Policy Objects)"
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                    }
+                }
             }
         }
     }
