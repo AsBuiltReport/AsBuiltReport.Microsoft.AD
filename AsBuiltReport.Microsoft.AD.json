@@ -38,7 +38,8 @@
         "DHCP": {
             "Summary": true,
             "Credential": true,
-            "Statistics": true
+            "Statistics": true,
+            "BP": true
         }
     }
 }
