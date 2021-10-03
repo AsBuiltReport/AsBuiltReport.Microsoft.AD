@@ -138,6 +138,10 @@ function Get-AbrADDHCPv4Scope {
                         }
                     }
 
+                    if ($HealthCheck.DHCP.BP) {
+                        $OutObj | Where-Object { $_.'Authetication Enable' -eq 'No'} | Set-Style -Style Warning -Property 'Authetication Enable'
+                    }
+
                     $TableParams = @{
                         Name = "IPv4 Scope Failover Cofiguration Information - $($Server.split(".", 2).ToUpper()[0])"
                         List = $true
