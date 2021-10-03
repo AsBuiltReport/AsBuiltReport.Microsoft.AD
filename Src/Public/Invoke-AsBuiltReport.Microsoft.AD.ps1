@@ -83,7 +83,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Get-AbrADDomain -Domain $Domain -Session $TempPssSession
                                     Get-AbrADFSMO -Domain $Domain -Session $TempPssSession
                                     Get-AbrADTrust -Domain $Domain -Session $TempPssSession -Cred $Credential
-                                    Get-AbrADDomainObject -Domain $Domain -Session $TempPssSession
+                                    Get-AbrADDomainObject -Domain $Domain -Session $TempPssSession -Cred $Credential
                                     Section -Style Heading5 'Domain Controller Information' {
                                         Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
                                         BlankLine
