@@ -83,7 +83,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Get-AbrADDomain -Domain $Domain -Session $TempPssSession
                                     Get-AbrADFSMO -Domain $Domain -Session $TempPssSession
                                     Get-AbrADTrust -Domain $Domain -Session $TempPssSession -Cred $Credential
+                                    Get-AbrADDomainObject -Domain $Domain -Session $TempPssSession
                                     Section -Style Heading5 'Domain Controller Information' {
+                                        Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
+                                        BlankLine
                                         Paragraph "The following section provides a summary of the Active Directory Domain Controller."
                                         BlankLine
                                         Get-AbrADDomainController -Domain $Domain -Session $TempPssSession -Cred $Credential
@@ -241,10 +244,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                 Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
                                                 BlankLine
                                                 Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
-                                                $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv4Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty ScopeId}
+                                                $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv6Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty Prefix}
                                                 foreach ($Scope in $DHCPScopes) {
                                                     try {
-                                                        #Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
+                                                        Get-AbrADDHCPv6PerScopeSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
                                                     }
                                                     catch {
                                                         Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
