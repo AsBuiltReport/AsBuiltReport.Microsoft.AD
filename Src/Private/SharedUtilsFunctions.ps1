@@ -182,3 +182,31 @@ function Convert-IpAddressToMaskLength {
     }
     return $result;
 }
+
+function ConvertTo-ADObjectName {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to translate Active Directory DN to Name.
+    .DESCRIPTION
+
+    .NOTES
+        Version:        0.3.0
+        Author:         Jonathan Colon
+
+    .EXAMPLE
+
+    .LINK
+
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        $DN,
+        $Session
+    )
+    $ADObject = @()
+    foreach ($Object in $DN) {
+        $ADObject += Invoke-Command -Session $Session {Get-ADObject $using:Object | Select-Object -ExpandProperty Name}
+    }
+    return $ADObject;
+}# end
