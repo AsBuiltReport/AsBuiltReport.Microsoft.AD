@@ -21,7 +21,9 @@ function Get-AbrADDomainObject {
             Mandatory)]
             [string]
             $Domain,
-            $Session
+            $Session,
+            [pscredential]
+            $Cred
     )
 
     begin {
@@ -120,12 +122,18 @@ function Get-AbrADDomainObject {
                     if ($Domain) {
                         foreach ($Item in $Domain) {
                             Write-PscriboMessage "Collecting the Active Directory Fined Grained Password Policies of domain $Item."
-                            $PasswordPolicy =  Invoke-Command -Session $Session {Get-ADFineGrainedPasswordPolicy -Filter * -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
+                            $DC =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator}
+                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                            $PasswordPolicy =  Invoke-Command -Session $DCPssSession {Get-ADFineGrainedPasswordPolicy -Filter * -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
                             foreach ($FGPP in $PasswordPolicy) {
+                                $Accounts = @()
+                                foreach ($ADObject in $FGPP.AppliesTo) {
+                                    $Accounts += Invoke-Command -Session $DCPssSession {Get-ADObject $using:ADObject -Properties * | Select-Object -ExpandProperty sAMAccountName }
+                                }
                                 $inObj = [ordered] @{
                                     'Password Setting Name' = $FGPP.Name
                                     'Domain Name' = $Item
-                                    'Complexity Enabled' = ConvertTo-TextYN $FGPP.ComplexityEnabled
+                                    'Complexity Enabled' = $FGPP.ComplexityEnabled
                                     'Distinguished Name' = $FGPP.DistinguishedName
                                     'Lockout Duration' = $FGPP.LockoutDuration.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
                                     'Lockout Threshold' = $FGPP.LockoutThreshold
@@ -134,9 +142,9 @@ function Get-AbrADDomainObject {
                                     'Min Password Age' = $FGPP.MinPasswordAge.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
                                     'Min Password Length' = $FGPP.MinPasswordLength
                                     'Password History Count' = $FGPP.PasswordHistoryCount
-                                    'Reversible Encryption Enabled' = ConvertTo-TextYN $FGPP.ReversibleEncryptionEnabled
+                                    'Reversible Encryption Enabled' = $FGPP.ReversibleEncryptionEnabled
                                     'Precedence' = $FGPP.Precedence
-                                    'AppliesTo' = $FGPP.AppliesTo
+                                    'Applies To' = $Accounts -join ", "
                                 }
                                 $OutObj += [pscustomobject]$inobj
                             }
@@ -163,15 +171,15 @@ function Get-AbrADDomainObject {
             Section -Style Heading5 'Group Managed Service Accounts (GMSA) Summary' {
                 Paragraph "The following section provides a summary of the Group Managed Service Accounts on $($Domain.ToString().ToUpper())."
                 BlankLine
-                $Domain = "pharmax.local"
                 $OutObj = @()
                 if ($Domain) {
                     foreach ($Item in $Domain) {
                         Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts for $Item."
                         try {
-                            $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                            $DC = Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                             Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts from DC $DC."
-                            $GMSA = Invoke-Command -Session $TempPssSession {Get-ADServiceAccount -Filter * -Server $using:DC -Properties *}
+                            $GMSA = Invoke-Command -Session $DCPssSession {Get-ADServiceAccount -Filter * -Properties *}
                             foreach ($Account in $GMSA) {
                                 $inObj = [ordered] @{
                                     'Name' = $Account.Name
@@ -179,9 +187,9 @@ function Get-AbrADDomainObject {
                                     'Created' = $Account.Created
                                     'Enabled' = ConvertTo-TextYN $Account.Enabled
                                     'DNS Host Name' = $Account.DNSHostName
-                                    'Host Computers' = ConvertTo-EmptyToFiller $Account.HostComputers
-                                    'Retrieve Managed Password' = $Account.PrincipalsAllowedToRetrieveManagedPassword
-                                    'Primary Group' = $Account.PrimaryGroup
+                                    'Host Computers' = ConvertTo-ADObjectName -DN $Account.HostComputers -Session $DCPssSession
+                                    'Retrieve Managed Password' = ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $DCPssSession
+                                    'Primary Group' = ConvertTo-ADObjectName $Account.PrimaryGroup -Session $DCPssSession
                                     'Last Logon Date' = $Account.LastLogonDate
                                     'Locked Out' = ConvertTo-TextYN $Account.LockedOut
                                     'Logon Count' = $Account.logonCount
