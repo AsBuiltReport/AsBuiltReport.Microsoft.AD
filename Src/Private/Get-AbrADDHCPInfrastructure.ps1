@@ -48,7 +48,7 @@ function Get-AbrADDHCPInfrastructure {
                             'Domain Name' = $DHCPServers.DnsName.Split(".", 2)[1]
                             'Domain Joined' = ConvertTo-TextYN $Setting.IsDomainJoined
                             'Authorized' = ConvertTo-TextYN $Setting.IsAuthorized
-                            'Conflict Detection Attempts' = ConvertTo-TextYN $Setting.ConflictDetectionAttempts
+                            'Conflict Detection Attempts' = $Setting.ConflictDetectionAttempts
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
@@ -58,6 +58,11 @@ function Get-AbrADDHCPInfrastructure {
                     Write-PScriboMessage -IsDebug $_.Exception.Message
                     }
                 }
+
+            if ($HealthCheck.DHCP.BP) {
+                $OutObj | Where-Object { $_.'Conflict Detection Attempts' -eq 0} | Set-Style -Style Warning -Property 'Conflict Detection Attempts'
+                $OutObj | Where-Object { $_.'Authorized' -eq 'No'} | Set-Style -Style Warning -Property 'Authorized'
+            }
 
             $TableParams = @{
                 Name = "DHCP Servers In Active Directory Information - $($Domain.ToString().ToUpper())"
