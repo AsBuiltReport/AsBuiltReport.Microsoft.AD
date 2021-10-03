@@ -40,7 +40,7 @@ function Get-AbrADDNSZone {
                 try {
                     Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                     $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                    $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False"}}
+                    $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder"}}
                     foreach ($Zones in $DNSSetting) {
                         Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
                         $inObj = [ordered] @{
@@ -157,6 +157,44 @@ function Get-AbrADDNSZone {
                     $OutObj | Table @TableParams
                 }
             }
+            Section -Style Heading5 "Conditional Forwarder information on $($DC.ToString().ToUpper().Split(".")[0])" {
+                Paragraph "The following section provides a summary of the Domain Name System Conditional Forwarder information."
+                BlankLine
+                $OutObj = @()
+                if ($DC) {
+                    try {
+                        Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Conditional Forwarder )"
+                        $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                        $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -like "Forwarder"}}
+                        foreach ($Zones in $DNSSetting) {
+                            Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
+                            $inObj = [ordered] @{
+                                'Zone Name' = $Zones.ZoneName
+                                'Zone Type' = $Zones.ZoneType
+                                'Replication Scope' = $Zones.ReplicationScope
+                                'Master Servers' = $Zones.MasterServers
+                                'DS Integrated' = ConvertTo-TextYN $Zones.IsDsIntegrated
+                            }
+                            $OutObj += [pscustomobject]$inobj
+                        }
+                        Remove-PSSession -Session $DCPssSession
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                    }
+
+                    $TableParams = @{
+                        Name = "Domain Name System Conditional Forwarder Information."
+                        List = $false
+                        ColumnWidths = 25, 20, 20, 20, 15
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    $OutObj | Table @TableParams
+                }
+            }
             if ($InfoLevel.DNS -ge 2) {
                 Section -Style Heading6 "Zone Scope Aging properties of $($DC.ToString().ToUpper().Split(".")[0])" {
                     Paragraph "The following section provides a summary of the Domain Name System Zone Aging properties information."
@@ -165,7 +203,7 @@ function Get-AbrADDNSZone {
                     try {
                         $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                         Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
-                        $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False"} | Select-Object -ExpandProperty ZoneName }
+                        $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder"} | Select-Object -ExpandProperty ZoneName }
                         $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneAging -Name $using:DNSSetting}
                         foreach ($Settings in $Zones) {
                             Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Settings.ZoneName)' on $DC"
