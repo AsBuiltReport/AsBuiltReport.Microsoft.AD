@@ -130,6 +130,7 @@ function Get-AbrADDomainObject {
                                 foreach ($ADObject in $FGPP.AppliesTo) {
                                     $Accounts += Invoke-Command -Session $DCPssSession {Get-ADObject $using:ADObject -Properties * | Select-Object -ExpandProperty sAMAccountName }
                                 }
+                                Remove-PSSession -Session $DCPssSession
                                 $inObj = [ordered] @{
                                     'Password Setting Name' = $FGPP.Name
                                     'Domain Name' = $Item
@@ -198,6 +199,7 @@ function Get-AbrADDomainObject {
                                 }
                                 $OutObj += [pscustomobject]$inobj
                             }
+                            Remove-PSSession -Session $DCPssSession
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "WARNING: Could not retrieve Group Managed Service Accounts from domain $Item"
