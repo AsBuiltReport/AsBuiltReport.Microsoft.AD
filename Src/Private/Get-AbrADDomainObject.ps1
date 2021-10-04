@@ -188,9 +188,9 @@ function Get-AbrADDomainObject {
                                     'Created' = $Account.Created
                                     'Enabled' = ConvertTo-TextYN $Account.Enabled
                                     'DNS Host Name' = $Account.DNSHostName
-                                    'Host Computers' = ConvertTo-ADObjectName -DN $Account.HostComputers -Session $DCPssSession
-                                    'Retrieve Managed Password' = ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $DCPssSession
-                                    'Primary Group' = ConvertTo-ADObjectName $Account.PrimaryGroup -Session $DCPssSession
+                                    'Host Computers' = (ConvertTo-ADObjectName -DN $Account.HostComputers -Session $DCPssSession) -join ", "
+                                    'Retrieve Managed Password' = (ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $DCPssSession) -join ", "
+                                    'Primary Group' = (ConvertTo-ADObjectName $Account.PrimaryGroup -Session $DCPssSession) -join ", "
                                     'Last Logon Date' = $Account.LastLogonDate
                                     'Locked Out' = ConvertTo-TextYN $Account.LockedOut
                                     'Logon Count' = $Account.logonCount

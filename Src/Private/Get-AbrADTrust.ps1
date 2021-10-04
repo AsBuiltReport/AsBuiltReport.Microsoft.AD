@@ -47,7 +47,7 @@ function Get-AbrADTrust {
                         $inObj = [ordered] @{
                             'Name' = $Trust.Name
                             'Distinguished Name' =  $Trust.DistinguishedName
-                            'Source' = $Trust.Source
+                            'Source' = ConvertTo-ADObjectName $Trust.Source -Session $DCPssSession
                             'Target' = $Trust.Target
                             'Direction' = $Trust.Direction
                             'IntraForest' =  ConvertTo-TextYN $Trust.IntraForest
