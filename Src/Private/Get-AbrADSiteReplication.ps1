@@ -45,7 +45,7 @@ function Get-AbrADSiteReplication {
                             if ($Replication) {Write-PscriboMessage "Collecting Active Directory Sites Replication information on $DC. (Sites Replication)"}
                             foreach ($Repl in $Replication) {
                                 $inObj = [ordered] @{
-                                    'DC Name' = $DC
+                                    'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
                                     'GUID' = $Repl.ObjectGUID
                                     'Description' = ConvertTo-EmptyToFiller $Repl.Description
                                     'Replicate From Directory Server' = ConvertTo-ADObjectName $Repl.ReplicateFromDirectoryServer.Split(",", 2)[1] -Session $Session
