@@ -154,12 +154,16 @@ function Get-AbrADDomainController {
                             $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                             $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
                             $size = Invoke-Command -Session $DCPssSession -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
+                            $LogFiles = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'Database log files path'}
+                            $SYSVOL = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters | Select-Object -ExpandProperty 'SysVol'}
                             Remove-PSSession -Session $DCPssSession
                             if ( $NTDS -and $size ) {
                                 $inObj = [ordered] @{
-                                    'Name' = $DC
-                                    'DSA Database File' = $NTDS
-                                    'Size' = ConvertTo-FileSizeString $size
+                                    'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                    'Database File' = $NTDS
+                                    'Database Size' = ConvertTo-FileSizeString $size
+                                    'Log Path' = $LogFiles
+                                    'SysVol Path' = $SYSVOL
                                 }
                                 $OutObj += [pscustomobject]$inobj
                             }
@@ -174,7 +178,7 @@ function Get-AbrADDomainController {
                 $TableParams = @{
                     Name = "Domain Controller NTDS Database File Usage Information - $($Domain.ToString().ToUpper())"
                     List = $false
-                    ColumnWidths = 40, 40, 20
+                    ColumnWidths = 20, 22, 14, 22, 22
                 }
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -200,7 +204,7 @@ function Get-AbrADDomainController {
                                 Remove-PSSession -Session $DCPssSession
                                 if ( $NtpServer -and $SourceType ) {
                                     $inObj = [ordered] @{
-                                        'Name' = $DC
+                                        'Name' = $DC.ToString().ToUpper().Split(".")[0]
                                         'Time Server' = Switch ($NtpServer) {
                                             'time.windows.com,0x8' {"Domain Hierarchy"}
                                             'time.windows.com' {"Domain Hierarchy"}
@@ -226,7 +230,7 @@ function Get-AbrADDomainController {
                     $TableParams = @{
                         Name = "Domain Controller Time Source Configuration - $($Domain.ToString().ToUpper())"
                         List = $false
-                        ColumnWidths = 40, 40, 20
+                        ColumnWidths = 30, 50, 20
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
