@@ -21,7 +21,9 @@ function Get-AbrADGPO {
             Mandatory)]
             [string]
             $Domain,
-            $Session
+            $Session,
+            [pscredential]
+            $Cred
             )
 
     begin {
@@ -142,61 +144,120 @@ function Get-AbrADGPO {
                     Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Unlinked Group Policy Objects for domain $($Domain.ToString().ToUpper())."
                     Write-PscriboMessage -IsDebug $_.Exception.Message
                 }
-            }
-            try {
-                Section -Style Heading5 "Health Check - All Empty Group Policy Objects Summary" {
-                    Paragraph "The following section provides a summary of the Empty Group Policy Objects. Corrective Action: No User and Computer parameters are set : Remove Unused GPO."
-                    BlankLine
-                    $OutObj = @()
-                    if ($Domain) {
-                        $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
-                        Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
-                        foreach ($GPO in $GPOs) {
-                            [xml]$Gpoxml =  Invoke-Command -Session $Session -ScriptBlock {Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id}
-                            if (($Null -eq ($Gpoxml.GPO.Computer.ExtensionData)) -and ($Null -eq ($Gpoxml.GPO.User.extensionData))) {
-                                Write-PscriboMessage "Collecting Active Directory Empty Group Policy Objects '$($Gpoxml.GPO.Name)'."
-                                $inObj = [ordered] @{
-                                    'GPO Name' = $Gpoxml.GPO.Name
-                                    'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split("T")[0]
-                                    'Modified' = ($Gpoxml.GPO.ModifiedTime).ToString().split("T")[0]
-                                    'Description' = ConvertTo-EmptyToFiller $Gpoxml.GPO.Description
+                try {
+                    Section -Style Heading5 "Health Check - All Empty Group Policy Objects Summary" {
+                        Paragraph "The following section provides a summary of the Empty Group Policy Objects. Corrective Action: No User and Computer parameters are set : Remove Unused GPO."
+                        BlankLine
+                        $OutObj = @()
+                        if ($Domain) {
+                            $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
+                            Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                            foreach ($GPO in $GPOs) {
+                                [xml]$Gpoxml =  Invoke-Command -Session $Session -ScriptBlock {Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id}
+                                if (($Null -eq ($Gpoxml.GPO.Computer.ExtensionData)) -and ($Null -eq ($Gpoxml.GPO.User.extensionData))) {
+                                    Write-PscriboMessage "Collecting Active Directory Empty Group Policy Objects '$($Gpoxml.GPO.Name)'."
+                                    $inObj = [ordered] @{
+                                        'GPO Name' = $Gpoxml.GPO.Name
+                                        'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split("T")[0]
+                                        'Modified' = ($Gpoxml.GPO.ModifiedTime).ToString().split("T")[0]
+                                        'Description' = ConvertTo-EmptyToFiller $Gpoxml.GPO.Description
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
                                 }
-                                $OutObj += [pscustomobject]$inobj
                             }
-                        }
 
-                        if ($HealthCheck.Domain.GPO) {
-                            $OutObj | Set-Style -Style Warning
-                        }
-
-                        if ($InfoLevel.Domain -le 2) {
-                            $TableParams = @{
-                                Name = "Empty Group Policy Objects Information - $($Domain.ToString().ToUpper())"
-                                List = $false
-                                ColumnWidths = 35, 15, 15, 35
+                            if ($HealthCheck.Domain.GPO) {
+                                $OutObj | Set-Style -Style Warning
                             }
-                        }
-                        else {
-                            $TableParams = @{
-                                Name = "Empty Group Policy Objects Information - $($Domain.ToString().ToUpper())"
-                                List = $true
-                                ColumnWidths = 40, 60
-                            }
-                        }
 
-                        if ($Report.ShowTableCaptions) {
-                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                            if ($InfoLevel.Domain -le 2) {
+                                $TableParams = @{
+                                    Name = "Empty Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    List = $false
+                                    ColumnWidths = 35, 15, 15, 35
+                                }
+                            }
+                            else {
+                                $TableParams = @{
+                                    Name = "Empty Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    List = $true
+                                    ColumnWidths = 40, 60
+                                }
+                            }
+
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
                         }
-                        $OutObj | Table @TableParams
                     }
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Empty Group Policy Objects for domain $($Domain.ToString().ToUpper())."
-                Write-PscriboMessage -IsDebug $_.Exception.Message
+                catch {
+                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Empty Group Policy Objects for domain $($Domain.ToString().ToUpper())."
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                }
+                try {
+                    Section -Style Heading5 "Health Check - Enforced Group Policy Objects Summary" {
+                        Paragraph "The following section provides a summary of the Enforced Group Policy Objects."
+                        BlankLine
+                        $OutObj = @()
+                        if ($Domain) {
+                            $DC = Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                            Write-PscriboMessage "Discovered Active Directory Domain Controller $DC in $Domain. (Group Policy Objects)"
+                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                            $OUs = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ADOrganizationalUnit -Filter * | Select-Object -Property DistinguishedName}
+                            Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                            foreach ($OU in $OUs) {
+                                $GpoEnforced =  Invoke-Command -Session $DCPssSession -ScriptBlock { Get-GPInheritance -Target ($using:OU).DistinguishedName | Select-Object -ExpandProperty GpoLinks }
+                                if ($GpoEnforced.Enforced -eq "True") {
+                                    Write-PscriboMessage "Collecting Active Directory Enforced owned Group Policy Objects'$($GpoEnforced.DisplayName)'."
+                                    $TargetCanonical = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ADObject -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
+                                    $inObj = [ordered] @{
+                                        'GPO Name' = $GpoEnforced.DisplayName
+                                        'Enforced' = ConvertTo-TextYN $GpoEnforced.Enforced
+                                        'Order' = $GpoEnforced.Order
+                                        'Target' = $TargetCanonical
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
+                            }
+                            Remove-PSSession -Session $DCPssSession
+
+                            if ($HealthCheck.Domain.GPO) {
+                                $OutObj | Set-Style -Style Warning
+                            }
+
+                            if ($InfoLevel.Domain -le 2) {
+                                $TableParams = @{
+                                    Name = "Enforced Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    List = $false
+                                    ColumnWidths = 35, 15, 15, 35
+                                }
+                            }
+                            else {
+                                $TableParams = @{
+                                    Name = "Enforced Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    List = $true
+                                    ColumnWidths = 40, 60
+                                }
+                            }
+
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                        }
+                    }
+
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Enforced Group Policy Objects for domain $($Domain.ToString().ToUpper())."
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                }
             }
         }
     }
+
 
     end {}
 
