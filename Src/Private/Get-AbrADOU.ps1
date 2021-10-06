@@ -29,7 +29,7 @@ function Get-AbrADOU {
     }
 
     process {
-        Section -Style Heading5 "Organizational Unit summary for domain $($Domain.ToString().ToUpper().Split(".")[0])" {
+        Section -Style Heading5 "Organizational Unit Summary" {
             Paragraph "The following section provides a summary of Active Directory OU information on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
