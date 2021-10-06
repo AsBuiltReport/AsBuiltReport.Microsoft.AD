@@ -17,8 +17,8 @@
         "Domain": 1,
         "DHCP": 1,
         "DNS": 1,
-        "CA": 1,
-        "Security": 1
+        "CA": 0,
+        "Security": 0
     },
     "HealthCheck": {
         "Domain": {

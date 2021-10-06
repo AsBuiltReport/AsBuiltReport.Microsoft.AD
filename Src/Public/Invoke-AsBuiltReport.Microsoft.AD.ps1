@@ -266,6 +266,34 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     }
                 }
             }
+            #---------------------------------------------------------------------------------------------#
+            #                                 Certificate Authority Section                                                 #
+            #---------------------------------------------------------------------------------------------#
+            if ($InfoLevel.CA -ge 1) {
+                Section -Style Heading3 "Certificate Authority Summary for forest $($ForestInfo.toUpper())" {
+                    Paragraph "In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party—trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard."
+                    BlankLine
+                    foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
+                        try {
+                            if (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}) {
+                                Section -Style Heading4 "Domain Name System Information for domain $($Domain.ToString().ToUpper())" {
+                                    Paragraph "The following section provides a configuration summary of the Domain Name System."
+                                    BlankLine
+                                    #Get-AbrADDNSInfrastructure -Domain $Domain -Session $TempPssSession
+                                    $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                    foreach ($DC in $DCs){
+                                        #Get-AbrADDNSZone -Domain $Domain -DC $DC -Cred $Credential
+                                    }
+                                }
+                            }
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                            continue
+                        }
+                    }
+                }
+            }
         }#endregion AD Section
         Write-PscriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
         Remove-PSSession -Session $TempPssSession
