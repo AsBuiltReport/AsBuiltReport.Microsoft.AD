@@ -185,58 +185,58 @@ function Get-AbrADDomainController {
                 }
                 $OutObj | Table @TableParams
             }
-            Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
-            Section -Style Heading6 'Domain Controller Time Source Summary' {
-                Paragraph "The following section provides a summary of the Domain Controller Time Source configuration on $($Domain.ToString().ToUpper())."
-                BlankLine
-                $OutObj = @()
-                if ($Domain) {
-                    foreach ($Item in $Domain) {
-                        Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
-                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                        Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
-                        foreach ($DC in $DCs) {
-                            try {
-                                Write-PscriboMessage "Collecting AD Domain Controller Time Source information for $DC."
-                                $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                                $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
-                                $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
-                                Remove-PSSession -Session $DCPssSession
-                                if ( $NtpServer -and $SourceType ) {
-                                    $inObj = [ordered] @{
-                                        'Name' = $DC.ToString().ToUpper().Split(".")[0]
-                                        'Time Server' = Switch ($NtpServer) {
-                                            'time.windows.com,0x8' {"Domain Hierarchy"}
-                                            'time.windows.com' {"Domain Hierarchy"}
-                                            '0x8' {"Domain Hierarchy"}
-                                            default {$NtpServer}
-                                        }
-                                        'Type' = Switch ($SourceType) {
-                                            'NTP' {"MANUAL (NTP)"}
-                                            'NT5DS' {"DOMHIER"}
-                                            default {$SourceType}
-                                        }
+        }
+        Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
+        Section -Style Heading6 'Domain Controller Time Source Summary' {
+            Paragraph "The following section provides a summary of the Domain Controller Time Source configuration on $($Domain.ToString().ToUpper())."
+            BlankLine
+            $OutObj = @()
+            if ($Domain) {
+                foreach ($Item in $Domain) {
+                    Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
+                    $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                    Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
+                    foreach ($DC in $DCs) {
+                        try {
+                            Write-PscriboMessage "Collecting AD Domain Controller Time Source information for $DC."
+                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                            $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
+                            $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
+                            Remove-PSSession -Session $DCPssSession
+                            if ( $NtpServer -and $SourceType ) {
+                                $inObj = [ordered] @{
+                                    'Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                    'Time Server' = Switch ($NtpServer) {
+                                        'time.windows.com,0x8' {"Domain Hierarchy"}
+                                        'time.windows.com' {"Domain Hierarchy"}
+                                        '0x8' {"Domain Hierarchy"}
+                                        default {$NtpServer}
                                     }
-                                    $OutObj += [pscustomobject]$inobj
+                                    'Type' = Switch ($SourceType) {
+                                        'NTP' {"MANUAL (NTP)"}
+                                        'NT5DS' {"DOMHIER"}
+                                        default {$SourceType}
+                                    }
                                 }
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                                Write-PscriboMessage -IsDebug $_.Exception.Message
+                                $OutObj += [pscustomobject]$inobj
                             }
                         }
+                        catch {
+                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
+                            Write-PscriboMessage -IsDebug $_.Exception.Message
+                        }
                     }
-
-                    $TableParams = @{
-                        Name = "Domain Controller Time Source Configuration - $($Domain.ToString().ToUpper())"
-                        List = $false
-                        ColumnWidths = 30, 50, 20
-                    }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    $OutObj | Table @TableParams
                 }
+
+                $TableParams = @{
+                    Name = "Domain Controller Time Source Configuration - $($Domain.ToString().ToUpper())"
+                    List = $false
+                    ColumnWidths = 30, 50, 20
+                }
+                if ($Report.ShowTableCaptions) {
+                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                }
+                $OutObj | Table @TableParams
             }
         }
     }
