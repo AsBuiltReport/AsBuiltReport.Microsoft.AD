@@ -36,7 +36,7 @@ function Get-AbrADInfrastructureService {
             $Available = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service "W32Time" | Select-Object DisplayName, Name, Status}
             if ($Available) {
                 Write-PscriboMessage "Discovered Active Directory DC Infrastructure Services information of $DC."
-                Section -Style Heading6 "Domain Controller Infrastructure Services Status of $($DC.ToString().ToUpper().Split(".")[0])" {
+                Section -Style Heading6 "Infrastructure Services Status of $($DC.ToString().ToUpper().Split(".")[0])" {
                     Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                     BlankLine
                     $OutObj = @()
