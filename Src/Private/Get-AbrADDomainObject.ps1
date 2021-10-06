@@ -40,17 +40,23 @@ function Get-AbrADDomainObject {
                     foreach ($Item in $Domain) {
                         Write-PscriboMessage "Collecting the Active Directory Object Count of domain $Item."
                         try {
-                            $GlobalCatalog =  "$(Invoke-Command -Session $Session {Get-ADDomainController -Discover -Service GlobalCatalog | Select-Object -ExpandProperty HostName}):3268"
-                            $Computers =  Invoke-Command -Session $Session {(Get-ADComputer -Filter * -Server $using:GlobalCatalog -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
-                            #$Servers = (Get-ADComputer -LDAPFilter "(&(objectClass=Computer)(operatingSystem=*Windows server*))" -Server "$($GlobalCatalog.name):3268" -Searchbase (Get-ADDomain -Identity $Item).distinguishedName) | Measure-Object
-                            $Users =  Invoke-Command -Session $Session {(Get-ADUser -filter * -Server $using:GlobalCatalog -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
-                            $Group =  Invoke-Command -Session $Session {(Get-ADGroup -filter * -Server $using:GlobalCatalog -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
+                            $DC = Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                            $Computers =  Invoke-Command -Session $DCPssSession {(Get-ADComputer -Filter * -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
+                            $Servers = Invoke-Command -Session $DCPssSession {(Get-ADComputer -Filter { OperatingSystem -like "Windows Ser*"} -Property OperatingSystem -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
+                            $Users =  Invoke-Command -Session $DCPssSession {(Get-ADUser -filter * -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
+                            $PrivilegedUsers =  Invoke-Command -Session $DCPssSession {(Get-ADUser -filter {AdminCount -eq "1"} -Properties AdminCount -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
+                            $Group =  Invoke-Command -Session $DCPssSession {(Get-ADGroup -filter * -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
+                            $DomainController = Invoke-Command -Session $DCPssSession {(Get-ADDomainController -filter *) | Select-Object name | Measure-Object}
+                            $GC = Invoke-Command -Session $DCPssSession {(Get-ADDomainController -filter {IsGlobalCatalog -eq "True"}) | Select-Object name | Measure-Object}
                             $inObj = [ordered] @{
-                                'Domain Name' = $Item
-                                'Computer Count' = $Computers.Count
-                                #'Servers Count' = $Servers.Count
-                                'Users Count' = $Users.Count
-                                'Group Count' = $Group.Count
+                                'Computers' = $Computers.Count
+                                'Servers' = $Servers.Count
+                                'Domain Controller' = $DomainController.Count
+                                'Global Catalog' = $GC.Count
+                                'Users' = $Users.Count
+                                'Privileged Users' = $PrivilegedUsers.Count
+                                'Groups' = $Group.Count
                             }
                             $OutObj += [pscustomobject]$inobj
                         }
@@ -62,8 +68,8 @@ function Get-AbrADDomainObject {
 
                     $TableParams = @{
                         Name = "Active Directory Object Count Information - $($Domain.ToString().ToUpper())"
-                        List = $false
-                        ColumnWidths = 40, 20, 20, 20
+                        List = $true
+                        ColumnWidths = 40, 60
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -124,7 +130,7 @@ function Get-AbrADDomainObject {
                             Write-PscriboMessage "Collecting the Active Directory Fined Grained Password Policies of domain $Item."
                             $DC =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator}
                             $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                            $PasswordPolicy =  Invoke-Command -Session $DCPssSession {Get-ADFineGrainedPasswordPolicy -Filter * -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
+                            $PasswordPolicy =  Invoke-Command -Session $DCPssSession {Get-ADFineGrainedPasswordPolicy -Filter {Name -like "*"} -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
                             foreach ($FGPP in $PasswordPolicy) {
                                 $Accounts = @()
                                 foreach ($ADObject in $FGPP.AppliesTo) {
