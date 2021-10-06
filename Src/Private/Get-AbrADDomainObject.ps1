@@ -140,7 +140,7 @@ function Get-AbrADDomainObject {
                                 $inObj = [ordered] @{
                                     'Password Setting Name' = $FGPP.Name
                                     'Domain Name' = $Item
-                                    'Complexity Enabled' = $FGPP.ComplexityEnabled
+                                    'Complexity Enabled' = ConvertTo-TextYN $FGPP.ComplexityEnabled
                                     'Distinguished Name' = $FGPP.DistinguishedName
                                     'Lockout Duration' = $FGPP.LockoutDuration.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
                                     'Lockout Threshold' = $FGPP.LockoutThreshold
@@ -149,7 +149,7 @@ function Get-AbrADDomainObject {
                                     'Min Password Age' = $FGPP.MinPasswordAge.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
                                     'Min Password Length' = $FGPP.MinPasswordLength
                                     'Password History Count' = $FGPP.PasswordHistoryCount
-                                    'Reversible Encryption Enabled' = $FGPP.ReversibleEncryptionEnabled
+                                    'Reversible Encryption Enabled' = ConvertTo-TextYN $FGPP.ReversibleEncryptionEnabled
                                     'Precedence' = $FGPP.Precedence
                                     'Applies To' = $Accounts -join ", "
                                 }
