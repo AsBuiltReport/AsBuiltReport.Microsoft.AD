@@ -43,7 +43,7 @@ function Get-AbrADOU {
                         $GPOArray = @()
                         [array]$GPOs = $OU.LinkedGroupPolicyObjects
                         foreach ($Object in $GPOs) {
-                            $GP = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Guid ($using:Object).Split(",")[0].Split("=")[1]}
+                            $GP = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain $using:Domain}
                             Write-PscriboMessage "Collecting linked GPO: '$($GP.DisplayName)' on Organizational Unit $OU. (Organizational Unit)"
                             $GPOArray += $GP.DisplayName
                         }
