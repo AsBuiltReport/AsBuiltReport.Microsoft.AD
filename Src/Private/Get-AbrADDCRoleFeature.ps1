@@ -39,10 +39,10 @@ function Get-AbrADDCRoleFeature {
                     Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
                     BlankLine
                     $OutObj = @()
-                    Write-PscriboMessage "Collecting Domain Controller Role & Features: '$($Features.DisplayName)' on $DC."
                     $Features = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-WindowsFeature | Where-Object {$_.installed -eq "True"}}
                     Remove-PSSession -Session $DCPssSession
                     foreach ($Feature in $Features) {
+                        Write-PscriboMessage "Collecting Domain Controller Role & Features on $DC."
                         $inObj = [ordered] @{
                             'Name' = $Feature.DisplayName
                             'Parent' = $Feature.FeatureType
