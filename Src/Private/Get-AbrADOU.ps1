@@ -21,7 +21,9 @@ function Get-AbrADOU {
             Mandatory)]
             [string]
             $Domain,
-            $Session
+            $Session,
+            [pscredential]
+            $Cred
     )
 
     begin {
@@ -37,19 +39,20 @@ function Get-AbrADOU {
                 try {
                     $DC = Invoke-Command -Session $Session -ScriptBlock {Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName}
                     Write-PscriboMessage "Discovered Active Directory Organizational Unit information on DC $DC. (Organizational Unit)"
-                    $OUs = Invoke-Command -Session $Session -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter *}
+                    $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                    $OUs = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ADOrganizationalUnit -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter *}
                     foreach ($OU in $OUs) {
-                        Write-PscriboMessage "Collecting information of Active Directory Organizational Unit $OU. (Organizational Unit)"
+                        Write-PscriboMessage "Collecting information of Active Directory Organizational Unit $OU."
                         $GPOArray = @()
                         [array]$GPOs = $OU.LinkedGroupPolicyObjects
                         foreach ($Object in $GPOs) {
-                            $GP = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain $using:Domain}
-                            Write-PscriboMessage "Collecting linked GPO: '$($GP.DisplayName)' on Organizational Unit $OU. (Organizational Unit)"
+                            $GP = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-GPO -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain $using:Domain}
+                            Write-PscriboMessage "Collecting linked GPO: '$($GP.DisplayName)' on Organizational Unit $OU."
                             $GPOArray += $GP.DisplayName
                         }
                         $inObj = [ordered] @{
                             'Name' = $OU.Name
-                            'Distinguished Name' = $OU.DistinguishedName
+                            'Path' = ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Session $DCPssSession
                             'Linked GPO' = ConvertTo-EmptyToFiller ($GPOArray -join ", ")
                         }
                         $OutObj += [pscustomobject]$inobj
@@ -68,6 +71,66 @@ function Get-AbrADOU {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Table @TableParams
+            }
+            if ($HealthCheck.Domain.GPO) {
+                try {
+                    Section -Style Heading5 "Health Check - GPO Blocked Inheritance Summary" {
+                        Paragraph "The following section provides a summary of the Blocked Inheritance Group Policy Objects."
+                        BlankLine
+                        $OutObj = @()
+                        if ($Domain) {
+                            $DC = Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                            Write-PscriboMessage "Discovered Active Directory Domain Controller $DC in $Domain. (Group Policy Objects)"
+                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                            $OUs = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ADOrganizationalUnit -Filter * | Select-Object -Property DistinguishedName}
+                            Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                            foreach ($OU in $OUs) {
+                                $GpoInheritance =  Invoke-Command -Session $DCPssSession -ScriptBlock { Get-GPInheritance -Target ($using:OU).DistinguishedName }
+                                if ( $GpoInheritance.GPOInheritanceBlocked -eq "True") {
+                                    Write-PscriboMessage "Collecting Active Directory Blocked Inheritance Group Policy Objects'$($GpoEnforced.DisplayName)'."
+                                    $PathCanonical = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ADObject -Identity ($using:GpoInheritance).Path -Properties * | Select-Object -ExpandProperty CanonicalName }
+                                    $inObj = [ordered] @{
+                                        'OU Name' = $GpoInheritance.Name
+                                        'Container Type' = $GpoInheritance.ContainerType
+                                        'Inheritance Blocked' = ConvertTo-TextYN $GpoInheritance.GpoInheritanceBlocked
+                                        'Path' = ConvertTo-ADCanonicalName -DN $GpoInheritance.Path -Session $DCPssSession
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
+                            }
+                            Remove-PSSession -Session $DCPssSession
+
+                            if ($HealthCheck.Domain.GPO) {
+                                $OutObj | Set-Style -Style Warning
+                            }
+
+                            if ($InfoLevel.Domain -le 2) {
+                                $TableParams = @{
+                                    Name = "Blocked Inheritance Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    List = $false
+                                    ColumnWidths = 35, 15, 15, 35
+                                }
+                            }
+                            else {
+                                $TableParams = @{
+                                    Name = "Blocked Inheritance Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    List = $true
+                                    ColumnWidths = 40, 60
+                                }
+                            }
+
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                        }
+                    }
+
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Blocked Inheritance Group Policy Objects for domain $($Domain.ToString().ToUpper())."
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                }
             }
         }
     }

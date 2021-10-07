@@ -126,7 +126,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         }
                                         Get-AbrADSiteReplication -Domain $Domain -Session $TempPssSession
                                         Get-AbrADGPO -Domain $Domain -Session $TempPssSession -Cred $Credential
-                                        Get-AbrADOU -Domain $Domain -Session $TempPssSession
+                                        Get-AbrADOU -Domain $Domain -Session $TempPssSession -Cred $Credential
                                     }
                                 }
                             }
