@@ -213,9 +213,9 @@ function Get-AbrADDNSZone {
                                 'Refresh Interval' = $Settings.RefreshInterval
                                 'NoRefresh Interval' = $Settings.NoRefreshInterval
                                 'Available For Scavenge' = Switch ($Settings.AvailForScavengeTime) {
-                                    "" {"-"}
-                                    $Null {"-"}
-                                    default {($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")}
+                                    "" {"-"; break}
+                                    $Null {"-"; break}
+                                    default {($Settings.AvailForScavengeTime).ToUniversalTime().toString("r"); break}
                                 }
                             }
                             $OutObj += [pscustomobject]$inobj

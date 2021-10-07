@@ -123,7 +123,7 @@ function Get-AbrADDHCPv6Scope {
                                 'IP Address' = $Scope.IPAddress
                                 'State' = Switch ($Scope.BindingState) {
                                     ""  {"-"; break}
-                                    $Null  {"-"}
+                                    $Null  {"-"; break}
                                     "True"  {"Enabled"}
                                     "False"  {"Disabled"}
                                     default {$Scope.BindingState}

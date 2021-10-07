@@ -174,7 +174,7 @@ function Get-AbrADDHCPv4Scope {
                                 'Subnet Mask' = $Scope.SubnetMask
                                 'State' = Switch ($Scope.BindingState) {
                                     ""  {"-"; break}
-                                    $Null  {"-"}
+                                    $Null  {"-"; break}
                                     "True"  {"Enabled"}
                                     "False"  {"Disabled"}
                                     default {$Scope.BindingState}
