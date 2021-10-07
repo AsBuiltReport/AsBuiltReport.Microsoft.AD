@@ -230,11 +230,16 @@ function ConvertTo-ADCanonicalName {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         $DN,
-        $Session
+        $Domain,
+        [pscredential]
+        $Credential
     )
     $ADObject = @()
+    $DC = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName}
+    $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
     foreach ($Object in $DN) {
-        $ADObject += Invoke-Command -Session $Session {Get-ADObject $using:Object -Properties * | Select-Object -ExpandProperty CanonicalName}
+        $ADObject += Invoke-Command -Session $DCPssSession {Get-ADObject $using:Object -Properties * | Select-Object -ExpandProperty CanonicalName}
     }
+    Remove-PSSession -Session $DCPssSession
     return $ADObject;
 }# end

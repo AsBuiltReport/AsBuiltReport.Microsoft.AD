@@ -80,7 +80,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                 Section -Style Heading4 "Active Directory Information for domain $($Domain.ToString().ToUpper())" {
                                     Paragraph "The following section provides a summary of the AD Domain Information."
                                     BlankLine
-                                    Get-AbrADDomain -Domain $Domain -Session $TempPssSession
+                                    Get-AbrADDomain -Domain $Domain -Session $TempPssSession -Cred $Credential
                                     Get-AbrADFSMO -Domain $Domain -Session $TempPssSession
                                     Get-AbrADTrust -Domain $Domain -Session $TempPssSession -Cred $Credential
                                     Get-AbrADDomainObject -Domain $Domain -Session $TempPssSession -Cred $Credential

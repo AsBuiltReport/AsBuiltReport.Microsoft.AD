@@ -90,7 +90,7 @@ function Get-AbrADDomainObject {
                         $inObj = [ordered] @{
                             'Domain Name' = $Item
                             'Complexity Enabled' = ConvertTo-TextYN $PasswordPolicy.ComplexityEnabled
-                            'Distinguished Name' = $PasswordPolicy.DistinguishedName
+                            'Path' = ConvertTo-ADCanonicalName -DN $PasswordPolicy.DistinguishedName -Credential $Cred -Domain $Domain
                             'Lockout Duration' = $PasswordPolicy.LockoutDuration.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
                             'Lockout Threshold' = $PasswordPolicy.LockoutThreshold
                             'Lockout Observation Window' = $PasswordPolicy.LockoutObservationWindow.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
@@ -136,12 +136,11 @@ function Get-AbrADDomainObject {
                                 foreach ($ADObject in $FGPP.AppliesTo) {
                                     $Accounts += Invoke-Command -Session $DCPssSession {Get-ADObject $using:ADObject -Properties * | Select-Object -ExpandProperty sAMAccountName }
                                 }
-                                Remove-PSSession -Session $DCPssSession
                                 $inObj = [ordered] @{
                                     'Password Setting Name' = $FGPP.Name
                                     'Domain Name' = $Item
                                     'Complexity Enabled' = ConvertTo-TextYN $FGPP.ComplexityEnabled
-                                    'Distinguished Name' = $FGPP.DistinguishedName
+                                    'Path' = ConvertTo-ADCanonicalName -DN $FGPP.DistinguishedName -Credential $Cred -Domain $Domain
                                     'Lockout Duration' = $FGPP.LockoutDuration.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
                                     'Lockout Threshold' = $FGPP.LockoutThreshold
                                     'Lockout Observation Window' = $FGPP.LockoutObservationWindow.toString("dd' days 'hh' hours 'mm' minutes 'ss' seconds'")
@@ -155,6 +154,7 @@ function Get-AbrADDomainObject {
                                 }
                                 $OutObj += [pscustomobject]$inobj
                             }
+                            Remove-PSSession -Session $DCPssSession
                         }
 
                         $TableParams = @{

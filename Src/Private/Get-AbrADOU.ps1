@@ -52,7 +52,7 @@ function Get-AbrADOU {
                         }
                         $inObj = [ordered] @{
                             'Name' = $OU.Name
-                            'Path' = ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Session $DCPssSession
+                            'Path' = ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Credential $Cred -Domain $Domain
                             'Linked GPO' = ConvertTo-EmptyToFiller ($GPOArray -join ", ")
                         }
                         $OutObj += [pscustomobject]$inobj
@@ -93,7 +93,7 @@ function Get-AbrADOU {
                                         'OU Name' = $GpoInheritance.Name
                                         'Container Type' = $GpoInheritance.ContainerType
                                         'Inheritance Blocked' = ConvertTo-TextYN $GpoInheritance.GpoInheritanceBlocked
-                                        'Path' = ConvertTo-ADCanonicalName -DN $GpoInheritance.Path -Session $DCPssSession
+                                        'Path' = ConvertTo-ADCanonicalName -DN $GpoInheritance.Path -Credential $Cred -Domain $Domain
                                     }
                                     $OutObj += [pscustomobject]$inobj
                                 }

@@ -46,7 +46,7 @@ function Get-AbrADTrust {
                         Write-PscriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
                         $inObj = [ordered] @{
                             'Name' = $Trust.Name
-                            'Distinguished Name' =  $Trust.DistinguishedName
+                            'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Credential $Cred -Domain $Domain
                             'Source' = ConvertTo-ADObjectName $Trust.Source -Session $DCPssSession
                             'Target' = $Trust.Target
                             'Direction' = $Trust.Direction

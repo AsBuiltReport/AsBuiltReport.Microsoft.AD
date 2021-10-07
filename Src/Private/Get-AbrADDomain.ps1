@@ -21,7 +21,9 @@ function Get-AbrADDomain {
             Mandatory)]
             [string]
             $Domain,
-            $Session
+            $Session,
+            [pscredential]
+            $Cred
     )
 
     begin {
@@ -47,11 +49,11 @@ function Get-AbrADDomain {
                             'Parent Domain' = ConvertTo-EmptyToFiller $DomainInfo.ParentDomain
                             'Replica Directory Servers' = $DomainInfo.ReplicaDirectoryServers
                             'Child Domains' = ConvertTo-EmptyToFiller $DomainInfo.ChildDomains
-                            'Computers Container' = $DomainInfo.ComputersContainer
-                            'Distinguished Name' = $DomainInfo.DistinguishedName
-                            'Domain Controllers Container' = $DomainInfo.DomainControllersContainer
-                            'Systems Container' = $DomainInfo.SystemsContainer
-                            'Users Container' = $DomainInfo.UsersContainer
+                            'Domain Path' = ConvertTo-ADCanonicalName -DN $DomainInfo.DistinguishedName -Credential $Cred -Domain $Item
+                            'Computers Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.ComputersContainer -Credential $Cred -Domain $Item
+                            'Domain Controllers Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.DomainControllersContainer -Credential $Cred -Domain $Item
+                            'Systems Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.SystemsContainer -Credential $Cred -Domain $Item
+                            'Users Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.UsersContainer -Credential $Cred -Domain $Item
                             'ReadOnly Replica Directory Servers' = ConvertTo-EmptyToFiller $DomainInfo.ReadOnlyReplicaDirectoryServers
                         }
                         $OutObj += [pscustomobject]$inobj
