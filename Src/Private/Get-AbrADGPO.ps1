@@ -84,6 +84,98 @@ function Get-AbrADGPO {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Table @TableParams
+                try {
+                    Section -Style Heading5 "Group Policy Objects with User Logon/Logoff Script Summary" {
+                        Paragraph "The following section provides a summary of Group Policy Objects with Logon/Logoff Script."
+                        BlankLine
+                        $OutObj = @()
+                        if ($Domain) {
+                            $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
+                            Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                            foreach ($GPO in $GPOs) {
+                                [xml]$Gpoxml =  Invoke-Command -Session $Session -ScriptBlock {Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id}
+                                $UserScripts = $Gpoxml.GPO.User.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
+                                if ($UserScripts.count -gt 0) {
+                                    foreach ($Script in $UserScripts.extension.Script) {
+                                        Write-PscriboMessage "Collecting Active Directory Group Policy Objects with Logon/Logoff Script '$($GPO.DisplayName)'."
+                                        $inObj = [ordered] @{
+                                            'GPO Name' = $GPO.DisplayName
+                                            'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                                            'Type' = $Script.Type
+                                            'Script' = $Script.command
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
+                                }
+                            }
+
+                            if ($HealthCheck.Domain.GPO) {
+                                $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
+                            }
+
+                            $TableParams = @{
+                                Name = "Group Policy Objects with Logon/Logoff Script Information - $($Domain.ToString().ToUpper())"
+                                List = $false
+                                ColumnWidths = 20, 15, 15, 50
+                            }
+
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                        }
+                    }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Group Policy Objects with Logon/Logoff Script for domain $($Domain.ToString().ToUpper())."
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                }
+                try {
+                    Section -Style Heading5 "Group Policy Objects with Computer Startup/Shutdown Script Summary" {
+                        Paragraph "The following section provides a summary of Group Policy Objects with Startup/Shutdown Script."
+                        BlankLine
+                        $OutObj = @()
+                        if ($Domain) {
+                            $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
+                            Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                            foreach ($GPO in $GPOs) {
+                                [xml]$Gpoxml =  Invoke-Command -Session $Session -ScriptBlock {Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id}
+                                $ComputerScripts = $Gpoxml.GPO.Computer.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
+                                if ($ComputerScripts.count -gt 0) {
+                                    foreach ($Script in $ComputerScripts.extension.Script) {
+                                        Write-PscriboMessage "Collecting Active Directory Group Policy Objects with Startup/Shutdown Script '$($GPO.DisplayName)'."
+                                        $inObj = [ordered] @{
+                                            'GPO Name' = $GPO.DisplayName
+                                            'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                                            'Type' = $Script.Type
+                                            'Script' = $Script.command
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
+                                }
+                            }
+
+                            if ($HealthCheck.Domain.GPO) {
+                                $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
+                            }
+
+                            $TableParams = @{
+                                Name = "Group Policy Objects with Startup/Shutdown Script Information - $($Domain.ToString().ToUpper())"
+                                List = $false
+                                ColumnWidths = 20, 15, 15, 50
+                            }
+
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                        }
+                    }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Group Policy Objects with Startup/Shutdown Script for domain $($Domain.ToString().ToUpper())."
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                }
             }
             if ($HealthCheck.Domain.GPO) {
                 try {
