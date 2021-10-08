@@ -152,17 +152,16 @@ There are 2 levels (0-1) of detail granularity for each section as follows;
 |    0    | Disabled          | Does not collect or display any information                                                                                                |
 |    1    | Enabled / Summary | Provides summarised information for a collection of objects                                                                                |
 |    2    | Adv Summary       | Provides condensed, detailed information for a collection of objects                                                                       |
+|    3    | Detailed          | Provides detailed information for individual objects                                                                                       |
 
 The table below outlines the default and maximum **InfoLevel** settings for each section.
 
 | Sub-Schema   | Default Setting | Maximum Setting |
 |--------------|:---------------:|:---------------:|
 | Forest       |        1        |        1        |
-| Domain       |        1        |        2        |
+| Domain       |        1        |        3        |
 | DNS          |        1        |        2        |
 | DHCP         |        1        |        2        |
-| CA           |        1        |        1        |
-| Security     |        1        |        1        |
 
 ### Healthcheck
 

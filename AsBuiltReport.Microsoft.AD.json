@@ -12,7 +12,7 @@
 
     },
     "InfoLevel": {
-        "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary",
+        "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",
         "Forest": 1,
         "Domain": 1,
         "DHCP": 1,
