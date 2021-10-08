@@ -74,7 +74,7 @@ function Get-AbrADOU {
             }
             if ($HealthCheck.Domain.GPO) {
                 try {
-                    Section -Style Heading5 "Health Check - GPO Blocked Inheritance Summary" {
+                    Section -Style Heading5 "Health Check - Organizational Unit with Group Policy Objects Blocked Inheritance Summary" {
                         Paragraph "The following section provides a summary of the Blocked Inheritance Group Policy Objects."
                         BlankLine
                         $OutObj = @()
