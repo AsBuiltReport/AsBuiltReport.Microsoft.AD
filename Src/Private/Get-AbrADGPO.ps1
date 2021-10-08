@@ -95,7 +95,7 @@ function Get-AbrADGPO {
                             foreach ($GPO in $GPOs) {
                                 [xml]$Gpoxml =  Invoke-Command -Session $Session -ScriptBlock {Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id}
                                 $UserScripts = $Gpoxml.GPO.User.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
-                                if ($UserScripts.count -gt 0) {
+                                if ($UserScripts.extension.Script) {
                                     foreach ($Script in $UserScripts.extension.Script) {
                                         Write-PscriboMessage "Collecting Active Directory Group Policy Objects with Logon/Logoff Script '$($GPO.DisplayName)'."
                                         $inObj = [ordered] @{
@@ -141,7 +141,7 @@ function Get-AbrADGPO {
                             foreach ($GPO in $GPOs) {
                                 [xml]$Gpoxml =  Invoke-Command -Session $Session -ScriptBlock {Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id}
                                 $ComputerScripts = $Gpoxml.GPO.Computer.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
-                                if ($ComputerScripts.count -gt 0) {
+                                if ($ComputerScripts.extension.Script) {
                                     foreach ($Script in $ComputerScripts.extension.Script) {
                                         Write-PscriboMessage "Collecting Active Directory Group Policy Objects with Startup/Shutdown Script '$($GPO.DisplayName)'."
                                         $inObj = [ordered] @{
