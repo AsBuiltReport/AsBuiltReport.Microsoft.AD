@@ -5,7 +5,7 @@ function ConvertTo-TextYN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         LEE DAILEY
 
     .EXAMPLE
@@ -42,7 +42,7 @@ function ConvertTo-FileSizeString {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         LEE DAILEY
 
     .EXAMPLE
@@ -86,7 +86,7 @@ function Invoke-DcDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         Adam Bertram
 
     .EXAMPLE
@@ -117,7 +117,7 @@ function ConvertTo-EmptyToFiller {
         .DESCRIPTION
 
         .NOTES
-            Version:        0.3.0
+            Version:        0.4.0
             Author:         Jonathan Colon
 
         .EXAMPLE
@@ -153,7 +153,7 @@ function Convert-IpAddressToMaskLength {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         Ronald Rink
 
     .EXAMPLE
@@ -190,7 +190,7 @@ function ConvertTo-ADObjectName {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         Jonathan Colon
 
     .EXAMPLE
@@ -218,7 +218,7 @@ function ConvertTo-ADCanonicalName {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         Jonathan Colon
 
     .EXAMPLE
