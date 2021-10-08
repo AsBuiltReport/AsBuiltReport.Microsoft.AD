@@ -49,6 +49,7 @@ function Get-AbrADDomainObject {
                             $Group =  Invoke-Command -Session $DCPssSession {(Get-ADGroup -filter * -Searchbase (Get-ADDomain -Identity $using:Item).distinguishedName) | Measure-Object}
                             $DomainController = Invoke-Command -Session $DCPssSession {(Get-ADDomainController -filter *) | Select-Object name | Measure-Object}
                             $GC = Invoke-Command -Session $DCPssSession {(Get-ADDomainController -filter {IsGlobalCatalog -eq "True"}) | Select-Object name | Measure-Object}
+                            Remove-PSSession -Session $DCPssSession
                             $inObj = [ordered] @{
                                 'Computers' = $Computers.Count
                                 'Servers' = $Servers.Count

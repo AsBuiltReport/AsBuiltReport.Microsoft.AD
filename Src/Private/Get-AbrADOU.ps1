@@ -57,6 +57,7 @@ function Get-AbrADOU {
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
+                    Remove-PSSession -Session $DCPssSession
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit)"
