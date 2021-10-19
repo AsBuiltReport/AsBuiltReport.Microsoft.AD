@@ -17,7 +17,7 @@
         "Domain": 1,
         "DHCP": 1,
         "DNS": 1,
-        "CA": 0,
+        "CA": 1,
         "Security": 0
     },
     "HealthCheck": {
@@ -40,6 +40,9 @@
             "Credential": true,
             "Statistics": true,
             "BP": true
+        },
+        "CA": {
+            "Status": true
         }
     }
 }
