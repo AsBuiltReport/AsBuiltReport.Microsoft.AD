@@ -1,5 +1,6 @@
 @{
     ExcludeRules = @(
+        'PSUseBOMForUnicodeEncodedFile',
         'PSUseToExportFieldsInManifest',
         'PSReviewUnusedParameter',
         'PSUseDeclaredVarsMoreThanAssignments',
