@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,7 +28,7 @@ function Get-AbrADSite {
 
     process {
         Section -Style Heading3 'Domain Site Summary' {
-            Paragraph "The following section provides a summary of the Active Directory Sites on."
+            Paragraph "The following section provides a summary of the Active Directory Sites."
             BlankLine
             $Data =  Invoke-Command -Session $Session {Get-ADReplicationSite -Filter * -Properties *}
             $OutObj = @()

@@ -1,11 +1,11 @@
 function Get-AbrADDHCPv4Scope {
     <#
     .SYNOPSIS
-    Used by As Built Report to retrieve Microsoft AD DHCP Servers Scopes from Domain Controller
+    Used by As Built Report to retrieve Microsoft Active Directory DHCP Servers Scopes.
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -71,7 +71,7 @@ function Get-AbrADDHCPv4Scope {
             }
             $OutObj | Table @TableParams
             try {
-                Section -Style Heading7 "IPv4 Scope Statistics Summary on $($Server.ToUpper().split(".", 2)[0])" {
+                Section -Style Heading6 "IPv4 Scope Statistics Summary on $($Server.ToUpper().split(".", 2)[0])" {
                     Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Statistics information."
                     BlankLine
                     $OutObj = @()
@@ -111,7 +111,7 @@ function Get-AbrADDHCPv4Scope {
                 Write-PScriboMessage -IsDebug $_.Exception.Message
             }
             try {
-                Section -Style Heading7 "IPv4 Scope Failover Summary on $($Server.ToUpper().split(".", 2)[0])" {
+                Section -Style Heading6 "IPv4 Scope Failover Summary on $($Server.ToUpper().split(".", 2)[0])" {
                     Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Failover information."
                     BlankLine
                     $OutObj = @()
@@ -138,6 +138,10 @@ function Get-AbrADDHCPv4Scope {
                         }
                     }
 
+                    if ($HealthCheck.DHCP.BP) {
+                        $OutObj | Where-Object { $_.'Authetication Enable' -eq 'No'} | Set-Style -Style Warning -Property 'Authetication Enable'
+                    }
+
                     $TableParams = @{
                         Name = "IPv4 Scope Failover Cofiguration Information - $($Server.split(".", 2).ToUpper()[0])"
                         List = $true
@@ -154,7 +158,7 @@ function Get-AbrADDHCPv4Scope {
                 Write-PScriboMessage -IsDebug $_.Exception.Message
             }
             try {
-                Section -Style Heading7 "IPv4 Network Interface binding Summary on $($Server.ToUpper().split(".", 2)[0])" {
+                Section -Style Heading6 "IPv4 Network Interface binding Summary on $($Server.ToUpper().split(".", 2)[0])" {
                     Paragraph "The following section provides a summary of the IPv4 Network Interface binding."
                     BlankLine
                     $OutObj = @()
@@ -170,7 +174,7 @@ function Get-AbrADDHCPv4Scope {
                                 'Subnet Mask' = $Scope.SubnetMask
                                 'State' = Switch ($Scope.BindingState) {
                                     ""  {"-"; break}
-                                    $Null  {"-"}
+                                    $Null  {"-"; break}
                                     "True"  {"Enabled"}
                                     "False"  {"Disabled"}
                                     default {$Scope.BindingState}

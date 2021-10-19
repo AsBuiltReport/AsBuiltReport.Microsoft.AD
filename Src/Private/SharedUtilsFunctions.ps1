@@ -5,7 +5,7 @@ function ConvertTo-TextYN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         LEE DAILEY
 
     .EXAMPLE
@@ -21,6 +21,7 @@ function ConvertTo-TextYN {
             Position = 0,
             Mandatory)]
             [AllowEmptyString()]
+
             [string]
             $TEXT
         )
@@ -41,7 +42,7 @@ function ConvertTo-FileSizeString {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         LEE DAILEY
 
     .EXAMPLE
@@ -85,7 +86,7 @@ function Invoke-DcDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         Adam Bertram
 
     .EXAMPLE
@@ -116,7 +117,7 @@ function ConvertTo-EmptyToFiller {
         .DESCRIPTION
 
         .NOTES
-            Version:        0.3.0
+            Version:        0.4.0
             Author:         Jonathan Colon
 
         .EXAMPLE
@@ -152,7 +153,7 @@ function Convert-IpAddressToMaskLength {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         Ronald Rink
 
     .EXAMPLE
@@ -181,3 +182,64 @@ function Convert-IpAddressToMaskLength {
     }
     return $result;
 }
+
+function ConvertTo-ADObjectName {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to translate Active Directory DN to Name.
+    .DESCRIPTION
+
+    .NOTES
+        Version:        0.4.0
+        Author:         Jonathan Colon
+
+    .EXAMPLE
+
+    .LINK
+
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        $DN,
+        $Session
+    )
+    $ADObject = @()
+    foreach ($Object in $DN) {
+        $ADObject += Invoke-Command -Session $Session {Get-ADObject $using:Object | Select-Object -ExpandProperty Name}
+    }
+    return $ADObject;
+}# end
+
+function ConvertTo-ADCanonicalName {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to translate Active Directory DN to CanonicalName.
+    .DESCRIPTION
+
+    .NOTES
+        Version:        0.4.0
+        Author:         Jonathan Colon
+
+    .EXAMPLE
+
+    .LINK
+
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        $DN,
+        $Domain,
+        [pscredential]
+        $Credential
+    )
+    $ADObject = @()
+    $DC = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName}
+    $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
+    foreach ($Object in $DN) {
+        $ADObject += Invoke-Command -Session $DCPssSession {Get-ADObject $using:Object -Properties * | Select-Object -ExpandProperty CanonicalName}
+    }
+    Remove-PSSession -Session $DCPssSession
+    return $ADObject;
+}# end

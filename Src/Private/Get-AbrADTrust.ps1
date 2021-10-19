@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.4.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -46,8 +46,8 @@ function Get-AbrADTrust {
                         Write-PscriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
                         $inObj = [ordered] @{
                             'Name' = $Trust.Name
-                            'Distinguished Name' =  $Trust.DistinguishedName
-                            'Source' = $Trust.Source
+                            'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Credential $Cred -Domain $Domain
+                            'Source' = ConvertTo-ADObjectName $Trust.Source -Session $DCPssSession
                             'Target' = $Trust.Target
                             'Direction' = $Trust.Direction
                             'IntraForest' =  ConvertTo-TextYN $Trust.IntraForest
