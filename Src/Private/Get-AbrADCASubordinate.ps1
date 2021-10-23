@@ -49,8 +49,7 @@ function Get-AbrADCAPerDomain {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "Error: Connecting to remote server $CA failed: WinRM cannot complete the operation."
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning $_.Exception.Message
                     }
                 }
             }

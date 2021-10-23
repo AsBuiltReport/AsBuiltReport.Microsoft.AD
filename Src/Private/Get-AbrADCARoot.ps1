@@ -28,7 +28,7 @@ function Get-AbrADCARoot {
                 Paragraph "The following section provides the  of the DHCP servers IPv6 Scope Server Options information."
                 BlankLine
                 $OutObj = @()
-                Write-PscriboMessage "Discovering Active Directory Certification Authority information in $ForestInfo.toUpper()."
+                Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
                 $CAs = Get-CertificationAuthority -Enterprise | Where-Object {$_.IsRoot -eq 'True'}
                 foreach ($CA in $CAs) {
                     Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
@@ -61,8 +61,7 @@ function Get-AbrADCARoot {
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $CA failed: WinRM cannot complete the operation."
-            Write-PscriboMessage -IsDebug $_.Exception.Message
+            Write-PscriboMessage -IsWarning $_.Exception.Message
         }
     }
 
