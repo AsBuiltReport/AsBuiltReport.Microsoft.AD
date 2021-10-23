@@ -132,7 +132,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Active Directory Domain)"
                             continue
                         }
                     }
@@ -160,7 +160,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Information)"
                             continue
                         }
                     }
@@ -186,7 +186,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                 }
                                 catch {
                                     Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from  $($Domain.ToString().ToUpper())."
-                                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Statistics)"
                                 }
                                 $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
                                 foreach ($DHCPServer in $DomainDHCPs){
@@ -194,7 +194,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
                                     }
                                     catch {
-                                        Write-PScriboMessage -IsWarning $_.Exception.Message
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope information)"
                                     }
                                     if ($InfoLevel.DHCP -ge 2) {
                                         try {
@@ -209,13 +209,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                     }
                                                     catch {
                                                         Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope configuration)"
                                                     }
                                                 }
                                             }
                                         }
                                         catch {
-                                            Write-PScriboMessage -IsWarning $_.Exception.Message
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Scope Server Options)"
                                         }
                                     }
                                 }
@@ -228,7 +228,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                 }
                                 catch {
                                     Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Statistics from $($Domain.ToString().ToUpper())."
-                                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                                    Write-PScriboMessage -IsDebug  "$($_.Exception.Message) (IPv6 DHCP Server IPv6 Statistics)"
                                 }
                                 $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
                                 foreach ($DHCPServer in $DomainDHCPs){
@@ -236,7 +236,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
                                     }
                                     catch {
-                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Information)"
                                     }
                                     if ($InfoLevel.DHCP -ge 2) {
                                         try {
@@ -251,13 +251,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                     }
                                                     catch {
                                                         Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Per DHCP Scope configuration)"
                                                     }
                                                 }
                                             }
                                         }
                                         catch {
-                                            Write-PScriboMessage -IsWarning $_.Exception.Message
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Server Options)"
                                         }
                                     }
                                 }
@@ -267,12 +267,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                 }
             }
             #---------------------------------------------------------------------------------------------#
-            #                                 Certificate Authority Section                                                 #
+            #                                 Certificate Authority Section                               #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.CA -ge 1) {
                 try {
                 Section -Style Heading3 "Certificate Authority Summary for forest $($ForestInfo.toUpper())" {
-                    Paragraph "In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party—trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard."
+                    Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party—trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
                     BlankLine
                     Get-AbrADCASummary
                     Get-AbrADCARoot
