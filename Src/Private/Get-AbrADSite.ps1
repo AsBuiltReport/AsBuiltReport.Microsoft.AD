@@ -52,14 +52,13 @@ function Get-AbrADSite {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."
-                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Site)"
                         continue
                     }
                 }
 
                 $TableParams = @{
-                    Name = "AD Domain Controller Summary Information - $($ForestInfo)"
+                    Name = "Domain Site Information - $($ForestInfo)"
                     List = $false
                     ColumnWidths = 25, 30, 25, 20
                 }
@@ -95,8 +94,7 @@ function Get-AbrADSite {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."
-                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Links)"
                         continue
                     }
                 }

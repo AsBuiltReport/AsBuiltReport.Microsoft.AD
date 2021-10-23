@@ -52,8 +52,8 @@ function Get-AbrADDHCPv4PerScopeSetting {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope Options for scope $Scope on $($Server.split(".", 2)[0])."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scope Options information)"
+
                 }
             }
 

@@ -60,8 +60,7 @@ function Get-AbrADDCDiag {
                 $OutObj | Table @TableParams
             }
             catch {
-                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning $_.Exception.Message
             }
         }
     }

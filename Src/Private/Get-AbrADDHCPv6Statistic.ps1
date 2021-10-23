@@ -53,8 +53,7 @@ function Get-AbrADDHCPv6Statistic {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Statistics from $(($DHCPServers).DnsName)."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Service Statistics Summary)"
                     }
                 }
 

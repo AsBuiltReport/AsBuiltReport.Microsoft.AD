@@ -42,7 +42,7 @@ function Get-AbrADDCRoleFeature {
                     $Features = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-WindowsFeature | Where-Object {$_.installed -eq "True"}}
                     Remove-PSSession -Session $DCPssSession
                     foreach ($Feature in $Features) {
-                        Write-PscriboMessage "Collecting Domain Controller Role & Features on $DC."
+                        Write-PscriboMessage "Collecting DC Role & Features: $($Feature.DisplayName) on $DC."
                         $inObj = [ordered] @{
                             'Name' = $Feature.DisplayName
                             'Parent' = $Feature.FeatureType
@@ -64,8 +64,7 @@ function Get-AbrADDCRoleFeature {
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-            Write-PScriboMessage -IsDebug $_.Exception.Message
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Role & Features)"
         }
     }
 

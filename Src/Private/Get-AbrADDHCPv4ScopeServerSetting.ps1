@@ -48,8 +48,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope Server Options from $($Server.split(".", 2)[0])."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DHCP scopes server opions)"
             }
         }
 
@@ -96,8 +95,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
             }
         }
         catch {
-            Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope DNS Setting from $($Server.split(".", 2)[0])."
-            Write-PScriboMessage -IsDebug $_.Exception.Message
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scope DNS Setting)"
         }
     }
 

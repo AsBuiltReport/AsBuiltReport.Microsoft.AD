@@ -62,8 +62,7 @@ function Get-AbrADDomainObject {
                             $OutObj += [pscustomobject]$inobj
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "WARNING: Could not retrieve Object Count from domain $Item"
-                            Write-PscriboMessage -IsDebug $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Object Count)"
                         }
                     }
 
@@ -104,8 +103,7 @@ function Get-AbrADDomainObject {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "WARNING: Could not retrieve Default Domain Password Policy from domain $Item"
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Default Domain Password Policy)"
                     }
                 }
 
@@ -171,8 +169,7 @@ function Get-AbrADDomainObject {
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "WARNING: Could not retrieve fined grained password policies from domain $Item"
-                Write-PscriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Fined Grained Password Policies)"
             }
         }
         if ($InfoLevel.Domain -ge 2) {
@@ -209,8 +206,7 @@ function Get-AbrADDomainObject {
                             Remove-PSSession -Session $DCPssSession
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "WARNING: Could not retrieve Group Managed Service Accounts from domain $Item"
-                            Write-PscriboMessage -IsDebug $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts)"
                         }
                     }
 

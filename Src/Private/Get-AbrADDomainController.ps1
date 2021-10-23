@@ -54,8 +54,7 @@ function Get-AbrADDomainController {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Summary)"
                     }
                 }
             }
@@ -120,8 +119,7 @@ function Get-AbrADDomainController {
                                 }
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                                Write-PscriboMessage -IsDebug $_.Exception.Message
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Hardware Summary)"
                             }
                         }
                     }
@@ -169,8 +167,7 @@ function Get-AbrADDomainController {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                            Write-PscriboMessage -IsDebug $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (NTDS Summary)"
                         }
                     }
                 }
@@ -222,8 +219,7 @@ function Get-AbrADDomainController {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                            Write-PscriboMessage -IsDebug $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Time Source)"
                         }
                     }
                 }

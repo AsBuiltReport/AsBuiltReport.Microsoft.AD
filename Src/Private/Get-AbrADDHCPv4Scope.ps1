@@ -56,8 +56,8 @@ function Get-AbrADDHCPv4Scope {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scopes from $($Server.split(".", 2)[0])."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Summary)"
+
                 }
             }
 
@@ -107,8 +107,7 @@ function Get-AbrADDHCPv4Scope {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope Statistics from $($Server.split(".", 2).ToUpper()[0])."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Statistics)"
             }
             try {
                 Section -Style Heading6 "IPv4 Scope Failover Summary on $($Server.ToUpper().split(".", 2)[0])" {
@@ -154,8 +153,7 @@ function Get-AbrADDHCPv4Scope {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope Failover Setting from $($Server.split(".", 2).ToUpper()[0])."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Failover)"
             }
             try {
                 Section -Style Heading6 "IPv4 Network Interface binding Summary on $($Server.ToUpper().split(".", 2)[0])" {
@@ -196,8 +194,7 @@ function Get-AbrADDHCPv4Scope {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 interface binding from $($Server.split(".", 2).ToUpper()[0])."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Network Interface binding)"
             }
         }
     }

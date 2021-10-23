@@ -54,8 +54,8 @@ function Get-AbrADDHCPInfrastructure {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving Dhcp Server Setting from $($DHCPServers.DnsName.Split(".", 2)[0])."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DHCP Servers In Active Directory)"
+
                     }
                 }
 
@@ -104,8 +104,8 @@ function Get-AbrADDHCPInfrastructure {
                         }
                     }
                     catch {
-                        Write-PScriboMessage -IsWarning "Error: Retreiving Dhcp Servers Database on $($DHCPServers.DnsName)."
-                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Service Database)"
+
                         }
                     }
 
@@ -140,8 +140,8 @@ function Get-AbrADDHCPInfrastructure {
                         }
                     }
                     catch {
-                        Write-PScriboMessage -IsWarning "Error: Retreiving Dhcp Servers Dynamic DNS credentials on $($DHCPServers.DnsName)."
-                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Dynamic DNS credentials)"
+
                         }
                     }
 

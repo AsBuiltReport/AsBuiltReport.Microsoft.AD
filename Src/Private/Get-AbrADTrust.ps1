@@ -62,8 +62,7 @@ function Get-AbrADTrust {
                     Remove-PSSession -Session $DCPssSession
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Summary)"
                     }
                 }
 

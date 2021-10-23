@@ -61,9 +61,7 @@ function Get-AbrADSiteReplication {
                         }
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to DC $DC (Sites Replication)"
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
-
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication)"
                     }
                 }
 
@@ -106,8 +104,7 @@ function Get-AbrADSiteReplication {
                         }
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to Domain $Domian (Sites Replication Failure)"
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Failure)"
                     }
                 }
 

@@ -57,7 +57,7 @@ function Get-AbrADGPO {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Summary)"
                 }
 
                 if ($HealthCheck.Domain.GPO) {
@@ -127,8 +127,7 @@ function Get-AbrADGPO {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Group Policy Objects with Logon/Logoff Script for domain $($Domain.ToString().ToUpper())."
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects with Logon/Logoff Script)"
                 }
                 try {
                     Section -Style Heading5 "Group Policy Objects with Computer Startup/Shutdown Script Summary" {
@@ -173,8 +172,7 @@ function Get-AbrADGPO {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Group Policy Objects with Startup/Shutdown Script for domain $($Domain.ToString().ToUpper())."
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects with Computer Startup/Shutdown Script)"
                 }
             }
             if ($HealthCheck.Domain.GPO) {
@@ -233,8 +231,7 @@ function Get-AbrADGPO {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Unlinked Group Policy Objects for domain $($Domain.ToString().ToUpper())."
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Information)"
                 }
                 try {
                     Section -Style Heading5 "Health Check - All Empty Group Policy Objects Summary" {
@@ -285,8 +282,7 @@ function Get-AbrADGPO {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Empty Group Policy Objects for domain $($Domain.ToString().ToUpper())."
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Information)"
                 }
                 try {
                     Section -Style Heading5 "Health Check - Enforced Group Policy Objects Summary" {
@@ -343,8 +339,7 @@ function Get-AbrADGPO {
 
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Enforced Group Policy Objects for domain $($Domain.ToString().ToUpper())."
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Enforced Group Policy Objects Information)"
                 }
             }
         }

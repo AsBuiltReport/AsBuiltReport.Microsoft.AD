@@ -1,7 +1,7 @@
 function Get-AbrADDHCPv6ScopeServerSetting {
     <#
     .SYNOPSIS
-    Used by As Built Report to retrieve Microsoft AD DHCP Servers Scopes Server Options from DHCP Servers
+    Used by As Built Report to retrieve Microsoft AD DHCP Servers IPv6 Scopes Server Options from DHCP Servers
     .DESCRIPTION
 
     .NOTES
@@ -27,7 +27,7 @@ function Get-AbrADDHCPv6ScopeServerSetting {
     )
 
     begin {
-        Write-PscriboMessage "Discovering DHCP Servers Scope Server Options information on $($Server.ToUpper().split(".", 2)[0])."
+        Write-PscriboMessage "Discovering DHCP Servers IPv6 Scope Server Options information on $($Server.ToUpper().split(".", 2)[0])."
     }
 
     process {
@@ -48,8 +48,7 @@ function Get-AbrADDHCPv6ScopeServerSetting {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope Server Options from $($Server.split(".", 2)[0])."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope Server Option)"
             }
         }
 
@@ -93,8 +92,7 @@ function Get-AbrADDHCPv6ScopeServerSetting {
             }
         }
         catch {
-            Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope DNS Setting from $($Server.split(".", 2)[0])."
-            Write-PScriboMessage -IsDebug $_.Exception.Message
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope DNS Setting)"
         }
     }
 

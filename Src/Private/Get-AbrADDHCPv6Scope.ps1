@@ -54,8 +54,7 @@ function Get-AbrADDHCPv6Scope {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scopes from $($Server.split(".", 2)[0])."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope)"
                 }
             }
 
@@ -105,8 +104,7 @@ function Get-AbrADDHCPv6Scope {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope Statistics from $($Server.split(".", 2).ToUpper()[0])."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope Statistics)"
             }
             try {
                 Section -Style Heading6 "IPv6 Network Interface binding Summary on $($Server.ToUpper().split(".", 2)[0])" {
@@ -145,8 +143,7 @@ function Get-AbrADDHCPv6Scope {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 interface binding from $($Server.split(".", 2).ToUpper()[0])."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Network Interface binding)"
             }
         }
     }

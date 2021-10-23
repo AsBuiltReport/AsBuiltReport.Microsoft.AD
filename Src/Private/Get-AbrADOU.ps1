@@ -75,7 +75,7 @@ function Get-AbrADOU {
             }
             if ($HealthCheck.Domain.GPO) {
                 try {
-                    Section -Style Heading5 "Health Check - Organizational Unit with Group Policy Objects Blocked Inheritance Summary" {
+                    Section -Style Heading5 "Health Check - OU with Group Policy Objects Blocked Inheritance Summary" {
                         Paragraph "The following section provides a summary of the Blocked Inheritance Group Policy Objects."
                         BlankLine
                         $OutObj = @()
@@ -129,8 +129,7 @@ function Get-AbrADOU {
 
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "Error: Collecting Active Directory Blocked Inheritance Group Policy Objects for domain $($Domain.ToString().ToUpper())."
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Blocked Inheritance Group Policy Objects)"
                 }
             }
         }

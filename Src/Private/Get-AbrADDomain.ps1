@@ -60,8 +60,7 @@ function Get-AbrADDomain {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (AD Domain Summary)"
                 }
 
                 $TableParams = @{
