@@ -48,7 +48,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #---------------------------------------------------------------------------------------------#
         #                                 Forest Section                                              #
         #---------------------------------------------------------------------------------------------#
-        Section -Style Heading1 "Report for Active Directory Forest $($ForestInfo.toUpper())" {
+        Section -Style Heading1 "$($ForestInfo.toUpper()) Active Directory Report" {
             Paragraph "The following section provides a summary of the Active Directory Infrastructure configuration for $($ForestInfo)."
             BlankLine
             Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
@@ -71,20 +71,20 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 Domain Section                                              #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.Domain -ge 1) {
-                Section -Style Heading3 "Active Directory Domain summary for forest $($ForestInfo.toUpper())" {
+                Section -Style Heading3 "Active Directory Domain Information" {
                     Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user or a group or it can be a hardware component, such as a computer or printer.Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain or an alternate version (which may end in .local)."
                     BlankLine
                     foreach ($Domain in (Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
                             if (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}) {
-                                Section -Style Heading4 "Active Directory Information for domain $($Domain.ToString().ToUpper())" {
-                                    Paragraph "The following section provides a summary of the AD Domain Information."
+                                Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain" {
+                                    Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                     BlankLine
                                     Get-AbrADDomain -Domain $Domain -Session $TempPssSession -Cred $Credential
                                     Get-AbrADFSMO -Domain $Domain -Session $TempPssSession
                                     Get-AbrADTrust -Domain $Domain -Session $TempPssSession -Cred $Credential
                                     Get-AbrADDomainObject -Domain $Domain -Session $TempPssSession -Cred $Credential
-                                    Section -Style Heading5 'Domain Controller Information' {
+                                    Section -Style Heading5 'Domain Controller Summary' {
                                         Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
                                         BlankLine
                                         Paragraph "The following section provides a summary of the Active Directory Domain Controller."
@@ -98,7 +98,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         }
                                         if ($HealthCheck.DomainController.Diagnostic) {
                                             try {
-                                                Section -Style Heading6 'DCDiag Information' {
+                                                Section -Style Heading6 'DC Diagnostic' {
                                                     Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
                                                     BlankLine
                                                     $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
@@ -142,13 +142,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 DNS Section                                                 #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.DNS -ge 1) {
-                Section -Style Heading3 "Domain Name System summary for forest $($ForestInfo.toUpper())" {
+                Section -Style Heading3 "$($ForestInfo.toUpper()) Domain Name System Summary" {
                     Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
                     BlankLine
                     foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
                             if (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}) {
-                                Section -Style Heading4 "Domain Name System Information for domain $($Domain.ToString().ToUpper())" {
+                                Section -Style Heading4 "$($Domain.ToString().ToUpper()) DNS Information" {
                                     Paragraph "The following section provides a configuration summary of the Domain Name System."
                                     BlankLine
                                     Get-AbrADDNSInfrastructure -Domain $Domain -Session $TempPssSession
@@ -170,15 +170,15 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 DHCP Section                                                #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.DHCP -ge 1) {
-                Section -Style Heading3 "Dynamic Host Configuration Protocol summary for forest $($ForestInfo.toUpper())" {
+                Section -Style Heading3 "$($ForestInfo.toUpper()) Dynamic Host Configuration Protocol Summary" {
                     Paragraph "The Dynamic Host Configuration Protocol (DHCP) is a network management protocol used on Internet Protocol (IP) networks for automatically assigning IP addresses and other communication parameters to devices connected to the network using a client/server architecture."
                     BlankLine
                     foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
-                        Section -Style Heading4 "Dynamic Host Configuration Protocol information for domain $($Domain.ToString().ToUpper())" {
+                        Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain DHCP Information" {
                             Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
                             BlankLine
                             Get-AbrADDHCPInfrastructure -Domain $Domain -Session $TempPssSession
-                            Section -Style Heading5 "IPv4 Scope Information for Domain $($Domain.ToString().ToUpper())" {
+                            Section -Style Heading5 "IPv4 Scope Information" {
                                 Paragraph "The following section provides a IPv4 configuration summary of the Dynamic Host Configuration Protocol."
                                 BlankLine
                                 try {
@@ -198,7 +198,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     }
                                     if ($InfoLevel.DHCP -ge 2) {
                                         try {
-                                            Section -Style Heading6 "IPv4 Scope Server Options Summary on $($DHCPServer.ToUpper().split(".", 2)[0])" {
+                                            Section -Style Heading6 "$($DHCPServer.ToUpper().split(".", 2)[0]) IPv4 Scope Server Options" {
                                                 Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
                                                 BlankLine
                                                 Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
@@ -220,7 +220,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     }
                                 }
                             }
-                            Section -Style Heading5 "IPv6 Scope Information for Domain $($Domain.ToString().ToUpper())" {
+                            Section -Style Heading5 "$($Domain.ToString().ToUpper()) IPv6 Scope Information" {
                                 Paragraph "The following section provides a IPv6 configuration summary of the Dynamic Host Configuration Protocol."
                                 BlankLine
                                 try {
@@ -240,7 +240,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     }
                                     if ($InfoLevel.DHCP -ge 2) {
                                         try {
-                                            Section -Style Heading6 "IPv6 Scope Server Options Summary on $($DHCPServer.ToUpper().split(".", 2)[0])" {
+                                            Section -Style Heading6 "$($DHCPServer.ToUpper().split(".", 2)[0]) IPv6 Scope Server Options" {
                                                 Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
                                                 BlankLine
                                                 Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
@@ -271,7 +271,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.CA -ge 1) {
                 try {
-                Section -Style Heading3 "Certificate Authority Summary for forest $($ForestInfo.toUpper())" {
+                Section -Style Heading3 "$($ForestInfo.toUpper()) Certificate Authority Summary" {
                     Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party—trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
                     BlankLine
                     Get-AbrADCASummary
