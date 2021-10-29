@@ -141,6 +141,11 @@ The **Report** schema provides configuration of the Microsoft AD report informat
 
 The **Options** schema allows certain options within the report to be toggled on or off.
 
+| Sub-Schema      | Setting      | Default | Description                                                                                                                                                                                 |
+|-----------------|--------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ShowDefinitionInfo | true / false | false    | Toggle to enable/disable VMware SRM Section Documentation
+
+
 ### InfoLevel
 
 The **InfoLevel** schema allows configuration of each section of the report at a granular level. The following sections can be set.
