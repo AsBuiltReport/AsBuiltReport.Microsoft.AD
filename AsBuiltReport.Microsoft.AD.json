@@ -16,9 +16,7 @@
         "Forest": 1,
         "Domain": 1,
         "DHCP": 1,
-        "DNS": 1,
-        "CA": 1,
-        "Security": 0
+        "DNS": 1
     },
     "HealthCheck": {
         "Domain": {
