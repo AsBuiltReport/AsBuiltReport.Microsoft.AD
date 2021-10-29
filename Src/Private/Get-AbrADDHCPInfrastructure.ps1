@@ -144,7 +144,9 @@ function Get-AbrADDHCPInfrastructure {
 
                         }
                     }
-
+                if ($HealthCheck.DHCP.BP) {
+                    $OutObj | Where-Object { $_.'User Name' -eq "-"} | Set-Style -Style Warning -Property 'User Name','Domain Name'
+                }
                 $TableParams = @{
                     Name = "DHCP Servers Dynamic DNS Credentials Information - $($Domain.ToString().ToUpper())"
                     List = $false
