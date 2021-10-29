@@ -32,7 +32,7 @@ function Get-AbrADDomainObject {
 
     process {
         if ($InfoLevel.Domain -ge 2) {
-            Section -Style Heading5 'Domain Object Count Summary' {
+            Section -Style Heading5 'Domain Object Count' {
                 Paragraph "The following section provides a summary of the Active Directory Object Count on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -78,7 +78,7 @@ function Get-AbrADDomainObject {
                 }
             }
         }
-        Section -Style Heading5 'Default Domain Password Policy Summary' {
+        Section -Style Heading5 'Default Domain Password Policy' {
             Paragraph "The following section provides a summary of the Default Domain Password Policy on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -120,7 +120,7 @@ function Get-AbrADDomainObject {
         }
         if ($InfoLevel.Domain -ge 2) {
             try {
-                Section -Style Heading5 'Fined Grained Password Policies Summary' {
+                Section -Style Heading5 'Fined Grained Password Policies' {
                     Paragraph "The following section provides a summary of the Fined Grained Password Policies on $($Domain.ToString().ToUpper())."
                     BlankLine
                     $OutObj = @()
@@ -173,7 +173,7 @@ function Get-AbrADDomainObject {
             }
         }
         if ($InfoLevel.Domain -ge 2) {
-            Section -Style Heading5 'Group Managed Service Accounts (GMSA) Summary' {
+            Section -Style Heading5 'Group Managed Service Accounts (GMSA)' {
                 Paragraph "The following section provides a summary of the Group Managed Service Accounts on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()

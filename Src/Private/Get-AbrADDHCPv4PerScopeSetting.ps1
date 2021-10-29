@@ -32,7 +32,7 @@ function Get-AbrADDHCPv4PerScopeSetting {
     }
 
     process {
-        Section -Style Heading6 "Scope Options information for scope $Scope" {
+        Section -Style Heading6 "$Scope Scope Options Configuration" {
             Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
             BlankLine
             $OutObj = @()
@@ -52,7 +52,7 @@ function Get-AbrADDHCPv4PerScopeSetting {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scope Options information)"
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scope Options Configuration)"
 
                 }
             }

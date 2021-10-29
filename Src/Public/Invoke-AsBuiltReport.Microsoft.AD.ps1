@@ -148,7 +148,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
                             if (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}) {
-                                Section -Style Heading4 "$($Domain.ToString().ToUpper()) DNS Information" {
+                                Section -Style Heading4 "$($Domain.ToString().ToUpper()) DNS Configuration" {
                                     Paragraph "The following section provides a configuration summary of the Domain Name System."
                                     BlankLine
                                     Get-AbrADDNSInfrastructure -Domain $Domain -Session $TempPssSession
@@ -174,7 +174,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     Paragraph "The Dynamic Host Configuration Protocol (DHCP) is a network management protocol used on Internet Protocol (IP) networks for automatically assigning IP addresses and other communication parameters to devices connected to the network using a client/server architecture."
                     BlankLine
                     foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
-                        Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain DHCP Information" {
+                        Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain DHCP Configuration" {
                             Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
                             BlankLine
                             Get-AbrADDHCPInfrastructure -Domain $Domain -Session $TempPssSession
@@ -220,7 +220,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     }
                                 }
                             }
-                            Section -Style Heading5 "$($Domain.ToString().ToUpper()) IPv6 Scope Information" {
+                            Section -Style Heading5 "$($Domain.ToString().ToUpper()) IPv6 Scope Configuration" {
                                 Paragraph "The following section provides a IPv6 configuration summary of the Dynamic Host Configuration Protocol."
                                 BlankLine
                                 try {

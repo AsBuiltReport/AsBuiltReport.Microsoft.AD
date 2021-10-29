@@ -31,7 +31,7 @@ function Get-AbrADDHCPv4Scope {
     }
 
     process {
-        Section -Style Heading6 "IPv4 Scope Summary on $($Server.ToUpper().split(".", 2)[0])" {
+        Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scopes" {
             Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope information."
             BlankLine
             $OutObj = @()
@@ -71,7 +71,7 @@ function Get-AbrADDHCPv4Scope {
             }
             $OutObj | Table @TableParams
             try {
-                Section -Style Heading6 "IPv4 Scope Statistics Summary on $($Server.ToUpper().split(".", 2)[0])" {
+                Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scope Statistics" {
                     Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Statistics information."
                     BlankLine
                     $OutObj = @()
@@ -110,7 +110,7 @@ function Get-AbrADDHCPv4Scope {
                 Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Statistics)"
             }
             try {
-                Section -Style Heading6 "IPv4 Scope Failover Summary on $($Server.ToUpper().split(".", 2)[0])" {
+                Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scope Failover" {
                     Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Failover information."
                     BlankLine
                     $OutObj = @()
@@ -156,7 +156,7 @@ function Get-AbrADDHCPv4Scope {
                 Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Failover)"
             }
             try {
-                Section -Style Heading6 "IPv4 Network Interface binding Summary on $($Server.ToUpper().split(".", 2)[0])" {
+                Section -Style Heading6 " $($Server.ToUpper().split(".", 2)[0]) IPv4 Network Interface Binding" {
                     Paragraph "The following section provides a summary of the IPv4 Network Interface binding."
                     BlankLine
                     $OutObj = @()

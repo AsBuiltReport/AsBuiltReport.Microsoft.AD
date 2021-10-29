@@ -31,7 +31,7 @@ function Get-AbrADDNSInfrastructure {
     process {
         try {
             Section -Style Heading5 "Infrastructure Summary" {
-                Paragraph "The following section provides a summary of the Domain Name System Infrastructure configuration."
+                Paragraph "The following section provides a summary of the DNS Infrastructure configuration."
                 BlankLine
                 $OutObj = @()
                 if ($Domain) {
@@ -60,7 +60,7 @@ function Get-AbrADDNSInfrastructure {
                     }
 
                     $TableParams = @{
-                        Name = "Domain Name System Infrastructure Setting Information."
+                        Name = "DNS Infrastructure Setting Information."
                         List = $false
                         ColumnWidths = 30, 10, 9, 10, 11, 30
                     }
@@ -70,8 +70,8 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj | Table @TableParams
                 }
                 if ($InfoLevel.DNS -ge 2) {
-                    Section -Style Heading6 "Response Rate Limiting (RRL) Summary" {
-                        Paragraph "The following section provides a summary of the Domain Name System Response Rate Limiting configuration."
+                    Section -Style Heading6 "Response Rate Limiting (RRL)" {
+                        Paragraph "The following section provides a summary of the DNS Response Rate Limiting configuration."
                         BlankLine
                         $OutObj = @()
                         if ($Domain) {
@@ -102,7 +102,7 @@ function Get-AbrADDNSInfrastructure {
                             }
 
                             $TableParams = @{
-                                Name = "Domain Name System Response Rate Limiting configuration."
+                                Name = "DNS Response Rate Limiting configuration."
                                 List = $false
                                 ColumnWidths = 30, 10, 12, 12, 12, 12, 12
                             }
@@ -114,8 +114,8 @@ function Get-AbrADDNSInfrastructure {
                     }
                 }
                 if ($InfoLevel.DNS -ge 2) {
-                    Section -Style Heading6 "Scavenging Summary" {
-                        Paragraph "The following section provides a summary of the Domain Name System Scavenging configuration."
+                    Section -Style Heading6 "Scavenging Options" {
+                        Paragraph "The following section provides a summary of the DNS Scavenging configuration."
                         BlankLine
                         $OutObj = @()
                         if ($Domain) {
@@ -152,7 +152,7 @@ function Get-AbrADDNSInfrastructure {
                             }
 
                             $TableParams = @{
-                                Name = "Domain Name System Scavenging configuration."
+                                Name = "DNS Scavenging configuration."
                                 List = $false
                                 ColumnWidths = 25, 15, 15, 15, 15, 15
                             }
@@ -163,8 +163,8 @@ function Get-AbrADDNSInfrastructure {
                         }
                     }
                 }
-                Section -Style Heading6 "Forwarder Summary" {
-                    Paragraph "The following section provides a summary of the Domain Name System Forwarder configuration."
+                Section -Style Heading6 "Forwarder Options" {
+                    Paragraph "The following section provides a summary of the DNS Forwarder configuration."
                     BlankLine
                     $OutObj = @()
                     if ($Domain) {
@@ -193,7 +193,7 @@ function Get-AbrADDNSInfrastructure {
                         }
 
                         $TableParams = @{
-                            Name = "Domain Name System Infrastructure Forwarder configuration."
+                            Name = "DNS Infrastructure Forwarder configuration."
                             List = $false
                             ColumnWidths = 35, 15, 15, 15, 20
                         }
@@ -204,8 +204,8 @@ function Get-AbrADDNSInfrastructure {
                     }
                 }
                 if ($InfoLevel.DNS -ge 2) {
-                    Section -Style Heading6 "Zone Scope Recursion Summary" {
-                        Paragraph "The following section provides a summary of the Domain Name System Zone Scope Recursion configuration."
+                    Section -Style Heading6 "Zone Scope Recursion" {
+                        Paragraph "The following section provides a summary of the DNS Zone Scope Recursion configuration."
                         BlankLine
                         $OutObj = @()
                         if ($Domain) {
@@ -235,7 +235,7 @@ function Get-AbrADDNSInfrastructure {
                             }
 
                             $TableParams = @{
-                                Name = "Domain Name System Zone Scope Recursion configuration."
+                                Name = "DNS Zone Scope Recursion configuration."
                                 List = $false
                                 ColumnWidths = 35, 25, 20, 20
                             }

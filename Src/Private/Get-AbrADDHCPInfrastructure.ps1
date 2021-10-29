@@ -31,7 +31,7 @@ function Get-AbrADDHCPInfrastructure {
     }
 
     process {
-        Section -Style Heading5 'DHCP Servers In Active Directory Summary' {
+        Section -Style Heading5 'DHCP Servers In Active Directory' {
             Paragraph "The following section provides a summary of the DHCP servers information on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -73,7 +73,7 @@ function Get-AbrADDHCPInfrastructure {
                 $TableParams['Caption'] = "- $($TableParams.Name)"
             }
             $OutObj | Table @TableParams
-            Section -Style Heading6 'Service Database Summary' {
+            Section -Style Heading6 'Service Database' {
                 Paragraph "The following section provides a summary of the DHCP servers service database information on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -119,7 +119,7 @@ function Get-AbrADDHCPInfrastructure {
                 }
                 $OutObj | Table @TableParams
             }
-            Section -Style Heading6 'Dynamic DNS credentials Summary' {
+            Section -Style Heading6 'Dynamic DNS credentials' {
                 Paragraph "The following section provides a summary of the DHCP Servers Dynamic DNS registration credentials information on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()

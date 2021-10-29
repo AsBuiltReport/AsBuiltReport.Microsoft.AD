@@ -70,7 +70,7 @@ function Get-AbrADForest {
             }
             $OutObj | Table @TableParams
         }
-        Section -Style Heading5 'Optional Features Summary' {
+        Section -Style Heading5 'Optional Features' {
             Paragraph "The following section provides a summary of the enabled Optional Features."
             BlankLine
             Write-PscriboMessage "Discovering Optional Features enabled on forest $ForestInfo."

@@ -67,14 +67,14 @@ function Get-AbrADGPO {
 
                 if ($InfoLevel.Domain -le 2) {
                     $TableParams = @{
-                        Name = "Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                        Name = "GPO Information - $($Domain.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 45, 25, 15, 15
                     }
                 }
                 else {
                     $TableParams = @{
-                        Name = "Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                        Name = "GPO Information - $($Domain.ToString().ToUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }
@@ -85,7 +85,7 @@ function Get-AbrADGPO {
                 }
                 $OutObj | Table @TableParams
                 try {
-                    Section -Style Heading5 "Group Policy Objects with User Logon/Logoff Script Summary" {
+                    Section -Style Heading5 "GPO with User Logon/Logoff Script" {
                         Paragraph "The following section provides a summary of Group Policy Objects with Logon/Logoff Script."
                         BlankLine
                         $OutObj = @()
@@ -114,7 +114,7 @@ function Get-AbrADGPO {
                             }
 
                             $TableParams = @{
-                                Name = "Group Policy Objects with Logon/Logoff Script Information - $($Domain.ToString().ToUpper())"
+                                Name = "GPO with Logon/Logoff Script Information - $($Domain.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 20, 15, 15, 50
                             }
@@ -130,7 +130,7 @@ function Get-AbrADGPO {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects with Logon/Logoff Script)"
                 }
                 try {
-                    Section -Style Heading5 "Group Policy Objects with Computer Startup/Shutdown Script Summary" {
+                    Section -Style Heading5 "GPO with Computer Startup/Shutdown Script" {
                         Paragraph "The following section provides a summary of Group Policy Objects with Startup/Shutdown Script."
                         BlankLine
                         $OutObj = @()
@@ -159,7 +159,7 @@ function Get-AbrADGPO {
                             }
 
                             $TableParams = @{
-                                Name = "Group Policy Objects with Startup/Shutdown Script Information - $($Domain.ToString().ToUpper())"
+                                Name = "GPO with Startup/Shutdown Script Information - $($Domain.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 20, 15, 15, 50
                             }
@@ -177,7 +177,7 @@ function Get-AbrADGPO {
             }
             if ($HealthCheck.Domain.GPO) {
                 try {
-                    Section -Style Heading5 "Health Check - All Unlinked Group Policy Objects Summary" {
+                    Section -Style Heading5 "Health Check - All Unlinked GPO" {
                         Paragraph "The following section provides a summary of the Unlinked Group Policy Objects. Corrective Action: Remove Unused GPO."
                         BlankLine
                         $OutObj = @()
@@ -210,14 +210,14 @@ function Get-AbrADGPO {
 
                             if ($InfoLevel.Domain -le 2) {
                                 $TableParams = @{
-                                    Name = "Unlinked Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    Name = "Unlinked GPO Information - $($Domain.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 40, 15, 15, 15, 15
                                 }
                             }
                             else {
                                 $TableParams = @{
-                                    Name = "Unlinked Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    Name = "Unlinked GPO Information - $($Domain.ToString().ToUpper())"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }
@@ -234,7 +234,7 @@ function Get-AbrADGPO {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Information)"
                 }
                 try {
-                    Section -Style Heading5 "Health Check - All Empty Group Policy Objects Summary" {
+                    Section -Style Heading5 "Health Check - All Empty GPOs" {
                         Paragraph "The following section provides a summary of the Empty Group Policy Objects. Corrective Action: No User and Computer parameters are set : Remove Unused GPO."
                         BlankLine
                         $OutObj = @()
@@ -261,14 +261,14 @@ function Get-AbrADGPO {
 
                             if ($InfoLevel.Domain -le 2) {
                                 $TableParams = @{
-                                    Name = "Empty Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    Name = "Empty GPO Information - $($Domain.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 35, 15, 15, 35
                                 }
                             }
                             else {
                                 $TableParams = @{
-                                    Name = "Empty Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    Name = "Empty GPO Information - $($Domain.ToString().ToUpper())"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }
@@ -285,7 +285,7 @@ function Get-AbrADGPO {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Information)"
                 }
                 try {
-                    Section -Style Heading5 "Health Check - Enforced Group Policy Objects Summary" {
+                    Section -Style Heading5 "Health Check - Enforced GPO" {
                         Paragraph "The following section provides a summary of the Enforced Group Policy Objects."
                         BlankLine
                         $OutObj = @()
@@ -317,14 +317,14 @@ function Get-AbrADGPO {
 
                             if ($InfoLevel.Domain -le 2) {
                                 $TableParams = @{
-                                    Name = "Enforced Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    Name = "Enforced GPO Information - $($Domain.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 35, 15, 15, 35
                                 }
                             }
                             else {
                                 $TableParams = @{
-                                    Name = "Enforced Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    Name = "Enforced GPO Information - $($Domain.ToString().ToUpper())"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }

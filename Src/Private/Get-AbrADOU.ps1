@@ -31,7 +31,7 @@ function Get-AbrADOU {
     }
 
     process {
-        Section -Style Heading5 "Organizational Unit Summary" {
+        Section -Style Heading5 "Organizational Units" {
             Paragraph "The following section provides a summary of Active Directory Organizational Unit information."
             BlankLine
             $OutObj = @()
@@ -75,7 +75,7 @@ function Get-AbrADOU {
             }
             if ($HealthCheck.Domain.GPO) {
                 try {
-                    Section -Style Heading5 "Health Check - OU with Group Policy Objects Blocked Inheritance Summary" {
+                    Section -Style Heading5 "Health Check - OU with GPO Blocked Inheritance" {
                         Paragraph "The following section provides a summary of the Blocked Inheritance Group Policy Objects."
                         BlankLine
                         $OutObj = @()
@@ -107,14 +107,14 @@ function Get-AbrADOU {
 
                             if ($InfoLevel.Domain -le 2) {
                                 $TableParams = @{
-                                    Name = "Blocked Inheritance Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    Name = "Blocked Inheritance GPO Information - $($Domain.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 35, 15, 15, 35
                                 }
                             }
                             else {
                                 $TableParams = @{
-                                    Name = "Blocked Inheritance Group Policy Objects Information - $($Domain.ToString().ToUpper())"
+                                    Name = "Blocked Inheritance GPO Information - $($Domain.ToString().ToUpper())"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }

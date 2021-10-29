@@ -34,7 +34,7 @@ function Get-AbrADCAPerDomain {
         $OutObj = @()
         if ($Domain) {
             foreach ($Item in $Domain) {
-                Write-PscriboMessage "Discovering Active Directory Certification Authority information in $ForestInfo.toUpper()."
+                Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
                 $CAs =  Get-CertificationAuthority -Enterprise
                 foreach ($CA in $CAs) {
                     Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."

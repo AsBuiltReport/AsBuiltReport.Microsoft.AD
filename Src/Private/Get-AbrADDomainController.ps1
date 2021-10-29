@@ -71,7 +71,7 @@ function Get-AbrADDomainController {
         }
         if ($InfoLevel.Domain -ge 2) {
             Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
-            Section -Style Heading6 'Hardware Summary' {
+            Section -Style Heading6 'Hardware Inventory' {
                 Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -137,7 +137,7 @@ function Get-AbrADDomainController {
             }
         }
         Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
-        Section -Style Heading6 'NTDS Summary' {
+        Section -Style Heading6 'NTDS Information' {
             Paragraph "The following section provides a summary of the Domain Controller NTDS file size on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -184,7 +184,7 @@ function Get-AbrADDomainController {
             }
         }
         Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
-        Section -Style Heading6 'Time Source Summary' {
+        Section -Style Heading6 'Time Source Information' {
             Paragraph "The following section provides a summary of the Domain Controller Time Source configuration on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()

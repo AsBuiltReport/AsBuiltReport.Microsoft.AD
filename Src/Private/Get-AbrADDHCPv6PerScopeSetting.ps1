@@ -32,7 +32,7 @@ function Get-AbrADDHCPv6PerScopeSetting {
     }
 
     process {
-        Section -Style Heading6 "Scope Options information for scope $Scope" {
+        Section -Style Heading6 "$Scope Scope Options" {
             Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
             BlankLine
             $OutObj = @()
@@ -52,7 +52,7 @@ function Get-AbrADDHCPv6PerScopeSetting {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope Options information)"
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope Options Configuration)"
                 }
             }
 

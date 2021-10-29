@@ -29,7 +29,7 @@ function Get-AbrADDHCPv6Statistic {
     }
 
     process {
-        Section -Style Heading6 'IPv6 Service Statistics Summary' {
+        Section -Style Heading6 'IPv6 Service Statistics' {
             Paragraph "The following section provides a summary of the DHCP servers IPv6 Statistics information on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()

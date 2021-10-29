@@ -33,8 +33,8 @@ function Get-AbrADDNSZone {
 
     process {
         try {
-            Section -Style Heading5 "Domain Name System Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
-                Paragraph "The following section provides a summary of the Domain Name System Zone Configuration information."
+            Section -Style Heading5 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zone Configuration" {
+                Paragraph "The following section provides a summary of the DNS Zone Configuration information."
                 BlankLine
                 $OutObj = @()
                 if ($DC) {
@@ -63,7 +63,7 @@ function Get-AbrADDNSZone {
                     }
 
                     $TableParams = @{
-                        Name = "Domain Name System Zone Information."
+                        Name = "DNS Zone Information."
                         List = $false
                         ColumnWidths = 25, 15, 12, 12, 12, 12, 12
                     }
@@ -78,8 +78,8 @@ function Get-AbrADDNSZone {
                         Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                         $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and ($_.ZoneName -ne "_msdcs.pharmax.local" -and $_.ZoneName -ne "TrustAnchors") -and ($_.ZoneType -like "Primary" -or $_.ZoneType -like "Secondary")} | Select-Object -ExpandProperty ZoneName }
                         if ($DNSSetting) {
-                            Section -Style Heading6 "Zone Delegation of $($DC.ToString().ToUpper().Split(".")[0])" {
-                                Paragraph "The following section provides a summary of the Domain Name System Zone Delegation information."
+                            Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Zone Delegation" {
+                                Paragraph "The following section provides a summary of the DNS Zone Delegation information."
                                 BlankLine
                                 $OutObj = @()
                                 foreach ($Zone in $DNSSetting) {
@@ -100,7 +100,7 @@ function Get-AbrADDNSZone {
                             Remove-PSSession -Session $DCPssSession
 
                             $TableParams = @{
-                                Name = "Domain Name System Zone Delegation Information."
+                                Name = "DNS Zone Delegation Information."
                                 List = $false
                                 ColumnWidths = 25, 25, 32, 18
                             }
@@ -116,8 +116,8 @@ function Get-AbrADDNSZone {
                         continue
                     }
                 }
-                Section -Style Heading6 "Reverse Lookup Zone Configuration of $($DC.ToString().ToUpper().Split(".")[0])" {
-                    Paragraph "The following section provides a summary of the Domain Name System Reverse Lookup Zone Configuration information."
+                Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Reverse Lookup Zone Configuration" {
+                    Paragraph "The following section provides a summary of the DNS Reverse Lookup Zone Configuration information."
                     BlankLine
                     $OutObj = @()
                     if ($DC) {
@@ -146,7 +146,7 @@ function Get-AbrADDNSZone {
                         }
 
                         $TableParams = @{
-                            Name = "Domain Name System Zone Information."
+                            Name = "DNS Zone Information."
                             List = $false
                             ColumnWidths = 25, 15, 12, 12, 12, 12, 12
                         }
@@ -156,8 +156,8 @@ function Get-AbrADDNSZone {
                         $OutObj | Table @TableParams
                     }
                 }
-                Section -Style Heading5 "Conditional Forwarder information on $($DC.ToString().ToUpper().Split(".")[0])" {
-                    Paragraph "The following section provides a summary of the Domain Name System Conditional Forwarder information."
+                Section -Style Heading5 "$($DC.ToString().ToUpper().Split(".")[0]) Conditional Forwarder" {
+                    Paragraph "The following section provides a summary of the DNS Conditional Forwarder information."
                     BlankLine
                     $OutObj = @()
                     if ($DC) {
@@ -168,11 +168,11 @@ function Get-AbrADDNSZone {
                             foreach ($Zones in $DNSSetting) {
                                 Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
                                 $inObj = [ordered] @{
-                                    'Zone Name' = ConvertTo-EmptyToFiller $Zones.ZoneName
-                                    'Zone Type' = ConvertTo-EmptyToFiller $Zones.ZoneType
-                                    'Replication Scope' = ConvertTo-EmptyToFiller $Zones.ReplicationScope
-                                    'Master Servers' = ConvertTo-EmptyToFiller $Zones.MasterServers
-                                    'DS Integrated' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $Zones.IsDsIntegrated)
+                                    'Zone Name' = $Zones.ZoneName
+                                    'Zone Type' = $Zones.ZoneType
+                                    'Replication Scope' = $Zones.ReplicationScope
+                                    'Master Servers' = $Zones.MasterServers
+                                    'DS Integrated' = $Zones.IsDsIntegrated
                                 }
                                 $OutObj += [pscustomobject]$inobj
                             }
@@ -184,7 +184,7 @@ function Get-AbrADDNSZone {
                         }
 
                         $TableParams = @{
-                            Name = "Domain Name System Conditional Forwarder Information."
+                            Name = "DNS Conditional Forwarder Information."
                             List = $false
                             ColumnWidths = 25, 20, 20, 20, 15
                         }
@@ -195,8 +195,8 @@ function Get-AbrADDNSZone {
                     }
                 }
                 if ($InfoLevel.DNS -ge 2) {
-                    Section -Style Heading6 "Zone Scope Aging properties of $($DC.ToString().ToUpper().Split(".")[0])" {
-                        Paragraph "The following section provides a summary of the Domain Name System Zone Aging properties information."
+                    Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Zone Scope Aging Properties" {
+                        Paragraph "The following section provides a summary of the DNS Zone Aging properties information."
                         BlankLine
                         $OutObj = @()
                         try {
@@ -231,7 +231,7 @@ function Get-AbrADDNSZone {
                         }
 
                         $TableParams = @{
-                            Name = "Domain Name System Zone Aging properties Information."
+                            Name = "DNS Zone Aging properties Information."
                             List = $false
                             ColumnWidths = 25, 10, 15, 15, 35
                         }

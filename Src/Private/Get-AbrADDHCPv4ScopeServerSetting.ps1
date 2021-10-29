@@ -62,7 +62,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
         }
         $OutObj | Table @TableParams
         try {
-            Section -Style Heading6 "Scope DNS Setting information" {
+            Section -Style Heading6 "Scope DNS Setting" {
                 Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope DNS Setting information."
                 BlankLine
                 $OutObj = @()

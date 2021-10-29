@@ -30,7 +30,7 @@ function Get-AbrADDHCPv4Statistic {
 
     process {
         try {
-            Section -Style Heading6 'IPv4 Service Statistics Summary' {
+            Section -Style Heading6 'IPv4 Service Statistics' {
                 Paragraph "The following section provides a summary of the DHCP servers IPv4 Statistics information on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()

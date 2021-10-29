@@ -27,7 +27,7 @@ function Get-AbrADSite {
     }
 
     process {
-        Section -Style Heading3 'Domain Site Summary' {
+        Section -Style Heading3 'Domain Sites' {
             Paragraph "The following section provides a summary of the Active Directory Sites."
             BlankLine
             $Data =  Invoke-Command -Session $Session {Get-ADReplicationSite -Filter * -Properties *}
@@ -68,7 +68,7 @@ function Get-AbrADSite {
                 $OutObj | Table @TableParams
             }
         }
-        Section -Style Heading4 'Site Links Summary' {
+        Section -Style Heading4 'Site Links' {
             Paragraph "The following section provides a summary of the Active Directory Site Link information."
             BlankLine
             $Data =  Invoke-Command -Session $Session {Get-ADReplicationSiteLink -Filter * -Properties *}

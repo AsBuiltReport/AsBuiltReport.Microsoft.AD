@@ -24,7 +24,7 @@ function Get-AbrADCARoot {
 
     process {
         try {
-            Section -Style Heading3 "Enterprise Root Certificate Authority information for $($ForestInfo.toUpper())" {
+            Section -Style Heading3 "$($ForestInfo.toUpper()) Enterprise Root Certificate Authority" {
                 Paragraph "The following section provides the  of the DHCP servers IPv6 Scope Server Options information."
                 BlankLine
                 $OutObj = @()

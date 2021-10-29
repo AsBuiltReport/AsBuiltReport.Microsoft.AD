@@ -25,7 +25,7 @@ function Get-AbrADCASummary {
     process {
         $OutObj = @()
         if ($ForestInfo) {
-            Write-PscriboMessage "Discovering Active Directory Certification Authority information in $ForestInfo.toUpper()."
+            Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
             $CAs =  Get-CertificationAuthority -Enterprise
             foreach ($CA in $CAs) {
                 Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
