@@ -55,8 +55,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             if ($InfoLevel.Forest -ge 1) {
                 try {
                     Section -Style Heading2 "Forest Information."  {
-                        Paragraph "The Active Directory framework that holds the objects can be viewed at a number of levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest. A forest is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are accessible."
-                        BlankLine
+                        if ($Options.ShowDefinitionInfo) {
+                            Paragraph "The Active Directory framework that holds the objects can be viewed at a number of levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest. A forest is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are accessible."
+                            BlankLine
+                        }
+                        if (!$Options.ShowDefinitionInfo) {
+                            Paragraph "The following section provides a summary of the Active Directory Forest Information."
+                            BlankLine
+                        }
                         Get-AbrADForest -Session $TempPssSession
                         Get-AbrADSite -Session $TempPssSession
                     }
@@ -72,8 +78,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.Domain -ge 1) {
                 Section -Style Heading3 "Active Directory Domain Information" {
-                    Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user or a group or it can be a hardware component, such as a computer or printer.Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain or an alternate version (which may end in .local)."
-                    BlankLine
+                    if ($Options.ShowDefinitionInfo) {
+                        Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user or a group or it can be a hardware component, such as a computer or printer.Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain or an alternate version (which may end in .local)."
+                        BlankLine
+                    }
+                    if (!$Options.ShowDefinitionInfo) {
+                        Paragraph "The following section provides a summary of the Active Directory Domain Information."
+                        BlankLine
+                    }
                     foreach ($Domain in (Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
                             if (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}) {
@@ -85,10 +97,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Get-AbrADTrust -Domain $Domain -Session $TempPssSession -Cred $Credential
                                     Get-AbrADDomainObject -Domain $Domain -Session $TempPssSession -Cred $Credential
                                     Section -Style Heading5 'Domain Controller Summary' {
-                                        Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
-                                        BlankLine
-                                        Paragraph "The following section provides a summary of the Active Directory Domain Controller."
-                                        BlankLine
+                                        if ($Options.ShowDefinitionInfo) {
+                                            Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
+                                            BlankLine
+                                        }
+                                        if (!$Options.ShowDefinitionInfo) {
+                                            Paragraph "The following section provides a summary of the Active Directory Domain Controllers."
+                                            BlankLine
+                                        }
                                         Get-AbrADDomainController -Domain $Domain -Session $TempPssSession -Cred $Credential
                                         $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                         if ($InfoLevel.Domain -ge 3) {
@@ -143,8 +159,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.DNS -ge 1) {
                 Section -Style Heading3 "$($ForestInfo.toUpper()) Domain Name System Summary" {
-                    Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
-                    BlankLine
+                    if ($Options.ShowDefinitionInfo) {
+                        Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
+                        BlankLine
+                    }
+                    if (!$Options.ShowDefinitionInfo) {
+                        Paragraph "The following section provides a summary of the Active Directory DNS Infrastructure Information."
+                        BlankLine
+                    }
                     foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
                             if (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}) {
@@ -173,8 +195,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.DHCP -ge 1) {
                 Section -Style Heading3 "$($ForestInfo.toUpper()) Dynamic Host Configuration Protocol Summary" {
-                    Paragraph "The Dynamic Host Configuration Protocol (DHCP) is a network management protocol used on Internet Protocol (IP) networks for automatically assigning IP addresses and other communication parameters to devices connected to the network using a client/server architecture."
-                    BlankLine
+                    if ($Options.ShowDefinitionInfo) {
+                        Paragraph "The Dynamic Host Configuration Protocol (DHCP) is a network management protocol used on Internet Protocol (IP) networks for automatically assigning IP addresses and other communication parameters to devices connected to the network using a client/server architecture."
+                        BlankLine
+                    }
+                    if (!$Options.ShowDefinitionInfo) {
+                        Paragraph "The following section provides a summary of the Active Directory DHCP Infrastructure Information."
+                        BlankLine
+                    }
                     foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain DHCP Configuration" {
                             Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
@@ -274,8 +302,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             if ($InfoLevel.CA -ge 1) {
                 try {
                 Section -Style Heading3 "$($ForestInfo.toUpper()) Certificate Authority Summary" {
-                    Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party—trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
-                    BlankLine
+                    if ($Options.ShowDefinitionInfo) {
+                        Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party—trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
+                        BlankLine
+                    }
+                    if (!$Options.ShowDefinitionInfo) {
+                        Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
+                        BlankLine
+                    }
                     Get-AbrADCASummary
                     Get-AbrADCARoot
                     }
