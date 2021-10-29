@@ -177,7 +177,7 @@ function Get-AbrADGPO {
             }
             if ($HealthCheck.Domain.GPO) {
                 try {
-                    Section -Style Heading5 "Health Check - All Unlinked GPO" {
+                    Section -Style Heading5 "Health Check - Unlinked GPO" {
                         Paragraph "The following section provides a summary of the Unlinked Group Policy Objects. Corrective Action: Remove Unused GPO."
                         BlankLine
                         $OutObj = @()
@@ -234,7 +234,7 @@ function Get-AbrADGPO {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Information)"
                 }
                 try {
-                    Section -Style Heading5 "Health Check - All Empty GPOs" {
+                    Section -Style Heading5 "Health Check - Empty GPOs" {
                         Paragraph "The following section provides a summary of the Empty Group Policy Objects. Corrective Action: No User and Computer parameters are set : Remove Unused GPO."
                         BlankLine
                         $OutObj = @()

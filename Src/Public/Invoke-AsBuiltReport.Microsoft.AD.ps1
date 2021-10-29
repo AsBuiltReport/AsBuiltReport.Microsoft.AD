@@ -91,7 +91,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         BlankLine
                                         Get-AbrADDomainController -Domain $Domain -Session $TempPssSession -Cred $Credential
                                         $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                                        if ($InfoLevel.Domain -ge 2) {
+                                        if ($InfoLevel.Domain -ge 3) {
                                             foreach ($DC in $DCs){
                                                 Get-AbrADDCRoleFeature -DC $DC -Cred $Credential
                                             }
