@@ -77,7 +77,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     foreach ($Domain in (Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
                             if (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}) {
-                                Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain" {
+                                Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain Configuration" {
                                     Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                     BlankLine
                                     Get-AbrADDomain -Domain $Domain -Session $TempPssSession -Cred $Credential
@@ -149,12 +149,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         try {
                             if (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}) {
                                 Section -Style Heading4 "$($Domain.ToString().ToUpper()) DNS Configuration" {
-                                    Paragraph "The following section provides a configuration summary of the Domain Name System."
+                                    Paragraph "The following section provides a configuration summary of the DNS service."
                                     BlankLine
                                     Get-AbrADDNSInfrastructure -Domain $Domain -Session $TempPssSession
-                                    $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                                    foreach ($DC in $DCs){
-                                        Get-AbrADDNSZone -Domain $Domain -DC $DC -Cred $Credential
+                                    if ($InfoLevel.DNS -ge 2) {
+                                        $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                        foreach ($DC in $DCs){
+                                            Get-AbrADDNSZone -Domain $Domain -DC $DC -Cred $Credential
+                                        }
                                     }
                                 }
                             }
@@ -178,7 +180,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                             Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
                             BlankLine
                             Get-AbrADDHCPInfrastructure -Domain $Domain -Session $TempPssSession
-                            Section -Style Heading5 "IPv4 Scope Information" {
+                            Section -Style Heading5 "IPv4 Scope Summary" {
                                 Paragraph "The following section provides a IPv4 configuration summary of the Dynamic Host Configuration Protocol."
                                 BlankLine
                                 try {
