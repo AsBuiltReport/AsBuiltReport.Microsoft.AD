@@ -1,5 +1,29 @@
 # :arrows_counterclockwise: Microsoft AD As Built Report Changelog
 
+## [0.5.0] - 2021-10-29
+
+### Added
+
+- Added ShowDefinitionInfo Option (Allows the user to choose whether to enable AD term explanations.)
+- Explanation of the ShowDefinitionInfo option has been added to the ReadMe file.
+- Added Dynamic DNS Credentials Health Check.
+- Added updated HTML Sample Report.
+
+
+
+### Changed
+
+- The spelling of the section title has been revised.
+- Moved DNS Zone section to InfoLevel 2.
+- Moved Role and Feature section to InfoLevel 3.
+- Removed Unused InfoLevels (CA & Security).
+
+### Fixed
+
+- Fix try/catch error messages (globally)
+- Fix try/catch logic on the DNS Section (Fix [#11](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/11))
+
+
 ## [0.4.0] - 2021-10-08
 
 ### Added
