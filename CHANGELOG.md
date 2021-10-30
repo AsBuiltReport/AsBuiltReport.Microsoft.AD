@@ -9,8 +9,6 @@
 - Added Dynamic DNS Credentials Health Check.
 - Added updated HTML Sample Report.
 
-
-
 ### Changed
 
 - The spelling of the section title has been revised.
@@ -22,7 +20,6 @@
 
 - Fix try/catch error messages (globally)
 - Fix try/catch logic on the DNS Section (Fix [#11](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/11))
-
 
 ## [0.4.0] - 2021-10-08
 
