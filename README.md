@@ -143,7 +143,7 @@ The **Options** schema allows certain options within the report to be toggled on
 
 | Sub-Schema      | Setting      | Default | Description                                                                                                                                                                                 |
 |-----------------|--------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ShowDefinitionInfo | true/false  | false    | Toggle to enable/disable Microsoft AD Section Documentation
+| ShowDefinitionInfo | true/false  | false    | Toggle to enable/disable Microsoft AD term explanations
 
 
 ### InfoLevel
