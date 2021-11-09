@@ -54,7 +54,6 @@ function Get-AbrADDNSInfrastructure {
                             }
                             catch {
                                 Write-PscriboMessage -IsWarning " $($_.Exception.Message) (Infrastructure Summary)"
-                                continue
                             }
                         }
                     }
@@ -68,6 +67,54 @@ function Get-AbrADDNSInfrastructure {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Table @TableParams
+                }
+                if ($InfoLevel.DNS -ge 2) {
+                    Section -Style Heading6 "Application Directory Partition" {
+                        Paragraph "The following section provides a summary of the DNS Application Directory Partition information."
+                        BlankLine
+                        if ($Domain) {
+                            foreach ($Item in $Domain) {
+                                $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
+                                foreach ($DC in $DCs) {
+                                    Section -Style Heading7 "$($DC.ToString().ToUpper().Split(".")[0]) Directory Partition" {
+                                        Paragraph "The following section provides $($DC.ToString().ToUpper().Split(".")[0]) Directory Partition information."
+                                        BlankLine
+                                        $OutObj = @()
+                                        Write-PscriboMessage "Collecting Domain Name System Directory Partition information on '$($DC)'."
+                                        try {
+                                            $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerDirectoryPartition -ComputerName $using:DC}
+                                            foreach ($Partition in $DNSSetting) {
+                                                $inObj = [ordered] @{
+                                                    'Name' = $Partition.DirectoryPartitionName
+                                                    'State' = ConvertTo-EmptyToFiller $Partition.State
+                                                    'Flags' = $Partition.Flags
+                                                    'Zone Count' = $Partition.ZoneCount
+                                                }
+                                                $OutObj += [pscustomobject]$inobj
+                                            }
+                                        }
+                                        catch {
+                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Directory Partitions Summary)"
+                                        }
+                                        if ($HealthCheck.DNS.DP) {
+                                            $OutObj | Where-Object { $_.'State' -ne 0 -and $_.'State' -ne "-"} | Set-Style -Style Warning -Property 'Name','State','Flags','Zone Count'
+                                        }
+
+                                        $TableParams = @{
+                                            Name = "DNS Directory Partitions information."
+                                            List = $false
+                                            ColumnWidths = 50, 15, 25, 10
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Sort-Object -Property Name | Table @TableParams
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 if ($InfoLevel.DNS -ge 2) {
                     Section -Style Heading6 "Response Rate Limiting (RRL)" {
@@ -96,7 +143,6 @@ function Get-AbrADDNSInfrastructure {
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Summary)"
-                                        continue
                                     }
                                 }
                             }
@@ -146,7 +192,6 @@ function Get-AbrADDNSInfrastructure {
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Summary)"
-                                        continue
                                     }
                                 }
                             }
@@ -187,7 +232,6 @@ function Get-AbrADDNSInfrastructure {
                                 }
                                 catch {
                                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Summary)"
-                                    continue
                                 }
                             }
                         }
@@ -201,6 +245,49 @@ function Get-AbrADDNSInfrastructure {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Table @TableParams
+                    }
+                }
+                if ($InfoLevel.DNS -ge 2) {
+                    Section -Style Heading6 "Root Hints" {
+                        Paragraph "The following section provides a summary of the DNS Root Hints information."
+                        BlankLine
+                        if ($Domain) {
+                            foreach ($Item in $Domain) {
+                                $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
+                                foreach ($DC in $DCs) {
+                                    Section -Style Heading7 "$($DC.ToString().ToUpper().Split(".")[0]) Root Hints" {
+                                        Paragraph "The following section provides $($DC.ToString().ToUpper().Split(".")[0]) Root Hints information."
+                                        BlankLine
+                                        $OutObj = @()
+                                        Write-PscriboMessage "Collecting Domain Name System Root Hint information on '$($DC)'."
+                                        try {
+                                            $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerRootHint -ComputerName $using:DC | Select-Object @{Name="Name"; E={$_.NameServer.RecordData.Nameserver}},@{Name="IPAddress"; E={$_.IPAddress.RecordData.IPv6Address.IPAddressToString,$_.IPAddress.RecordData.IPv4Address.IPAddressToString} }}
+                                            foreach ($Hints in $DNSSetting) {
+                                                $inObj = [ordered] @{
+                                                    'Name' = $Hints.Name
+                                                    'IP Address' = (($Hints.IPAddress).Where({ $_ -ne $Null })) -join ", "
+                                                }
+                                                $OutObj += [pscustomobject]$inobj
+                                            }
+                                        }
+                                        catch {
+                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Summary)"
+                                        }
+
+                                        $TableParams = @{
+                                            Name = "DNS Root Hints information."
+                                            List = $false
+                                            ColumnWidths = 50, 50
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Sort-Object -Property Name | Table @TableParams
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 if ($InfoLevel.DNS -ge 2) {
@@ -229,7 +316,6 @@ function Get-AbrADDNSInfrastructure {
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Summary)"
-                                        continue
                                     }
                                 }
                             }
@@ -250,7 +336,6 @@ function Get-AbrADDNSInfrastructure {
         }
         catch {
             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Global DNS Infrastructure)"
-            continue
         }
     }
 
