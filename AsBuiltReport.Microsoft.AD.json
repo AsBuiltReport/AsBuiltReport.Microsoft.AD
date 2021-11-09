@@ -31,7 +31,8 @@
             "Replication": true
         },
         "DNS": {
-            "Aging": true
+            "Aging": true,
+            "DP": true
         },
         "DHCP": {
             "Summary": true,
