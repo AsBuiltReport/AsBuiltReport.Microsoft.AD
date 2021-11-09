@@ -235,6 +235,53 @@ function Get-AbrADDomainController {
                 $OutObj | Table @TableParams
             }
         }
+        Write-PscriboMessage "Collecting additional software running on the Domain Controller ."
+        Section -Style Heading6 'HealthCheck - Installed Software on the DC' {
+            Paragraph "The following section provides a summary of additional software running on $($Domain.ToString().ToUpper())."
+            BlankLine
+            if ($Domain) {
+                foreach ($Item in $Domain) {
+                    Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
+                    $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                    Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
+                    foreach ($DC in $DCs) {
+                        try {
+                            Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) additional software" {
+                                Paragraph "The following section provides a summary of additional software running on $($DC.ToString().ToUpper().Split(".")[0])."
+                                BlankLine
+                                $OutObj = @()
+                                Write-PscriboMessage "Collecting AD Domain Controller installed software information for $DC."
+                                $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                                $Software = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.Publisher -notlike "VMware*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
+                                Remove-PSSession -Session $DCPssSession
+                                if ( $Software ) {
+                                    foreach ($APP in $Software) {
+                                        $inObj = [ordered] @{
+                                            'Name' = $APP.DisplayName
+                                            'Publisher' = $APP.Publisher
+                                            'Install Date' = $APP.InstallDate
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
+                                }
+                                $TableParams = @{
+                                    Name = "Additional Software - $($DC.ToString().ToUpper().Split(".")[0])"
+                                    List = $false
+                                    ColumnWidths = 34, 33, 33
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $OutObj | Table @TableParams
+                            }
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) Additional Software"
+                        }
+                    }
+                }
+            }
+        }
     }
 
     end {}
