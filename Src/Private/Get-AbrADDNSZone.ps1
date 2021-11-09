@@ -59,7 +59,6 @@ function Get-AbrADDNSZone {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Zone)"
-                        continue
                     }
 
                     $TableParams = @{
@@ -113,7 +112,50 @@ function Get-AbrADDNSZone {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Delegation)"
-                        continue
+                    }
+                }
+                if ($InfoLevel.DNS -ge 2) {
+                    try {
+                        $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                        Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
+                        $DNSSetting = Invoke-Command -Session $DCPssSession {Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object {$_ -match 'SecondaryServers'}}
+                        if ($DNSSetting) {
+                            Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Zone Transfers" {
+                                Paragraph "The following section provides a summary of the DNS Zone Transfer information."
+                                BlankLine
+                                $OutObj = @()
+                                foreach ($Zone in $DNSSetting) {
+                                    Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zone.PSChildName)' on $DC"
+                                    $inObj = [ordered] @{
+                                        'Zone Name' = $Zone.PSChildName
+                                        'Secondary Servers' = ConvertTo-EmptyToFiller $Zone.SecondaryServers
+                                        'Notify Servers' = ConvertTo-EmptyToFiller $Zone.NotifyServers
+                                        'Secure Secondaries' = Switch ($Setting.SecureSecondaries) {
+                                            0 {"Send zone transfers to all secondary servers that request them."}
+                                            1 {"Send zone transfers only to name servers that are authoritative for the zone."}
+                                            2 {"Send zone transfers only to servers you specify in Secondary Servers."}
+                                            3 {"Do not send zone transfers."}
+                                            default {$Setting.SecureSecondaries}
+                                        }
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
+                            Remove-PSSession -Session $DCPssSession
+
+                            $TableParams = @{
+                                Name = "DNS Zone Transfer Information."
+                                List = $true
+                                ColumnWidths = 40, 60
+                            }
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                            }
+                        }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers)"
                     }
                 }
                 Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Reverse Lookup Zone Configuration" {
@@ -142,7 +184,6 @@ function Get-AbrADDNSZone {
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Reverse Lookup Zone Configuration)"
-                            continue
                         }
 
                         $TableParams = @{
@@ -180,7 +221,6 @@ function Get-AbrADDNSZone {
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Conditional Forwarder)"
-                            continue
                         }
 
                         $TableParams = @{
@@ -223,7 +263,6 @@ function Get-AbrADDNSZone {
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Aging)"
-                            continue
                         }
 
                         if ($HealthCheck.DNS.Aging) {
@@ -245,7 +284,6 @@ function Get-AbrADDNSZone {
         }
         catch {
             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Global DNS Zone Information)"
-            continue
         }
     }
 
