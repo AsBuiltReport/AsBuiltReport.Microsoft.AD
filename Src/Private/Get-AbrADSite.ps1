@@ -53,7 +53,6 @@ function Get-AbrADSite {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Site)"
-                        continue
                     }
                 }
 
@@ -95,7 +94,6 @@ function Get-AbrADSite {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Links)"
-                        continue
                     }
                 }
 
