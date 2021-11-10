@@ -25,7 +25,8 @@
         },
         "DomainController": {
             "Diagnostic": true,
-            "Services": true
+            "Services": true,
+            "Software": true
         },
         "Site": {
             "Replication": true
