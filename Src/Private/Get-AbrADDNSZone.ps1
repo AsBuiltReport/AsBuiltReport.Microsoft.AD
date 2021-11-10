@@ -130,12 +130,12 @@ function Get-AbrADDNSZone {
                                         'Zone Name' = $Zone.PSChildName
                                         'Secondary Servers' = ConvertTo-EmptyToFiller $Zone.SecondaryServers
                                         'Notify Servers' = ConvertTo-EmptyToFiller $Zone.NotifyServers
-                                        'Secure Secondaries' = Switch ($Setting.SecureSecondaries) {
-                                            0 {"Send zone transfers to all secondary servers that request them."}
-                                            1 {"Send zone transfers only to name servers that are authoritative for the zone."}
-                                            2 {"Send zone transfers only to servers you specify in Secondary Servers."}
-                                            3 {"Do not send zone transfers."}
-                                            default {$Setting.SecureSecondaries}
+                                        'Secure Secondaries' = Switch ($Zone.SecureSecondaries) {
+                                            "0" {"Send zone transfers to all secondary servers that request them."}
+                                            "1" {"Send zone transfers only to name servers that are authoritative for the zone."}
+                                            "2" {"Send zone transfers only to servers you specify in Secondary Servers."}
+                                            "3" {"Do not send zone transfers."}
+                                            default {$Zone.SecureSecondaries}
                                         }
                                     }
                                     $OutObj += [pscustomobject]$inobj
