@@ -63,14 +63,23 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                             Paragraph "The following section provides a summary of the Active Directory Forest Information."
                             BlankLine
                         }
-                        Get-AbrADForest -Session $TempPssSession
-                        Get-AbrADSite -Session $TempPssSession
+                        try {
+                            Get-AbrADForest -Session $TempPssSession
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        }
+                        try {
+                            Get-AbrADSite -Session $TempPssSession
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        }
                     }
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."
                     Write-PscriboMessage -IsWarning $_.Exception.Message
-                    continue
                 }
             }
             #---------------------------------------------------------------------------------------------#
