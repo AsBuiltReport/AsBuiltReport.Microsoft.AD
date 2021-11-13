@@ -85,7 +85,43 @@ function Get-AbrADGPO {
                 }
                 $OutObj | Table @TableParams
                 try {
-                    Section -Style Heading5 "GPO with User Logon/Logoff Script" {
+                    Section -Style Heading6 "GPO Central Store Repository" {
+                        Paragraph "The following section provides information of the status of Central Store. Corrective Action: Deploy centralized GPO repository."
+                        BlankLine
+                        $OutObj = @()
+                        if ($Domain) {
+                            $PATH = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
+                            $CentralStore = Invoke-Command -Session $Session -ScriptBlock {Test-Path $using:PATH}
+                            Write-PscriboMessage "Discovered Active Directory Central Store information on $Domain. (Central Store)"
+                            $inObj = [ordered] @{
+                                'Domain' = $Domain.ToString().ToUpper()
+                                'Configured' = ConvertTo-TextYN $CentralStore
+                                'Central Store Path' = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
+                            }
+                            $OutObj += [pscustomobject]$inobj
+                        }
+
+                        if ($HealthCheck.Domain.GPO) {
+                            $OutObj | Where-Object { $_.'Configured' -eq 'No'} | Set-Style -Style Warning -Property 'Configured'
+                        }
+
+                        $TableParams = @{
+                            Name = "GPO Central Store Information - $($Domain.ToString().ToUpper())"
+                            List = $false
+                            ColumnWidths = 25, 15, 60
+                        }
+
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Table @TableParams
+                    }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Information)"
+                }
+                try {
+                    Section -Style Heading6 "GPO with User Logon/Logoff Script" {
                         Paragraph "The following section provides a summary of Group Policy Objects with Logon/Logoff Script."
                         BlankLine
                         $OutObj = @()
@@ -130,7 +166,7 @@ function Get-AbrADGPO {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects with Logon/Logoff Script)"
                 }
                 try {
-                    Section -Style Heading5 "GPO with Computer Startup/Shutdown Script" {
+                    Section -Style Heading6 "GPO with Computer Startup/Shutdown Script" {
                         Paragraph "The following section provides a summary of Group Policy Objects with Startup/Shutdown Script."
                         BlankLine
                         $OutObj = @()
@@ -177,7 +213,7 @@ function Get-AbrADGPO {
             }
             if ($HealthCheck.Domain.GPO) {
                 try {
-                    Section -Style Heading5 "Health Check - Unlinked GPO" {
+                    Section -Style Heading6 "Health Check - Unlinked GPO" {
                         Paragraph "The following section provides a summary of the Unlinked Group Policy Objects. Corrective Action: Remove Unused GPO."
                         BlankLine
                         $OutObj = @()
@@ -234,7 +270,7 @@ function Get-AbrADGPO {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Information)"
                 }
                 try {
-                    Section -Style Heading5 "Health Check - Empty GPOs" {
+                    Section -Style Heading6 "Health Check - Empty GPOs" {
                         Paragraph "The following section provides a summary of the Empty Group Policy Objects. Corrective Action: No User and Computer parameters are set : Remove Unused GPO."
                         BlankLine
                         $OutObj = @()
@@ -285,7 +321,7 @@ function Get-AbrADGPO {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Information)"
                 }
                 try {
-                    Section -Style Heading5 "Health Check - Enforced GPO" {
+                    Section -Style Heading6 "Health Check - Enforced GPO" {
                         Paragraph "The following section provides a summary of the Enforced Group Policy Objects."
                         BlankLine
                         $OutObj = @()
