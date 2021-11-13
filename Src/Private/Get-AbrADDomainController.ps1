@@ -237,7 +237,7 @@ function Get-AbrADDomainController {
         }
         if ($HealthCheck.DomainController.Software) {
             Write-PscriboMessage "Collecting additional software running on the Domain Controller ."
-            Section -Style Heading6 'HealthCheck - Installed Software on the DC' {
+            Section -Style Heading6 'HealthCheck - Installed Software on DC' {
                 Paragraph "The following section provides a summary of additional software running on $($Domain.ToString().ToUpper())."
                 BlankLine
                 if ($Domain) {
@@ -266,7 +266,7 @@ function Get-AbrADDomainController {
                                         }
                                     }
                                     $TableParams = @{
-                                        Name = "Additional Software - $($DC.ToString().ToUpper().Split(".")[0])"
+                                        Name = "Installed Software - $($DC.ToString().ToUpper().Split(".")[0])"
                                         List = $false
                                         ColumnWidths = 34, 33, 33
                                     }
@@ -277,7 +277,7 @@ function Get-AbrADDomainController {
                                 }
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) Additional Software"
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Installed Software)"
                             }
                         }
                     }
