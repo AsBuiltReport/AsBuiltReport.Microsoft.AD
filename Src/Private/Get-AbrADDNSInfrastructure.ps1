@@ -33,8 +33,8 @@ function Get-AbrADDNSInfrastructure {
             Section -Style Heading5 "Infrastructure Summary" {
                 Paragraph "The following section provides a summary of the DNS Infrastructure configuration."
                 BlankLine
-                $OutObj = @()
                 if ($Domain) {
+                    $OutObj = @()
                     foreach ($Item in $Domain) {
                         $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
                         if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
@@ -67,6 +67,52 @@ function Get-AbrADDNSInfrastructure {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Table @TableParams
+                }
+                if ($InfoLevel.DNS -ge 2) {
+                    Section -Style Heading6 "Domain Controller DNS IP Configuration" {
+                        Paragraph "The following section provides information of the DNS IP Configuration."
+                        BlankLine
+                        if ($Domain) {
+                            $OutObj = @()
+                            $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                            if ($DCs) {Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"}
+                            foreach ($DC in $DCs) {
+                                $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                                Write-PscriboMessage "Collecting DNS IP Configuration information from '$($DC)'."
+                                try {
+                                    $DNSSettings = Invoke-Command -Session $DCPssSession {Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4}
+                                    foreach ($DNSSetting in $DNSSettings) {
+                                        $inObj = [ordered] @{
+                                            'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                            'Interface' = $DNSSetting.InterfaceAlias
+                                            'DNS IP 1' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[0]
+                                            'DNS IP 2' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[1]
+                                            'DNS IP 3' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[2]
+                                            'DNS IP 4' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[3]
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration)"
+                                }
+                            }
+
+                            if ($HealthCheck.DNS.DP) {
+                                $OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"} | Set-Style -Style Warning -Property 'DNS IP 1'
+                            }
+
+                            $TableParams = @{
+                                Name = "DNS IP Configuration information."
+                                List = $false
+                                ColumnWidths = 20, 20, 15, 15, 15, 15
+                            }
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                        }
+                    }
                 }
                 if ($InfoLevel.DNS -ge 2) {
                     Section -Style Heading6 "Application Directory Partition" {
