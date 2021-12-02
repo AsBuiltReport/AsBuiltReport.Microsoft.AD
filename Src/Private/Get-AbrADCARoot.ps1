@@ -24,14 +24,14 @@ function Get-AbrADCARoot {
 
     process {
         try {
-            Section -Style Heading3 "$($ForestInfo.toUpper()) Enterprise Root Certificate Authority" {
-                Paragraph "The following section provides the  of the DHCP servers IPv6 Scope Server Options information."
+            Section -Style Heading4 "Enterprise Root Certificate Authority" {
+                Paragraph "The following section provides the Enterprise Root CA information."
                 BlankLine
                 $OutObj = @()
                 Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
-                $CAs = Get-CertificationAuthority -Enterprise | Where-Object {$_.IsRoot -eq 'True'}
+                $CAs = Get-CertificationAuthority -Enterprise | Where-Object {$_.IsRoot -like 'True'}
+                Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
                 foreach ($CA in $CAs) {
-                    Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
                     Write-PscriboMessage "Collecting AD Certification Authority Summary information of $CA."
                     $inObj = [ordered] @{
                         'CA Name' = $CA.DisplayName
@@ -50,7 +50,7 @@ function Get-AbrADCARoot {
                 }
 
                 $TableParams = @{
-                    Name = "Certification Authority Summary Information - $($ForestInfo.ToString().ToUpper())"
+                    Name = "Enterprise Root CA Information - $($ForestInfo.ToString().ToUpper())"
                     List = $true
                     ColumnWidths = 40, 60
                 }
