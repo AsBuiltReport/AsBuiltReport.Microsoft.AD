@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,6 +30,8 @@ function Get-AbrADForest {
         $Data = Invoke-Command -Session $Session {Get-ADForest}
         $ForestInfo =  $Data.RootDomain.toUpper()
         Write-PscriboMessage "Discovered Active Directory information of forest $ForestInfo."
+        $DomainDN = Invoke-Command -Session $Session {(Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName}
+        $TombstoneLifetime = Invoke-Command -Session $Session {Get-ADObject "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$using:DomainDN" -Properties tombstoneLifetime | Select-Object -ExpandProperty tombstoneLifetime}
         $ADVersion = Invoke-Command -Session $Session {Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion}
         If ($ADVersion -eq '88') {$server = 'Windows Server 2019'}
         ElseIf ($ADVersion -eq '87') {$server = 'Windows Server 2016'}
@@ -47,6 +49,7 @@ function Get-AbrADForest {
                     'Forest Name' = $Item.RootDomain
                     'Forest Functional Level' = $Item.ForestMode
                     'Schema Version' = "ObjectVersion $ADVersion, Correspond to $server"
+                    'Tombstone Lifetime (days)' = $TombstoneLifetime
                     'Domains' = $Item.Domains -join '; '
                     'Global Catalogs' = $Item.GlobalCatalogs -join '; '
                     'Application Partitions' = $Item.ApplicationPartitions
@@ -67,7 +70,7 @@ function Get-AbrADForest {
             }
             $OutObj | Table @TableParams
         }
-        Section -Style Heading5 'Optional Features Summary' {
+        Section -Style Heading5 'Optional Features' {
             Paragraph "The following section provides a summary of the enabled Optional Features."
             BlankLine
             Write-PscriboMessage "Discovering Optional Features enabled on forest $ForestInfo."

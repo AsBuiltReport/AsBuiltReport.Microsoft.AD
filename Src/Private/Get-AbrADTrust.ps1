@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,7 @@ function Get-AbrADTrust {
     }
 
     process {
-        Section -Style Heading5 'Trust Summary' {
+        Section -Style Heading5 'Domain and Trusts' {
             Paragraph "The following section provides a summary of Active Directory Trust information on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -46,8 +46,8 @@ function Get-AbrADTrust {
                         Write-PscriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
                         $inObj = [ordered] @{
                             'Name' = $Trust.Name
-                            'Distinguished Name' =  $Trust.DistinguishedName
-                            'Source' = $Trust.Source
+                            'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Credential $Cred -Domain $Domain
+                            'Source' = ConvertTo-ADObjectName $Trust.Source -Session $DCPssSession
                             'Target' = $Trust.Target
                             'Direction' = $Trust.Direction
                             'IntraForest' =  ConvertTo-TextYN $Trust.IntraForest
@@ -62,8 +62,7 @@ function Get-AbrADTrust {
                     Remove-PSSession -Session $DCPssSession
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Summary)"
                     }
                 }
 

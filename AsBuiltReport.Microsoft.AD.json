@@ -9,34 +9,41 @@
         "ShowTableCaptions": true
     },
     "Options": {
-
+        "ShowDefinitionInfo": false
     },
     "InfoLevel": {
-        "_comment_": "0 = Disabled, 1 = Enabled",
+        "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",
         "Forest": 1,
         "Domain": 1,
-        "Site": 1,
         "DHCP": 1,
         "DNS": 1,
-        "CA": 1
+        "CA": 2
     },
     "HealthCheck": {
         "Domain": {
-            "GMSA": true
+            "GMSA": true,
+            "GPO": true
         },
         "DomainController": {
             "Diagnostic": true,
-            "Services": true
+            "Services": true,
+            "Software": true
         },
         "Site": {
             "Replication": true
         },
         "DNS": {
-            "Aging": true
+            "Aging": true,
+            "DP": true
         },
         "DHCP": {
             "Summary": true,
             "Credential": true,
+            "Statistics": true,
+            "BP": true
+        },
+        "CA": {
+            "Status": true
             "Statistics": true
         }
     }

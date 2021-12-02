@@ -1,5 +1,84 @@
 # :arrows_counterclockwise: Microsoft AD As Built Report Changelog
 
+## [0.6.0] - 2021-12-02
+
+### Added
+
+- Added more CA Sections (Need More Testing)
+  - Added CRL Repository
+  - Added AIA Information
+  - Added Security Section
+  - Added Template Information
+  - Added Key Recovery Agent Information
+  - Added Cryptography Configuration Information
+
+### Changed
+
+- The spelling of the section title has been revised.
+- Enabled CA InfoLevels Option.
+
+## [0.5.0] - 2021-10-29
+
+### Added
+
+- Added ShowDefinitionInfo Option (Allows the user to choose whether to enable AD term explanations.)
+- Explanation of the ShowDefinitionInfo option has been added to the ReadMe file.
+- Added Dynamic DNS Credentials Health Check.
+- Added updated HTML Sample Report.
+
+### Changed
+
+- The spelling of the section title has been revised.
+- Moved DNS Zone section to InfoLevel 2.
+- Moved Role and Feature section to InfoLevel 3.
+- Removed Unused InfoLevels (CA & Security).
+
+### Fixed
+
+- Fix try/catch error messages (globally)
+- Fix try/catch logic on the DNS Section (Fix [#11](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/11))
+
+## [0.4.0] - 2021-10-08
+
+### Added
+
+- Added Installed Roles and Features to the DC Section.
+- Added Fined Grained Password Policies to the Domain Section (fix issue #6).
+- Added Log and SysVol Path to NTDS Table (fix issue #6).
+- Added More Active Directory Object Count (fix issue #9).
+- Added Tombstone Lifetime to the Forest Section.
+- Added Enforced Group Policy Objects (fix issue #9).
+- Added GPO Logon/Logoff Startup/Shutdown Script Support (fix issue #9).
+- Added GPO Blocked Inheritance (fix issue #9).
+- Added DHCP IPv4 per Scope Option information.
+- Added DHCP IPv6 per Scope Option information.
+  - Added DHCP Scope Statistics information.
+  - Added DHCP Scope DNS Setting information.
+- Added More Health Checks.
+  - Added GPO Health Check.
+  - Added GMSA Health Check.
+  - Added Dcdiag Health Check.
+  - Added more DHCP IPv4/IPv6 Health Checks.
+- Added DNS Conditional Forwarder to DNS Section (fix issue #6).
+
+### Changed
+
+- Added more Heading definitions.
+- Disable Certificate Authority until is Completed.
+- Added function to translate from DN to Name or CanonicalName
+- Implement InfoLevel 2 and 3 Report Option.
+  - Added Domain InfoLevel 2/3 Option.
+  - Added DNS InfoLevel 2 Option.
+  - Added DHCP InfoLevel 2 Option.
+- Updated Sample Report
+
+### Fixed
+
+- Fix more PSSession exhaustion.
+- Remove the PSPKI module from ReadMe file.
+- Fix more Heading Index issues.
+- Fix for better verbose loggin.
+
 ## [0.3.0] - 2021-09-26
 
 ### Added

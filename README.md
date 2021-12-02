@@ -78,7 +78,6 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module AsBuiltReport.Microsoft.AD
-Install-Module PSPKI
 Install-WindowsFeature RSAT-AD-PowerShell
 Install-WindowsFeature GPMC
 ```
@@ -87,7 +86,6 @@ Install-WindowsFeature GPMC
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module AsBuiltReport.Microsoft.AD
-Install-Module PSPKI
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -online -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0'
 ```
@@ -143,6 +141,11 @@ The **Report** schema provides configuration of the Microsoft AD report informat
 
 The **Options** schema allows certain options within the report to be toggled on or off.
 
+| Sub-Schema      | Setting      | Default | Description                                                                                                                                                                                 |
+|-----------------|--------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ShowDefinitionInfo | true/false  | false    | Toggle to enable/disable Microsoft AD term explanations
+
+
 ### InfoLevel
 
 The **InfoLevel** schema allows configuration of each section of the report at a granular level. The following sections can be set.
@@ -153,6 +156,18 @@ There are 2 levels (0-1) of detail granularity for each section as follows;
 |:-------:|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 |    0    | Disabled          | Does not collect or display any information                                                                                                |
 |    1    | Enabled / Summary | Provides summarised information for a collection of objects                                                                                |
+|    2    | Adv Summary       | Provides condensed, detailed information for a collection of objects                                                                       |
+|    3    | Detailed          | Provides detailed information for individual objects                                                                                       |
+
+The table below outlines the default and maximum **InfoLevel** settings for each section.
+
+| Sub-Schema   | Default Setting | Maximum Setting |
+|--------------|:---------------:|:---------------:|
+| Forest       |        1        |        1        |
+| Domain       |        1        |        3        |
+| DNS          |        1        |        2        |
+| DHCP         |        1        |        2        |
+| CA           |        2        |        2        |
 
 ### Healthcheck
 

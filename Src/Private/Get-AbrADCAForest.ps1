@@ -1,11 +1,11 @@
-function Get-AbrADFSMO {
+function Get-AbrADCAForest {
     <#
     .SYNOPSIS
-    Used by As Built Report to retrieve Microsoft AD Flexible Single Master Operations information from Domain Controller
+    Used by As Built Report to retrieve Microsoft Active Directory Enterprise CA
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.4.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -25,12 +25,12 @@ function Get-AbrADFSMO {
     )
 
     begin {
-        Write-PscriboMessage "Discovering Active Directory FSMO information of domain $ForestInfo."
+        Write-PscriboMessage "Discovering Active Directory Enterprise CA information from $ForestInfo."
     }
 
     process {
-        Section -Style Heading5 'Flexible Single Master Operations (FSMO)' {
-            Paragraph "The following section provides a summary of the Active Directory FSMO for Domain $($Domain.ToString().ToUpper())."
+        Section -Style Heading5 'Forest Enterprise Certificate Authority Information' {
+            Paragraph "The following section provides a summary of the Active Directory CA for Forest $($ForestInfo.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
             if ($Domain) {
@@ -48,7 +48,8 @@ function Get-AbrADFSMO {
                     $OutObj += [pscustomobject]$inobj
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
+                    Write-PscriboMessage -IsWarning "Error: Could not get Flexible Single Master Operations (FSMO) Information from domain $Domain"
+                    Write-PscriboMessage -IsDebug $_.Exception.Message
                 }
 
                 $TableParams = @{

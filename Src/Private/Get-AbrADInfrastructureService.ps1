@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.3.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,18 +30,18 @@ function Get-AbrADInfrastructureService {
     }
 
     process {
-        Write-PscriboMessage "Discovering AD Domain Controller Time Source information for $DC."
+        Write-PscriboMessage "Discovering AD Domain Controller Infrastructure Services information for $DC."
         try {
             $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
             $Available = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service "W32Time" | Select-Object DisplayName, Name, Status}
             if ($Available) {
                 Write-PscriboMessage "Discovered Active Directory DC Infrastructure Services information of $DC."
-                Section -Style Heading6 "Domain Controller Infrastructure Services Status of $($DC.ToString().ToUpper().Split(".")[0])" {
+                Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Infrastructure Services Status" {
                     Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                     BlankLine
                     $OutObj = @()
                     if ($DC) {
-                        $Services = @('DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time')
+                        $Services = @('DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS')
                         foreach ($Service in $Services) {
                             $Status = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service $using:Service | Select-Object DisplayName, Name, Status}
                             Write-PscriboMessage "Collecting Domain Controller '$($Status.DisplayName)' Services status on $DC."
@@ -72,8 +72,7 @@ function Get-AbrADInfrastructureService {
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-            Write-PScriboMessage -IsDebug $_.Exception.Message
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Status)"
         }
     }
 
