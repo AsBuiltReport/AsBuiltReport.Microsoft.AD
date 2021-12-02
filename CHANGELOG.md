@@ -1,5 +1,22 @@
 # :arrows_counterclockwise: Microsoft AD As Built Report Changelog
 
+## [0.6.0] - 2021-12-02
+
+### Added
+
+- Added more CA Sections (Need More Testing)
+  - Added CRL Repository
+  - Added AIA Information
+  - Added Security Section
+  - Added Template Information
+  - Added Key Recovery Agent Information
+  - Added Cryptography Configuration Information
+
+### Changed
+
+- The spelling of the section title has been revised.
+- Enabled CA InfoLevels Option.
+
 ## [0.5.0] - 2021-10-29
 
 ### Added
