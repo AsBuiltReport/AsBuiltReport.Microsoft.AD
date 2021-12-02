@@ -167,6 +167,7 @@ The table below outlines the default and maximum **InfoLevel** settings for each
 | Domain       |        1        |        3        |
 | DNS          |        1        |        2        |
 | DHCP         |        1        |        2        |
+| CA           |        2        |        2        |
 
 ### Healthcheck
 
