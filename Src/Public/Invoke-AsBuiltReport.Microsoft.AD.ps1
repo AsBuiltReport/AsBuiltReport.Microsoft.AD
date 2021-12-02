@@ -167,7 +167,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 DNS Section                                                 #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.DNS -ge 1) {
-                Section -Style Heading3 "$($ForestInfo.toUpper()) Domain Name System Summary" {
+                Section -Style Heading3 "Domain Name System Summary" {
                     if ($Options.ShowDefinitionInfo) {
                         Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
                         BlankLine
@@ -203,7 +203,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 DHCP Section                                                #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.DHCP -ge 1) {
-                Section -Style Heading3 "$($ForestInfo.toUpper()) Dynamic Host Configuration Protocol Summary" {
+                Section -Style Heading3 "Dynamic Host Configuration Protocol Summary" {
                     if ($Options.ShowDefinitionInfo) {
                         Paragraph "The Dynamic Host Configuration Protocol (DHCP) is a network management protocol used on Internet Protocol (IP) networks for automatically assigning IP addresses and other communication parameters to devices connected to the network using a client/server architecture."
                         BlankLine
@@ -259,7 +259,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     }
                                 }
                             }
-                            Section -Style Heading5 "$($Domain.ToString().ToUpper()) IPv6 Scope Configuration" {
+                            Section -Style Heading5 "IPv6 Scope Configuration" {
                                 Paragraph "The following section provides a IPv6 configuration summary of the Dynamic Host Configuration Protocol."
                                 BlankLine
                                 try {
@@ -310,17 +310,65 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.CA -ge 1) {
                 try {
-                Section -Style Heading3 "$($ForestInfo.toUpper()) Certificate Authority Summary" {
-                    if ($Options.ShowDefinitionInfo) {
-                        Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
-                        BlankLine
-                    }
-                    if (!$Options.ShowDefinitionInfo) {
-                        Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
-                        BlankLine
-                    }
-                    Get-AbrADCASummary
-                    Get-AbrADCARoot
+                    Section -Style Heading3 "Certificate Authority Summary" {
+                        if ($Options.ShowDefinitionInfo) {
+                            Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
+                            BlankLine
+                        }
+                        if (!$Options.ShowDefinitionInfo) {
+                            Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
+                            BlankLine
+                        }
+                        try {
+                            Get-AbrADCASummary
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        }
+                        if ($InfoLevel.CA -ge 2) {
+                            try {
+                                Get-AbrADCARoot
+                                Get-AbrADCASubordinate
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                            }
+                        }
+                        try {
+                            Get-AbrADCASecurity
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        }
+                        try {
+                            Get-AbrADCACryptographyConfig
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        }
+                        if ($InfoLevel.CA -ge 2) {
+                            try {
+                                Get-AbrADCAAIA
+                                Get-AbrADCACRLSetting
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                            }
+                        }
+                        if ($InfoLevel.CA -ge 2) {
+                            try {
+                                Get-AbrADCATemplate
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                            }
+                        }
+                        try {
+                            Get-AbrADCAKeyRecoveryAgent
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        }
                     }
                 }
                 catch {
