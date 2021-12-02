@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -60,8 +60,7 @@ function Get-AbrADDomain {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "WARNING: Could not connect to domain $Item"
-                    Write-PscriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (AD Domain Summary)"
                 }
 
                 $TableParams = @{

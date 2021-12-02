@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6Statistic {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADDHCPv6Statistic {
     }
 
     process {
-        Section -Style Heading6 'IPv6 Service Statistics Summary' {
+        Section -Style Heading6 'IPv6 Service Statistics' {
             Paragraph "The following section provides a summary of the DHCP servers IPv6 Statistics information on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -53,8 +53,7 @@ function Get-AbrADDHCPv6Statistic {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Statistics from $(($DHCPServers).DnsName)."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Service Statistics Summary)"
                     }
                 }
 
