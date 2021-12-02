@@ -54,8 +54,8 @@ function Get-AbrADDHCPv6Statistic {
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Service Statistics Summary)"
-                    }
                 }
+            }
 
             if ($HealthCheck.DHCP.Statistics) {
                 $OutObj | Where-Object { $_.'Percentage In Use' -gt 95} | Set-Style -Style Warning -Property 'Percentage Available','Percentage In Use'

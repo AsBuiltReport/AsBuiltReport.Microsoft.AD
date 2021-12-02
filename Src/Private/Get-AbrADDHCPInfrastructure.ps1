@@ -73,6 +73,7 @@ function Get-AbrADDHCPInfrastructure {
                 $TableParams['Caption'] = "- $($TableParams.Name)"
             }
             $OutObj | Table @TableParams
+            
             Section -Style Heading6 'Service Database' {
                 Paragraph "The following section provides a summary of the DHCP servers service database information on $($Domain.ToString().ToUpper())."
                 BlankLine
@@ -104,10 +105,11 @@ function Get-AbrADDHCPInfrastructure {
                         }
                     }
                     catch {
+
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Service Database)"
 
-                        }
                     }
+                }
 
                 $TableParams = @{
                     Name = "DHCP Servers Database Information - $($Domain.ToString().ToUpper())"
@@ -119,6 +121,7 @@ function Get-AbrADDHCPInfrastructure {
                 }
                 $OutObj | Table @TableParams
             }
+
             Section -Style Heading6 'Dynamic DNS credentials' {
                 Paragraph "The following section provides a summary of the DHCP Servers Dynamic DNS registration credentials information on $($Domain.ToString().ToUpper())."
                 BlankLine
@@ -140,13 +143,15 @@ function Get-AbrADDHCPInfrastructure {
                         }
                     }
                     catch {
+
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Dynamic DNS credentials)"
 
-                        }
                     }
+                }
                 if ($HealthCheck.DHCP.BP) {
                     $OutObj | Where-Object { $_.'User Name' -eq "-"} | Set-Style -Style Warning -Property 'User Name','Domain Name'
                 }
+
                 $TableParams = @{
                     Name = "DHCP Servers Dynamic DNS Credentials Information - $($Domain.ToString().ToUpper())"
                     List = $false

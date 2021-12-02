@@ -21,7 +21,6 @@ function ConvertTo-TextYN {
             Position = 0,
             Mandatory)]
             [AllowEmptyString()]
-
             [string]
             $TEXT
         )

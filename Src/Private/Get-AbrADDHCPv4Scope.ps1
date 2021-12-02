@@ -57,7 +57,6 @@ function Get-AbrADDHCPv4Scope {
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Summary)"
-
                 }
             }
 
