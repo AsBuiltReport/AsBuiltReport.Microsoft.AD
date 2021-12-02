@@ -5,7 +5,7 @@ function Get-AbrADDHCPInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,7 @@ function Get-AbrADDHCPInfrastructure {
     }
 
     process {
-        Section -Style Heading5 'DHCP Servers In Active Directory Summary' {
+        Section -Style Heading5 'DHCP Servers In Active Directory' {
             Paragraph "The following section provides a summary of the DHCP servers information on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -54,8 +54,8 @@ function Get-AbrADDHCPInfrastructure {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving Dhcp Server Setting from $($DHCPServers.DnsName.Split(".", 2)[0])."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DHCP Servers In Active Directory)"
+
                     }
                 }
 
@@ -73,7 +73,7 @@ function Get-AbrADDHCPInfrastructure {
                 $TableParams['Caption'] = "- $($TableParams.Name)"
             }
             $OutObj | Table @TableParams
-            Section -Style Heading6 'Service Database Summary' {
+            Section -Style Heading6 'Service Database' {
                 Paragraph "The following section provides a summary of the DHCP servers service database information on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -104,8 +104,8 @@ function Get-AbrADDHCPInfrastructure {
                         }
                     }
                     catch {
-                        Write-PScriboMessage -IsWarning "Error: Retreiving Dhcp Servers Database on $($DHCPServers.DnsName)."
-                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Service Database)"
+
                         }
                     }
 
@@ -119,7 +119,7 @@ function Get-AbrADDHCPInfrastructure {
                 }
                 $OutObj | Table @TableParams
             }
-            Section -Style Heading6 'Dynamic DNS credentials Summary' {
+            Section -Style Heading6 'Dynamic DNS credentials' {
                 Paragraph "The following section provides a summary of the DHCP Servers Dynamic DNS registration credentials information on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -140,11 +140,13 @@ function Get-AbrADDHCPInfrastructure {
                         }
                     }
                     catch {
-                        Write-PScriboMessage -IsWarning "Error: Retreiving Dhcp Servers Dynamic DNS credentials on $($DHCPServers.DnsName)."
-                        Write-PScriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Dynamic DNS credentials)"
+
                         }
                     }
-
+                if ($HealthCheck.DHCP.BP) {
+                    $OutObj | Where-Object { $_.'User Name' -eq "-"} | Set-Style -Style Warning -Property 'User Name','Domain Name'
+                }
                 $TableParams = @{
                     Name = "DHCP Servers Dynamic DNS Credentials Information - $($Domain.ToString().ToUpper())"
                     List = $false

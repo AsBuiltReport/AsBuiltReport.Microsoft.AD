@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -54,8 +54,7 @@ function Get-AbrADDomainController {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Summary)"
                     }
                 }
             }
@@ -72,7 +71,7 @@ function Get-AbrADDomainController {
         }
         if ($InfoLevel.Domain -ge 2) {
             Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
-            Section -Style Heading6 'Hardware Summary' {
+            Section -Style Heading6 'Hardware Inventory' {
                 Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -120,8 +119,7 @@ function Get-AbrADDomainController {
                                 }
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                                Write-PscriboMessage -IsDebug $_.Exception.Message
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Hardware Summary)"
                             }
                         }
                     }
@@ -139,7 +137,7 @@ function Get-AbrADDomainController {
             }
         }
         Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
-        Section -Style Heading6 'NTDS Summary' {
+        Section -Style Heading6 'NTDS Information' {
             Paragraph "The following section provides a summary of the Domain Controller NTDS file size on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -169,8 +167,7 @@ function Get-AbrADDomainController {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                            Write-PscriboMessage -IsDebug $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (NTDS Summary)"
                         }
                     }
                 }
@@ -187,7 +184,7 @@ function Get-AbrADDomainController {
             }
         }
         Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
-        Section -Style Heading6 'Time Source Summary' {
+        Section -Style Heading6 'Time Source Information' {
             Paragraph "The following section provides a summary of the Domain Controller Time Source configuration on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -222,8 +219,7 @@ function Get-AbrADDomainController {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation."
-                            Write-PscriboMessage -IsDebug $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Time Source)"
                         }
                     }
                 }
@@ -237,6 +233,55 @@ function Get-AbrADDomainController {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Table @TableParams
+            }
+        }
+        if ($HealthCheck.DomainController.Software) {
+            Write-PscriboMessage "Collecting additional software running on the Domain Controller ."
+            Section -Style Heading6 'HealthCheck - Installed Software on DC' {
+                Paragraph "The following section provides a summary of additional software running on $($Domain.ToString().ToUpper())."
+                BlankLine
+                if ($Domain) {
+                    foreach ($Item in $Domain) {
+                        Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
+                        $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                        Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
+                        foreach ($DC in $DCs) {
+                            try {
+                                Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) additional software" {
+                                    Paragraph "The following section provides a summary of additional software running on $($DC.ToString().ToUpper().Split(".")[0])."
+                                    BlankLine
+                                    $OutObj = @()
+                                    Write-PscriboMessage "Collecting AD Domain Controller installed software information for $DC."
+                                    $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                                    $Software = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
+                                    Remove-PSSession -Session $DCPssSession
+                                    if ( $Software ) {
+                                        foreach ($APP in $Software) {
+                                            $inObj = [ordered] @{
+                                                'Name' = $APP.DisplayName
+                                                'Publisher' = $APP.Publisher
+                                                'Install Date' = $APP.InstallDate
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
+                                        }
+                                    }
+                                    $TableParams = @{
+                                        Name = "Installed Software - $($DC.ToString().ToUpper().Split(".")[0])"
+                                        List = $false
+                                        ColumnWidths = 34, 33, 33
+                                    }
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Table @TableParams
+                                }
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Installed Software)"
+                            }
+                        }
+                    }
+                }
             }
         }
     }

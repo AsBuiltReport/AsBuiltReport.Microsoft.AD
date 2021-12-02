@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6Scope {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,8 +31,8 @@ function Get-AbrADDHCPv6Scope {
     }
 
     process {
-        Section -Style Heading6 "IPv6 Scope Summary on $($Server.ToUpper().split(".", 2)[0])" {
-            Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope information."
+        Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv6 Scopes" {
+            Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Configuration."
             BlankLine
             $OutObj = @()
             if ($Server -and $Domain) {
@@ -54,8 +54,7 @@ function Get-AbrADDHCPv6Scope {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scopes from $($Server.split(".", 2)[0])."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope)"
                 }
             }
 
@@ -69,7 +68,7 @@ function Get-AbrADDHCPv6Scope {
             }
             $OutObj | Table @TableParams
             try {
-                Section -Style Heading6 "IPv6 Scope Statistics Summary on $($Server.ToUpper().split(".", 2)[0])" {
+                Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv6 Scope Statistics" {
                     Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Statistics information."
                     BlankLine
                     $OutObj = @()
@@ -105,12 +104,11 @@ function Get-AbrADDHCPv6Scope {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope Statistics from $($Server.split(".", 2).ToUpper()[0])."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope Statistics)"
             }
             try {
-                Section -Style Heading6 "IPv6 Network Interface binding Summary on $($Server.ToUpper().split(".", 2)[0])" {
-                    Paragraph "The following section provides a summary of the IPv6 Network Interface binding."
+                Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv6 Network Interface Binding" {
+                    Paragraph "The following section provides a summary of the IPv6 Network Interface Binding."
                     BlankLine
                     $OutObj = @()
                     if ($Server -and $Domain) {
@@ -145,8 +143,7 @@ function Get-AbrADDHCPv6Scope {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 interface binding from $($Server.split(".", 2).ToUpper()[0])."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Network Interface binding)"
             }
         }
     }

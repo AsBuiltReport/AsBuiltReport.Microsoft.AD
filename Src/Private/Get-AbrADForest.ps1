@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -70,7 +70,7 @@ function Get-AbrADForest {
             }
             $OutObj | Table @TableParams
         }
-        Section -Style Heading5 'Optional Features Summary' {
+        Section -Style Heading5 'Optional Features' {
             Paragraph "The following section provides a summary of the enabled Optional Features."
             BlankLine
             Write-PscriboMessage "Discovering Optional Features enabled on forest $ForestInfo."

@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -48,8 +48,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
                 }
             }
             catch {
-                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope Server Options from $($Server.split(".", 2)[0])."
-                Write-PScriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DHCP scopes server opions)"
             }
         }
 
@@ -63,7 +62,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
         }
         $OutObj | Table @TableParams
         try {
-            Section -Style Heading6 "Scope DNS Setting information" {
+            Section -Style Heading6 "Scope DNS Setting" {
                 Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope DNS Setting information."
                 BlankLine
                 $OutObj = @()
@@ -96,8 +95,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
             }
         }
         catch {
-            Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope DNS Setting from $($Server.split(".", 2)[0])."
-            Write-PScriboMessage -IsDebug $_.Exception.Message
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scope DNS Setting)"
         }
     }
 

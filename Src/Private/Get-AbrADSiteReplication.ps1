@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,7 +30,7 @@ function Get-AbrADSiteReplication {
 
     process {
         Write-PscriboMessage "Collecting AD Domain Sites Replication Summary. (Sites Replication)"
-        Section -Style Heading5 'Site Replication Summary' {
+        Section -Style Heading5 'Sites Replication' {
             Paragraph "The following section provides a summary of the Active Directory Site Replication information."
             BlankLine
             $OutObj = @()
@@ -61,9 +61,7 @@ function Get-AbrADSiteReplication {
                         }
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to DC $DC (Sites Replication)"
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
-
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication)"
                     }
                 }
 
@@ -84,7 +82,7 @@ function Get-AbrADSiteReplication {
         }
         if (($HealthCheck.Site.Replication) -and (Invoke-Command -Session $Session -ScriptBlock {Get-ADReplicationFailure -Target $using:Domain -Scope Domain})) {
             Write-PscriboMessage "Discovering Active Directory Sites Replication Failure on $Domain. (Sites Replication Failure)"
-            Section -Style Heading5 'Site Replication Failure Summary' {
+            Section -Style Heading5 'Sites Replication Failure' {
                 Paragraph "The following section provides a summary of the Active Directory Site Replication Failure information."
                 BlankLine
                 $OutObj = @()
@@ -106,8 +104,7 @@ function Get-AbrADSiteReplication {
                         }
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "WARNING: Could not connect to Domain $Domian (Sites Replication Failure)"
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Failure)"
                     }
                 }
 

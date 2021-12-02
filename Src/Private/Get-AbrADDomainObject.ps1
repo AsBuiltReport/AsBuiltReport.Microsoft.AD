@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADDomainObject {
 
     process {
         if ($InfoLevel.Domain -ge 2) {
-            Section -Style Heading5 'Domain Object Count Summary' {
+            Section -Style Heading5 'Domain Object Count' {
                 Paragraph "The following section provides a summary of the Active Directory Object Count on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -62,8 +62,7 @@ function Get-AbrADDomainObject {
                             $OutObj += [pscustomobject]$inobj
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "WARNING: Could not retrieve Object Count from domain $Item"
-                            Write-PscriboMessage -IsDebug $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Object Count)"
                         }
                     }
 
@@ -79,7 +78,7 @@ function Get-AbrADDomainObject {
                 }
             }
         }
-        Section -Style Heading5 'Default Domain Password Policy Summary' {
+        Section -Style Heading5 'Default Domain Password Policy' {
             Paragraph "The following section provides a summary of the Default Domain Password Policy on $($Domain.ToString().ToUpper())."
             BlankLine
             $OutObj = @()
@@ -104,8 +103,7 @@ function Get-AbrADDomainObject {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "WARNING: Could not retrieve Default Domain Password Policy from domain $Item"
-                        Write-PscriboMessage -IsDebug $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Default Domain Password Policy)"
                     }
                 }
 
@@ -122,7 +120,7 @@ function Get-AbrADDomainObject {
         }
         if ($InfoLevel.Domain -ge 2) {
             try {
-                Section -Style Heading5 'Fined Grained Password Policies Summary' {
+                Section -Style Heading5 'Fined Grained Password Policies' {
                     Paragraph "The following section provides a summary of the Fined Grained Password Policies on $($Domain.ToString().ToUpper())."
                     BlankLine
                     $OutObj = @()
@@ -171,12 +169,11 @@ function Get-AbrADDomainObject {
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "WARNING: Could not retrieve fined grained password policies from domain $Item"
-                Write-PscriboMessage -IsDebug $_.Exception.Message
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Fined Grained Password Policies)"
             }
         }
         if ($InfoLevel.Domain -ge 2) {
-            Section -Style Heading5 'Group Managed Service Accounts (GMSA) Summary' {
+            Section -Style Heading5 'Group Managed Service Accounts (GMSA)' {
                 Paragraph "The following section provides a summary of the Group Managed Service Accounts on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -209,8 +206,7 @@ function Get-AbrADDomainObject {
                             Remove-PSSession -Session $DCPssSession
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "WARNING: Could not retrieve Group Managed Service Accounts from domain $Item"
-                            Write-PscriboMessage -IsDebug $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts)"
                         }
                     }
 

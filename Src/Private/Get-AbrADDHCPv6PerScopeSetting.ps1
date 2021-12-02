@@ -1,11 +1,11 @@
 function Get-AbrADDHCPv6PerScopeSetting {
     <#
     .SYNOPSIS
-    Used by As Built Report to retrieve Microsoft AD DHCP Servers Scopes Server Options from DHCP Servers
+    Used by As Built Report to retrieve Microsoft AD DHCP Servers IPv6 Scopes Server Options from DHCP Servers
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADDHCPv6PerScopeSetting {
     }
 
     process {
-        Section -Style Heading6 "Scope Options information for scope $Scope" {
+        Section -Style Heading6 "$Scope Scope Options" {
             Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
             BlankLine
             $OutObj = @()
@@ -52,8 +52,7 @@ function Get-AbrADDHCPv6PerScopeSetting {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope Options for scope $Scope on $($Server.split(".", 2)[0])."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope Options Configuration)"
                 }
             }
 

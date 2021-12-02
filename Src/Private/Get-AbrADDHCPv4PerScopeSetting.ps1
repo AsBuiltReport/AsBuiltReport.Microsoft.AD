@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4PerScopeSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.5.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADDHCPv4PerScopeSetting {
     }
 
     process {
-        Section -Style Heading6 "Scope Options information for scope $Scope" {
+        Section -Style Heading6 "$Scope Scope Options Configuration" {
             Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
             BlankLine
             $OutObj = @()
@@ -52,8 +52,8 @@ function Get-AbrADDHCPv4PerScopeSetting {
                     }
                 }
                 catch {
-                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope Options for scope $Scope on $($Server.split(".", 2)[0])."
-                    Write-PScriboMessage -IsDebug $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scope Options Configuration)"
+
                 }
             }
 
