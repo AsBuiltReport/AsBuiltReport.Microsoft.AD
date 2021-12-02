@@ -85,6 +85,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             #                                 Domain Section                                              #
             #---------------------------------------------------------------------------------------------#
+
             if ($InfoLevel.Domain -ge 1) {
                 Section -Style Heading3 "Active Directory Domain Information" {
                     if ($Options.ShowDefinitionInfo) {
@@ -308,6 +309,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             #                                 Certificate Authority Section                               #
             #---------------------------------------------------------------------------------------------#
+
             if ($InfoLevel.CA -ge 1) {
                 try {
                     Section -Style Heading3 "Certificate Authority Summary" {

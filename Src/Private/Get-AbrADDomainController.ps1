@@ -69,6 +69,7 @@ function Get-AbrADDomainController {
             }
             $OutObj | Table @TableParams
         }
+
         if ($InfoLevel.Domain -ge 2) {
             Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
             Section -Style Heading6 'Hardware Inventory' {
@@ -183,6 +184,7 @@ function Get-AbrADDomainController {
                 $OutObj | Table @TableParams
             }
         }
+
         Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
         Section -Style Heading6 'Time Source Information' {
             Paragraph "The following section provides a summary of the Domain Controller Time Source configuration on $($Domain.ToString().ToUpper())."

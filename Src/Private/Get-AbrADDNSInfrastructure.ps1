@@ -68,6 +68,7 @@ function Get-AbrADDNSInfrastructure {
                     }
                     $OutObj | Table @TableParams
                 }
+
                 if ($InfoLevel.DNS -ge 2) {
                     Section -Style Heading6 "Domain Controller DNS IP Configuration" {
                         Paragraph "The following section provides information of the DNS IP Configuration."
@@ -162,6 +163,7 @@ function Get-AbrADDNSInfrastructure {
                         }
                     }
                 }
+                
                 if ($InfoLevel.DNS -ge 2) {
                     Section -Style Heading6 "Response Rate Limiting (RRL)" {
                         Paragraph "The following section provides a summary of the DNS Response Rate Limiting configuration."
@@ -254,6 +256,7 @@ function Get-AbrADDNSInfrastructure {
                         }
                     }
                 }
+
                 Section -Style Heading6 "Forwarder Options" {
                     Paragraph "The following section provides a summary of the DNS Forwarder configuration."
                     BlankLine

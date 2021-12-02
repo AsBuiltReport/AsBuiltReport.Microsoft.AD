@@ -71,6 +71,7 @@ function Get-AbrADDNSZone {
                     }
                     $OutObj | Table @TableParams
                 }
+
                 if ($InfoLevel.DNS -ge 2) {
                     try {
                         $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
@@ -114,6 +115,7 @@ function Get-AbrADDNSZone {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Delegation)"
                     }
                 }
+
                 if ($InfoLevel.DNS -ge 2) {
                     try {
                         $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
@@ -153,6 +155,7 @@ function Get-AbrADDNSZone {
                             $OutObj | Table @TableParams
                             }
                         }
+                        Remove-PSSession -Session $DCPssSession
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers)"
@@ -197,6 +200,7 @@ function Get-AbrADDNSZone {
                         $OutObj | Table @TableParams
                     }
                 }
+
                 Section -Style Heading5 "$($DC.ToString().ToUpper().Split(".")[0]) Conditional Forwarder" {
                     Paragraph "The following section provides a summary of the DNS Conditional Forwarder information."
                     BlankLine
@@ -233,6 +237,7 @@ function Get-AbrADDNSZone {
                         }
                         $OutObj | Table @TableParams
                     }
+                    Remove-PSSession -Session $DCPssSession
                 }
                 if ($InfoLevel.DNS -ge 2) {
                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Zone Scope Aging Properties" {
