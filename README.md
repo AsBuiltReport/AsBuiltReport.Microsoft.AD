@@ -33,6 +33,12 @@ Microsoft AD As Built Report is a PowerShell module which works in conjunction w
 
 Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for more detailed information about this project.
 
+# :books: Sample Reports
+
+## Sample Report - Custom Style 1
+
+Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://technomyth.zenprsolutions.net/wp-content/uploads/2021/12/Microsoft-AD-As-Built-Report.html)
+
 # :beginner: Getting Started
 
 Below are the instructions on how to install, configure and generate a Microsoft AD As Built report.
