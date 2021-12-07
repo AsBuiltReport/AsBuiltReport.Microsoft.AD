@@ -5,7 +5,7 @@ function Get-AbrADDHCPInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
