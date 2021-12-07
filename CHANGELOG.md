@@ -1,5 +1,17 @@
 # :arrows_counterclockwise: Microsoft AD As Built Report Changelog
 
+## [0.6.1] - 2021-12-07
+
+### Added
+
+- Added Sample HTML Report Link to README file.
+- Added DHCP/DNS Powershell module installation instructions. Closes #18
+
+### Fixed
+
+- Improved the code to better detect whether a DHCP/CA infrastructure is in place. Closes #17
+- Fix missing comma in JSON File. Closes #16
+
 ## [0.6.0] - 2021-12-02
 
 ### Added
