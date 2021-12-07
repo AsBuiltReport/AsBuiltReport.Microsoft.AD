@@ -163,7 +163,7 @@ function Get-AbrADDNSInfrastructure {
                         }
                     }
                 }
-                
+
                 if ($InfoLevel.DNS -ge 2) {
                     Section -Style Heading6 "Response Rate Limiting (RRL)" {
                         Paragraph "The following section provides a summary of the DNS Response Rate Limiting configuration."
