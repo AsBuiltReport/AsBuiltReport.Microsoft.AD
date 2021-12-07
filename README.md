@@ -85,6 +85,8 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 ```powershell
 Install-Module AsBuiltReport.Microsoft.AD
 Install-WindowsFeature RSAT-AD-PowerShell
+Install-WindowsFeature RSAT-DNS-Server
+Install-WindowsFeature RSAT-DHCP
 Install-WindowsFeature GPMC
 ```
 
@@ -94,6 +96,8 @@ Install-WindowsFeature GPMC
 Install-Module AsBuiltReport.Microsoft.AD
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -online -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0'
+Add-WindowsCapability –online –Name 'Rsat.Dns.Tools~~~~0.0.1.0'
+Add-WindowsCapability -Online -Name 'Rsat.DHCP.Tools~~~~0.0.1.0'
 ```
 
 ### GitHub
