@@ -33,6 +33,12 @@ Microsoft AD As Built Report is a PowerShell module which works in conjunction w
 
 Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for more detailed information about this project.
 
+# :books: Sample Reports
+
+## Sample Report - Custom Style 1
+
+Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://technomyth.zenprsolutions.net/wp-content/uploads/2021/12/Microsoft-AD-As-Built-Report.html)
+
 # :beginner: Getting Started
 
 Below are the instructions on how to install, configure and generate a Microsoft AD As Built report.
@@ -60,6 +66,8 @@ PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are require
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
 - [PSPKI Module](https://www.powershellgallery.com/packages/PSPKI/3.7.2)
 - [GroupPolicy Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps)
+- [DhcpServer Module](https://docs.microsoft.com/en-us/powershell/module/dhcpserver/?view=windowsserver2019-ps)
+- [DnsServer Module](https://docs.microsoft.com/en-us/powershell/module/dnsserver/?view=windowsserver2019-ps)
 
 ### Linux & macOS
 
@@ -79,6 +87,8 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 ```powershell
 Install-Module AsBuiltReport.Microsoft.AD
 Install-WindowsFeature RSAT-AD-PowerShell
+Install-WindowsFeature RSAT-DNS-Server
+Install-WindowsFeature RSAT-DHCP
 Install-WindowsFeature GPMC
 ```
 
@@ -88,6 +98,8 @@ Install-WindowsFeature GPMC
 Install-Module AsBuiltReport.Microsoft.AD
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -online -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0'
+Add-WindowsCapability –online –Name 'Rsat.Dns.Tools~~~~0.0.1.0'
+Add-WindowsCapability -Online -Name 'Rsat.DHCP.Tools~~~~0.0.1.0'
 ```
 
 ### GitHub

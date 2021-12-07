@@ -73,7 +73,7 @@ function Get-AbrADDHCPInfrastructure {
                 $TableParams['Caption'] = "- $($TableParams.Name)"
             }
             $OutObj | Table @TableParams
-            
+
             Section -Style Heading6 'Service Database' {
                 Paragraph "The following section provides a summary of the DHCP servers service database information on $($Domain.ToString().ToUpper())."
                 BlankLine
