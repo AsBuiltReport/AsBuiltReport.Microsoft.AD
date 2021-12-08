@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -203,7 +203,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             #                                 DHCP Section                                                #
             #---------------------------------------------------------------------------------------------#
-            if ($InfoLevel.DHCP -ge 1) {
+            if ($InfoLevel.DHCP -ge 1 -and (Invoke-Command -Session $TempPssSession {Get-DhcpServerInDC})) {
                 Section -Style Heading3 "Dynamic Host Configuration Protocol Summary" {
                     if ($Options.ShowDefinitionInfo) {
                         Paragraph "The Dynamic Host Configuration Protocol (DHCP) is a network management protocol used on Internet Protocol (IP) networks for automatically assigning IP addresses and other communication parameters to devices connected to the network using a client/server architecture."
@@ -214,94 +214,99 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         BlankLine
                     }
                     foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
-                        Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain DHCP Configuration" {
-                            Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
-                            BlankLine
-                            Get-AbrADDHCPInfrastructure -Domain $Domain -Session $TempPssSession
-                            Section -Style Heading5 "IPv4 Scope Summary" {
-                                Paragraph "The following section provides a IPv4 configuration summary of the Dynamic Host Configuration Protocol."
+                        try {
+                            Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain DHCP Configuration" {
+                                Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
                                 BlankLine
-                                try {
-                                    Get-AbrADDHCPv4Statistic -Domain $Domain -Session $TempPssSession
-                                }
-                                catch {
-                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from  $($Domain.ToString().ToUpper())."
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Statistics)"
-                                }
-                                $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
-                                foreach ($DHCPServer in $DomainDHCPs){
+                                Get-AbrADDHCPInfrastructure -Domain $Domain -Session $TempPssSession
+                                Section -Style Heading5 "IPv4 Scope Summary" {
+                                    Paragraph "The following section provides a IPv4 configuration summary of the Dynamic Host Configuration Protocol."
+                                    BlankLine
                                     try {
-                                        Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                        Get-AbrADDHCPv4Statistic -Domain $Domain -Session $TempPssSession
                                     }
                                     catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope information)"
+                                        Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from  $($Domain.ToString().ToUpper())."
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Statistics)"
                                     }
-                                    if ($InfoLevel.DHCP -ge 2) {
+                                    $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
+                                    foreach ($DHCPServer in $DomainDHCPs){
                                         try {
-                                            Section -Style Heading6 "$($DHCPServer.ToUpper().split(".", 2)[0]) IPv4 Scope Server Options" {
-                                                Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
-                                                BlankLine
-                                                Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
-                                                $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv4Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty ScopeId}
-                                                foreach ($Scope in $DHCPScopes) {
-                                                    try {
-                                                        Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
-                                                    }
-                                                    catch {
-                                                        Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope configuration)"
+                                            Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                        }
+                                        catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope information)"
+                                        }
+                                        if ($InfoLevel.DHCP -ge 2) {
+                                            try {
+                                                Section -Style Heading6 "$($DHCPServer.ToUpper().split(".", 2)[0]) IPv4 Scope Server Options" {
+                                                    Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
+                                                    BlankLine
+                                                    Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                                    $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv4Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty ScopeId}
+                                                    foreach ($Scope in $DHCPScopes) {
+                                                        try {
+                                                            Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
+                                                        }
+                                                        catch {
+                                                            Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
+                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope configuration)"
+                                                        }
                                                     }
                                                 }
                                             }
+                                            catch {
+                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Scope Server Options)"
+                                            }
+                                        }
+                                    }
+                                }
+                                Section -Style Heading5 "IPv6 Scope Configuration" {
+                                    Paragraph "The following section provides a IPv6 configuration summary of the Dynamic Host Configuration Protocol."
+                                    BlankLine
+                                    try {
+                                        Get-AbrADDHCPv6Statistic -Domain $Domain -Session $TempPssSession
+                                    }
+                                    catch {
+                                        Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Statistics from $($Domain.ToString().ToUpper())."
+                                        Write-PScriboMessage -IsDebug  "$($_.Exception.Message) (IPv6 DHCP Server IPv6 Statistics)"
+                                    }
+                                    $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
+                                    foreach ($DHCPServer in $DomainDHCPs){
+                                        try {
+                                            Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
                                         }
                                         catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Scope Server Options)"
+                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Information)"
+                                        }
+                                        if ($InfoLevel.DHCP -ge 2) {
+                                            try {
+                                                Section -Style Heading6 "$($DHCPServer.ToUpper().split(".", 2)[0]) IPv6 Scope Server Options" {
+                                                    Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
+                                                    BlankLine
+                                                    Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                                    $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv6Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty Prefix}
+                                                    foreach ($Scope in $DHCPScopes) {
+                                                        try {
+                                                            Get-AbrADDHCPv6PerScopeSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
+                                                        }
+                                                        catch {
+                                                            Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
+                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Per DHCP Scope configuration)"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            catch {
+                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Server Options)"
+                                            }
                                         }
                                     }
                                 }
                             }
-                            Section -Style Heading5 "IPv6 Scope Configuration" {
-                                Paragraph "The following section provides a IPv6 configuration summary of the Dynamic Host Configuration Protocol."
-                                BlankLine
-                                try {
-                                    Get-AbrADDHCPv6Statistic -Domain $Domain -Session $TempPssSession
-                                }
-                                catch {
-                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Statistics from $($Domain.ToString().ToUpper())."
-                                    Write-PScriboMessage -IsDebug  "$($_.Exception.Message) (IPv6 DHCP Server IPv6 Statistics)"
-                                }
-                                $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
-                                foreach ($DHCPServer in $DomainDHCPs){
-                                    try {
-                                        Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Information)"
-                                    }
-                                    if ($InfoLevel.DHCP -ge 2) {
-                                        try {
-                                            Section -Style Heading6 "$($DHCPServer.ToUpper().split(".", 2)[0]) IPv6 Scope Server Options" {
-                                                Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
-                                                BlankLine
-                                                Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
-                                                $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv6Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty Prefix}
-                                                foreach ($Scope in $DHCPScopes) {
-                                                    try {
-                                                        Get-AbrADDHCPv6PerScopeSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
-                                                    }
-                                                    catch {
-                                                        Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Per DHCP Scope configuration)"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Server Options)"
-                                        }
-                                    }
-                                }
-                            }
+                        }
+                        catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) ($($Domain.ToString().ToUpper()) Domain DHCP Configuration)"
                         }
                     }
                 }
@@ -310,7 +315,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 Certificate Authority Section                               #
             #---------------------------------------------------------------------------------------------#
 
-            if ($InfoLevel.CA -ge 1) {
+            if ($InfoLevel.CA -ge 1 -and (Get-CertificationAuthority -Enterprise)) {
                 try {
                     Section -Style Heading3 "Certificate Authority Summary" {
                         if ($Options.ShowDefinitionInfo) {
