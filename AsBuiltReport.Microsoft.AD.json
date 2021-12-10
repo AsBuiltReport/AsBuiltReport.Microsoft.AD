@@ -43,7 +43,7 @@
             "BP": true
         },
         "CA": {
-            "Status": true
+            "Status": true,
             "Statistics": true
         }
     }
