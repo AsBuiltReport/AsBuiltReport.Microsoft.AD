@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,9 +31,7 @@ function Get-AbrADTrust {
     }
 
     process {
-        Section -Style Heading5 'Domain and Trusts' {
-            Paragraph "The following section provides a summary of Active Directory Trust information on $($Domain.ToString().ToUpper())."
-            BlankLine
+        try {
             $OutObj = @()
             if ($Domain) {
                 try {
@@ -41,40 +39,54 @@ function Get-AbrADTrust {
                     Write-PScriboMessage "Discovered '$(($DC | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                     $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                     $Trusts = Invoke-Command -Session $DCPssSession {Get-ADTrust -Filter *}
-                    if ($Trusts) {Write-PScriboMessage "Discovered created trusts in domain $Domain"}
-                    foreach ($Trust in $Trusts) {
-                        Write-PscriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
-                        $inObj = [ordered] @{
-                            'Name' = $Trust.Name
-                            'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Credential $Cred -Domain $Domain
-                            'Source' = ConvertTo-ADObjectName $Trust.Source -Session $DCPssSession
-                            'Target' = $Trust.Target
-                            'Direction' = $Trust.Direction
-                            'IntraForest' =  ConvertTo-TextYN $Trust.IntraForest
-                            'Selective Authentication' =  ConvertTo-TextYN $Trust.SelectiveAuthentication
-                            'SID Filtering Forest Aware' =  ConvertTo-TextYN $Trust.SIDFilteringForestAware
-                            'SID Filtering Quarantined' =  ConvertTo-TextYN $Trust.SIDFilteringQuarantined
-                            'Trust Type' = $Trust.TrustType
-                            'Uplevel Only' = ConvertTo-TextYN $Trust.UplevelOnly
+                    if ($Trusts) {
+                        Section -Style Heading5 'Domain and Trusts' {
+                            Paragraph "The following section provides a summary of Active Directory Trust information on $($Domain.ToString().ToUpper())."
+                            BlankLine
+                            Write-PScriboMessage "Discovered created trusts in domain $Domain"
+                            foreach ($Trust in $Trusts) {
+                                try {
+                                    Write-PscriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
+                                    $inObj = [ordered] @{
+                                        'Name' = $Trust.Name
+                                        'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Credential $Cred -Domain $Domain
+                                        'Source' = ConvertTo-ADObjectName $Trust.Source -Session $DCPssSession
+                                        'Target' = $Trust.Target
+                                        'Direction' = $Trust.Direction
+                                        'IntraForest' =  ConvertTo-TextYN $Trust.IntraForest
+                                        'Selective Authentication' =  ConvertTo-TextYN $Trust.SelectiveAuthentication
+                                        'SID Filtering Forest Aware' =  ConvertTo-TextYN $Trust.SIDFilteringForestAware
+                                        'SID Filtering Quarantined' =  ConvertTo-TextYN $Trust.SIDFilteringQuarantined
+                                        'Trust Type' = $Trust.TrustType
+                                        'Uplevel Only' = ConvertTo-TextYN $Trust.UplevelOnly
+                                    }
+                                    $OutObj = [pscustomobject]$inobj
+
+                                    $TableParams = @{
+                                        Name = "Active Directory Trusts Information - $($Domain.ToString().ToUpper())"
+                                        List = $true
+                                        ColumnWidths = 40, 60
+                                    }
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Table @TableParams
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Summary)"
+                                }
+                            }
                         }
-                        $OutObj += [pscustomobject]$inobj
+                        Remove-PSSession -Session $DCPssSession
                     }
-                    Remove-PSSession -Session $DCPssSession
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Summary)"
-                    }
                 }
-
-            $TableParams = @{
-                Name = "Active Directory Trusts Information - $($Domain.ToString().ToUpper())"
-                List = $true
-                ColumnWidths = 40, 60
             }
-            if ($Report.ShowTableCaptions) {
-                $TableParams['Caption'] = "- $($TableParams.Name)"
-            }
-            $OutObj | Table @TableParams
+        }
+        catch {
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Summary)"
         }
     }
 

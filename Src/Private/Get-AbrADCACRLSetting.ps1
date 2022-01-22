@@ -35,17 +35,22 @@ function Get-AbrADCACRLSetting {
                     $CAs = Get-CertificationAuthority -Enterprise
                     if ($CAs) {Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in forest $ForestInfo."}
                     foreach ($CA in $CAs) {
-                        Write-PscriboMessage "Collecting AD CA CRL Validity Period information on $CA."
-                        $CRLs = Get-CRLValidityPeriod -CertificationAuthority $CA
-                        foreach ($VP in $CRLs) {
-                            $inObj = [ordered] @{
-                                'CA Name' = $VP.Name
-                                'Base CRL' = $VP.BaseCRL
-                                'Base CRL Overlap' = $VP.BaseCRLOverlap
-                                'Delta CRL' = $VP.DeltaCRL
-                                'Delta CRL Overlap' = $VP.DeltaCRLOverlap
+                        try {
+                            Write-PscriboMessage "Collecting AD CA CRL Validity Period information on $CA."
+                            $CRLs = Get-CRLValidityPeriod -CertificationAuthority $CA
+                            foreach ($VP in $CRLs) {
+                                $inObj = [ordered] @{
+                                    'CA Name' = $VP.Name
+                                    'Base CRL' = $VP.BaseCRL
+                                    'Base CRL Overlap' = $VP.BaseCRLOverlap
+                                    'Delta CRL' = $VP.DeltaCRL
+                                    'Delta CRL Overlap' = $VP.DeltaCRLOverlap
+                                }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                            $OutObj += [pscustomobject]$inobj
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
                         }
                     }
 
@@ -59,76 +64,96 @@ function Get-AbrADCACRLSetting {
                     }
                     $OutObj | Table @TableParams
                 }
-                Section -Style Heading5 "CRL Flags Settings" {
-                    Paragraph "The following section provides the Certification Authority CRL Flags information."
-                    BlankLine
-                    $OutObj = @()
-                    Write-PscriboMessage "Discovering Active Directory Certification Authority information on $($ForestInfo.toUpper())."
-                    $CAs = Get-CertificationAuthority -Enterprise
-                    if ($CAs) {Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in forest $ForestInfo."}
-                    foreach ($CA in $CAs) {
-                        Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $CA."
-                        $CRLs = Get-CertificateRevocationListFlag -CertificationAuthority $CA
-                        foreach ($Flag in $CRLs) {
-                            $inObj = [ordered] @{
-                                'CA Name' = $Flag.Name
-                                'Server Name' = $Flag.ComputerName.ToString().ToUpper().Split(".")[0]
-                                'CRL Flags' = $Flag.CRLFlags
-                            }
-                            $OutObj += [pscustomobject]$inobj
-                        }
-                    }
-
-                    $TableParams = @{
-                        Name = "CRL Flags - $($ForestInfo.toUpper())"
-                        List = $false
-                        ColumnWidths = 40, 25, 35
-                    }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    $OutObj | Table @TableParams
-                }
-                Section -Style Heading5 "CRL Distribution Point" {
-                    Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
-                    BlankLine
-                    Write-PscriboMessage "Discovering Active Directory Certification Authority information on $($ForestInfo.toUpper())."
-                    $CAs = Get-CertificationAuthority -Enterprise
-                    if ($CAs) {Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in forest $ForestInfo."}
-                    foreach ($CA in $CAs) {
-                        Section -Style Heading6 "$($CA.Name) Distribution Point" {
-                            Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
-                            BlankLine
-                            $OutObj = @()
-                            Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $CA."
-                            $CRL = Get-CRLDistributionPoint -CertificationAuthority $CA
-                            foreach ($URI in $CRL.URI) {
-                                $inObj = [ordered] @{
-                                    'Reg URI' = $URI.RegURI
-                                    'Config URI' = $URI.ConfigURI
-                                    'Url Scheme' = $URI.UrlScheme
-                                    'ProjectedURI' = $URI.ProjectedURI
-                                    'Flags' = ConvertTo-EmptyToFiller ($URI.Flags -join ", ")
-                                    'CRL Publish' = ConvertTo-TextYN $URI.IncludeToExtension
-                                    'Delta CRL Publish' = ConvertTo-TextYN $URI.DeltaCRLPublish
-                                    'Add To Cert CDP' = ConvertTo-TextYN $URI.AddToCertCDP
-                                    'Add To Fresh est CRL' = ConvertTo-TextYN $URI.AddToFreshestCRL
-                                    'Add To Crl cdp' = ConvertTo-TextYN $URI.AddToCrlcdp
+                try {
+                    Section -Style Heading5 "CRL Flags Settings" {
+                        Paragraph "The following section provides the Certification Authority CRL Flags information."
+                        BlankLine
+                        $OutObj = @()
+                        Write-PscriboMessage "Discovering Active Directory Certification Authority information on $($ForestInfo.toUpper())."
+                        $CAs = Get-CertificationAuthority -Enterprise
+                        if ($CAs) {Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in forest $ForestInfo."}
+                        foreach ($CA in $CAs) {
+                            try {
+                                Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $CA."
+                                $CRLs = Get-CertificateRevocationListFlag -CertificationAuthority $CA
+                                foreach ($Flag in $CRLs) {
+                                    $inObj = [ordered] @{
+                                        'CA Name' = $Flag.Name
+                                        'Server Name' = $Flag.ComputerName.ToString().ToUpper().Split(".")[0]
+                                        'CRL Flags' = $Flag.CRLFlags
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
                                 }
-                                $OutObj += [pscustomobject]$inobj
                             }
+                            catch {
+                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                            }
+                        }
 
-                            $TableParams = @{
-                                Name = "CRL Distribution Point - $($CA.Name)"
-                                List = $true
-                                ColumnWidths = 40, 60
+                        $TableParams = @{
+                            Name = "CRL Flags - $($ForestInfo.toUpper())"
+                            List = $false
+                            ColumnWidths = 40, 25, 35
+                        }
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Table @TableParams
+                    }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                }
+                try {
+                    Section -Style Heading5 "CRL Distribution Point" {
+                        Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
+                        BlankLine
+                        Write-PscriboMessage "Discovering Active Directory Certification Authority information on $($ForestInfo.toUpper())."
+                        $CAs = Get-CertificationAuthority -Enterprise
+                        if ($CAs) {Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in forest $ForestInfo."}
+                        foreach ($CA in $CAs) {
+                            try {
+                                Section -Style Heading6 "$($CA.Name) Distribution Point" {
+                                    Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
+                                    BlankLine
+                                    $OutObj = @()
+                                    Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $CA."
+                                    $CRL = Get-CRLDistributionPoint -CertificationAuthority $CA
+                                    foreach ($URI in $CRL.URI) {
+                                        $inObj = [ordered] @{
+                                            'Reg URI' = $URI.RegURI
+                                            'Config URI' = $URI.ConfigURI
+                                            'Url Scheme' = $URI.UrlScheme
+                                            'ProjectedURI' = $URI.ProjectedURI
+                                            'Flags' = ConvertTo-EmptyToFiller ($URI.Flags -join ", ")
+                                            'CRL Publish' = ConvertTo-TextYN $URI.IncludeToExtension
+                                            'Delta CRL Publish' = ConvertTo-TextYN $URI.DeltaCRLPublish
+                                            'Add To Cert CDP' = ConvertTo-TextYN $URI.AddToCertCDP
+                                            'Add To Fresh est CRL' = ConvertTo-TextYN $URI.AddToFreshestCRL
+                                            'Add To Crl cdp' = ConvertTo-TextYN $URI.AddToCrlcdp
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
+
+                                    $TableParams = @{
+                                        Name = "CRL Distribution Point - $($CA.Name)"
+                                        List = $true
+                                        ColumnWidths = 40, 60
+                                    }
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Table @TableParams
+                                }
                             }
-                            if ($Report.ShowTableCaptions) {
-                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            catch {
+                                Write-PscriboMessage -IsWarning $_.Exception.Message
                             }
-                            $OutObj | Table @TableParams
                         }
                     }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning $_.Exception.Message
                 }
             }
         }
