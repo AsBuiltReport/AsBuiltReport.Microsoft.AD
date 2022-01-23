@@ -31,8 +31,6 @@ function Get-AbrADSite {
             $Site =  Invoke-Command -Session $Session {Get-ADReplicationSite -Filter * -Properties *}
             if ($Site) {
                 Section -Style Heading3 'Domain Sites' {
-                    Paragraph "The following section provides a summary of the Active Directory Sites."
-                    BlankLine
                     $OutObj = @()
                     Write-PscriboMessage "Discovered Active Directory Sites information of forest $ForestInfo"
                     foreach ($Item in $Site) {
@@ -61,7 +59,7 @@ function Get-AbrADSite {
                     }
 
                     $TableParams = @{
-                        Name = "Domain Site Information - $($ForestInfo)"
+                        Name = "Sites - $($ForestInfo)"
                         List = $false
                         ColumnWidths = 25, 30, 25, 20
                     }
@@ -73,8 +71,6 @@ function Get-AbrADSite {
                         $Subnet = Invoke-Command -Session $Session {Get-ADReplicationSubnet -Filter * -Properties *}
                         if ($Subnet) {
                             Section -Style Heading4 'Site Subnets' {
-                                Paragraph "The following section provides a summary of the Active Directory Site Subnets information."
-                                BlankLine
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Active Directory Sites Subnets information of forest $ForestInfo"
                                 foreach ($Item in $Subnet) {
@@ -94,7 +90,7 @@ function Get-AbrADSite {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Site Subnets Information - $($ForestInfo)"
+                                    Name = "Site Subnets - $($ForestInfo)"
                                     List = $false
                                     ColumnWidths = 20, 30, 35, 15
                                 }
@@ -112,8 +108,6 @@ function Get-AbrADSite {
                         $Link =  Invoke-Command -Session $Session {Get-ADReplicationSiteLink -Filter * -Properties *}
                         if ($Link) {
                             Section -Style Heading4 'Site Links' {
-                                Paragraph "The following section provides a summary of the Active Directory Site Link information."
-                                BlankLine
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Active Directory Sites Link information of forest $ForestInfo"
                                 foreach ($Item in $Link) {
@@ -140,7 +134,7 @@ function Get-AbrADSite {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Site Links Information - $($ForestInfo)"
+                                    Name = "Site Links - $($ForestInfo)"
                                     List = $false
                                     ColumnWidths = 30, 15, 15, 15, 25
                                 }

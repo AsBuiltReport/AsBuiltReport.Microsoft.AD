@@ -62,7 +62,7 @@ function Get-AbrADForest {
                 }
 
                 $TableParams = @{
-                    Name = "AD Forest Summary Information - $($ForestInfo)"
+                    Name = "Forest Summary - $($ForestInfo)"
                     List = $true
                     ColumnWidths = 40, 60
                 }
@@ -77,8 +77,6 @@ function Get-AbrADForest {
         }
         try {
             Section -Style Heading5 'Optional Features' {
-                Paragraph "The following section provides a summary of the enabled Optional Features."
-                BlankLine
                 Write-PscriboMessage "Discovering Optional Features enabled on forest $ForestInfo."
                 $Data = Invoke-Command -Session $Session {Get-ADOptionalFeature -Filter *}
                 $OutObj = @()
@@ -101,7 +99,7 @@ function Get-AbrADForest {
                     }
 
                     $TableParams = @{
-                        Name = "Active Directory Enabled Optional Features Information - $($ForestInfo)"
+                        Name = "Optional Features - $($ForestInfo)"
                         List = $false
                         ColumnWidths = 40, 30, 30
                     }
