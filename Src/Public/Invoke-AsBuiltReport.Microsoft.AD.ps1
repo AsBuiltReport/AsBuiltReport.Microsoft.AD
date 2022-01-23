@@ -184,11 +184,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Paragraph "The following section provides a configuration summary of the DNS service."
                                     BlankLine
                                     Get-AbrADDNSInfrastructure -Domain $Domain -Session $TempPssSession
-                                    if ($InfoLevel.DNS -ge 2) {
-                                        $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                                        foreach ($DC in $DCs){
-                                            Get-AbrADDNSZone -Domain $Domain -DC $DC -Cred $Credential
-                                        }
+                                    $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                    foreach ($DC in $DCs){
+                                        Get-AbrADDNSZone -Domain $Domain -DC $DC -Cred $Credential
                                     }
                                 }
                             }
