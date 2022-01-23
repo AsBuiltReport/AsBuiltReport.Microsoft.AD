@@ -37,8 +37,6 @@ function Get-AbrADDNSZone {
             $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder"}}
             if ($DNSSetting) {
                 Section -Style Heading5 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zone Configuration" {
-                    Paragraph "The following section provides a summary of the DNS Zone Configuration information."
-                    BlankLine
                     $OutObj = @()
                     Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                     foreach ($Zones in $DNSSetting) {
@@ -106,8 +104,6 @@ function Get-AbrADDNSZone {
 
                             if ($OutObj) {
                                 Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Zone Delegation" {
-                                    Paragraph "The following section provides a summary of the DNS Zone Delegation information."
-                                    BlankLine
 
                                     $TableParams = @{
                                         Name = "Zone Delegations - $($Domain.ToString().ToUpper())"
@@ -134,15 +130,13 @@ function Get-AbrADDNSZone {
                             $DNSSetting = Invoke-Command -Session $DCPssSession {Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object {$_ -match 'SecondaryServers'}}
                             if ($DNSSetting) {
                                 Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Zone Transfers" {
-                                    Paragraph "The following section provides a summary of the DNS Zone Transfer information."
-                                    BlankLine
                                     $OutObj = @()
                                     foreach ($Zone in $DNSSetting) {
                                         try {
                                             Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zone.PSChildName)' on $DC"
                                             $inObj = [ordered] @{
                                                 'Zone Name' = $Zone.PSChildName
-                                                'Secondary Servers' = ConvertTo-EmptyToFiller $Zone.SecondaryServers
+                                                'Secondary Servers' = ConvertTo-EmptyToFiller ($Zone.SecondaryServers -join ", ")
                                                 'Notify Servers' = ConvertTo-EmptyToFiller $Zone.NotifyServers
                                                 'Secure Secondaries' = Switch ($Zone.SecureSecondaries) {
                                                     "0" {"Send zone transfers to all secondary servers that request them."}
@@ -152,23 +146,22 @@ function Get-AbrADDNSZone {
                                                     default {$Zone.SecureSecondaries}
                                                 }
                                             }
-                                            $OutObj += [pscustomobject]$inobj
+                                            $OutObj = [pscustomobject]$inobj
+
+                                            $TableParams = @{
+                                                Name = "Zone Transfers - $($Zone.PSChildName)"
+                                                List = $true
+                                                ColumnWidths = 40, 60
+                                            }
+                                            if ($Report.ShowTableCaptions) {
+                                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                                            }
+                                            $OutObj | Table @TableParams
                                         }
                                         catch {
                                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers Item)"
                                         }
                                     }
-                                    Remove-PSSession -Session $DCPssSession
-
-                                    $TableParams = @{
-                                        Name = "Zone Transfers - $($Domain.ToString().ToUpper())"
-                                        List = $true
-                                        ColumnWidths = 40, 60
-                                    }
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                    }
-                                    $OutObj | Table @TableParams
                                 }
                             }
                             Remove-PSSession -Session $DCPssSession
@@ -182,8 +175,6 @@ function Get-AbrADDNSZone {
                         $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "True"}}
                         if ($DNSSetting) {
                             Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Reverse Lookup Zone Configuration" {
-                                Paragraph "The following section provides a summary of the DNS Reverse Lookup Zone Configuration information."
-                                BlankLine
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC (Domain Name System Zone)"
                                 foreach ($Zones in $DNSSetting) {
@@ -226,8 +217,6 @@ function Get-AbrADDNSZone {
                         $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -like "Forwarder"}}
                         if ($DNSSetting) {
                             Section -Style Heading5 "$($DC.ToString().ToUpper().Split(".")[0]) Conditional Forwarder" {
-                                Paragraph "The following section provides a summary of the DNS Conditional Forwarder information."
-                                BlankLine
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Conditional Forwarder )"
                                 foreach ($Zones in $DNSSetting) {
@@ -271,8 +260,6 @@ function Get-AbrADDNSZone {
                             $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneAging -Name $using:DNSSetting}
                             if ($Zones) {
                                 Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Zone Scope Aging Properties" {
-                                    Paragraph "The following section provides a summary of the DNS Zone Aging properties information."
-                                    BlankLine
                                     $OutObj = @()
                                     foreach ($Settings in $Zones) {
                                         try {
