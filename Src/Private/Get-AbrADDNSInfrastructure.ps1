@@ -68,7 +68,9 @@ function Get-AbrADDNSInfrastructure {
                     }
                     $OutObj | Table @TableParams
                 }
-
+                #---------------------------------------------------------------------------------------------#
+                #                                 DNS IP Section                                              #
+                #---------------------------------------------------------------------------------------------#
                 if ($InfoLevel.DNS -ge 2) {
                     try {
                         $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
@@ -81,6 +83,7 @@ function Get-AbrADDNSInfrastructure {
                                     Write-PscriboMessage "Collecting DNS IP Configuration information from '$($DC)'."
                                     try {
                                         $DNSSettings = Invoke-Command -Session $DCPssSession {Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4}
+                                        Remove-PSSession -Session $DCPssSession
                                         foreach ($DNSSetting in $DNSSettings) {
                                             $inObj = [ordered] @{
                                                 'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
@@ -97,8 +100,6 @@ function Get-AbrADDNSInfrastructure {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
                                     }
                                 }
-
-                                Remove-PSSession -Session $DCPssSession
 
                                 if ($HealthCheck.DNS.DP) {
                                     $OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"} | Set-Style -Style Warning -Property 'DNS IP 1'
@@ -120,6 +121,9 @@ function Get-AbrADDNSInfrastructure {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Table)"
                     }
                 }
+                #---------------------------------------------------------------------------------------------#
+                #                            DNS Aplication Partitions Section                                #
+                #---------------------------------------------------------------------------------------------#
                 if ($InfoLevel.DNS -ge 2) {
                     try {
                         Section -Style Heading6 "Application Directory Partition" {
@@ -171,12 +175,12 @@ function Get-AbrADDNSInfrastructure {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Directory Partitions Table)"
                     }
                 }
-
+                #---------------------------------------------------------------------------------------------#
+                #                                 DNS RRL Section                                             #
+                #---------------------------------------------------------------------------------------------#
                 if ($InfoLevel.DNS -ge 2) {
                     try {
                         Section -Style Heading6 "Response Rate Limiting (RRL)" {
-                            Paragraph "The following section provides a summary of the DNS Response Rate Limiting configuration."
-                            BlankLine
                             $OutObj = @()
                             if ($Domain) {
                                 foreach ($Item in $Domain) {
@@ -220,11 +224,12 @@ function Get-AbrADDNSInfrastructure {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Table)"
                     }
                 }
+                #---------------------------------------------------------------------------------------------#
+                #                                 DNS Scanvenging Section                                     #
+                #---------------------------------------------------------------------------------------------#
                 if ($InfoLevel.DNS -ge 2) {
                     try {
                         Section -Style Heading6 "Scavenging Options" {
-                            Paragraph "The following section provides a summary of the DNS Scavenging configuration."
-                            BlankLine
                             $OutObj = @()
                             if ($Domain) {
                                 foreach ($Item in $Domain) {
@@ -274,10 +279,11 @@ function Get-AbrADDNSInfrastructure {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Table)"
                     }
                 }
+                #---------------------------------------------------------------------------------------------#
+                #                                 DNS Forwarder Section                                       #
+                #---------------------------------------------------------------------------------------------#
                 try {
                     Section -Style Heading6 "Forwarder Options" {
-                        Paragraph "The following section provides a summary of the DNS Forwarder configuration."
-                        BlankLine
                         $OutObj = @()
                         if ($Domain) {
                             foreach ($Item in $Domain) {
@@ -318,11 +324,12 @@ function Get-AbrADDNSInfrastructure {
                 catch {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Table)"
                 }
+                #---------------------------------------------------------------------------------------------#
+                #                                 DNS Root Hints Section                                      #
+                #---------------------------------------------------------------------------------------------#
                 if ($InfoLevel.DNS -ge 2) {
                     try {
                         Section -Style Heading6 "Root Hints" {
-                            Paragraph "The following section provides a summary of the DNS Root Hints information."
-                            BlankLine
                             if ($Domain) {
                                 foreach ($Item in $Domain) {
                                     $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers}
@@ -366,11 +373,12 @@ function Get-AbrADDNSInfrastructure {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Table)"
                     }
                 }
+                #---------------------------------------------------------------------------------------------#
+                #                                 DNS Zone Scope Section                                      #
+                #---------------------------------------------------------------------------------------------#
                 if ($InfoLevel.DNS -ge 2) {
                     try {
                         Section -Style Heading6 "Zone Scope Recursion" {
-                            Paragraph "The following section provides a summary of the DNS Zone Scope Recursion configuration."
-                            BlankLine
                             $OutObj = @()
                             if ($Domain) {
                                 foreach ($Item in $Domain) {
