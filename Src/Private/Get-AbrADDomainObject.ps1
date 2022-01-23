@@ -178,8 +178,8 @@ function Get-AbrADDomainObject {
                                     }
                                 }
                             }
-                            Remove-PSSession -Session $DCPssSession
                         }
+                        Remove-PSSession -Session $DCPssSession
                     }
                 }
             }
@@ -241,6 +241,7 @@ function Get-AbrADDomainObject {
                                     }
                                 }
                             }
+                            Remove-PSSession -Session $DCPssSession
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts)"

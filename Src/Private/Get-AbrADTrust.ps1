@@ -77,8 +77,8 @@ function Get-AbrADTrust {
                                 }
                             }
                         }
-                        Remove-PSSession -Session $DCPssSession
                     }
+                    Remove-PSSession -Session $DCPssSession
                 }
                 catch {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Summary)"

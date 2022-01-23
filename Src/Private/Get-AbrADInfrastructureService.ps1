@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -43,14 +43,19 @@ function Get-AbrADInfrastructureService {
                     if ($DC) {
                         $Services = @('DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS')
                         foreach ($Service in $Services) {
-                            $Status = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service $using:Service | Select-Object DisplayName, Name, Status}
-                            Write-PscriboMessage "Collecting Domain Controller '$($Status.DisplayName)' Services status on $DC."
-                            $inObj = [ordered] @{
-                                'Display Name' = $Status.DisplayName
-                                'Short Name' = $Status.Name
-                                'Status' = $Status.Status
+                            try {
+                                $Status = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service $using:Service | Select-Object DisplayName, Name, Status}
+                                Write-PscriboMessage "Collecting Domain Controller '$($Status.DisplayName)' Services status on $DC."
+                                $inObj = [ordered] @{
+                                    'Display Name' = $Status.DisplayName
+                                    'Short Name' = $Status.Name
+                                    'Status' = $Status.Status
+                                }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Item)"
+                            }
                         }
 
                         if ($HealthCheck.DomainController.Services) {
@@ -72,7 +77,7 @@ function Get-AbrADInfrastructureService {
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Status)"
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Section)"
         }
     }
 
