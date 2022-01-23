@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6Statistic {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -61,7 +61,7 @@ function Get-AbrADDHCPv6Statistic {
                 $OutObj | Where-Object { $_.'Percentage In Use' -gt 95} | Set-Style -Style Warning -Property 'Percentage Available','Percentage In Use'
             }
             $TableParams = @{
-                Name = "DHCP Server IPv6 Statistics Information - $($Domain.ToString().ToUpper())"
+                Name = "DHCP Server IPv6 Statistics - $($Domain.ToString().ToUpper())"
                 List = $false
                 ColumnWidths = 20, 13, 13, 13, 14 ,13, 14
             }

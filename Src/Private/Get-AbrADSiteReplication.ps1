@@ -64,7 +64,7 @@ function Get-AbrADSiteReplication {
                                         }
 
                                         $TableParams = @{
-                                            Name = "Site Replication Information - $($DC.ToString().ToUpper().Split(".")[0])"
+                                            Name = "Site Replication - $($DC.ToString().ToUpper().Split(".")[0])"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -117,7 +117,7 @@ function Get-AbrADSiteReplication {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Site Replication Failure Information - $($Fails.Server.ToUpper().Split(".", 2)[0])"
+                                    Name = "Site Replication Failure - $($Fails.Server.ToUpper().Split(".", 2)[0])"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }

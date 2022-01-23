@@ -56,7 +56,7 @@ function Get-AbrADDCDiag {
                         $OutObj | Where-Object { $_.'Result' -like 'failed'} | Set-Style -Style Critical -Property 'Result'
                     }
                     $TableParams = @{
-                        Name = "AD Domain Controller DCDiag Information - $($Domain.ToString().ToUpper())"
+                        Name = "Domain Controller DCDiag - $($DC.ToString().split('.')[0].ToUpper())"
                         List = $false
                         ColumnWidths = 35, 35, 30
                     }

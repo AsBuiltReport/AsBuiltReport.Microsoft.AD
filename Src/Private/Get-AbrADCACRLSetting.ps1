@@ -5,7 +5,7 @@ function Get-AbrADCACRLSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -193,7 +193,7 @@ function Get-AbrADCACRLSetting {
                 }
 
                 $TableParams = @{
-                    Name = "Certification Authority Health Information - $($ForestInfo.ToString().ToUpper())"
+                    Name = "Certification Authority Health - $($ForestInfo.ToString().ToUpper())"
                     List = $false
                     ColumnWidths = 40, 40, 20
                 }

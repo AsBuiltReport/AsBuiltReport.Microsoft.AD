@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4Statistic {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -58,7 +58,7 @@ function Get-AbrADDHCPv4Statistic {
                 }
 
                 $TableParams = @{
-                    Name = "DHCP Server IPv4 Statistics Information - $($Domain.ToString().ToUpper())"
+                    Name = "DHCP Server IPv4 Statistics - $($Domain.ToString().ToUpper())"
                     List = $false
                     ColumnWidths = 20, 13, 13, 13, 14 ,13, 14
                 }

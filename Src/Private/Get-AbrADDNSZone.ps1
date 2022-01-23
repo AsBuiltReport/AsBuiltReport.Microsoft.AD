@@ -60,7 +60,7 @@ function Get-AbrADDNSZone {
                     Remove-PSSession -Session $DCPssSession
 
                     $TableParams = @{
-                        Name = "DNS Zone - $($Domain.ToString().ToUpper())"
+                        Name = "Zones - $($Domain.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 25, 15, 12, 12, 12, 12, 12
                     }

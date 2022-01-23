@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6Scope {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -59,7 +59,7 @@ function Get-AbrADDHCPv6Scope {
             }
 
             $TableParams = @{
-                Name = "IPv6 Scopes Information - $($Server.split(".", 2).ToUpper()[0])"
+                Name = "IPv6 Scopes - $($Server.split(".", 2).ToUpper()[0])"
                 List = $false
                 ColumnWidths = 30, 30, 20, 20
             }
@@ -93,7 +93,7 @@ function Get-AbrADDHCPv6Scope {
                     }
 
                     $TableParams = @{
-                        Name = "IPv6 Scope Statistics Information - $($Server.split(".", 2).ToUpper()[0])"
+                        Name = "IPv6 Scope Statistics -  $($Server.split(".", 2).ToUpper()[0])"
                         List = $false
                         ColumnWidths = 20, 20, 20, 20, 20
                     }
@@ -132,7 +132,7 @@ function Get-AbrADDHCPv6Scope {
                     }
 
                     $TableParams = @{
-                        Name = "IPv6 Network Interface binding Information - $($Server.split(".", 2).ToUpper()[0])"
+                        Name = "IPv6 Network Interface binding - $($Server.split(".", 2).ToUpper()[0])"
                         List = $false
                         ColumnWidths = 30, 40, 30
                     }

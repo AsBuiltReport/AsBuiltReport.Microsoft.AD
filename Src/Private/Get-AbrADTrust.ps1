@@ -63,7 +63,7 @@ function Get-AbrADTrust {
                                     $OutObj = [pscustomobject]$inobj
 
                                     $TableParams = @{
-                                        Name = "Active Directory Trusts Information - $($Domain.ToString().ToUpper())"
+                                        Name = "Trusts - $($Domain.ToString().ToUpper())"
                                         List = $true
                                         ColumnWidths = 40, 60
                                     }

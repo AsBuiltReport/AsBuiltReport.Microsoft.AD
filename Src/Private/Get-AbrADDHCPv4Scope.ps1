@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4Scope {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -61,7 +61,7 @@ function Get-AbrADDHCPv4Scope {
             }
 
             $TableParams = @{
-                Name = "IPv4 Scopes Information - $($Server.split(".", 2).ToUpper()[0])"
+                Name = "IPv4 Scopes - $($Server.split(".", 2).ToUpper()[0])"
                 List = $false
                 ColumnWidths = 20, 20, 35, 15, 10
             }
@@ -95,7 +95,7 @@ function Get-AbrADDHCPv4Scope {
                     }
 
                     $TableParams = @{
-                        Name = "IPv4 Scope Statistics Information - $($Server.split(".", 2).ToUpper()[0])"
+                        Name = "IPv4 Scope Statistics - $($Server.split(".", 2).ToUpper()[0])"
                         List = $false
                         ColumnWidths = 20, 20, 20, 20, 20
                     }
@@ -141,7 +141,7 @@ function Get-AbrADDHCPv4Scope {
                     }
 
                     $TableParams = @{
-                        Name = "IPv4 Scope Failover Cofiguration Information - $($Server.split(".", 2).ToUpper()[0])"
+                        Name = "IPv4 Scope Failover Cofiguration - $($Server.split(".", 2).ToUpper()[0])"
                         List = $true
                         ColumnWidths = 40, 60
                     }
@@ -182,7 +182,7 @@ function Get-AbrADDHCPv4Scope {
                     }
 
                     $TableParams = @{
-                        Name = "IPv4 Network Interface binding Information - $($Server.split(".", 2).ToUpper()[0])"
+                        Name = "IPv4 Network Interface binding - $($Server.split(".", 2).ToUpper()[0])"
                         List = $false
                         ColumnWidths = 25, 25, 25, 25
                     }

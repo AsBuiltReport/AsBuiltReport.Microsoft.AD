@@ -355,7 +355,7 @@ function Get-AbrADDNSInfrastructure {
                                             }
 
                                             $TableParams = @{
-                                                Name = "DNS Root Hints - $($Domain.ToString().ToUpper())"
+                                                Name = "Root Hints - $($Domain.ToString().ToUpper())"
                                                 List = $false
                                                 ColumnWidths = 50, 50
                                             }

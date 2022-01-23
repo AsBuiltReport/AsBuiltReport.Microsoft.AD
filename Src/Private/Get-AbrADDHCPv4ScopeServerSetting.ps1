@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -53,7 +53,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
         }
 
         $TableParams = @{
-            Name = "IPv4 Scopes Server Options Information - $($Server.split(".", 2).ToUpper()[0])"
+            Name = "IPv4 Scopes Server Options - $($Server.split(".", 2).ToUpper()[0])"
             List = $false
             ColumnWidths = 40, 15, 20, 25
         }
@@ -84,7 +84,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
                 }
 
                 $TableParams = @{
-                    Name = "IPv4 Scopes DNS Setting Information - $($Server.split(".", 2)[0])"
+                    Name = "IPv4 Scopes DNS Setting - $($Server.split(".", 2)[0])"
                     List = $true
                     ColumnWidths = 40, 60
                 }

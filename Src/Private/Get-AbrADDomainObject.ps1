@@ -62,7 +62,7 @@ function Get-AbrADDomainObject {
                             $OutObj += [pscustomobject]$inobj
 
                             $TableParams = @{
-                                Name = "Active Directory Object Count - $($Domain.ToString().ToUpper())"
+                                Name = "Object Count - $($Domain.ToString().ToUpper())"
                                 List = $true
                                 ColumnWidths = 40, 60
                             }

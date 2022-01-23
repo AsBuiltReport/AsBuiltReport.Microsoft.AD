@@ -65,7 +65,7 @@ function Get-AbrADOU {
                     Remove-PSSession -Session $DCPssSession
 
                     $TableParams = @{
-                        Name = "Active Directory Organizational Unit Information - $($Domain.ToString().ToUpper())"
+                        Name = "Organizational Unit - $($Domain.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 25, 40, 35
                     }
@@ -113,7 +113,7 @@ function Get-AbrADOU {
                                     }
 
                                     $TableParams = @{
-                                        Name = "Blocked Inheritance GPO Information - $($Domain.ToString().ToUpper())"
+                                        Name = "Blocked Inheritance GPO - $($Domain.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 35, 15, 15, 35
                                     }

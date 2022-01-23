@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -58,7 +58,7 @@ function Get-AbrADDomain {
                     $OutObj += [pscustomobject]$inobj
 
                     $TableParams = @{
-                        Name = "AD Domain Summary Information - $($Domain.ToString().ToUpper())"
+                        Name = "Domain Summary - $($Domain.ToString().ToUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }

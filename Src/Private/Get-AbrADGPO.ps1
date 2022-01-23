@@ -62,7 +62,7 @@ function Get-AbrADGPO {
                         }
 
                         $TableParams = @{
-                            Name = "GPO Information - $($Domain.ToString().ToUpper())"
+                            Name = "GPO - $($Domain.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 45, 25, 15, 15
                         }
@@ -99,7 +99,7 @@ function Get-AbrADGPO {
                                 }
 
                                 $TableParams = @{
-                                    Name = "GPO Information - $($GPO.DisplayName)"
+                                    Name = "GPO - $($GPO.DisplayName)"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }

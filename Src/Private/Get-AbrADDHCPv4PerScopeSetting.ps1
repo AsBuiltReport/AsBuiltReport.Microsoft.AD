@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4PerScopeSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -58,7 +58,7 @@ function Get-AbrADDHCPv4PerScopeSetting {
             }
 
             $TableParams = @{
-                Name = "IPv4 Scopes Options Information - $Scope"
+                Name = "IPv4 Scopes Options - $Scope"
                 List = $false
                 ColumnWidths = 40, 15, 20, 25
             }

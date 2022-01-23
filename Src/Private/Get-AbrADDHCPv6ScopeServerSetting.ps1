@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6ScopeServerSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -53,7 +53,7 @@ function Get-AbrADDHCPv6ScopeServerSetting {
         }
 
         $TableParams = @{
-            Name = "IPv6 Scopes Server Options Information - $($Server.split(".", 2).ToUpper()[0])"
+            Name = "IPv6 Scopes Server Options - $($Server.split(".", 2).ToUpper()[0])"
             List = $false
             ColumnWidths = 40, 15, 20, 25
         }
@@ -81,7 +81,7 @@ function Get-AbrADDHCPv6ScopeServerSetting {
                 }
 
                 $TableParams = @{
-                    Name = "IPv6 Scopes DNS Setting Information - $($Server.split(".", 2)[0])"
+                    Name = "IPv6 Scopes DNS Setting - $($Server.split(".", 2)[0])"
                     List = $true
                     ColumnWidths = 40, 60
                 }

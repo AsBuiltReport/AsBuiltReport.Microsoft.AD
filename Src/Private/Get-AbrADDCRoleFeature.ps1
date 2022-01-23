@@ -57,7 +57,7 @@ function Get-AbrADDCRoleFeature {
                     }
 
                     $TableParams = @{
-                        Name = "Domain Controller Role & Features Information."
+                        Name = "Role & Features - $($DC.ToString().split('.')[0].ToUpper())"
                         List = $false
                         ColumnWidths = 20, 10, 70
                     }

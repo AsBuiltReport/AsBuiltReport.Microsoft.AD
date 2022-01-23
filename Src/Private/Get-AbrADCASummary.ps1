@@ -5,7 +5,7 @@ function Get-AbrADCASummary {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -50,7 +50,7 @@ function Get-AbrADCASummary {
         }
 
         $TableParams = @{
-            Name = "Certification Authority Summary Information - $($ForestInfo.ToString().ToUpper())"
+            Name = "Certification Authority Summary - $($ForestInfo.ToString().ToUpper())"
             List = $false
             ColumnWidths = 33, 33, 22, 12
         }

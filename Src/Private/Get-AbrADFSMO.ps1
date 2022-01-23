@@ -53,7 +53,7 @@ function Get-AbrADFSMO {
                     }
 
                     $TableParams = @{
-                        Name = "FSMO Server Information - $($Domain)"
+                        Name = "FSMO Server - $($Domain)"
                         List = $true
                         ColumnWidths = 40, 60
                     }

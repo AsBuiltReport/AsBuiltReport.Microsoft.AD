@@ -5,7 +5,7 @@ function Get-AbrADDHCPInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.1
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -65,7 +65,7 @@ function Get-AbrADDHCPInfrastructure {
             }
 
             $TableParams = @{
-                Name = "DHCP Servers In Active Directory Information - $($Domain.ToString().ToUpper())"
+                Name = "DHCP Servers In Active Directory - $($Domain.ToString().ToUpper())"
                 List = $false
                 ColumnWidths = 20, 15, 20, 15, 15 ,15
             }
@@ -112,7 +112,7 @@ function Get-AbrADDHCPInfrastructure {
                 }
 
                 $TableParams = @{
-                    Name = "DHCP Servers Database Information - $($Domain.ToString().ToUpper())"
+                    Name = "DHCP Servers Database - $($Domain.ToString().ToUpper())"
                     List = $false
                     ColumnWidths = 20, 28, 28, 12, 12
                 }
@@ -153,7 +153,7 @@ function Get-AbrADDHCPInfrastructure {
                 }
 
                 $TableParams = @{
-                    Name = "DHCP Servers Dynamic DNS Credentials Information - $($Domain.ToString().ToUpper())"
+                    Name = "DHCP Servers Dynamic DNS Credentials - $($Domain.ToString().ToUpper())"
                     List = $false
                     ColumnWidths = 30, 30, 40
                 }

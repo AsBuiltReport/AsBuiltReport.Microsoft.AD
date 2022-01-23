@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -50,7 +50,7 @@ function Get-AbrADCASubordinate {
                 }
 
                 $TableParams = @{
-                    Name = "Enterprise Subordinate CA Information - $($ForestInfo.ToString().ToUpper())"
+                    Name = "Enterprise Subordinate CA - $($ForestInfo.ToString().ToUpper())"
                     List = $true
                     ColumnWidths = 40, 60
                 }
