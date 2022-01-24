@@ -23,9 +23,9 @@ function Get-AbrADCAKeyRecoveryAgent {
     }
 
     process {
-        try {
-            $OutObj = @()
-            foreach ($CA in $CAs) {
+        $OutObj = @()
+        foreach ($CA in $CAs) {
+            try {
                 $KRA = Get-CAKRACertificate -CertificationAuthority $CA
                 if ($KRA.Certificate) {
                     Write-PscriboMessage "Collecting Key Recovery Agent Certificate Certificate information of $($KRA.DisplayName)."
@@ -37,26 +37,26 @@ function Get-AbrADCAKeyRecoveryAgent {
                     $OutObj += [pscustomobject]$inobj
                 }
             }
-            if ($OutObj) {
-                Section -Style Heading4 "Key Recovery Agent Certificate" {
-                    Paragraph "The following section provides the Key Recovery Agent certificate used to encrypt user's certificate private key and store it in CA database. In the case when user cannot access his or her certificate private key it is possible to recover it by Key Recovery Agent if Key Archival procedure was taken against particular certificate."
-                    BlankLine
-                    foreach ($Item in $OutObj) {
-                        $TableParams = @{
-                            Name = "Key Recovery Agent Certificate - $($Item.'CA Name')"
-                            List = $true
-                            ColumnWidths = 40, 60
-                        }
-                        if ($Report.ShowTableCaptions) {
-                            $TableParams['Caption'] = "- $($TableParams.Name)"
-                        }
-                        $Item | Table @TableParams
-                    }
-                }
+            catch {
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Key Recovery Agent Certificate Item)"
             }
         }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Key Recovery Agent Certificate)"
+        if ($OutObj) {
+            Section -Style Heading4 "Key Recovery Agent Certificate" {
+                Paragraph "The following section provides the Key Recovery Agent certificate used to encrypt user's certificate private key and store it in CA database. In the case when user cannot access his or her certificate private key it is possible to recover it by Key Recovery Agent if Key Archival procedure was taken against particular certificate."
+                BlankLine
+                foreach ($Item in $OutObj) {
+                    $TableParams = @{
+                        Name = "Key Recovery Agent Certificate - $($Item.'CA Name')"
+                        List = $true
+                        ColumnWidths = 40, 60
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    $Item | Table @TableParams
+                }
+            }
         }
     }
 

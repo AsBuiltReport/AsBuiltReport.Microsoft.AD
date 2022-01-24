@@ -34,14 +34,19 @@ function Get-AbrADCACRLSetting {
                             Write-PscriboMessage "Collecting AD CA CRL Validity Period information on $($CA.Name)."
                             $CRLs = Get-CRLValidityPeriod -CertificationAuthority $CA
                             foreach ($VP in $CRLs) {
-                                $inObj = [ordered] @{
-                                    'CA Name' = $VP.Name
-                                    'Base CRL' = $VP.BaseCRL
-                                    'Base CRL Overlap' = $VP.BaseCRLOverlap
-                                    'Delta CRL' = $VP.DeltaCRL
-                                    'Delta CRL Overlap' = $VP.DeltaCRLOverlap
+                                try {
+                                    $inObj = [ordered] @{
+                                        'CA Name' = $VP.Name
+                                        'Base CRL' = $VP.BaseCRL
+                                        'Base CRL Overlap' = $VP.BaseCRLOverlap
+                                        'Delta CRL' = $VP.DeltaCRL
+                                        'Delta CRL Overlap' = $VP.DeltaCRLOverlap
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                catch {
+                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                }
                             }
                         }
                         catch {
@@ -67,12 +72,17 @@ function Get-AbrADCACRLSetting {
                                 Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $($CA.Name)."
                                 $CRLs = Get-CertificateRevocationListFlag -CertificationAuthority $CA
                                 foreach ($Flag in $CRLs) {
-                                    $inObj = [ordered] @{
-                                        'CA Name' = $Flag.Name
-                                        'Server Name' = $Flag.ComputerName.ToString().ToUpper().Split(".")[0]
-                                        'CRL Flags' = $Flag.CRLFlags
+                                    try {
+                                        $inObj = [ordered] @{
+                                            'CA Name' = $Flag.Name
+                                            'Server Name' = $Flag.ComputerName.ToString().ToUpper().Split(".")[0]
+                                            'CRL Flags' = $Flag.CRLFlags
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
                                     }
-                                    $OutObj += [pscustomobject]$inobj
+                                    catch {
+                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                    }
                                 }
                             }
                             catch {
@@ -160,13 +170,18 @@ function Get-AbrADCACRLSetting {
                     try {
                         $CAHealth = Get-EnterprisePKIHealthStatus -CertificateAuthority $CA
                         foreach ($Health in $CAHealth) {
-                            Write-PscriboMessage "Collecting AIA and CDP Health Status from $($Health.Name)."
-                            $inObj = [ordered] @{
-                                'CA Name' = $Health.Name
-                                'Childs' = ($Health.Childs).Name
-                                'Health' = $Health.Status
+                            try {
+                                Write-PscriboMessage "Collecting AIA and CDP Health Status from $($Health.Name)."
+                                $inObj = [ordered] @{
+                                    'CA Name' = $Health.Name
+                                    'Childs' = ($Health.Childs).Name
+                                    'Health' = $Health.Status
+                                }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            catch {
+                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                            }
                         }
                     }
                     catch {
