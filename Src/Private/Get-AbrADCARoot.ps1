@@ -32,7 +32,7 @@ function Get-AbrADCARoot {
                 $CAs = Get-CertificationAuthority -Enterprise | Where-Object {$_.IsRoot -like 'True'}
                 Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
                 foreach ($CA in $CAs) {
-                    Write-PscriboMessage "Collecting AD Certification Authority Summary information of $CA."
+                    Write-PscriboMessage "Collecting Enterprise Root Certificate Authority information from $($CA.DisplayName)."
                     $inObj = [ordered] @{
                         'CA Name' = $CA.DisplayName
                         'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]

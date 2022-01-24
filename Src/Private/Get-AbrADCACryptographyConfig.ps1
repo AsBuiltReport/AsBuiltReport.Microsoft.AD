@@ -5,7 +5,7 @@ function Get-AbrADCACryptographyConfig {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,18 +23,15 @@ function Get-AbrADCACryptographyConfig {
     }
 
     process {
-        try {
+        if ($CAs) {
             Section -Style Heading4 "Cryptography Configuration" {
                 Paragraph "The following section provides the Certification Authority Cryptography Configuration information."
                 BlankLine
                 $OutObj = @()
-                Write-PscriboMessage "Discovering Active Directory Certification Authority information on $($ForestInfo.toUpper())."
-                $CAs = Get-CertificationAuthority -Enterprise
-                if ($CAs) {Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in forest $ForestInfo."}
                 foreach ($CA in $CAs) {
                     try {
-                        Write-PscriboMessage "Collecting AD Certification Authority Summary information of $CA."
                         $CryptoConfig = Get-CACryptographyConfig -CertificationAuthority $CA
+                        Write-PscriboMessage "Discovered Cryptography Configuration information from $($CryptoConfig.Name)."
                         $inObj = [ordered] @{
                             'CA Name' = $CryptoConfig.Name
                             'Server Name' = $CryptoConfig.ComputerName.ToString().ToUpper().Split(".")[0]
@@ -61,9 +58,6 @@ function Get-AbrADCACryptographyConfig {
                     }
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning $_.Exception.Message
         }
     }
 

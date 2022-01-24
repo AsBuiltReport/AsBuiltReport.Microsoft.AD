@@ -19,7 +19,7 @@ function Get-AbrADCASummary {
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority information."
+        Write-PscriboMessage "Collecting Certification Authority information."
     }
 
     process {
@@ -30,7 +30,7 @@ function Get-AbrADCASummary {
             foreach ($CA in $CAs) {
                 Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
                 try {
-                    Write-PscriboMessage "Collecting AD Certification Authority Summary information of $CA."
+                    Write-PscriboMessage "Collecting AD Certification Authority Summary information of $($CA.DisplayName)."
                     $inObj = [ordered] @{
                         'CA Name' = $CA.DisplayName
                         'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]
@@ -43,21 +43,21 @@ function Get-AbrADCASummary {
                     Write-PscriboMessage -IsWarning $_.Exception.Message
                 }
             }
-        }
 
-        if ($HealthCheck.CA.Status) {
-            $OutObj | Where-Object { $_.'Service Status' -notlike 'Running'} | Set-Style -Style Critical -Property 'Service Status'
-        }
+            if ($HealthCheck.CA.Status) {
+                $OutObj | Where-Object { $_.'Service Status' -notlike 'Running'} | Set-Style -Style Critical -Property 'Service Status'
+            }
 
-        $TableParams = @{
-            Name = "Certification Authority Summary - $($ForestInfo.ToString().ToUpper())"
-            List = $false
-            ColumnWidths = 33, 33, 22, 12
+            $TableParams = @{
+                Name = "Certification Authority Summary - $($ForestInfo.ToString().ToUpper())"
+                List = $false
+                ColumnWidths = 33, 33, 22, 12
+            }
+            if ($Report.ShowTableCaptions) {
+                $TableParams['Caption'] = "- $($TableParams.Name)"
+            }
+            $OutObj | Table @TableParams
         }
-        if ($Report.ShowTableCaptions) {
-            $TableParams['Caption'] = "- $($TableParams.Name)"
-        }
-        $OutObj | Table @TableParams
     }
 
     end {}

@@ -82,7 +82,6 @@ function Get-AbrADDomainController {
                     $OutObj = @()
                     Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                     if ($DCs) {
-                        Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                         foreach ($DC in $DCs) {
                             try {
                                 Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
@@ -150,7 +149,6 @@ function Get-AbrADDomainController {
                 $OutObj = @()
                 Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 if ($DCs) {
-                    Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                     foreach ($DC in $DCs) {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller NTDS information for $DC."
@@ -253,7 +251,6 @@ function Get-AbrADDomainController {
                     BlankLine
                     Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                     if ($DCs) {
-                        Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                         foreach ($DC in $DCs) {
                             try {
                                 $OutObj = @()

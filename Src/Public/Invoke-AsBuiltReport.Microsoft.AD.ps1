@@ -307,8 +307,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             #                                 Certificate Authority Section                               #
             #---------------------------------------------------------------------------------------------#
-
-            if ($InfoLevel.CA -ge 1 -and (Get-CertificationAuthority -Enterprise)) {
+            $Global:CAs = Get-CertificationAuthority -Enterprise
+            if ($InfoLevel.CA -ge 1 -and ($CAs)) {
                 try {
                     Section -Style Heading3 "Certificate Authority Summary" {
                         if ($Options.ShowDefinitionInfo) {
@@ -356,11 +356,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                             }
                         }
                         if ($InfoLevel.CA -ge 2) {
-                            try {
-                                Get-AbrADCATemplate
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                            foreach ($CA in $CAs) {
+                                try {
+                                    Get-AbrADCATemplate -CA $CA
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                }
                             }
                         }
                         try {
