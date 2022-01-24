@@ -206,21 +206,26 @@ function Get-AbrADDomainController {
                             $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
                             Remove-PSSession -Session $DCPssSession
                             if ( $NtpServer -and $SourceType ) {
-                                $inObj = [ordered] @{
-                                    'Name' = $DC.ToString().ToUpper().Split(".")[0]
-                                    'Time Server' = Switch ($NtpServer) {
-                                        'time.windows.com,0x8' {"Domain Hierarchy"}
-                                        'time.windows.com' {"Domain Hierarchy"}
-                                        '0x8' {"Domain Hierarchy"}
-                                        default {$NtpServer}
+                                try {
+                                    $inObj = [ordered] @{
+                                        'Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                        'Time Server' = Switch ($NtpServer) {
+                                            'time.windows.com,0x8' {"Domain Hierarchy"}
+                                            'time.windows.com' {"Domain Hierarchy"}
+                                            '0x8' {"Domain Hierarchy"}
+                                            default {$NtpServer}
+                                        }
+                                        'Type' = Switch ($SourceType) {
+                                            'NTP' {"MANUAL (NTP)"}
+                                            'NT5DS' {"DOMHIER"}
+                                            default {$SourceType}
+                                        }
                                     }
-                                    'Type' = Switch ($SourceType) {
-                                        'NTP' {"MANUAL (NTP)"}
-                                        'NT5DS' {"DOMHIER"}
-                                        default {$SourceType}
-                                    }
+                                    $OutObj += [pscustomobject]$inobj
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                catch {
+                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                }
                             }
                         }
                         catch {
@@ -263,12 +268,17 @@ function Get-AbrADDomainController {
                                         Paragraph "The following section provides a summary of additional software running on $($DC.ToString().ToUpper().Split(".")[0])."
                                         BlankLine
                                         foreach ($APP in $Software) {
-                                            $inObj = [ordered] @{
-                                                'Name' = $APP.DisplayName
-                                                'Publisher' = $APP.Publisher
-                                                'Install Date' = $APP.InstallDate
+                                            try {
+                                                $inObj = [ordered] @{
+                                                    'Name' = $APP.DisplayName
+                                                    'Publisher' = $APP.Publisher
+                                                    'Install Date' = $APP.InstallDate
+                                                }
+                                                $OutObj = [pscustomobject]$inobj
                                             }
-                                            $OutObj = [pscustomobject]$inobj
+                                            catch {
+                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            }
                                         }
                                         $TableParams = @{
                                             Name = "Installed Software - $($DC.ToString().ToUpper().Split(".")[0])"

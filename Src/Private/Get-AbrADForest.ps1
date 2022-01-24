@@ -46,19 +46,24 @@ function Get-AbrADForest {
             if ($Data) {
                 Write-PscriboMessage "Collecting Active Directory information of forest $ForestInfo."
                 foreach ($Item in $Data) {
-                    $inObj = [ordered] @{
-                        'Forest Name' = $Item.RootDomain
-                        'Forest Functional Level' = $Item.ForestMode
-                        'Schema Version' = "ObjectVersion $ADVersion, Correspond to $server"
-                        'Tombstone Lifetime (days)' = $TombstoneLifetime
-                        'Domains' = $Item.Domains -join '; '
-                        'Global Catalogs' = $Item.GlobalCatalogs -join '; '
-                        'Application Partitions' = $Item.ApplicationPartitions
-                        'PartitionsContainer' = [string]$Item.PartitionsContainer
-                        'SPN Suffixes' = ConvertTo-EmptyToFiller $Item.SPNSuffixes
-                        'UPN Suffixes' = ConvertTo-EmptyToFiller $Item.UPNSuffixes
+                    try {
+                        $inObj = [ordered] @{
+                            'Forest Name' = $Item.RootDomain
+                            'Forest Functional Level' = $Item.ForestMode
+                            'Schema Version' = "ObjectVersion $ADVersion, Correspond to $server"
+                            'Tombstone Lifetime (days)' = $TombstoneLifetime
+                            'Domains' = $Item.Domains -join '; '
+                            'Global Catalogs' = $Item.GlobalCatalogs -join '; '
+                            'Application Partitions' = $Item.ApplicationPartitions
+                            'PartitionsContainer' = [string]$Item.PartitionsContainer
+                            'SPN Suffixes' = ConvertTo-EmptyToFiller $Item.SPNSuffixes
+                            'UPN Suffixes' = ConvertTo-EmptyToFiller $Item.UPNSuffixes
+                        }
+                        $OutObj += [pscustomobject]$inobj
                     }
-                    $OutObj += [pscustomobject]$inobj
+                    catch {
+                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                    }
                 }
 
                 $TableParams = @{

@@ -165,14 +165,19 @@ function Get-AbrADGPO {
                                 $UserScripts = $Gpoxml.GPO.User.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
                                 if ($UserScripts.extension.Script) {
                                     foreach ($Script in $UserScripts.extension.Script) {
-                                        Write-PscriboMessage "Collecting Active Directory Group Policy Objects with Logon/Logoff Script '$($GPO.DisplayName)'."
-                                        $inObj = [ordered] @{
-                                            'GPO Name' = $GPO.DisplayName
-                                            'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
-                                            'Type' = $Script.Type
-                                            'Script' = $Script.command
+                                        try {
+                                            Write-PscriboMessage "Collecting Active Directory Group Policy Objects with Logon/Logoff Script '$($GPO.DisplayName)'."
+                                            $inObj = [ordered] @{
+                                                'GPO Name' = $GPO.DisplayName
+                                                'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                                                'Type' = $Script.Type
+                                                'Script' = $Script.command
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
                                         }
-                                        $OutObj += [pscustomobject]$inobj
+                                        catch {
+                                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                                        }
                                     }
                                 }
                             }

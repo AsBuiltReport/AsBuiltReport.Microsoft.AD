@@ -61,12 +61,17 @@ function Get-AbrADCASecurity {
                                 $ACLs =  Get-CertificationAuthorityAcl -CertificationAuthority $CA
                                 Write-PscriboMessage "Collecting Certification Authority Access Control List information of $($CA.Name)."
                                 foreach ($ACL in $ACLs) {
-                                    $inObj = [ordered] @{
-                                        'DC Name' = $CA.DisplayName
-                                        'Owner' = $ACL.Owner
-                                        'Group' = $ACL.Group
+                                    try {
+                                        $inObj = [ordered] @{
+                                            'DC Name' = $CA.DisplayName
+                                            'Owner' = $ACL.Owner
+                                            'Group' = $ACL.Group
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
                                     }
-                                    $OutObj += [pscustomobject]$inobj
+                                    catch {
+                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                    }
                                 }
                             }
                             catch {

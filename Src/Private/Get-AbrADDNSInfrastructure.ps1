@@ -80,15 +80,20 @@ function Get-AbrADDNSInfrastructure {
                                         $DNSSettings = Invoke-Command -Session $DCPssSession {Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4}
                                         Remove-PSSession -Session $DCPssSession
                                         foreach ($DNSSetting in $DNSSettings) {
-                                            $inObj = [ordered] @{
-                                                'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
-                                                'Interface' = $DNSSetting.InterfaceAlias
-                                                'DNS IP 1' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[0]
-                                                'DNS IP 2' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[1]
-                                                'DNS IP 3' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[2]
-                                                'DNS IP 4' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[3]
+                                            try {
+                                                $inObj = [ordered] @{
+                                                    'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                                    'Interface' = $DNSSetting.InterfaceAlias
+                                                    'DNS IP 1' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[0]
+                                                    'DNS IP 2' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[1]
+                                                    'DNS IP 3' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[2]
+                                                    'DNS IP 4' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[3]
+                                                }
+                                                $OutObj += [pscustomobject]$inobj
                                             }
-                                            $OutObj += [pscustomobject]$inobj
+                                            catch {
+                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            }
                                         }
                                     }
                                     catch {
@@ -130,13 +135,18 @@ function Get-AbrADDNSInfrastructure {
                                         try {
                                             $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerDirectoryPartition -ComputerName $using:DC}
                                             foreach ($Partition in $DNSSetting) {
-                                                $inObj = [ordered] @{
-                                                    'Name' = $Partition.DirectoryPartitionName
-                                                    'State' = ConvertTo-EmptyToFiller $Partition.State
-                                                    'Flags' = $Partition.Flags
-                                                    'Zone Count' = $Partition.ZoneCount
+                                                try {
+                                                    $inObj = [ordered] @{
+                                                        'Name' = $Partition.DirectoryPartitionName
+                                                        'State' = ConvertTo-EmptyToFiller $Partition.State
+                                                        'Flags' = $Partition.Flags
+                                                        'Zone Count' = $Partition.ZoneCount
+                                                    }
+                                                    $OutObj += [pscustomobject]$inobj
                                                 }
-                                                $OutObj += [pscustomobject]$inobj
+                                                catch {
+                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                }
                                             }
                                         }
                                         catch {
@@ -308,11 +318,16 @@ function Get-AbrADDNSInfrastructure {
                                         try {
                                             $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerRootHint -ComputerName $using:DC | Select-Object @{Name="Name"; E={$_.NameServer.RecordData.Nameserver}},@{Name="IPAddress"; E={$_.IPAddress.RecordData.IPv6Address.IPAddressToString,$_.IPAddress.RecordData.IPv4Address.IPAddressToString} }}
                                             foreach ($Hints in $DNSSetting) {
-                                                $inObj = [ordered] @{
-                                                    'Name' = $Hints.Name
-                                                    'IP Address' = (($Hints.IPAddress).Where({ $_ -ne $Null })) -join ", "
+                                                try {
+                                                    $inObj = [ordered] @{
+                                                        'Name' = $Hints.Name
+                                                        'IP Address' = (($Hints.IPAddress).Where({ $_ -ne $Null })) -join ", "
+                                                    }
+                                                    $OutObj += [pscustomobject]$inobj
                                                 }
-                                                $OutObj += [pscustomobject]$inobj
+                                                catch {
+                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                }
                                             }
                                         }
                                         catch {
