@@ -57,7 +57,7 @@ function Get-AbrADCACRLSetting {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Table @TableParams
+                    $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
                 }
                 try {
                     Section -Style Heading5 "CRL Flags Settings" {
@@ -88,7 +88,7 @@ function Get-AbrADCACRLSetting {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Table @TableParams
+                        $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
                     }
                 }
                 catch {
@@ -186,7 +186,7 @@ function Get-AbrADCACRLSetting {
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
-                $OutObj | Table @TableParams
+                $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
             }
         }
         catch {

@@ -70,7 +70,7 @@ function Get-AbrADGPO {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Table @TableParams
+                        $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Summary)"
@@ -199,7 +199,7 @@ function Get-AbrADGPO {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Table @TableParams
+                            $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                         }
                     }
                 }
@@ -255,7 +255,7 @@ function Get-AbrADGPO {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Table @TableParams
+                            $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                         }
 
                     }
@@ -307,7 +307,7 @@ function Get-AbrADGPO {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Table @TableParams
+                            $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                         }
                     }
                 }
@@ -355,7 +355,7 @@ function Get-AbrADGPO {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Table @TableParams
+                            $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                         }
                     }
                 }
@@ -410,7 +410,7 @@ function Get-AbrADGPO {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Table @TableParams
+                            $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                         }
                     }
                 }

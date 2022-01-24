@@ -66,7 +66,7 @@ function Get-AbrADDNSZone {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Table @TableParams
+                    $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and ($_.ZoneName -ne "_msdcs.pharmax.local" -and $_.ZoneName -ne "TrustAnchors") -and ($_.ZoneType -like "Primary" -or $_.ZoneType -like "Secondary")} | Select-Object -ExpandProperty ZoneName }
@@ -110,7 +110,7 @@ function Get-AbrADDNSZone {
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Table @TableParams
+                                    $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                                 }
                             }
                         }
@@ -196,7 +196,7 @@ function Get-AbrADDNSZone {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Table @TableParams
+                                $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                             }
                         }
                     }
@@ -234,7 +234,7 @@ function Get-AbrADDNSZone {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Table @TableParams
+                                $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                             }
                         }
                     }
@@ -282,7 +282,7 @@ function Get-AbrADDNSZone {
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Table @TableParams
+                                    $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                                 }
                             }
                         }

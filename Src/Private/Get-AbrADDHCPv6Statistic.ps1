@@ -65,7 +65,7 @@ function Get-AbrADDHCPv6Statistic {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Table @TableParams
+                    $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                 }
             }
         }

@@ -70,7 +70,7 @@ function Get-AbrADDHCPInfrastructure {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Table @TableParams
+                    $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                     try {
                         Section -Style Heading6 'Service Database' {
                             $OutObj = @()
@@ -108,7 +108,7 @@ function Get-AbrADDHCPInfrastructure {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Table @TableParams
+                            $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                         }
                     }
                     catch {
@@ -145,7 +145,7 @@ function Get-AbrADDHCPInfrastructure {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Table @TableParams
+                            $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                         }
                     }
                     catch {

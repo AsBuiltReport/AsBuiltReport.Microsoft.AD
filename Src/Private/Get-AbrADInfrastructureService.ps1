@@ -70,7 +70,7 @@ function Get-AbrADInfrastructureService {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Table @TableParams
+                        $OutObj | Sort-Object -Property 'Display Name' | Table @TableParams
                     }
                     Remove-PSSession -Session $DCPssSession
                 }

@@ -62,7 +62,7 @@ function Get-AbrADDHCPv4PerScopeSetting {
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
-                $OutObj | Table @TableParams
+                $OutObj | Sort-Object -Property 'Option Id' | Table @TableParams
             }
         }
     }

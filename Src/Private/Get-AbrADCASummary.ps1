@@ -56,7 +56,7 @@ function Get-AbrADCASummary {
             if ($Report.ShowTableCaptions) {
                 $TableParams['Caption'] = "- $($TableParams.Name)"
             }
-            $OutObj | Table @TableParams
+            $OutObj  | Sort-Object -Property 'CA Name' | Table @TableParams
         }
     }
 

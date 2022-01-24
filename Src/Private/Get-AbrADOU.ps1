@@ -72,7 +72,7 @@ function Get-AbrADOU {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Table @TableParams
+                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
@@ -121,7 +121,7 @@ function Get-AbrADOU {
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Table @TableParams
+                                    $OutObj | Sort-Object -Property 'OU Name' | Table @TableParams
                                 }
                             }
 

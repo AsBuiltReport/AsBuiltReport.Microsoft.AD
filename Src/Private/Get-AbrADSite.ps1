@@ -66,7 +66,7 @@ function Get-AbrADSite {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Table @TableParams
+                    $OutObj | Sort-Object -Property 'Site Name' | Table @TableParams
                     try {
                         $Subnet = Invoke-Command -Session $Session {Get-ADReplicationSubnet -Filter * -Properties *}
                         if ($Subnet) {
@@ -97,7 +97,7 @@ function Get-AbrADSite {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Table @TableParams
+                                $OutObj | Sort-Object -Property 'Subnet' | Table @TableParams
                             }
                         }
                     }
@@ -141,7 +141,7 @@ function Get-AbrADSite {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Table @TableParams
+                                $OutObj | Sort-Object -Property 'Site Link Name' | Table @TableParams
                             }
                         }
                     }

@@ -52,7 +52,7 @@ function Get-AbrADCASecurity {
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
-                $OutObj | Table @TableParams
+                $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
                 try {
                     Section -Style Heading4 "Access Control List (ACL) Summary" {
                         $OutObj = @()
@@ -82,7 +82,7 @@ function Get-AbrADCASecurity {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Table @TableParams
+                        $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                         foreach ($CA in $CAs) {
                             try {
                                 Section -Style Heading5 "$($CA.Name) Rights" {
@@ -111,7 +111,7 @@ function Get-AbrADCASecurity {
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Table @TableParams
+                                    $OutObj | Sort-Object -Property 'Identity' | Table @TableParams
                                 }
                             }
                             catch {

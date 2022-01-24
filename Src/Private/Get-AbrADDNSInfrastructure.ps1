@@ -64,7 +64,7 @@ function Get-AbrADDNSInfrastructure {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Table @TableParams
+                    $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                     #---------------------------------------------------------------------------------------------#
                     #                                 DNS IP Section                                              #
                     #---------------------------------------------------------------------------------------------#
@@ -108,7 +108,7 @@ function Get-AbrADDNSInfrastructure {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Table @TableParams
+                                $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                             }
                         }
                         catch {
@@ -154,7 +154,7 @@ function Get-AbrADDNSInfrastructure {
                                         if ($Report.ShowTableCaptions) {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
-                                        $OutObj | Sort-Object -Property Name | Table @TableParams
+                                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     }
                                 }
                             }
@@ -199,7 +199,7 @@ function Get-AbrADDNSInfrastructure {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Table @TableParams
+                                $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                             }
                         }
                         catch {
@@ -248,7 +248,7 @@ function Get-AbrADDNSInfrastructure {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Table @TableParams
+                                $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                             }
                         }
                         catch {
@@ -287,7 +287,7 @@ function Get-AbrADDNSInfrastructure {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Table @TableParams
+                            $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                         }
                     }
                     catch {
@@ -327,7 +327,7 @@ function Get-AbrADDNSInfrastructure {
                                         if ($Report.ShowTableCaptions) {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
-                                        $OutObj | Sort-Object -Property Name | Table @TableParams
+                                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     }
                                 }
                             }
@@ -371,7 +371,7 @@ function Get-AbrADDNSInfrastructure {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Table @TableParams
+                                $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                             }
                         }
                         catch {

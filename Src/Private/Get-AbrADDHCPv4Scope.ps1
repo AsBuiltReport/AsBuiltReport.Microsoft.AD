@@ -63,7 +63,7 @@ function Get-AbrADDHCPv4Scope {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Table @TableParams
+                    $OutObj | Sort-Object -Property 'Scope Id' | Table @TableParams
 
                     try {
                         $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4ScopeStatistics -ComputerName $using:Server}
@@ -99,7 +99,7 @@ function Get-AbrADDHCPv4Scope {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Table @TableParams
+                                $OutObj | Sort-Object -Property 'Scope Id' | Table @TableParams
                             }
                         }
                     }

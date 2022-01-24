@@ -66,7 +66,7 @@ function Get-AbrADDomainController {
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
-                $OutObj | Table @TableParams
+                $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
             }
         }
         catch {
@@ -182,7 +182,7 @@ function Get-AbrADDomainController {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Table @TableParams
+                    $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                 }
             }
         }
@@ -236,7 +236,7 @@ function Get-AbrADDomainController {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Table @TableParams
+                    $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                 }
             }
         }
@@ -278,7 +278,7 @@ function Get-AbrADDomainController {
                                         if ($Report.ShowTableCaptions) {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
-                                        $OutObj | Table @TableParams
+                                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     }
                                 }
                             }

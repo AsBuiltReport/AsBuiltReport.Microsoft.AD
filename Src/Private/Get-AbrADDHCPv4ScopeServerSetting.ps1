@@ -61,7 +61,7 @@ function Get-AbrADDHCPv4ScopeServerSetting {
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
-                $OutObj | Table @TableParams
+                $OutObj | Sort-Object -Property 'Option Id' | Table @TableParams
                 try {
                     $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv4DnsSetting -ComputerName $using:Server}
                     if ($DHCPScopeOptions) {

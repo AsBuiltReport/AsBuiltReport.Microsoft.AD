@@ -94,7 +94,7 @@ function Get-AbrADCATemplate {
                                                 if ($Report.ShowTableCaptions) {
                                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                                 }
-                                                $OutObj | Table @TableParams
+                                                $OutObj | Sort-Object -Property 'Identity' | Table @TableParams
                                             }
                                         }
                                     }
