@@ -1,6 +1,6 @@
 # :arrows_counterclockwise: Microsoft AD As Built Report Changelog
 
-## [0.6.2] - 2021-12-07
+## [0.6.2] - 2022-01-24
 
 ### Changed
 
@@ -8,6 +8,7 @@
 - Implement more try/catch to better handle terminating errors.
 - Update ReadMe to include Known limitations.
 - Improve Sections title text.
+- Improve table sorting.
 
 ### Fixed
 
