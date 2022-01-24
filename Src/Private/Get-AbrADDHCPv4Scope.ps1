@@ -31,14 +31,14 @@ function Get-AbrADDHCPv4Scope {
     }
 
     process {
-        Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scopes" {
-            Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope information."
-            BlankLine
-            $OutObj = @()
-            if ($Server -and $Domain) {
-                try {
-                    $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4Scope -ComputerName $using:Server}
-                    Write-PScriboMessage "Discovered '$(($DHCPScopes | Measure-Object).Count)' DHCP SCopes in $($Server)."
+        try {
+            $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4Scope -ComputerName $using:Server}
+            Write-PScriboMessage "Discovered '$(($DHCPScopes | Measure-Object).Count)' DHCP SCopes in $($Server)."
+            if ($DHCPScopes) {
+                Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scopes" {
+                    Paragraph "The following section provides detailed information of the IPv4 Scope configuration."
+                    BlankLine
+                    $OutObj = @()
                     foreach ($Scope in $DHCPScopes) {
                         Write-PscriboMessage "Collecting DHCP Server IPv4 $($Scope.ScopeId) Scope from $($Server.split(".", 2)[0])"
                         $SubnetMask = Convert-IpAddressToMaskLength $Scope.SubnetMask
@@ -54,150 +54,154 @@ function Get-AbrADDHCPv4Scope {
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Summary)"
-                }
-            }
-
-            $TableParams = @{
-                Name = "IPv4 Scopes - $($Server.split(".", 2).ToUpper()[0])"
-                List = $false
-                ColumnWidths = 20, 20, 35, 15, 10
-            }
-            if ($Report.ShowTableCaptions) {
-                $TableParams['Caption'] = "- $($TableParams.Name)"
-            }
-            $OutObj | Table @TableParams
-            try {
-                Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scope Statistics" {
-                    Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Statistics information."
-                    BlankLine
-                    $OutObj = @()
-                    if ($Server -and $Domain) {
-                        $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4ScopeStatistics -ComputerName $using:Server}
-                        Write-PScriboMessage "Discovered '$(($DHCPScopes | Measure-Object).Count)' scopes in $($Server)."
-                        foreach ($Scope in $DHCPScopes) {
-                            Write-PscriboMessage "Collecting DHCP Server IPv4 $($Scope.ScopeId) scope statistics from $($Server.split(".", 2)[0])"
-                            $inObj = [ordered] @{
-                                'Scope Id' = $Scope.ScopeId
-                                'Free IP' = $Scope.Free
-                                'In Use IP' = $Scope.InUse
-                                'Percentage In Use' = [math]::Round($Scope.PercentageInUse, 0)
-                                'Reserved IP' = $Scope.Reserved
-                            }
-                            $OutObj += [pscustomobject]$inobj
-                        }
-                    }
-
-                    if ($HealthCheck.DHCP.Statistics) {
-                        $OutObj | Where-Object { $_.'Percentage In Use' -gt '95'} | Set-Style -Style Warning -Property 'Percentage In Use'
-                    }
 
                     $TableParams = @{
-                        Name = "IPv4 Scope Statistics - $($Server.split(".", 2).ToUpper()[0])"
+                        Name = "IPv4 Scopes - $($Server.split(".", 2).ToUpper()[0])"
                         List = $false
-                        ColumnWidths = 20, 20, 20, 20, 20
+                        ColumnWidths = 20, 20, 35, 15, 10
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Table @TableParams
-                }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Statistics)"
-            }
-            try {
-                Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scope Failover" {
-                    Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Failover information."
-                    BlankLine
-                    $OutObj = @()
-                    if ($Server -and $Domain) {
-                        $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4Failover -ComputerName $using:Server}
-                        Write-PScriboMessage "Discovered '$(($DHCPScopes | Measure-Object).Count)' failover setting in $($Server)."
-                        foreach ($Scope in $DHCPScopes) {
-                            Write-PscriboMessage "Collecting DHCP Server IPv4 $($Scope.ScopeId) scope failover setting from $($Server.split(".", 2)[0])"
-                            $inObj = [ordered] @{
-                                'DHCP Server' = $Server
-                                'Partner DHCP Server' = $Scope.PartnerServer
-                                'Mode' = $Scope.Mode
-                                'LoadBalance Percent' = ConvertTo-EmptyToFiller ([math]::Round($Scope.LoadBalancePercent, 0))
-                                'Server Role' = ConvertTo-EmptyToFiller $Scope.ServerRole
-                                'Reserve Percent' = ConvertTo-EmptyToFiller ([math]::Round($Scope.ReservePercent, 0))
-                                'Max Client Lead Time' = ConvertTo-EmptyToFiller $Scope.MaxClientLeadTime
-                                'State Switch Interval' = ConvertTo-EmptyToFiller $Scope.StateSwitchInterval
-                                'Scope Ids' = $Scope.ScopeId
-                                'State' = $Scope.State
-                                'Auto State Transition' = ConvertTo-TextYN $Scope.AutoStateTransition
-                                'Authetication Enable' = ConvertTo-TextYN $Scope.EnableAuth
+
+                    try {
+                        $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4ScopeStatistics -ComputerName $using:Server}
+                        if ($DHCPScopes) {
+                            Section -Style Heading6 "IPv4 Scope Statistics" {
+                                $OutObj = @()
+                                foreach ($Scope in $DHCPScopes) {
+                                    try {
+                                        Write-PscriboMessage "Collecting DHCP Server IPv4 $($Scope.ScopeId) scope statistics from $($Server.split(".", 2)[0])"
+                                        $inObj = [ordered] @{
+                                            'Scope Id' = $Scope.ScopeId
+                                            'Free IP' = $Scope.Free
+                                            'In Use IP' = $Scope.InUse
+                                            'Percentage In Use' = [math]::Round($Scope.PercentageInUse, 0)
+                                            'Reserved IP' = $Scope.Reserved
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
+                                    catch {
+                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Statistics Item)"
+                                    }
+                                }
+
+                                if ($HealthCheck.DHCP.Statistics) {
+                                    $OutObj | Where-Object { $_.'Percentage In Use' -gt '95'} | Set-Style -Style Warning -Property 'Percentage In Use'
+                                }
+
+                                $TableParams = @{
+                                    Name = "IPv4 Scope Statistics - $($Server.split(".", 2).ToUpper()[0])"
+                                    List = $false
+                                    ColumnWidths = 20, 20, 20, 20, 20
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $OutObj | Table @TableParams
                             }
-                            $OutObj += [pscustomobject]$inobj
                         }
                     }
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Statistics Table)"
+                    }
+                    try {
+                        $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4Failover -ComputerName $using:Server}
+                        if ($DHCPScopes) {
+                            Section -Style Heading6 "IPv4 Scope Failover" {
+                                $OutObj = @()
+                                Write-PScriboMessage "Discovered '$(($DHCPScopes | Measure-Object).Count)' failover setting in $($Server)."
+                                foreach ($Scope in $DHCPScopes) {
+                                    try {
+                                        Write-PscriboMessage "Collecting DHCP Server IPv4 $($Scope.ScopeId) scope failover setting from $($Server.split(".", 2)[0])"
+                                        $inObj = [ordered] @{
+                                            'DHCP Server' = $Server
+                                            'Partner DHCP Server' = $Scope.PartnerServer
+                                            'Mode' = $Scope.Mode
+                                            'LoadBalance Percent' = ConvertTo-EmptyToFiller ([math]::Round($Scope.LoadBalancePercent, 0))
+                                            'Server Role' = ConvertTo-EmptyToFiller $Scope.ServerRole
+                                            'Reserve Percent' = ConvertTo-EmptyToFiller ([math]::Round($Scope.ReservePercent, 0))
+                                            'Max Client Lead Time' = ConvertTo-EmptyToFiller $Scope.MaxClientLeadTime
+                                            'State Switch Interval' = ConvertTo-EmptyToFiller $Scope.StateSwitchInterval
+                                            'Scope Ids' = $Scope.ScopeId
+                                            'State' = $Scope.State
+                                            'Auto State Transition' = ConvertTo-TextYN $Scope.AutoStateTransition
+                                            'Authetication Enable' = ConvertTo-TextYN $Scope.EnableAuth
+                                        }
+                                        $OutObj = [pscustomobject]$inobj
+                                    }
+                                    catch {
+                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Failover Item)"
+                                    }
+                                    if ($HealthCheck.DHCP.BP) {
+                                        $OutObj | Where-Object { $_.'Authetication Enable' -eq 'No'} | Set-Style -Style Warning -Property 'Authetication Enable'
+                                    }
 
-                    if ($HealthCheck.DHCP.BP) {
-                        $OutObj | Where-Object { $_.'Authetication Enable' -eq 'No'} | Set-Style -Style Warning -Property 'Authetication Enable'
-                    }
-
-                    $TableParams = @{
-                        Name = "IPv4 Scope Failover Cofiguration - $($Server.split(".", 2).ToUpper()[0])"
-                        List = $true
-                        ColumnWidths = 40, 60
-                    }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    $OutObj | Table @TableParams
-                }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Failover)"
-            }
-            try {
-                Section -Style Heading6 " $($Server.ToUpper().split(".", 2)[0]) IPv4 Network Interface Binding" {
-                    Paragraph "The following section provides a summary of the IPv4 Network Interface binding."
-                    BlankLine
-                    $OutObj = @()
-                    if ($Server -and $Domain) {
-                        $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4Binding -ComputerName $using:Server}
-                        Write-PScriboMessage "Discovered '$(($DHCPScopes | Measure-Object).Count)' bindings in $($Server)."
-                        foreach ($Scope in $DHCPScopes) {
-                            Write-PscriboMessage "Collecting DHCP Server IPv4 $($Scope.InterfaceAlias) binding from $($Server.split(".", 2)[0])"
-                            $SubnetMask = Convert-IpAddressToMaskLength $Scope.SubnetMask
-                            $inObj = [ordered] @{
-                                'Interface Alias' = $Scope.InterfaceAlias
-                                'IP Address' = $Scope.IPAddress
-                                'Subnet Mask' = $Scope.SubnetMask
-                                'State' = Switch ($Scope.BindingState) {
-                                    ""  {"-"; break}
-                                    $Null  {"-"; break}
-                                    "True"  {"Enabled"}
-                                    "False"  {"Disabled"}
-                                    default {$Scope.BindingState}
+                                    $TableParams = @{
+                                        Name = "IPv4 Scope Failover Cofiguration - $($Server.split(".", 2).ToUpper()[0])"
+                                        List = $true
+                                        ColumnWidths = 40, 60
+                                    }
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Table @TableParams
                                 }
                             }
-                            $OutObj += [pscustomobject]$inobj
                         }
                     }
-
-                    $TableParams = @{
-                        Name = "IPv4 Network Interface binding - $($Server.split(".", 2).ToUpper()[0])"
-                        List = $false
-                        ColumnWidths = 25, 25, 25, 25
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Failover Table)"
                     }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    try {
+                        $DHCPScopes = Invoke-Command -Session $Session {Get-DhcpServerv4Binding -ComputerName $using:Server}
+                        if ($DHCPScopes) {
+                            Section -Style Heading6 "IPv4 Network Interface Binding" {
+                                $OutObj = @()
+                                foreach ($Scope in $DHCPScopes) {
+                                    try {
+                                        Write-PscriboMessage "Collecting DHCP Server IPv4 $($Scope.InterfaceAlias) binding from $($Server.split(".", 2)[0])"
+                                        $SubnetMask = Convert-IpAddressToMaskLength $Scope.SubnetMask
+                                        $inObj = [ordered] @{
+                                            'Interface Alias' = $Scope.InterfaceAlias
+                                            'IP Address' = $Scope.IPAddress
+                                            'Subnet Mask' = $Scope.SubnetMask
+                                            'State' = Switch ($Scope.BindingState) {
+                                                ""  {"-"; break}
+                                                $Null  {"-"; break}
+                                                "True"  {"Enabled"}
+                                                "False"  {"Disabled"}
+                                                default {$Scope.BindingState}
+                                            }
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
+                                    catch {
+                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Network Interface binding Item)"
+                                    }
+                                }
+                                $TableParams = @{
+                                    Name = "IPv4 Network Interface binding - $($Server.split(".", 2).ToUpper()[0])"
+                                    List = $false
+                                    ColumnWidths = 25, 25, 25, 25
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $OutObj | Table @TableParams
+                            }
+                        }
                     }
-                    $OutObj | Table @TableParams
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Network Interface binding Table)"
+                    }
                 }
             }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Network Interface binding)"
-            }
+        }
+        catch {
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Summary)"
         }
     }
-
     end {}
-
 }

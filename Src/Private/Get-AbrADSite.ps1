@@ -105,7 +105,7 @@ function Get-AbrADSite {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
                     }
                     try {
-                        $Link =  Invoke-Command -Session $Session {Get-ADReplicationSiteLink -Filter * -Properties *}
+                        $Link = Invoke-Command -Session $Session {Get-ADReplicationSiteLink -Filter * -Properties *}
                         if ($Link) {
                             Section -Style Heading4 'Site Links' {
                                 $OutObj = @()

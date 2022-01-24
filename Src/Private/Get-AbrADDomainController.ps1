@@ -34,7 +34,7 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             Write-PscriboMessage "Discovering Active Directory Domain Controller information from $Domain."
-            $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+            $DCs = Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
             if ($DCs) {
                 foreach ($DC in $DCs) {
                     Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
@@ -81,7 +81,6 @@ function Get-AbrADDomainController {
                     BlankLine
                     $OutObj = @()
                     Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
-                    $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                     if ($DCs) {
                         Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                         foreach ($DC in $DCs) {
@@ -150,7 +149,6 @@ function Get-AbrADDomainController {
                 BlankLine
                 $OutObj = @()
                 Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
-                $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                 if ($DCs) {
                     Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                     foreach ($DC in $DCs) {
@@ -200,7 +198,6 @@ function Get-AbrADDomainController {
                 BlankLine
                 $OutObj = @()
                 Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
-                $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                 if ($DCs) {
                     Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                     foreach ($DC in $DCs) {
@@ -255,7 +252,6 @@ function Get-AbrADDomainController {
                     Paragraph "The following section provides a summary of additional software running on $($Domain.ToString().ToUpper())."
                     BlankLine
                     Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
-                    $DCs =  Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                     if ($DCs) {
                         Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                         foreach ($DC in $DCs) {

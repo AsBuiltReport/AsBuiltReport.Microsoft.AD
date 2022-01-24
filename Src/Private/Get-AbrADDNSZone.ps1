@@ -57,7 +57,6 @@ function Get-AbrADDNSZone {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Zone Item)"
                         }
                     }
-                    Remove-PSSession -Session $DCPssSession
 
                     $TableParams = @{
                         Name = "Zones - $($Domain.ToString().ToUpper())"
@@ -70,8 +69,6 @@ function Get-AbrADDNSZone {
                     $OutObj | Table @TableParams
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                            Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                             $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and ($_.ZoneName -ne "_msdcs.pharmax.local" -and $_.ZoneName -ne "TrustAnchors") -and ($_.ZoneType -like "Primary" -or $_.ZoneType -like "Secondary")} | Select-Object -ExpandProperty ZoneName }
                             if ($DNSSetting) {
                                 $OutObj = @()
@@ -103,7 +100,7 @@ function Get-AbrADDNSZone {
                             }
 
                             if ($OutObj) {
-                                Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Zone Delegation" {
+                                Section -Style Heading6 "Zone Delegation" {
 
                                     $TableParams = @{
                                         Name = "Zone Delegations - $($Domain.ToString().ToUpper())"
@@ -116,7 +113,6 @@ function Get-AbrADDNSZone {
                                     $OutObj | Table @TableParams
                                 }
                             }
-                            Remove-PSSession -Session $DCPssSession
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Delegation Table)"
@@ -125,11 +121,9 @@ function Get-AbrADDNSZone {
 
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                            Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                             $DNSSetting = Invoke-Command -Session $DCPssSession {Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object {$_ -match 'SecondaryServers'}}
                             if ($DNSSetting) {
-                                Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Zone Transfers" {
+                                Section -Style Heading6 "Zone Transfers" {
                                     $OutObj = @()
                                     foreach ($Zone in $DNSSetting) {
                                         try {
@@ -164,17 +158,15 @@ function Get-AbrADDNSZone {
                                     }
                                 }
                             }
-                            Remove-PSSession -Session $DCPssSession
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers Table)"
                         }
                     }
                     try {
-                        $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                         $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "True"}}
                         if ($DNSSetting) {
-                            Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Reverse Lookup Zone Configuration" {
+                            Section -Style Heading6 "Reverse Lookup Zone Configuration" {
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC (Domain Name System Zone)"
                                 foreach ($Zones in $DNSSetting) {
@@ -207,16 +199,14 @@ function Get-AbrADDNSZone {
                                 $OutObj | Table @TableParams
                             }
                         }
-                        Remove-PSSession -Session $DCPssSession
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Reverse Lookup Zone Configuration Table)"
                     }
                     try {
-                        $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                         $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -like "Forwarder"}}
                         if ($DNSSetting) {
-                            Section -Style Heading5 "$($DC.ToString().ToUpper().Split(".")[0]) Conditional Forwarder" {
+                            Section -Style Heading5 "Conditional Forwarder" {
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Conditional Forwarder )"
                                 foreach ($Zones in $DNSSetting) {
@@ -247,19 +237,17 @@ function Get-AbrADDNSZone {
                                 $OutObj | Table @TableParams
                             }
                         }
-                        Remove-PSSession -Session $DCPssSession
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Conditional Forwarder Table)"
                     }
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                             Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                             $DNSSetting = Invoke-Command -Session $DCPssSession {Get-DnsServerZone | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -eq "Primary"} | Select-Object -ExpandProperty ZoneName }
                             $Zones = Invoke-Command -Session $DCPssSession {Get-DnsServerZoneAging -Name $using:DNSSetting}
                             if ($Zones) {
-                                Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Zone Scope Aging Properties" {
+                                Section -Style Heading6 "Zone Scope Aging Properties" {
                                     $OutObj = @()
                                     foreach ($Settings in $Zones) {
                                         try {
@@ -297,7 +285,6 @@ function Get-AbrADDNSZone {
                                     $OutObj | Table @TableParams
                                 }
                             }
-                            Remove-PSSession -Session $DCPssSession
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Aging Table)"
@@ -305,6 +292,7 @@ function Get-AbrADDNSZone {
                     }
                 }
             }
+            Remove-PSSession -Session $DCPssSession
         }
         catch {
             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Global DNS Zone Information)"

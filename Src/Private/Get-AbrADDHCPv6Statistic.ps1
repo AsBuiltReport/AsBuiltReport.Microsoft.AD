@@ -29,46 +29,48 @@ function Get-AbrADDHCPv6Statistic {
     }
 
     process {
-        Section -Style Heading6 'IPv6 Service Statistics' {
-            Paragraph "The following section provides a summary of the DHCP servers IPv6 Statistics information on $($Domain.ToString().ToUpper())."
-            BlankLine
-            $OutObj = @()
-            if ($Domain) {
-                try {
-                    $DHCPinDC = Invoke-Command -Session $Session { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} }
-                    if ($DHCPinDC) {Write-PScriboMessage "Discovered '$(($DHCPinDC | Measure-Object).Count)' DHCP Servers in forest $($Domain)."}
+        try  {
+            $DHCPinDC = Invoke-Command -Session $Session { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} }
+            if ($DHCPinDC) {
+                Section -Style Heading6 'IPv6 Service Statistics' {
+                    $OutObj = @()
                     foreach ($DHCPServers in $DHCPinDC) {
-                        Write-PScriboMessage "Collecting DHCP Server IPv6 Statistics from $($DHCPServers.DnsName.split(".", 2)[0])"
-                        $Setting = Invoke-Command -Session $Session { Get-DhcpServerv6Statistics -ComputerName ($using:DHCPServers).DnsName }
-                        $inObj = [ordered] @{
-                            'DC Name' = $DHCPServers.DnsName.Split(".", 2)[0]
-                            'Total Scopes' = ConvertTo-EmptyToFiller $Setting.TotalScopes
-                            'Total Addresses' = ConvertTo-EmptyToFiller $Setting.TotalAddresses
-                            'Addresses In Use' = ConvertTo-EmptyToFiller $Setting.AddressesInUse
-                            'Addresses Available' = ConvertTo-EmptyToFiller $Setting.AddressesAvailable
-                            'Percentage In Use' = ConvertTo-EmptyToFiller ([math]::Round($Setting.PercentageInUse, 0))
-                            'Percentage Available' = ConvertTo-EmptyToFiller ([math]::Round($Setting.PercentageAvailable, 0))
+                        try {
+                            Write-PScriboMessage "Collecting DHCP Server IPv6 Statistics from $($DHCPServers.DnsName.split(".", 2)[0])"
+                            $Setting = Invoke-Command -Session $Session { Get-DhcpServerv6Statistics -ComputerName ($using:DHCPServers).DnsName }
+                            $inObj = [ordered] @{
+                                'DC Name' = $DHCPServers.DnsName.Split(".", 2)[0]
+                                'Total Scopes' = ConvertTo-EmptyToFiller $Setting.TotalScopes
+                                'Total Addresses' = ConvertTo-EmptyToFiller $Setting.TotalAddresses
+                                'Addresses In Use' = ConvertTo-EmptyToFiller $Setting.AddressesInUse
+                                'Addresses Available' = ConvertTo-EmptyToFiller $Setting.AddressesAvailable
+                                'Percentage In Use' = ConvertTo-EmptyToFiller ([math]::Round($Setting.PercentageInUse, 0))
+                                'Percentage Available' = ConvertTo-EmptyToFiller ([math]::Round($Setting.PercentageAvailable, 0))
+                            }
+                            $OutObj += [pscustomobject]$inobj
                         }
-                        $OutObj += [pscustomobject]$inobj
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Service Statistics Item)"
+                        }
                     }
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Service Statistics Summary)"
-                }
-            }
 
-            if ($HealthCheck.DHCP.Statistics) {
-                $OutObj | Where-Object { $_.'Percentage In Use' -gt 95} | Set-Style -Style Warning -Property 'Percentage Available','Percentage In Use'
+                    if ($HealthCheck.DHCP.Statistics) {
+                        $OutObj | Where-Object { $_.'Percentage In Use' -gt 95} | Set-Style -Style Warning -Property 'Percentage Available','Percentage In Use'
+                    }
+                    $TableParams = @{
+                        Name = "DHCP Server IPv6 Statistics - $($Domain.ToString().ToUpper())"
+                        List = $false
+                        ColumnWidths = 20, 13, 13, 13, 14 ,13, 14
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    $OutObj | Table @TableParams
+                }
             }
-            $TableParams = @{
-                Name = "DHCP Server IPv6 Statistics - $($Domain.ToString().ToUpper())"
-                List = $false
-                ColumnWidths = 20, 13, 13, 13, 14 ,13, 14
-            }
-            if ($Report.ShowTableCaptions) {
-                $TableParams['Caption'] = "- $($TableParams.Name)"
-            }
-            $OutObj | Table @TableParams
+        }
+        catch {
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Service Statistics Table)"
         }
     }
 

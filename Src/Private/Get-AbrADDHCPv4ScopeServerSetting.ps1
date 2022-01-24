@@ -31,71 +31,78 @@ function Get-AbrADDHCPv4ScopeServerSetting {
     }
 
     process {
-        $OutObj = @()
-        if ($Server) {
-            try {
-                $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv4OptionValue -ComputerName $using:Server}
-                Write-PScriboMessage "Discovered '$(($DHCPScopeOptions | Measure-Object).Count)' DHCP scopes server opions on $($Server)."
-                foreach ($Option in $DHCPScopeOptions) {
-                    Write-PscriboMessage "Collecting DHCP Server IPv4 Scope Server Option value $($Option.OptionId) from $($Server.split(".", 2)[0])"
-                    $inObj = [ordered] @{
-                        'Name' = $Option.Name
-                        'Option Id' = $Option.OptionId
-                        'Value' = $Option.Value
-                        'Policy Name' = ConvertTo-EmptyToFiller $Option.PolicyName
-                    }
-                    $OutObj += [pscustomobject]$inobj
-                }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DHCP scopes server opions)"
-            }
-        }
-
-        $TableParams = @{
-            Name = "IPv4 Scopes Server Options - $($Server.split(".", 2).ToUpper()[0])"
-            List = $false
-            ColumnWidths = 40, 15, 20, 25
-        }
-        if ($Report.ShowTableCaptions) {
-            $TableParams['Caption'] = "- $($TableParams.Name)"
-        }
-        $OutObj | Table @TableParams
-        try {
-            Section -Style Heading6 "Scope DNS Setting" {
-                Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope DNS Setting information."
+        $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv4OptionValue -ComputerName $using:Server}
+        if ($DHCPScopeOptions) {
+            Section -Style Heading6 "$($DHCPServer.ToUpper().split(".", 2)[0]) IPv4 Scope Server Options" {
+                Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
                 BlankLine
                 $OutObj = @()
-                if ($Server) {
-                    $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv4DnsSetting -ComputerName $using:Server}
-                    Write-PScriboMessage "Discovered '$(($DHCPScopeOptions | Measure-Object).Count)' DHCP scopes dns setting from $($Server)."
-                    foreach ($Option in $DHCPScopeOptions) {
-                        Write-PscriboMessage "Collecting DHCP Server IPv4 Scope DNS Setting value from $($Server)."
+                Write-PScriboMessage "Discovered '$(($DHCPScopeOptions | Measure-Object).Count)' DHCP scopes server opions on $($Server)."
+                foreach ($Option in $DHCPScopeOptions) {
+                    try {
+                        Write-PscriboMessage "Collecting DHCP Server IPv4 Scope Server Option value $($Option.OptionId) from $($Server.split(".", 2)[0])"
                         $inObj = [ordered] @{
-                            'Dynamic Updates' = $Option.DynamicUpdates
-                            'Dns Suffix' = ConvertTo-EmptyToFiller $Option.DnsSuffix
-                            'Name Protection' = ConvertTo-EmptyToFiller $Option.NameProtection
-                            'Update Dns RR For Older Clients' = ConvertTo-EmptyToFiller $Option.UpdateDnsRRForOlderClients
-                            'Disable Dns Ptr RR Update' = ConvertTo-EmptyToFiller $Option.DisableDnsPtrRRUpdate
-                            'Delete Dns RR On Lease Expiry' = ConvertTo-EmptyToFiller $Option.DeleteDnsRROnLeaseExpiry
+                            'Name' = $Option.Name
+                            'Option Id' = $Option.OptionId
+                            'Value' = $Option.Value
+                            'Policy Name' = ConvertTo-EmptyToFiller $Option.PolicyName
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DHCP scopes server opions item)"
+                    }
                 }
-
                 $TableParams = @{
-                    Name = "IPv4 Scopes DNS Setting - $($Server.split(".", 2)[0])"
-                    List = $true
-                    ColumnWidths = 40, 60
+                    Name = "IPv4 Scopes Server Options - $($Server.split(".", 2).ToUpper()[0])"
+                    List = $false
+                    ColumnWidths = 40, 15, 20, 25
                 }
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Table @TableParams
+                try {
+                    $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv4DnsSetting -ComputerName $using:Server}
+                    if ($DHCPScopeOptions) {
+                        Section -Style Heading6 "Scope DNS Setting" {
+                            Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope DNS Setting information."
+                            BlankLine
+                            $OutObj = @()
+                            foreach ($Option in $DHCPScopeOptions) {
+                                try {
+                                    Write-PscriboMessage "Collecting DHCP Server IPv4 Scope DNS Setting value from $($Server)."
+                                    $inObj = [ordered] @{
+                                        'Dynamic Updates' = $Option.DynamicUpdates
+                                        'Dns Suffix' = ConvertTo-EmptyToFiller $Option.DnsSuffix
+                                        'Name Protection' = ConvertTo-EmptyToFiller $Option.NameProtection
+                                        'Update Dns RR For Older Clients' = ConvertTo-EmptyToFiller $Option.UpdateDnsRRForOlderClients
+                                        'Disable Dns Ptr RR Update' = ConvertTo-EmptyToFiller $Option.DisableDnsPtrRRUpdate
+                                        'Delete Dns RR On Lease Expiry' = ConvertTo-EmptyToFiller $Option.DeleteDnsRROnLeaseExpiry
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scope DNS Setting Item)"
+                                }
+                            }
+
+                            $TableParams = @{
+                                Name = "IPv4 Scopes DNS Setting - $($Server.split(".", 2)[0])"
+                                List = $true
+                                ColumnWidths = 40, 60
+                            }
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                        }
+                    }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scope DNS Setting Table)"
+                }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scope DNS Setting)"
         }
     }
 

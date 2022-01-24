@@ -156,7 +156,6 @@ function Get-AbrADGPO {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (GPO Central Store)"
                 }
                 try {
-                    $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
                     if ($GPOs) {
                         Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                         $OutObj = @()
@@ -208,7 +207,6 @@ function Get-AbrADGPO {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (GPO with Logon/Logoff Script Section)"
                 }
                 try {
-                    $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
                     if ($GPOs) {
                         $OutObj = @()
                         Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
@@ -269,7 +267,6 @@ function Get-AbrADGPO {
             if ($HealthCheck.Domain.GPO) {
                 try {
                     $OutObj = @()
-                    $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
                     if ($GPOs) {
                         Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                         foreach ($GPO in $GPOs) {
@@ -319,7 +316,6 @@ function Get-AbrADGPO {
                 }
                 try {
                     $OutObj = @()
-                    $GPOs = Invoke-Command -Session $Session -ScriptBlock {Get-GPO -Domain $using:Domain -All}
                     if ($GPOs) {
                         Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                         foreach ($GPO in $GPOs) {
