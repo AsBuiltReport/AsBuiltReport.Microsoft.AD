@@ -37,7 +37,7 @@ Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for m
 
 ## Sample Report - Custom Style 1
 
-Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://technomyth.zenprsolutions.net/wp-content/uploads/2021/12/Microsoft-AD-As-Built-Report.html)
+Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://technomyth.zenprsolutions.net/wp-content/uploads/2022/01/Microsoft-AD-As-Built-Report.html)
 
 # :beginner: Getting Started
 
