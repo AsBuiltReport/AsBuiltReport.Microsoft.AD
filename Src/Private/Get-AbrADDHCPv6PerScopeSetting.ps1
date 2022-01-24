@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6PerScopeSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,15 +32,14 @@ function Get-AbrADDHCPv6PerScopeSetting {
     }
 
     process {
-        Section -Style Heading6 "$Scope Scope Options" {
-            Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
-            BlankLine
-            $OutObj = @()
-            if ($Server) {
-                try {
-                    $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv6OptionValue -ComputerName $using:Server -Prefix $using:Scope}
-                    Write-PScriboMessage "Discovered '$(($DHCPScopeOptions | Measure-Object).Count)' DHCP scopes server opions on $($Server)."
-                    foreach ($Option in $DHCPScopeOptions) {
+        $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv6OptionValue -ComputerName $using:Server -Prefix $using:Scope}
+        if ($DHCPScopeOptions) {
+            Section -Style Heading6 "$Scope Scope Options" {
+                Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
+                BlankLine
+                $OutObj = @()
+                foreach ($Option in $DHCPScopeOptions) {
+                    try {
                         Write-PscriboMessage "Collecting DHCP Server IPv6 Scope Server Option value $($Option.OptionId) from $($Server.split(".", 2)[0])"
                         $inObj = [ordered] @{
                             'Name' = $Option.Name
@@ -50,23 +49,21 @@ function Get-AbrADDHCPv6PerScopeSetting {
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope Options Item)"
+                    }
                 }
-                catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope Options Configuration)"
+                $TableParams = @{
+                    Name = "IPv6 Scopes Options - $Scope"
+                    List = $false
+                    ColumnWidths = 40, 15, 20, 25
                 }
+                if ($Report.ShowTableCaptions) {
+                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                }
+                $OutObj | Sort-Object -Property 'Option Id' | Table @TableParams
             }
-
-            $TableParams = @{
-                Name = "IPv6 Scopes Options Information - $Scope"
-                List = $false
-                ColumnWidths = 40, 15, 20, 25
-            }
-            if ($Report.ShowTableCaptions) {
-                $TableParams['Caption'] = "- $($TableParams.Name)"
-            }
-            $OutObj | Table @TableParams
         }
-
     }
 
     end {}

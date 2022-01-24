@@ -5,7 +5,7 @@ function Get-AbrADCAForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.4.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -53,7 +53,7 @@ function Get-AbrADCAForest {
                 }
 
                 $TableParams = @{
-                    Name = "FSMO Server Information - $($Domain)"
+                    Name = "FSMO Server - $($Domain)"
                     List = $true
                     ColumnWidths = 40, 60
                 }

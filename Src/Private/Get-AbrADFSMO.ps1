@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,38 +29,43 @@ function Get-AbrADFSMO {
     }
 
     process {
-        Section -Style Heading5 'Flexible Single Master Operations (FSMO)' {
-            Paragraph "The following section provides a summary of the Active Directory FSMO for Domain $($Domain.ToString().ToUpper())."
-            BlankLine
-            $OutObj = @()
-            if ($Domain) {
-                try {
-                    $DomainData = Invoke-Command -Session $Session {Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator}
-                    $ForestData = Invoke-Command -Session $Session {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
-                    Write-PscriboMessage "Discovered Active Directory FSMO information of domain $Domain."
-                    $inObj = [ordered] @{
-                        'Infrastructure Master Server' = $DomainData.InfrastructureMaster
-                        'RID Master Server' = $DomainData.RIDMaster
-                        'PDC Emulator Name' = $DomainData.PDCEmulator
-                        'Domain Naming Master Server' = $ForestData.DomainNamingMaster
-                        'Schema Master Server' = $ForestData.SchemaMaster
+        try {
+            $DomainData = Invoke-Command -Session $Session {Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator}
+            $ForestData = Invoke-Command -Session $Session {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
+            if ($DomainData -and $ForestData) {
+                Section -Style Heading5 'Flexible Single Master Operations (FSMO)' {
+                    Paragraph "The following section provides a summary of the Active Directory FSMO for Domain $($Domain.ToString().ToUpper())."
+                    BlankLine
+                    $OutObj = @()
+                    try {
+                        Write-PscriboMessage "Discovered Active Directory FSMO information of domain $Domain."
+                        $inObj = [ordered] @{
+                            'Infrastructure Master Server' = $DomainData.InfrastructureMaster
+                            'RID Master Server' = $DomainData.RIDMaster
+                            'PDC Emulator Name' = $DomainData.PDCEmulator
+                            'Domain Naming Master Server' = $ForestData.DomainNamingMaster
+                            'Schema Master Server' = $ForestData.SchemaMaster
+                        }
+                        $OutObj += [pscustomobject]$inobj
                     }
-                    $OutObj += [pscustomobject]$inobj
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
-                }
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
+                    }
 
-                $TableParams = @{
-                    Name = "FSMO Server Information - $($Domain)"
-                    List = $true
-                    ColumnWidths = 40, 60
+                    $TableParams = @{
+                        Name = "FSMO Server - $($Domain)"
+                        List = $true
+                        ColumnWidths = 40, 60
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    $OutObj | Table @TableParams
                 }
-                if ($Report.ShowTableCaptions) {
-                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                }
-                $OutObj | Table @TableParams
             }
+        }
+        catch {
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
         }
     }
     end {}

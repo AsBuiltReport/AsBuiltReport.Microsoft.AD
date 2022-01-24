@@ -37,7 +37,7 @@ Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for m
 
 ## Sample Report - Custom Style 1
 
-Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://technomyth.zenprsolutions.net/wp-content/uploads/2021/12/Microsoft-AD-As-Built-Report.html)
+Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://technomyth.zenprsolutions.net/wp-content/uploads/2022/01/Microsoft-AD-As-Built-Report.html)
 
 # :beginner: Getting Started
 
@@ -162,12 +162,12 @@ The **Options** schema allows certain options within the report to be toggled on
 
 The **InfoLevel** schema allows configuration of each section of the report at a granular level. The following sections can be set.
 
-There are 2 levels (0-1) of detail granularity for each section as follows;
+There are 4 levels (0-3) of detail granularity for each section as follows;
 
 | Setting | InfoLevel         | Description                                                                                                                                |
 |:-------:|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 |    0    | Disabled          | Does not collect or display any information                                                                                                |
-|    1    | Enabled / Summary | Provides summarised information for a collection of objects                                                                                |
+|    1    | Enabled | Provides summarised information for a collection of objects                                                                                |
 |    2    | Adv Summary       | Provides condensed, detailed information for a collection of objects                                                                       |
 |    3    | Detailed          | Provides detailed information for individual objects                                                                                       |
 
@@ -179,7 +179,7 @@ The table below outlines the default and maximum **InfoLevel** settings for each
 | Domain       |        1        |        3        |
 | DNS          |        1        |        2        |
 | DHCP         |        1        |        2        |
-| CA           |        2        |        2        |
+| CA           |        2        |        3        |
 
 ### Healthcheck
 
@@ -208,4 +208,6 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 ## :x: Known Issues
 
 - Issues with WinRM when using the IP address instead of the "Fully Qualified Domain Name".
-- No Linux/Mac support until Microsoft migrates the ActiveDirectory/GroupPolicy modules to PowerShell Core.
+- This project relies heavily on the remote connection function through WinRM. For this reason the use of a Windows 10 client is specifically used as a jumpbox.
+- The report provides the ability to extract the configuration of the DHCP/DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DHCP, RSAT-DNS-Server, RSAT-AD-PowerShell).
+- This report assumes that the DNS Server service is running on the same server where Domain Controller is running (Cohost).

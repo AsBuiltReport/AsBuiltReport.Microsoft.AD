@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,40 +24,47 @@ function Get-AbrADCASubordinate {
 
     process {
         try {
-            Section -Style Heading4 "Enterprise Subordinate Certificate Authority" {
-                Paragraph "The following section provides the Enterprise Subordinate CA information."
-                BlankLine
-                $OutObj = @()
-                Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
-                $CAs = Get-CertificationAuthority -Enterprise | Where-Object {$_.IsRoot -like 'False'}
-                foreach ($CA in $CAs) {
-                    Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
-                    Write-PscriboMessage "Collecting AD Certification Authority Summary information of $CA."
-                    $inObj = [ordered] @{
-                        'CA Name' = $CA.DisplayName
-                        'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]
-                        'Type' = $CA.Type
-                        'Config String' = $CA.ConfigString
-                        'Operating System' = $CA.OperatingSystem
-                        'Certificate' = $CA.Certificate
-                        'Status' = $CA.ServiceStatus
+            Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
+            $CAs = Get-CertificationAuthority -Enterprise | Where-Object {$_.IsRoot -like 'False'}
+            if ($CAs) {
+                Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
+                Section -Style Heading4 "Enterprise Subordinate Certificate Authority" {
+                    Paragraph "The following section provides the Enterprise Subordinate CA information."
+                    BlankLine
+                    $OutObj = @()
+                    foreach ($CA in $CAs) {
+                        try {
+                            Write-PscriboMessage "Collecting Enterprise Subordinate Certificate Authority information from $($CA.DisplayName)."
+                            $inObj = [ordered] @{
+                                'CA Name' = $CA.DisplayName
+                                'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]
+                                'Type' = $CA.Type
+                                'Config String' = $CA.ConfigString
+                                'Operating System' = $CA.OperatingSystem
+                                'Certificate' = $CA.Certificate
+                                'Status' = $CA.ServiceStatus
+                            }
+                            $OutObj = [pscustomobject]$inobj
+
+                            if ($HealthCheck.CA.Status) {
+                                $OutObj | Where-Object { $_.'Service Status' -notlike 'Running'} | Set-Style -Style Critical -Property 'Service Status'
+                            }
+
+                            $TableParams = @{
+                                Name = "Enterprise Subordinate CA - $($CA.DisplayName)"
+                                List = $true
+                                ColumnWidths = 40, 60
+                            }
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        }
                     }
-                    $OutObj += [pscustomobject]$inobj
                 }
-
-                if ($HealthCheck.CA.Status) {
-                    $OutObj | Where-Object { $_.'Service Status' -notlike 'Running'} | Set-Style -Style Critical -Property 'Service Status'
-                }
-
-                $TableParams = @{
-                    Name = "Enterprise Subordinate CA Information - $($ForestInfo.ToString().ToUpper())"
-                    List = $true
-                    ColumnWidths = 40, 60
-                }
-                if ($Report.ShowTableCaptions) {
-                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                }
-                $OutObj | Table @TableParams
             }
         }
         catch {
