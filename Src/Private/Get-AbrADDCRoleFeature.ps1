@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -42,17 +42,22 @@ function Get-AbrADDCRoleFeature {
                     $Features = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-WindowsFeature | Where-Object {$_.installed -eq "True"}}
                     Remove-PSSession -Session $DCPssSession
                     foreach ($Feature in $Features) {
-                        Write-PscriboMessage "Collecting DC Role & Features: $($Feature.DisplayName) on $DC."
-                        $inObj = [ordered] @{
-                            'Name' = $Feature.DisplayName
-                            'Parent' = $Feature.FeatureType
-                            'InstallState' = $Feature.Description
+                        try {
+                            Write-PscriboMessage "Collecting DC Role & Features: $($Feature.DisplayName) on $DC."
+                            $inObj = [ordered] @{
+                                'Name' = $Feature.DisplayName
+                                'Parent' = $Feature.FeatureType
+                                'InstallState' = $Feature.Description
+                            }
+                            $OutObj += [pscustomobject]$inobj
                         }
-                        $OutObj += [pscustomobject]$inobj
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Role & Features Item)"
+                        }
                     }
 
                     $TableParams = @{
-                        Name = "Domain Controller Role & Features Information."
+                        Name = "Role & Features - $($DC.ToString().split('.')[0].ToUpper())"
                         List = $false
                         ColumnWidths = 20, 10, 70
                     }
@@ -64,7 +69,7 @@ function Get-AbrADDCRoleFeature {
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Role & Features)"
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Role & Features Section)"
         }
     }
 

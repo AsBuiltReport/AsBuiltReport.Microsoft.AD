@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.5.0
+        Version:        0.6.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -36,28 +36,35 @@ function Get-AbrADDCDiag {
             try {
                 Write-PscriboMessage "Discovering Active Directory DCDiag information for DC $DC."
                 $DCDIAG = Invoke-DcDiag -DomainController $DC
-                Write-PscriboMessage "Discovered Active Directory DCDiag information for DC $DC."
-                foreach ($Result in $DCDIAG) {
-                    Write-PscriboMessage "Collecting Active Directory DCDiag test '$($Result.TestName)' for DC $DC."
-                    $inObj = [ordered] @{
-                        'DC Name' = $DC
-                        'Test Name' = $Result.TestName
-                        'Result' = $Result.TestResult
+                if ($DCDIAG) {
+                    Write-PscriboMessage "Discovered Active Directory DCDiag information for DC $DC."
+                    foreach ($Result in $DCDIAG) {
+                        try {
+                            Write-PscriboMessage "Collecting Active Directory DCDiag test '$($Result.TestName)' for DC $DC."
+                            $inObj = [ordered] @{
+                                'DC Name' = $DC
+                                'Test Name' = $Result.TestName
+                                'Result' = $Result.TestResult
+                            }
+                            $OutObj += [pscustomobject]$inobj
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        }
                     }
-                    $OutObj += [pscustomobject]$inobj
+                    if ($HealthCheck.DomainController.Diagnostic) {
+                        $OutObj | Where-Object { $_.'Result' -like 'failed'} | Set-Style -Style Critical -Property 'Result'
+                    }
+                    $TableParams = @{
+                        Name = "Domain Controller DCDiag - $($DC.ToString().split('.')[0].ToUpper())"
+                        List = $false
+                        ColumnWidths = 35, 35, 30
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    $OutObj | Sort-Object -Property 'Test Name' | Table @TableParams
                 }
-                if ($HealthCheck.DomainController.Diagnostic) {
-                    $OutObj | Where-Object { $_.'Result' -like 'failed'} | Set-Style -Style Critical -Property 'Result'
-                }
-                $TableParams = @{
-                    Name = "AD Domain Controller DCDiag Information - $($Domain.ToString().ToUpper())"
-                    List = $false
-                    ColumnWidths = 35, 35, 30
-                }
-                if ($Report.ShowTableCaptions) {
-                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                }
-                $OutObj | Table @TableParams
             }
             catch {
                 Write-PscriboMessage -IsWarning $_.Exception.Message
