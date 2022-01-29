@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -38,13 +38,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     foreach ($System in $Target) {
         Try {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
-            $TempPssSession = New-PSSession $System -Credential $Credential -Authentication Default
+            $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication Negotiate
+            $script:TempCIMSession = New-CIMSession $System -Credential $Credential -Authentication Negotiate
             $ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
         } Catch {
             Write-Verbose "Unable to connect to the Domain Controller: $System"
             throw
         }
-        $global:ForestInfo =  $ADSystem.RootDomain.toUpper()
+        $script:ForestInfo =  $ADSystem.RootDomain.toUpper()
         #---------------------------------------------------------------------------------------------#
         #                                 Forest Section                                              #
         #---------------------------------------------------------------------------------------------#
@@ -183,10 +184,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                 Section -Style Heading4 "$($Domain.ToString().ToUpper()) DNS Configuration" {
                                     Paragraph "The following section provides a configuration summary of the DNS service."
                                     BlankLine
-                                    Get-AbrADDNSInfrastructure -Domain $Domain -Session $TempPssSession
+                                    Get-AbrADDNSInfrastructure -Domain $Domain
                                     $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                     foreach ($DC in $DCs){
-                                        Get-AbrADDNSZone -Domain $Domain -DC $DC -Cred $Credential
+                                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Negotiate
+                                        $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication Negotiate
+                                        Get-AbrADDNSZone -Domain $Domain -DC $DC
                                     }
                                 }
                             }
@@ -381,5 +384,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }#endregion AD Section
         Write-PscriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
         Remove-PSSession -Session $TempPssSession
+        Remove-CIMSession -CimSession $TempCIMSession
 	}#endregion foreach loop
 }
