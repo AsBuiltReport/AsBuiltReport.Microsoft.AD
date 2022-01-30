@@ -22,8 +22,7 @@ function Get-AbrADDCDiag {
             [string]
             $Domain,
             [string]
-            $DC,
-            $Session
+            $DC
     )
 
     begin {

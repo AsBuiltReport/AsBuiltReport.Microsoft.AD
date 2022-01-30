@@ -73,9 +73,8 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
-                                    $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication Negotiate
                                     try {
-                                        $DNSSettings = Get-NetAdapter -CimSession $DCCIMSession | Get-DnsClientServerAddress -CimSession $DCCIMSession -AddressFamily IPv4
+                                        $DNSSettings = Get-NetAdapter -CimSession $TempCIMSession | Get-DnsClientServerAddress -CimSession $TempCIMSession -AddressFamily IPv4
                                         foreach ($DNSSetting in $DNSSettings) {
                                             try {
                                                 $inObj = [ordered] @{
@@ -96,8 +95,6 @@ function Get-AbrADDNSInfrastructure {
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
                                     }
-
-                                    Remove-CIMSession -CimSession $DCCIMSession
                                 }
 
                                 if ($HealthCheck.DNS.DP) {
@@ -126,14 +123,13 @@ function Get-AbrADDNSInfrastructure {
                         try {
                             Section -Style Heading6 "Application Directory Partition" {
                                 foreach ($DC in $DCs) {
-                                    $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication Negotiate
                                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Directory Partition" {
                                         Paragraph "The following section provides $($DC.ToString().ToUpper().Split(".")[0]) Directory Partition information."
                                         BlankLine
                                         $OutObj = @()
                                         Write-PscriboMessage "Collecting Directory Partition information from $($DC)."
                                         try {
-                                            $DNSSetting = Get-DnsServerDirectoryPartition -CimSession $DCCIMSession
+                                            $DNSSetting = Get-DnsServerDirectoryPartition -CimSession $TempCIMSession
                                             foreach ($Partition in $DNSSetting) {
                                                 try {
                                                     $inObj = [ordered] @{
@@ -166,8 +162,6 @@ function Get-AbrADDNSInfrastructure {
                                         }
                                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     }
-
-                                    Remove-CIMSession -CimSession $DCCIMSession
                                 }
                             }
                         }
@@ -183,10 +177,9 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading6 "Response Rate Limiting (RRL)" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
-                                    $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication Negotiate
                                     Write-PscriboMessage "Collecting Response Rate Limiting (RRL) information from $($DC)."
                                     try {
-                                        $DNSSetting = Get-DnsServerResponseRateLimiting -CimSession $DCCIMSession
+                                        $DNSSetting = Get-DnsServerResponseRateLimiting -CimSession $TempCIMSession
                                         $inObj = [ordered] @{
                                             'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                             'Status' = ConvertTo-EmptyToFiller $DNSSetting.Mode
@@ -202,8 +195,6 @@ function Get-AbrADDNSInfrastructure {
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
                                     }
-
-                                    Remove-CIMSession -CimSession $DCCIMSession
                                 }
 
                                 $TableParams = @{
@@ -229,10 +220,9 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading6 "Scavenging Options" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
-                                    $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication Negotiate
                                     Write-PscriboMessage "Collecting Scavenging Options information from $($DC)."
                                     try {
-                                        $DNSSetting = Get-DnsServerScavenging -CimSession $DCCIMSession
+                                        $DNSSetting = Get-DnsServerScavenging -CimSession $TempCIMSession
                                         $inObj = [ordered] @{
                                             'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                             'NoRefresh Interval' = ConvertTo-EmptyToFiller $DNSSetting.NoRefreshInterval
@@ -254,7 +244,6 @@ function Get-AbrADDNSInfrastructure {
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Item)"
                                     }
-                                    Remove-CIMSession -CimSession $DCCIMSession
                                 }
 
                                 $TableParams = @{
@@ -279,11 +268,10 @@ function Get-AbrADDNSInfrastructure {
                         Section -Style Heading6 "Forwarder Options" {
                             $OutObj = @()
                             foreach ($DC in $DCs) {
-                                $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication Negotiate
                                 Write-PscriboMessage "Collecting Forwarder Options information from $($DC)."
                                 try {
-                                    $DNSSetting = Get-DnsServerForwarder -CimSession $DCCIMSession
-                                    $Recursion = Get-DnsServerRecursion -CimSession $DCCIMSession | Select-Object -ExpandProperty Enable
+                                    $DNSSetting = Get-DnsServerForwarder -CimSession $TempCIMSession
+                                    $Recursion = Get-DnsServerRecursion -CimSession $TempCIMSession | Select-Object -ExpandProperty Enable
                                     $inObj = [ordered] @{
                                         'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                         'IP Address' = $DNSSetting.IPAddress
@@ -296,8 +284,6 @@ function Get-AbrADDNSInfrastructure {
                                 catch {
                                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Item)"
                                 }
-
-                                Remove-CIMSession -CimSession $DCCIMSession
                             }
                             $TableParams = @{
                                 Name = "Forwarders - $($Domain.ToString().ToUpper())"
@@ -320,14 +306,13 @@ function Get-AbrADDNSInfrastructure {
                         try {
                             Section -Style Heading6 "Root Hints" {
                                 foreach ($DC in $DCs) {
-                                    $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication Negotiate
                                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Root Hints" {
                                         Paragraph "The following section provides $($DC.ToString().ToUpper().Split(".")[0]) Root Hints information."
                                         BlankLine
                                         $OutObj = @()
                                         Write-PscriboMessage "Collecting Root Hint information from $($DC)."
                                         try {
-                                            $DNSSetting = Get-DnsServerRootHint -CimSession $DCCIMSession | Select-Object @{Name="Name"; E={$_.NameServer.RecordData.Nameserver}},@{Name="IPAddress"; E={$_.IPAddress.RecordData.IPv6Address.IPAddressToString,$_.IPAddress.RecordData.IPv4Address.IPAddressToString} }
+                                            $DNSSetting = Get-DnsServerRootHint -CimSession $TempCIMSession | Select-Object @{Name="Name"; E={$_.NameServer.RecordData.Nameserver}},@{Name="IPAddress"; E={$_.IPAddress.RecordData.IPv6Address.IPAddressToString,$_.IPAddress.RecordData.IPv4Address.IPAddressToString} }
                                             foreach ($Hints in $DNSSetting) {
                                                 try {
                                                     $inObj = [ordered] @{
@@ -355,8 +340,6 @@ function Get-AbrADDNSInfrastructure {
                                         }
                                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     }
-
-                                    Remove-CIMSession -CimSession $DCCIMSession
                                 }
                             }
                         }
@@ -372,10 +355,9 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading6 "Zone Scope Recursion" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
-                                    $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication Negotiate
                                     Write-PscriboMessage "Collecting Zone Scope Recursion information from $($DC)."
                                     try {
-                                        $DNSSetting = Get-DnsServerRecursionScope -CimSession $DCCIMSession
+                                        $DNSSetting = Get-DnsServerRecursionScope -CimSession $TempCIMSession
                                         $inObj = [ordered] @{
                                             'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                             'Zone Name' = Switch ($DNSSetting.Name) {
@@ -390,8 +372,6 @@ function Get-AbrADDNSInfrastructure {
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Item)"
                                     }
-
-                                    Remove-CIMSession -CimSession $DCCIMSession
                                 }
 
                                 $TableParams = @{

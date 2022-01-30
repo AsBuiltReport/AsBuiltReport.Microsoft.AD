@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,10 +20,7 @@ function Get-AbrADDomainController {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain,
-            $Session,
-            [PSCredential]
-            $Cred
+            $Domain
     )
 
     begin {
@@ -34,15 +31,13 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             Write-PscriboMessage "Discovering Active Directory Domain Controller information from $Domain."
-            $DCs = Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
             if ($DCs) {
                 foreach ($DC in $DCs) {
                     Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
                     try {
                         Write-PscriboMessage "Collecting AD Domain Controller Summary information of $DC."
-                        $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                        $DCInfo = Invoke-Command -Session $DCPssSession {Get-ADDomainController -Identity $using:DC}
-                        Remove-PSSession -Session $DCPssSession
+                        $DCInfo = Invoke-Command -Session $TempPssSession {Get-ADDomainController -Identity $using:DC -Server $using:DC}
                         $inObj = [ordered] @{
                             'DC Name' = ($DCInfo.Name).ToString().ToUpper()
                             'Domain Name' = $DCInfo.Domain
@@ -85,8 +80,8 @@ function Get-AbrADDomainController {
                         foreach ($DC in $DCs) {
                             try {
                                 Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
-                                $CimSession = New-CimSession $DC -Credential $Cred -Authentication Default
-                                $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                                $CimSession = New-CimSession $DC -Credential $Credential -Authentication Default
+                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
                                 $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
                                 $License =  Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
                                 $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
@@ -152,7 +147,7 @@ function Get-AbrADDomainController {
                     foreach ($DC in $DCs) {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller NTDS information for $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
                             $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
                             $size = Invoke-Command -Session $DCPssSession -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
                             $LogFiles = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'Database log files path'}
@@ -201,7 +196,7 @@ function Get-AbrADDomainController {
                     foreach ($DC in $DCs) {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller Time Source information for $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
                             $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
                             $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
                             Remove-PSSession -Session $DCPssSession
@@ -260,7 +255,7 @@ function Get-AbrADDomainController {
                             try {
                                 $OutObj = @()
                                 Write-PscriboMessage "Collecting AD Domain Controller installed software information for $DC."
-                                $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
                                 $Software = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
                                 Remove-PSSession -Session $DCPssSession
                                 if ( $Software ) {

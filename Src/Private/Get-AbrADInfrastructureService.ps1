@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,9 +20,7 @@ function Get-AbrADInfrastructureService {
             Position = 0,
             Mandatory)]
             [string]
-            $DC,
-            [pscredential]
-            $Cred
+            $DC
     )
 
     begin {
@@ -32,7 +30,7 @@ function Get-AbrADInfrastructureService {
     process {
         Write-PscriboMessage "Discovering AD Domain Controller Infrastructure Services information for $DC."
         try {
-            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
             $Available = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service "W32Time" | Select-Object DisplayName, Name, Status}
             if ($Available) {
                 Write-PscriboMessage "Discovered Active Directory DC Infrastructure Services information of $DC."

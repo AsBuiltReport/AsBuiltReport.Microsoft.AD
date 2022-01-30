@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,8 +20,7 @@ function Get-AbrADFSMO {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain,
-            $Session
+            $Domain
     )
 
     begin {
@@ -30,8 +29,8 @@ function Get-AbrADFSMO {
 
     process {
         try {
-            $DomainData = Invoke-Command -Session $Session {Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator}
-            $ForestData = Invoke-Command -Session $Session {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
+            $DomainData = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator}
+            $ForestData = Invoke-Command -Session $TempPssSession {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
             if ($DomainData -and $ForestData) {
                 Section -Style Heading5 'Flexible Single Master Operations (FSMO)' {
                     Paragraph "The following section provides a summary of the Active Directory FSMO for Domain $($Domain.ToString().ToUpper())."

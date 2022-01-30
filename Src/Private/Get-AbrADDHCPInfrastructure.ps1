@@ -5,7 +5,7 @@ function Get-AbrADDHCPInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,10 +20,7 @@ function Get-AbrADDHCPInfrastructure {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain,
-            $Session,
-            [PSCredential]
-            $Cred
+            $Domain
     )
 
     begin {
@@ -32,7 +29,7 @@ function Get-AbrADDHCPInfrastructure {
 
     process {
         try {
-            $DHCPinDC = Invoke-Command -Session $Session { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1] -eq $using:Domain} }
+            $DHCPinDC = Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1] -eq $Domain}
             if ($DHCPinDC) {
                 Write-PScriboMessage "Discovered '$(($DHCPinDC | Measure-Object).Count)' DHCP Servers in forest $($Domain)."
                 Section -Style Heading5 'DHCP Servers In Active Directory' {
@@ -42,7 +39,7 @@ function Get-AbrADDHCPInfrastructure {
                     foreach ($DHCPServer in $DHCPinDC) {
                         try {
                             Write-PScriboMessage "Collecting DHCP Server Setting information from $($DHCPServer.DnsName.split(".", 2)[0])"
-                            $Setting = Invoke-Command -Session $Session { Get-DhcpServerSetting -ComputerName ($using:DHCPServer).DnsName }
+                            $Setting = Get-DhcpServerSetting -CimSession $TempCIMSession -ComputerName ($DHCPServer).DnsName
                             $inObj = [ordered] @{
                                 'DC Name' = $DHCPServer.DnsName.Split(".", 2)[0]
                                 'IP Address' =  $DHCPServer.IPAddress
@@ -77,7 +74,7 @@ function Get-AbrADDHCPInfrastructure {
                             foreach ($DHCPServer in $DHCPinDC) {
                                 try {
                                     Write-PScriboMessage "Collecting DHCP Server database information from $($DHCPServer.DnsName.split(".", 2)[0])"
-                                    $Setting = Invoke-Command -Session $Session { Get-DhcpServerDatabase -ComputerName ($using:DHCPServer).DnsName }
+                                    $Setting = Get-DhcpServerDatabase -CimSession $TempCIMSession -ComputerName ($DHCPServer).DnsName
                                     $inObj = [ordered] @{
                                         'DC Name' = $DHCPServer.DnsName.Split(".", 2)[0]
                                         'File Path' =  ConvertTo-EmptyToFiller $Setting.FileName
@@ -120,7 +117,7 @@ function Get-AbrADDHCPInfrastructure {
                             foreach ($DHCPServer in $DHCPinDC) {
                                 try{
                                     Write-PScriboMessage "Collecting DHCP Server Dynamic DNS Credentials information from $($DHCPServer.DnsName.split(".", 2)[0])"
-                                    $Setting = Invoke-Command -Session $Session { Get-DhcpServerDnsCredential -ComputerName ($using:DHCPServer).DnsName }
+                                    $Setting = Get-DhcpServerDnsCredential -CimSession $TempCIMSession -ComputerName ($DHCPServer).DnsName
                                     $inObj = [ordered] @{
                                         'DC Name' = $DHCPServer.DnsName.Split(".", 2)[0]
                                         'User Name' =  ConvertTo-EmptyToFiller $Setting.UserName
