@@ -1,5 +1,19 @@
 # :arrows_counterclockwise: Microsoft AD As Built Report Changelog
 
+## [0.6.3] - 2022-01-30
+
+### Changed
+
+- More Code refactoring to improve performance.
+- Migrated DNS/DHCP Server section to use CIM sessions.
+- Changed authentication parameter of CIM/PSRemote from kerberos to negotiate.
+- Added variable to control CIM/PSRemote authentication method (PSDefaultAuthentication)
+- Changed report main text color.
+
+### Fixed
+
+- Fix for more table caption error messages.
+
 ## [0.6.2] - 2022-01-24
 
 ### Changed
