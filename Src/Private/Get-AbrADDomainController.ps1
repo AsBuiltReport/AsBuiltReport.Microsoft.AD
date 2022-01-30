@@ -49,7 +49,7 @@ function Get-AbrADDomainController {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Summary)"
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
                     }
                 }
 
@@ -65,7 +65,7 @@ function Get-AbrADDomainController {
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Summary)"
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
         }
 
         if ($InfoLevel.Domain -ge 2) {
@@ -126,14 +126,14 @@ function Get-AbrADDomainController {
                                 }
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Hardware Summary)"
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Item)"
                             }
                         }
                     }
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Summary)"
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Table)"
             }
         }
         try {
@@ -165,7 +165,7 @@ function Get-AbrADDomainController {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (NTDS Summary)"
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
                         }
                     }
 
@@ -182,7 +182,7 @@ function Get-AbrADDomainController {
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (NTDS Summary)"
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (NTDS Table)"
         }
         try {
             Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
@@ -219,12 +219,12 @@ function Get-AbrADDomainController {
                                     $OutObj += [pscustomobject]$inobj
                                 }
                                 catch {
-                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                    Write-PscriboMessage -IsWarning  "$($_.Exception.Message) (Time Source Item)"
                                 }
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Time Source)"
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Time Source Table)"
                         }
                     }
 
@@ -288,14 +288,14 @@ function Get-AbrADDomainController {
                                 }
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Installed Software)"
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Installed Software Table)"
                             }
                         }
                     }
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
             }
         }
     }
