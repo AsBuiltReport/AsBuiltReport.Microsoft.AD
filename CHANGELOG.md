@@ -13,6 +13,7 @@
 ### Fixed
 
 - Fix for more table caption error messages.
+- Fix section heading hierarchy
 
 ## [0.6.2] - 2022-01-24
 
