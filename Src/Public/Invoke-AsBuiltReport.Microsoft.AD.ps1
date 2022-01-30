@@ -38,8 +38,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     foreach ($System in $Target) {
         Try {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
-            $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication Negotiate
-            $script:TempCIMSession = New-CIMSession $System -Credential $Credential -Authentication Negotiate
+            $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+            $script:TempCIMSession = New-CIMSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication
             $ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
         } Catch {
             Write-Verbose "Unable to connect to the Domain Controller: $System"
@@ -187,7 +187,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Get-AbrADDNSInfrastructure -Domain $Domain
                                     $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                     foreach ($DC in $DCs){
-                                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Negotiate
+                                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                                         Get-AbrADDNSZone -Domain $Domain -DC $DC
                                     }
                                 }

@@ -9,7 +9,8 @@
         "ShowTableCaptions": true
     },
     "Options": {
-        "ShowDefinitionInfo": false
+        "ShowDefinitionInfo": false,
+        "PSDefaultAuthentication": "Negotiate"
     },
     "InfoLevel": {
         "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",

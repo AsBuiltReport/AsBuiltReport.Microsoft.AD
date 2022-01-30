@@ -156,6 +156,7 @@ The **Options** schema allows certain options within the report to be toggled on
 | Sub-Schema      | Setting      | Default | Description                                                                                                                                                                                 |
 |-----------------|--------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | ShowDefinitionInfo | true/false  | false    | Toggle to enable/disable Microsoft AD term explanations
+| PSDefaultAuthentication | Negotiate/Kerberos  | Negotiate    | Allow to set the value of the PSRemoting authentication method.
 
 
 ### InfoLevel

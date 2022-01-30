@@ -80,8 +80,8 @@ function Get-AbrADDomainController {
                         foreach ($DC in $DCs) {
                             try {
                                 Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
-                                $CimSession = New-CimSession $DC -Credential $Credential -Authentication Default
-                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
+                                $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                                 $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
                                 $License =  Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
                                 $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
@@ -147,7 +147,7 @@ function Get-AbrADDomainController {
                     foreach ($DC in $DCs) {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller NTDS information for $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                             $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
                             $size = Invoke-Command -Session $DCPssSession -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
                             $LogFiles = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'Database log files path'}
@@ -196,7 +196,7 @@ function Get-AbrADDomainController {
                     foreach ($DC in $DCs) {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller Time Source information for $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                             $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
                             $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
                             Remove-PSSession -Session $DCPssSession
@@ -255,7 +255,7 @@ function Get-AbrADDomainController {
                             try {
                                 $OutObj = @()
                                 Write-PscriboMessage "Collecting AD Domain Controller installed software information for $DC."
-                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
+                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                                 $Software = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
                                 Remove-PSSession -Session $DCPssSession
                                 if ( $Software ) {
