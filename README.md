@@ -47,7 +47,7 @@ Below are the instructions on how to install, configure and generate a Microsoft
 <!-- ********** Update supported AD versions ********** -->
 The Microsoft AD As Built Report supports the following Active Directory versions;
 
-- 2008, 2008 R2, 2012, 2016, 2019
+- 2012, 2016, 2019
 
 ### PowerShell
 
