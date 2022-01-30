@@ -39,7 +39,7 @@ function Get-AbrADInfrastructureService {
                     BlankLine
                     $OutObj = @()
                     if ($DC) {
-                        $Services = @('DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS')
+                        $Services = @('DHCPServer','DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS')
                         foreach ($Service in $Services) {
                             try {
                                 $Status = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service $using:Service | Select-Object DisplayName, Name, Status}
