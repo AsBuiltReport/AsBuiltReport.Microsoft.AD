@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,10 +20,7 @@ function Get-AbrADDomain {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain,
-            $Session,
-            [pscredential]
-            $Cred
+            $Domain
     )
 
     begin {
@@ -34,7 +31,7 @@ function Get-AbrADDomain {
         $OutObj = @()
         if ($Domain) {
             try {
-                $DomainInfo =  Invoke-Command -Session $Session {Get-ADDomain $using:Domain -ErrorAction Stop}
+                $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
                 Write-PscriboMessage "Discovered Active Directory Domain information of domain $Domain."
                 if ($DomainInfo) {
                     Write-PscriboMessage "Collecting Domain information of '$($DomainInfo)'."
@@ -48,11 +45,11 @@ function Get-AbrADDomain {
                         'Parent Domain' = ConvertTo-EmptyToFiller $DomainInfo.ParentDomain
                         'Replica Directory Servers' = $DomainInfo.ReplicaDirectoryServers
                         'Child Domains' = ConvertTo-EmptyToFiller $DomainInfo.ChildDomains
-                        'Domain Path' = ConvertTo-ADCanonicalName -DN $DomainInfo.DistinguishedName -Credential $Cred -Domain $Domain
-                        'Computers Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.ComputersContainer -Credential $Cred -Domain $Domain
-                        'Domain Controllers Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.DomainControllersContainer -Credential $Cred -Domain $Domain
-                        'Systems Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.SystemsContainer -Credential $Cred -Domain $Domain
-                        'Users Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.UsersContainer -Credential $Cred -Domain $Domain
+                        'Domain Path' = ConvertTo-ADCanonicalName -DN $DomainInfo.DistinguishedName -Domain $Domain
+                        'Computers Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.ComputersContainer -Domain $Domain
+                        'Domain Controllers Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.DomainControllersContainer -Domain $Domain
+                        'Systems Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.SystemsContainer -Domain $Domain
+                        'Users Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.UsersContainer -Domain $Domain
                         'ReadOnly Replica Directory Servers' = ConvertTo-EmptyToFiller $DomainInfo.ReadOnlyReplicaDirectoryServers
                     }
                     $OutObj += [pscustomobject]$inobj

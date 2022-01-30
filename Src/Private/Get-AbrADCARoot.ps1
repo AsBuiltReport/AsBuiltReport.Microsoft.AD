@@ -5,7 +5,7 @@ function Get-AbrADCARoot {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,7 +24,7 @@ function Get-AbrADCARoot {
 
     process {
         try {
-            Section -Style Heading4 "Enterprise Root Certificate Authority" {
+            Section -Style Heading3 "Enterprise Root Certificate Authority" {
                 Paragraph "The following section provides the Enterprise Root CA information."
                 BlankLine
                 $OutObj = @()

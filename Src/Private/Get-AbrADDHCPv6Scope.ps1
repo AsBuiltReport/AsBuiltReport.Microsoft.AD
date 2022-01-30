@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6Scope {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,6 @@ function Get-AbrADDHCPv6Scope {
             Mandatory)]
             [string]
             $Domain,
-            $Session,
             [string]
             $Server
     )
@@ -31,9 +30,9 @@ function Get-AbrADDHCPv6Scope {
     }
 
     process {
-        $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv6Scope -ComputerName $using:Server}
+        $DHCPScopes = Get-DhcpServerv6Scope -CimSession $TempCIMSession -ComputerName $Server
         if ($DHCPScopes) {
-            Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv6 Scopes" {
+            Section -Style Heading5 "$($Server.ToUpper().split(".", 2)[0]) IPv6 Scopes" {
                 Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Configuration."
                 BlankLine
                 $OutObj = @()
@@ -66,7 +65,7 @@ function Get-AbrADDHCPv6Scope {
                 }
                 $OutObj | Sort-Object -Property 'Scope Id' | Table @TableParams
                 try {
-                    $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv6ScopeStatistics -ComputerName $using:Server}
+                    $DHCPScopes = Get-DhcpServerv6ScopeStatistics -CimSession $TempCIMSession -ComputerName $Server
                     if ($DHCPScopes) {
                         Section -Style Heading6 "IPv6 Scope Statistics" {
                             $OutObj = @()
@@ -106,7 +105,7 @@ function Get-AbrADDHCPv6Scope {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Scope Statistics Table)"
                 }
                 try {
-                    $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv6Binding -ComputerName $using:Server}
+                    $DHCPScopes = Get-DhcpServerv6Binding -CimSession $TempCIMSession -ComputerName $Server
                     if ($DHCPScopes) {
                         Section -Style Heading6 "IPv6 Network Interface Binding" {
                             $OutObj = @()

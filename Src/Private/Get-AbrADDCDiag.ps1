@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -22,8 +22,7 @@ function Get-AbrADDCDiag {
             [string]
             $Domain,
             [string]
-            $DC,
-            $Session
+            $DC
     )
 
     begin {
@@ -31,39 +30,42 @@ function Get-AbrADDCDiag {
     }
 
     process {
-        $OutObj = @()
         if ($DC) {
             try {
                 Write-PscriboMessage "Discovering Active Directory DCDiag information for DC $DC."
                 $DCDIAG = Invoke-DcDiag -DomainController $DC
                 if ($DCDIAG) {
-                    Write-PscriboMessage "Discovered Active Directory DCDiag information for DC $DC."
-                    foreach ($Result in $DCDIAG) {
-                        try {
-                            Write-PscriboMessage "Collecting Active Directory DCDiag test '$($Result.TestName)' for DC $DC."
-                            $inObj = [ordered] @{
-                                'DC Name' = $DC
-                                'Test Name' = $Result.TestName
-                                'Result' = $Result.TestResult
+                    Section -Style Heading5 "$($DC.ToString().split('.')[0].ToUpper())" {
+                        Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                        BlankLine
+                        $OutObj = @()
+                        Write-PscriboMessage "Discovered Active Directory DCDiag information for DC $DC."
+                        foreach ($Result in $DCDIAG) {
+                            try {
+                                Write-PscriboMessage "Collecting Active Directory DCDiag test '$($Result.TestName)' for DC $DC."
+                                $inObj = [ordered] @{
+                                    'Test Name' = $Result.TestName
+                                    'Result' = $Result.TestResult
+                                }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            catch {
+                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                            }
                         }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        if ($HealthCheck.DomainController.Diagnostic) {
+                            $OutObj | Where-Object { $_.'Result' -like 'failed'} | Set-Style -Style Critical -Property 'Result'
                         }
+                        $TableParams = @{
+                            Name = "Domain Controller DCDiag - $($DC.ToString().split('.')[0].ToUpper())"
+                            List = $false
+                            ColumnWidths = 50, 50
+                        }
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Sort-Object -Property 'Test Name' | Table @TableParams
                     }
-                    if ($HealthCheck.DomainController.Diagnostic) {
-                        $OutObj | Where-Object { $_.'Result' -like 'failed'} | Set-Style -Style Critical -Property 'Result'
-                    }
-                    $TableParams = @{
-                        Name = "Domain Controller DCDiag - $($DC.ToString().split('.')[0].ToUpper())"
-                        List = $false
-                        ColumnWidths = 35, 35, 30
-                    }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    $OutObj | Sort-Object -Property 'Test Name' | Table @TableParams
                 }
             }
             catch {

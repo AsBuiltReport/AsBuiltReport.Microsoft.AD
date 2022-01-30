@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,10 +16,6 @@ function Get-AbrADForest {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-            $Session
     )
 
     begin {
@@ -28,12 +24,12 @@ function Get-AbrADForest {
 
     process {
         try {
-            $Data = Invoke-Command -Session $Session {Get-ADForest}
+            $Data = Invoke-Command -Session $TempPssSession {Get-ADForest}
             $ForestInfo =  $Data.RootDomain.toUpper()
             Write-PscriboMessage "Discovered Active Directory information of forest $ForestInfo."
-            $DomainDN = Invoke-Command -Session $Session {(Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName}
-            $TombstoneLifetime = Invoke-Command -Session $Session {Get-ADObject "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$using:DomainDN" -Properties tombstoneLifetime | Select-Object -ExpandProperty tombstoneLifetime}
-            $ADVersion = Invoke-Command -Session $Session {Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion}
+            $DomainDN = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName}
+            $TombstoneLifetime = Invoke-Command -Session $TempPssSession {Get-ADObject "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$using:DomainDN" -Properties tombstoneLifetime | Select-Object -ExpandProperty tombstoneLifetime}
+            $ADVersion = Invoke-Command -Session $TempPssSession {Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion}
             If ($ADVersion -eq '88') {$server = 'Windows Server 2019'}
             ElseIf ($ADVersion -eq '87') {$server = 'Windows Server 2016'}
             ElseIf ($ADVersion -eq '69') {$server = 'Windows Server 2012 R2'}
@@ -83,14 +79,14 @@ function Get-AbrADForest {
         try {
             Section -Style Heading5 'Optional Features' {
                 Write-PscriboMessage "Discovering Optional Features enabled on forest $ForestInfo."
-                $Data = Invoke-Command -Session $Session {Get-ADOptionalFeature -Filter *}
+                $Data = Invoke-Command -Session $TempPssSession {Get-ADOptionalFeature -Filter *}
                 $OutObj = @()
                 if ($Data) {
                     Write-PscriboMessage "Discovered Optional Features enabled on forest $ForestInfo."
                     foreach ($Item in $Data) {
                         try {
                             Write-PscriboMessage "Collecting Optional Features '$($Item.Name)'"
-                            $Forest = Invoke-Command -Session $Session {Get-ADForest}
+                            $Forest = Invoke-Command -Session $TempPssSession {Get-ADForest}
                             $inObj = [ordered] @{
                                 'Name' = $Item.Name
                                 'Required Forest Mode' = $Item.RequiredForestMode

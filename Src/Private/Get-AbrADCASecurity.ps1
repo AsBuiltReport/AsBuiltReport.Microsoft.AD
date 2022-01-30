@@ -5,7 +5,7 @@ function Get-AbrADCASecurity {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,7 +24,7 @@ function Get-AbrADCASecurity {
 
     process {
         if ($CAs) {
-            Section -Style Heading4 "Certificate Validity Period" {
+            Section -Style Heading3 "Certificate Validity Period" {
                 Paragraph "The following section provides the Certification Authority Certificate Validity Period information."
                 BlankLine
                 $OutObj = @()

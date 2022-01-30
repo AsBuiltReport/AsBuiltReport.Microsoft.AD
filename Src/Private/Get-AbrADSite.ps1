@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,10 +16,6 @@ function Get-AbrADSite {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-            $Session
     )
 
     begin {
@@ -28,7 +24,7 @@ function Get-AbrADSite {
 
     process {
         try {
-            $Site =  Invoke-Command -Session $Session {Get-ADReplicationSite -Filter * -Properties *}
+            $Site =  Invoke-Command -Session $TempPssSession {Get-ADReplicationSite -Filter * -Properties *}
             if ($Site) {
                 Section -Style Heading3 'Domain Sites' {
                     $OutObj = @()
@@ -39,7 +35,7 @@ function Get-AbrADSite {
                             $SubnetArray = @()
                             $Subnets = $Item.Subnets
                             foreach ($Object in $Subnets) {
-                                $SubnetName =  Invoke-Command -Session $Session {Get-ADReplicationSubnet $using:Object}
+                                $SubnetName =  Invoke-Command -Session $TempPssSession {Get-ADReplicationSubnet $using:Object}
                                 $SubnetArray += $SubnetName.Name
                             }
                             $inObj = [ordered] @{
@@ -68,7 +64,7 @@ function Get-AbrADSite {
                     }
                     $OutObj | Sort-Object -Property 'Site Name' | Table @TableParams
                     try {
-                        $Subnet = Invoke-Command -Session $Session {Get-ADReplicationSubnet -Filter * -Properties *}
+                        $Subnet = Invoke-Command -Session $TempPssSession {Get-ADReplicationSubnet -Filter * -Properties *}
                         if ($Subnet) {
                             Section -Style Heading4 'Site Subnets' {
                                 $OutObj = @()
@@ -105,7 +101,7 @@ function Get-AbrADSite {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
                     }
                     try {
-                        $Link = Invoke-Command -Session $Session {Get-ADReplicationSiteLink -Filter * -Properties *}
+                        $Link = Invoke-Command -Session $TempPssSession {Get-ADReplicationSiteLink -Filter * -Properties *}
                         if ($Link) {
                             Section -Style Heading4 'Site Links' {
                                 $OutObj = @()
@@ -116,7 +112,7 @@ function Get-AbrADSite {
                                         $SiteArray = @()
                                         $Sites = $Item.siteList
                                         foreach ($Object in $Sites) {
-                                            $SiteName =  Invoke-Command -Session $Session {Get-ADReplicationSite -Identity $using:Object}
+                                            $SiteName =  Invoke-Command -Session $TempPssSession {Get-ADReplicationSite -Identity $using:Object}
                                             $SiteArray += $SiteName.Name
                                         }
                                         $inObj = [ordered] @{

@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -38,13 +38,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     foreach ($System in $Target) {
         Try {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
-            $TempPssSession = New-PSSession $System -Credential $Credential -Authentication Default
+            $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+            $script:TempCIMSession = New-CIMSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication
             $ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
         } Catch {
             Write-Verbose "Unable to connect to the Domain Controller: $System"
             throw
         }
-        $global:ForestInfo =  $ADSystem.RootDomain.toUpper()
+        $script:ForestInfo =  $ADSystem.RootDomain.toUpper()
         #---------------------------------------------------------------------------------------------#
         #                                 Forest Section                                              #
         #---------------------------------------------------------------------------------------------#
@@ -64,13 +65,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                             BlankLine
                         }
                         try {
-                            Get-AbrADForest -Session $TempPssSession
+                            Get-AbrADForest
                         }
                         catch {
                             Write-PscriboMessage -IsWarning $_.Exception.Message
                         }
                         try {
-                            Get-AbrADSite -Session $TempPssSession
+                            Get-AbrADSite
                         }
                         catch {
                             Write-PscriboMessage -IsWarning $_.Exception.Message
@@ -87,7 +88,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
 
             if ($InfoLevel.Domain -ge 1) {
-                Section -Style Heading3 "Active Directory Domain Information" {
+                Section -Style Heading2 "Active Directory Domain Information" {
                     if ($Options.ShowDefinitionInfo) {
                         Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user or a group or it can be a hardware component, such as a computer or printer.Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain or an alternate version (which may end in .local)."
                         BlankLine
@@ -99,14 +100,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     foreach ($Domain in (Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
                             if (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}) {
-                                Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain Configuration" {
+                                Section -Style Heading3 "$($Domain.ToString().ToUpper()) Domain Configuration" {
                                     Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                     BlankLine
-                                    Get-AbrADDomain -Domain $Domain -Session $TempPssSession -Cred $Credential
-                                    Get-AbrADFSMO -Domain $Domain -Session $TempPssSession
-                                    Get-AbrADTrust -Domain $Domain -Session $TempPssSession -Cred $Credential
-                                    Get-AbrADDomainObject -Domain $Domain -Session $TempPssSession -Cred $Credential
-                                    Section -Style Heading5 'Domain Controller Summary' {
+                                    Get-AbrADDomain -Domain $Domain
+                                    Get-AbrADFSMO -Domain $Domain
+                                    Get-AbrADTrust -Domain $Domain
+                                    Get-AbrADDomainObject -Domain $Domain
+                                    Section -Style Heading4 'Domain Controller Summary' {
                                         if ($Options.ShowDefinitionInfo) {
                                             Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
                                             BlankLine
@@ -115,21 +116,23 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Paragraph "The following section provides a summary of the Active Directory Domain Controllers."
                                             BlankLine
                                         }
-                                        Get-AbrADDomainController -Domain $Domain -Session $TempPssSession -Cred $Credential
+                                        Get-AbrADDomainController -Domain $Domain
                                         $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                                        if ($InfoLevel.Domain -ge 3) {
-                                            foreach ($DC in $DCs){
-                                                Get-AbrADDCRoleFeature -DC $DC -Cred $Credential
+                                        if ($InfoLevel.Domain -ge 2) {
+                                            Section -Style Heading5 "Roles" {
+                                                Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
+                                                foreach ($DC in $DCs){
+                                                    Get-AbrADDCRoleFeature -DC $DC
+                                                }
                                             }
                                         }
                                         if ($HealthCheck.DomainController.Diagnostic) {
                                             try {
-                                                Section -Style Heading6 'DC Diagnostic' {
+                                                Section -Style Heading5 'DC Diagnostic' {
                                                     Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
-                                                    BlankLine
                                                     $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                                     foreach ($DC in $DCs){
-                                                        Get-AbrADDCDiag -Domain $Domain -Session $TempPssSession -DC $DC
+                                                        Get-AbrADDCDiag -Domain $Domain -DC $DC
                                                     }
                                                 }
                                             }
@@ -142,7 +145,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         try {
                                             $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                             foreach ($DC in $DCs){
-                                                Get-AbrADInfrastructureService -DC $DC -Cred $Credential
+                                                Get-AbrADInfrastructureService -DC $DC
                                             }
                                         }
                                         catch {
@@ -150,9 +153,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Write-PscriboMessage -IsWarning $_.Exception.Message
                                             continue
                                         }
-                                        Get-AbrADSiteReplication -Domain $Domain -Session $TempPssSession
-                                        Get-AbrADGPO -Domain $Domain -Session $TempPssSession -Cred $Credential
-                                        Get-AbrADOU -Domain $Domain -Session $TempPssSession -Cred $Credential
+                                        Get-AbrADSiteReplication -Domain $Domain
+                                        Get-AbrADGPO -Domain $Domain
+                                        Get-AbrADOU -Domain $Domain
                                     }
                                 }
                             }
@@ -168,7 +171,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 DNS Section                                                 #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.DNS -ge 1) {
-                Section -Style Heading3 "Domain Name System Summary" {
+                Section -Style Heading2 "Domain Name System Summary" {
                     if ($Options.ShowDefinitionInfo) {
                         Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
                         BlankLine
@@ -180,13 +183,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
                             if (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}) {
-                                Section -Style Heading4 "$($Domain.ToString().ToUpper()) DNS Configuration" {
+                                Section -Style Heading3 "$($Domain.ToString().ToUpper()) DNS Configuration" {
                                     Paragraph "The following section provides a configuration summary of the DNS service."
                                     BlankLine
-                                    Get-AbrADDNSInfrastructure -Domain $Domain -Session $TempPssSession
+                                    Get-AbrADDNSInfrastructure -Domain $Domain
                                     $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                     foreach ($DC in $DCs){
-                                        Get-AbrADDNSZone -Domain $Domain -DC $DC -Cred $Credential
+                                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                        Get-AbrADDNSZone -Domain $Domain -DC $DC
                                     }
                                 }
                             }
@@ -201,8 +205,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             #                                 DHCP Section                                                #
             #---------------------------------------------------------------------------------------------#
-            if ($InfoLevel.DHCP -ge 1 -and (Invoke-Command -Session $TempPssSession {Get-DhcpServerInDC})) {
-                Section -Style Heading3 "Dynamic Host Configuration Protocol Summary" {
+            if ($InfoLevel.DHCP -ge 1 -and (Get-DhcpServerInDC -CimSession $TempCIMSession)) {
+                Section -Style Heading2 "Dynamic Host Configuration Protocol Summary" {
                     if ($Options.ShowDefinitionInfo) {
                         Paragraph "The Dynamic Host Configuration Protocol (DHCP) is a network management protocol used on Internet Protocol (IP) networks for automatically assigning IP addresses and other communication parameters to devices connected to the network using a client/server architecture."
                         BlankLine
@@ -213,17 +217,17 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     }
                     foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
-                            $DomainDHCPs = Invoke-Command -Session $TempPssSession { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1] -eq $using:Domain} | Select-Object -ExpandProperty DnsName}
+                            $DomainDHCPs = Get-DhcpServerInDC -CimSession $TempCIMSession | Where-Object {$_.DnsName.split(".", 2)[1] -eq $Domain} | Select-Object -ExpandProperty DnsName
                             if ($DomainDHCPs) {
-                                Section -Style Heading4 "$($Domain.ToString().ToUpper()) Domain DHCP Configuration" {
+                                Section -Style Heading3 "$($Domain.ToString().ToUpper()) Domain DHCP Configuration" {
                                     Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
                                     BlankLine
-                                    Get-AbrADDHCPInfrastructure -Domain $Domain -Session $TempPssSession
-                                    Section -Style Heading5 "IPv4 Scope Configuration" {
+                                    Get-AbrADDHCPInfrastructure -Domain $Domain
+                                    Section -Style Heading4 "IPv4 Scope Configuration" {
                                         Paragraph "The following section provides a IPv4 configuration summary of the Dynamic Host Configuration Protocol."
                                         BlankLine
                                         try {
-                                            Get-AbrADDHCPv4Statistic -Domain $Domain -Session $TempPssSession
+                                            Get-AbrADDHCPv4Statistic -Domain $Domain
                                         }
                                         catch {
                                             Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from  $($Domain.ToString().ToUpper())."
@@ -231,22 +235,27 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         }
                                         foreach ($DHCPServer in $DomainDHCPs){
                                             try {
-                                                Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                                Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer
                                             }
                                             catch {
                                                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope information)"
                                             }
                                             if ($InfoLevel.DHCP -ge 2) {
                                                 try {
-                                                    Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
-                                                    $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv4Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty ScopeId}
-                                                    foreach ($Scope in $DHCPScopes) {
-                                                        try {
-                                                            Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
-                                                        }
-                                                        catch {
-                                                            Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope configuration)"
+                                                    Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer
+                                                    $DHCPScopes =  Get-DhcpServerv4Scope -CimSession $TempCIMSession -ComputerName $DHCPServer| Select-Object -ExpandProperty ScopeId
+                                                    if ($DHCPScopes) {
+                                                        Section -Style Heading5 "Scope Options" {
+                                                            Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
+                                                            foreach ($Scope in $DHCPScopes) {
+                                                                try {
+                                                                    Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
+                                                                }
+                                                                catch {
+                                                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
+                                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope configuration)"
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -256,11 +265,11 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             }
                                         }
                                     }
-                                    Section -Style Heading5 "IPv6 Scope Configuration" {
+                                    Section -Style Heading4 "IPv6 Scope Configuration" {
                                         Paragraph "The following section provides a IPv6 configuration summary of the Dynamic Host Configuration Protocol."
                                         BlankLine
                                         try {
-                                            Get-AbrADDHCPv6Statistic -Domain $Domain -Session $TempPssSession
+                                            Get-AbrADDHCPv6Statistic -Domain $Domain
                                         }
                                         catch {
                                             Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Statistics from $($Domain.ToString().ToUpper())."
@@ -270,22 +279,28 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Write-PScriboMessage "Discovering Dhcp Server IPv6 Scopes from $DHCPServer"
 
                                             try {
-                                                Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer -Session $TempPssSession
+                                                Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer
                                             }
                                             catch {
                                                 Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Information)"
                                             }
                                             if ($InfoLevel.DHCP -ge 2) {
                                                 try {
-                                                    Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession
-                                                    $DHCPScopes = Invoke-Command -Session $TempPssSession { Get-DhcpServerv6Scope -ComputerName $using:DHCPServer | Select-Object -ExpandProperty Prefix}
-                                                    foreach ($Scope in $DHCPScopes) {
-                                                        try {
-                                                            Get-AbrADDHCPv6PerScopeSetting -Domain $Domain -Server $DHCPServer -Session $TempPssSession -Scope $Scope
-                                                        }
-                                                        catch {
-                                                            Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Per DHCP Scope configuration)"
+                                                    Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer
+                                                    $DHCPScopes =  Get-DhcpServerv6Scope -CimSession $TempCIMSession -ComputerName $DHCPServer | Select-Object -ExpandProperty Prefix
+                                                    if ($DHCPScopes) {
+                                                        Section -Style Heading5 "Scope Options" {
+                                                            Paragraph "The following section provides a summary 6 Scope Server Options information."
+                                                            BlankLine
+                                                            foreach ($Scope in $DHCPScopes) {
+                                                                try {
+                                                                    Get-AbrADDHCPv6PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
+                                                                }
+                                                                catch {
+                                                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
+                                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Per DHCP Scope configuration)"
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -310,7 +325,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $Global:CAs = Get-CertificationAuthority -Enterprise
             if ($InfoLevel.CA -ge 1 -and ($CAs)) {
                 try {
-                    Section -Style Heading3 "Certificate Authority Summary" {
+                    Section -Style Heading2 "Certificate Authority Summary" {
                         if ($Options.ShowDefinitionInfo) {
                             Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
                             BlankLine
@@ -381,5 +396,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }#endregion AD Section
         Write-PscriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
         Remove-PSSession -Session $TempPssSession
+        Write-PscriboMessage "Clearing CIM Session $($TempCIMSession.Id)"
+        Remove-CIMSession -CimSession $TempCIMSession
 	}#endregion foreach loop
 }

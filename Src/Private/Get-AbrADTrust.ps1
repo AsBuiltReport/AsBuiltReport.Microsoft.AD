@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,10 +20,7 @@ function Get-AbrADTrust {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain,
-            $Session,
-            [PSCredential]
-            $Cred
+            $Domain
     )
 
     begin {
@@ -32,25 +29,23 @@ function Get-AbrADTrust {
 
     process {
         try {
-            $OutObj = @()
             if ($Domain) {
                 try {
-                    $DC = Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                    Write-PScriboMessage "Discovered '$(($DC | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
-                    $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
-                    $Trusts = Invoke-Command -Session $DCPssSession {Get-ADTrust -Filter *}
+                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                    $Trusts = Invoke-Command -Session $TempPssSession {Get-ADTrust -Filter * -Server $using:DC}
                     if ($Trusts) {
-                        Section -Style Heading5 'Domain and Trusts' {
+                        Section -Style Heading4 'Domain and Trusts' {
                             Paragraph "The following section provides a summary of Active Directory Trust information on $($Domain.ToString().ToUpper())."
                             BlankLine
+                            $OutObj = @()
                             Write-PScriboMessage "Discovered created trusts in domain $Domain"
                             foreach ($Trust in $Trusts) {
                                 try {
                                     Write-PscriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
                                     $inObj = [ordered] @{
                                         'Name' = $Trust.Name
-                                        'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Credential $Cred -Domain $Domain
-                                        'Source' = ConvertTo-ADObjectName $Trust.Source -Session $DCPssSession
+                                        'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Domain $Domain
+                                        'Source' = ConvertTo-ADObjectName $Trust.Source -Session $TempPssSession -DC $DC
                                         'Target' = $Trust.Target
                                         'Direction' = $Trust.Direction
                                         'IntraForest' =  ConvertTo-TextYN $Trust.IntraForest
@@ -73,20 +68,19 @@ function Get-AbrADTrust {
                                     $OutObj | Table @TableParams
                                 }
                                 catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Summary)"
+                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Item)"
                                 }
                             }
                         }
                     }
-                    Remove-PSSession -Session $DCPssSession
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Summary)"
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Table)"
                 }
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Summary)"
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Section)"
         }
     }
 

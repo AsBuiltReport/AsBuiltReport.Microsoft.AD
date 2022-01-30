@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,9 +20,7 @@ function Get-AbrADDCRoleFeature {
             Position = 0,
             Mandatory)]
             [string]
-            $DC,
-            [pscredential]
-            $Cred
+            $DC
     )
 
     begin {
@@ -32,18 +30,18 @@ function Get-AbrADDCRoleFeature {
     process {
         Write-PscriboMessage "Collecting AD Domain Controller Role & Features information for domain $Domain"
         try {
-            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
             if ($DCPssSession) {
                 Write-PscriboMessage "Discovered Active Directory DC Role & Features information of $DC."
-                Section -Style Heading6 "Role & Features on $($DC.ToString().ToUpper().Split(".")[0])" {
+                Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0])" {
                     Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
                     BlankLine
                     $OutObj = @()
-                    $Features = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-WindowsFeature | Where-Object {$_.installed -eq "True"}}
+                    $Features = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-WindowsFeature | Where-Object {$_.installed -eq "True" -and $_.FeatureType -eq 'Role'}}
                     Remove-PSSession -Session $DCPssSession
                     foreach ($Feature in $Features) {
                         try {
-                            Write-PscriboMessage "Collecting DC Role & Features: $($Feature.DisplayName) on $DC."
+                            Write-PscriboMessage "Collecting DC Roles: $($Feature.DisplayName) on $DC."
                             $inObj = [ordered] @{
                                 'Name' = $Feature.DisplayName
                                 'Parent' = $Feature.FeatureType
@@ -52,12 +50,12 @@ function Get-AbrADDCRoleFeature {
                             $OutObj += [pscustomobject]$inobj
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Role & Features Item)"
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Roles Item)"
                         }
                     }
 
                     $TableParams = @{
-                        Name = "Role & Features - $($DC.ToString().split('.')[0].ToUpper())"
+                        Name = "Roles - $($DC.ToString().split('.')[0].ToUpper())"
                         List = $false
                         ColumnWidths = 20, 10, 70
                     }
@@ -69,7 +67,7 @@ function Get-AbrADDCRoleFeature {
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Role & Features Section)"
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Role Section)"
         }
     }
 

@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6ScopeServerSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,6 @@ function Get-AbrADDHCPv6ScopeServerSetting {
             Mandatory)]
             [string]
             $Domain,
-            $Session,
             [string]
             $Server
     )
@@ -32,9 +31,9 @@ function Get-AbrADDHCPv6ScopeServerSetting {
 
     process {
         $OutObj = @()
-        $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv6OptionValue -ComputerName $using:Server}
+        $DHCPScopeOptions = Get-DhcpServerv6OptionValue -CimSession $TempCIMSession -ComputerName $Server
         if ($DHCPScopeOptions) {
-            Section -Style Heading6 "$($DHCPServer.ToUpper().split(".", 2)[0]) IPv6 Scope Server Options" {
+            Section -Style Heading5 "$($DHCPServer.ToUpper().split(".", 2)[0]) IPv6 Scope Server Options" {
                 Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
                 BlankLine
                 Write-PScriboMessage "Discovered '$(($DHCPScopeOptions | Measure-Object).Count)' DHCP scopes server opions on $($Server)."
@@ -64,7 +63,7 @@ function Get-AbrADDHCPv6ScopeServerSetting {
                 }
                 $OutObj | Sort-Object -Property 'Option Id' | Table @TableParams
                 try {
-                    $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv6DnsSetting -ComputerName $using:Server}
+                    $DHCPScopeOptions = Get-DhcpServerv6DnsSetting -CimSession $TempCIMSession -ComputerName $Server
                     if ($DHCPScopeOptions) {
                         Section -Style Heading6 "Scope DNS Settings" {
                             $OutObj = @()
