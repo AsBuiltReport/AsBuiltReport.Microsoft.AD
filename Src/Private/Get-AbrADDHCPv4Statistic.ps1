@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4Statistic {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,8 +20,7 @@ function Get-AbrADDHCPv4Statistic {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain,
-            $Session
+            $Domain
     )
 
     begin {
@@ -30,15 +29,14 @@ function Get-AbrADDHCPv4Statistic {
 
     process {
         try {
-            $DHCPinDC = Invoke-Command -Session $Session { Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $using:Domain} }
+            $DHCPinDC = Get-DhcpServerInDC -CimSession $TempCIMSession | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $Domain}
             if ($DHCPinDC) {
-                Section -Style Heading6 'IPv4 Service Statistics' {
-                    Write-PScriboMessage "Discovered '$(($DHCPinDC | Measure-Object).Count)' DHCP Servers in forest $($Domain)."
+                Section -Style Heading5 'IPv4 Service Statistics' {
                     $OutObj = @()
                     try {
                         foreach ($DHCPServers in $DHCPinDC) {
                             Write-PScriboMessage "Collecting DHCP Server IPv4 Statistics from $($DHCPServers.DnsName.split(".", 2)[0])"
-                            $Setting = Invoke-Command -Session $Session { Get-DhcpServerv4Statistics -ComputerName ($using:DHCPServers).DnsName }
+                            $Setting = Get-DhcpServerv4Statistics -CimSession $TempCIMSession -ComputerName ($DHCPServers).DnsName
                             $inObj = [ordered] @{
                                 'DC Name' = $DHCPServers.DnsName.Split(".", 2)[0]
                                 'Total Scopes' = ConvertTo-EmptyToFiller $Setting.TotalScopes

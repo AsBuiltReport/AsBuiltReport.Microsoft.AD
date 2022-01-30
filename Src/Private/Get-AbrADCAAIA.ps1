@@ -24,12 +24,12 @@ function Get-AbrADCAAIA {
 
     process {
         if ($CAs) {
-            Section -Style Heading4 "Authority Information Access (AIA) Summary" {
+            Section -Style Heading3 "Authority Information Access (AIA) Summary" {
                 Paragraph "The following section provides the Certification Authority Authority Information Access information."
                 BlankLine
                 foreach ($CA in $CAs) {
                     try {
-                        Section -Style Heading5 "$($CA.Name)" {
+                        Section -Style Heading4 "$($CA.Name)" {
                             $OutObj = @()
                             Write-PscriboMessage "Collecting AD CA Authority Information Access information on $($CA.Name)."
                             $AIA = Get-AuthorityInformationAccess -CertificationAuthority $CA

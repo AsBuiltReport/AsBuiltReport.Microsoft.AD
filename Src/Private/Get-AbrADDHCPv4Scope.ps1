@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4Scope {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,6 @@ function Get-AbrADDHCPv4Scope {
             Mandatory)]
             [string]
             $Domain,
-            $Session,
             [string]
             $Server
     )
@@ -32,10 +31,9 @@ function Get-AbrADDHCPv4Scope {
 
     process {
         try {
-            $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4Scope -ComputerName $using:Server}
-            Write-PScriboMessage "Discovered '$(($DHCPScopes | Measure-Object).Count)' DHCP SCopes in $($Server)."
+            $DHCPScopes = Get-DhcpServerv4Scope -CimSession $TempCIMSession -ComputerName $Server
             if ($DHCPScopes) {
-                Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scopes" {
+                Section -Style Heading5 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scopes" {
                     Paragraph "The following section provides detailed information of the IPv4 Scope configuration."
                     BlankLine
                     $OutObj = @()
@@ -66,7 +64,7 @@ function Get-AbrADDHCPv4Scope {
                     $OutObj | Sort-Object -Property 'Scope Id' | Table @TableParams
 
                     try {
-                        $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4ScopeStatistics -ComputerName $using:Server}
+                        $DHCPScopes = Get-DhcpServerv4ScopeStatistics -CimSession $TempCIMSession -ComputerName $Server
                         if ($DHCPScopes) {
                             Section -Style Heading6 "IPv4 Scope Statistics" {
                                 $OutObj = @()
@@ -107,7 +105,7 @@ function Get-AbrADDHCPv4Scope {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Statistics Table)"
                     }
                     try {
-                        $DHCPScopes = Invoke-Command -Session $Session { Get-DhcpServerv4Failover -ComputerName $using:Server}
+                        $DHCPScopes = Get-DhcpServerv4Failover -CimSession $TempCIMSession -ComputerName $Server
                         if ($DHCPScopes) {
                             Section -Style Heading6 "IPv4 Scope Failover" {
                                 $OutObj = @()
@@ -155,7 +153,7 @@ function Get-AbrADDHCPv4Scope {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Failover Table)"
                     }
                     try {
-                        $DHCPScopes = Invoke-Command -Session $Session {Get-DhcpServerv4Binding -ComputerName $using:Server}
+                        $DHCPScopes = Get-DhcpServerv4Binding -CimSession $TempCIMSession -ComputerName $Server
                         if ($DHCPScopes) {
                             Section -Style Heading6 "IPv4 Network Interface Binding" {
                                 $OutObj = @()

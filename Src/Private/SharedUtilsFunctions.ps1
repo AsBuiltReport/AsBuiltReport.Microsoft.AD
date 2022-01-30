@@ -201,11 +201,12 @@ function ConvertTo-ADObjectName {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         $DN,
-        $Session
+        $Session,
+        $DC
     )
     $ADObject = @()
     foreach ($Object in $DN) {
-        $ADObject += Invoke-Command -Session $Session {Get-ADObject $using:Object | Select-Object -ExpandProperty Name}
+        $ADObject += Invoke-Command -Session $Session {Get-ADObject $using:Object -Server $using:DC | Select-Object -ExpandProperty Name}
     }
     return $ADObject;
 }# end
@@ -230,15 +231,12 @@ function ConvertTo-ADCanonicalName {
         [ValidateNotNullOrEmpty()]
         $DN,
         $Domain,
-        [pscredential]
-        $Credential
+        $DC
     )
     $ADObject = @()
     $DC = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName}
-    $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication Default
     foreach ($Object in $DN) {
-        $ADObject += Invoke-Command -Session $DCPssSession {Get-ADObject $using:Object -Properties * | Select-Object -ExpandProperty CanonicalName}
+        $ADObject += Invoke-Command -Session $TempPssSession {Get-ADObject $using:Object -Properties * -Server $using:DC| Select-Object -ExpandProperty CanonicalName}
     }
-    Remove-PSSession -Session $DCPssSession
     return $ADObject;
 }# end

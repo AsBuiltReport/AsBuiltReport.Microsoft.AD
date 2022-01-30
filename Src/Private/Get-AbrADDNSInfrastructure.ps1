@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,8 +20,7 @@ function Get-AbrADDNSInfrastructure {
             Position = 0,
             Mandatory)]
             [string]
-            $Domain,
-            $Session
+            $Domain
     )
 
     begin {
@@ -30,17 +29,17 @@ function Get-AbrADDNSInfrastructure {
 
     process {
         try {
-            $DCs = Invoke-Command -Session $Session {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
             if ($DCs) {
-                Section -Style Heading5 "Infrastructure Summary" {
+                Section -Style Heading4 "Infrastructure Summary" {
                     Paragraph "The following section provides a summary of the DNS Infrastructure configuration."
                     BlankLine
                     $OutObj = @()
                     Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"
                     foreach ($DC in $DCs) {
-                        Write-PscriboMessage "Collecting Domain Name System Infrastructure information on '$($DC)'."
+                        Write-PscriboMessage "Collecting Domain Name System Infrastructure information from '$($DC)'."
                         try {
-                            $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerSetting -ComputerName $using:DC}
+                            $DNSSetting = Get-DnsServerSetting -CimSession $TempCIMSession -ComputerName $DC
                             $inObj = [ordered] @{
                                 'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                 'Build Number' = ConvertTo-EmptyToFiller $DNSSetting.BuildNumber
@@ -57,7 +56,7 @@ function Get-AbrADDNSInfrastructure {
                     }
 
                     $TableParams = @{
-                        Name = "Infrastructure Setting -$($Domain.ToString().ToUpper())"
+                        Name = "Infrastructure Setting - $($Domain.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 30, 10, 9, 10, 11, 30
                     }
@@ -70,15 +69,12 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Domain Controller DNS IP Configuration" {
+                            Section -Style Heading5 "Domain Controller DNS IP Configuration" {
                                 $OutObj = @()
-                                Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"
                                 foreach ($DC in $DCs) {
-                                    $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
                                     Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
                                     try {
-                                        $DNSSettings = Invoke-Command -Session $DCPssSession {Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4}
-                                        Remove-PSSession -Session $DCPssSession
+                                        $DNSSettings = Get-NetAdapter -CimSession $TempCIMSession | Get-DnsClientServerAddress -CimSession $TempCIMSession -AddressFamily IPv4
                                         foreach ($DNSSetting in $DNSSettings) {
                                             try {
                                                 $inObj = [ordered] @{
@@ -125,7 +121,7 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Application Directory Partition" {
+                            Section -Style Heading5 "Application Directory Partition" {
                                 foreach ($DC in $DCs) {
                                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Directory Partition" {
                                         Paragraph "The following section provides $($DC.ToString().ToUpper().Split(".")[0]) Directory Partition information."
@@ -133,7 +129,7 @@ function Get-AbrADDNSInfrastructure {
                                         $OutObj = @()
                                         Write-PscriboMessage "Collecting Directory Partition information from $($DC)."
                                         try {
-                                            $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerDirectoryPartition -ComputerName $using:DC}
+                                            $DNSSetting = Get-DnsServerDirectoryPartition -CimSession $TempCIMSession
                                             foreach ($Partition in $DNSSetting) {
                                                 try {
                                                     $inObj = [ordered] @{
@@ -178,12 +174,12 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Response Rate Limiting (RRL)" {
+                            Section -Style Heading5 "Response Rate Limiting (RRL)" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting Response Rate Limiting (RRL) information from $($DC)."
                                     try {
-                                        $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerResponseRateLimiting -ComputerName $using:DC}
+                                        $DNSSetting = Get-DnsServerResponseRateLimiting -CimSession $TempCIMSession
                                         $inObj = [ordered] @{
                                             'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                             'Status' = ConvertTo-EmptyToFiller $DNSSetting.Mode
@@ -221,12 +217,12 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Scavenging Options" {
+                            Section -Style Heading5 "Scavenging Options" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting Scavenging Options information from $($DC)."
                                     try {
-                                        $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerScavenging -ComputerName $using:DC}
+                                        $DNSSetting = Get-DnsServerScavenging -CimSession $TempCIMSession
                                         $inObj = [ordered] @{
                                             'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                             'NoRefresh Interval' = ConvertTo-EmptyToFiller $DNSSetting.NoRefreshInterval
@@ -269,13 +265,13 @@ function Get-AbrADDNSInfrastructure {
                     #                                 DNS Forwarder Section                                       #
                     #---------------------------------------------------------------------------------------------#
                     try {
-                        Section -Style Heading6 "Forwarder Options" {
+                        Section -Style Heading5 "Forwarder Options" {
                             $OutObj = @()
                             foreach ($DC in $DCs) {
                                 Write-PscriboMessage "Collecting Forwarder Options information from $($DC)."
                                 try {
-                                    $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerForwarder -ComputerName $using:DC}
-                                    $Recursion = Invoke-Command -Session $Session {Get-DnsServerRecursion -ComputerName $using:DC | Select-Object -ExpandProperty Enable}
+                                    $DNSSetting = Get-DnsServerForwarder -CimSession $TempCIMSession
+                                    $Recursion = Get-DnsServerRecursion -CimSession $TempCIMSession | Select-Object -ExpandProperty Enable
                                     $inObj = [ordered] @{
                                         'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                         'IP Address' = $DNSSetting.IPAddress
@@ -308,7 +304,7 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Root Hints" {
+                            Section -Style Heading5 "Root Hints" {
                                 foreach ($DC in $DCs) {
                                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Root Hints" {
                                         Paragraph "The following section provides $($DC.ToString().ToUpper().Split(".")[0]) Root Hints information."
@@ -316,7 +312,7 @@ function Get-AbrADDNSInfrastructure {
                                         $OutObj = @()
                                         Write-PscriboMessage "Collecting Root Hint information from $($DC)."
                                         try {
-                                            $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerRootHint -ComputerName $using:DC | Select-Object @{Name="Name"; E={$_.NameServer.RecordData.Nameserver}},@{Name="IPAddress"; E={$_.IPAddress.RecordData.IPv6Address.IPAddressToString,$_.IPAddress.RecordData.IPv4Address.IPAddressToString} }}
+                                            $DNSSetting = Get-DnsServerRootHint -CimSession $TempCIMSession | Select-Object @{Name="Name"; E={$_.NameServer.RecordData.Nameserver}},@{Name="IPAddress"; E={$_.IPAddress.RecordData.IPv6Address.IPAddressToString,$_.IPAddress.RecordData.IPv4Address.IPAddressToString} }
                                             foreach ($Hints in $DNSSetting) {
                                                 try {
                                                     $inObj = [ordered] @{
@@ -356,12 +352,12 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Zone Scope Recursion" {
+                            Section -Style Heading5 "Zone Scope Recursion" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting Zone Scope Recursion information from $($DC)."
                                     try {
-                                        $DNSSetting = Invoke-Command -Session $Session {Get-DnsServerRecursionScope -ComputerName $using:DC}
+                                        $DNSSetting = Get-DnsServerRecursionScope -CimSession $TempCIMSession
                                         $inObj = [ordered] @{
                                             'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                             'Zone Name' = Switch ($DNSSetting.Name) {

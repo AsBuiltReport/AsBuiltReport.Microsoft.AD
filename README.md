@@ -47,7 +47,7 @@ Below are the instructions on how to install, configure and generate a Microsoft
 <!-- ********** Update supported AD versions ********** -->
 The Microsoft AD As Built Report supports the following Active Directory versions;
 
-- 2008, 2008 R2, 2012, 2016, 2019
+- 2012, 2016, 2019
 
 ### PowerShell
 
@@ -156,6 +156,7 @@ The **Options** schema allows certain options within the report to be toggled on
 | Sub-Schema      | Setting      | Default | Description                                                                                                                                                                                 |
 |-----------------|--------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | ShowDefinitionInfo | true/false  | false    | Toggle to enable/disable Microsoft AD term explanations
+| PSDefaultAuthentication | Negotiate/Kerberos  | Negotiate    | Allow to set the value of the PSRemoting authentication method.
 
 
 ### InfoLevel

@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6PerScopeSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,6 @@ function Get-AbrADDHCPv6PerScopeSetting {
             Mandatory)]
             [string]
             $Domain,
-            $Session,
             [string]
             $Server,
             $Scope
@@ -32,9 +31,9 @@ function Get-AbrADDHCPv6PerScopeSetting {
     }
 
     process {
-        $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv6OptionValue -ComputerName $using:Server -Prefix $using:Scope}
+        $DHCPScopeOptions = Get-DhcpServerv6OptionValue -CimSession $TempCIMSession -ComputerName $Server -Prefix $Scope
         if ($DHCPScopeOptions) {
-            Section -Style Heading6 "$Scope Scope Options" {
+            Section -Style Heading5 "$Scope" {
                 Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
                 BlankLine
                 $OutObj = @()

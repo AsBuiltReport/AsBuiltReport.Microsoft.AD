@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4PerScopeSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,6 @@ function Get-AbrADDHCPv4PerScopeSetting {
             Mandatory)]
             [string]
             $Domain,
-            $Session,
             [string]
             $Server,
             $Scope
@@ -32,9 +31,9 @@ function Get-AbrADDHCPv4PerScopeSetting {
     }
 
     process {
-        $DHCPScopeOptions = Invoke-Command -Session $Session { Get-DhcpServerv4OptionValue -ComputerName $using:Server -ScopeId $using:Scope}
+        $DHCPScopeOptions = Get-DhcpServerv4OptionValue -CimSession $TempCIMSession -ComputerName $Server -ScopeId $Scope
         if ($DHCPScopeOptions) {
-            Section -Style Heading6 "$Scope Scope Options" {
+            Section -Style Heading6 "$Scope" {
                 Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
                 BlankLine
                 $OutObj = @()

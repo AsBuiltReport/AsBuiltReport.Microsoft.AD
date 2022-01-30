@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,9 +20,7 @@ function Get-AbrADInfrastructureService {
             Position = 0,
             Mandatory)]
             [string]
-            $DC,
-            [pscredential]
-            $Cred
+            $DC
     )
 
     begin {
@@ -32,19 +30,19 @@ function Get-AbrADInfrastructureService {
     process {
         Write-PscriboMessage "Discovering AD Domain Controller Infrastructure Services information for $DC."
         try {
-            $DCPssSession = New-PSSession $DC -Credential $Cred -Authentication Default
+            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
             $Available = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service "W32Time" | Select-Object DisplayName, Name, Status}
             if ($Available) {
                 Write-PscriboMessage "Discovered Active Directory DC Infrastructure Services information of $DC."
-                Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Infrastructure Services Status" {
+                Section -Style Heading5 "$($DC.ToString().ToUpper().Split(".")[0]) Infrastructure Services Status" {
                     Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                     BlankLine
                     $OutObj = @()
                     if ($DC) {
-                        $Services = @('DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS')
+                        $Services = @('CertSvc','DHCPServer','DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS')
                         foreach ($Service in $Services) {
                             try {
-                                $Status = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service $using:Service | Select-Object DisplayName, Name, Status}
+                                $Status = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service $using:Service -ErrorAction SilentlyContinue | Select-Object DisplayName, Name, Status}
                                 Write-PscriboMessage "Collecting Domain Controller '$($Status.DisplayName)' Services status on $DC."
                                 $inObj = [ordered] @{
                                     'Display Name' = $Status.DisplayName
