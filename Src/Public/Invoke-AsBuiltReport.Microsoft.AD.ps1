@@ -118,7 +118,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         }
                                         Get-AbrADDomainController -Domain $Domain
                                         $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                                        if ($InfoLevel.Domain -ge 3) {
+                                        if ($InfoLevel.Domain -ge 2) {
                                             foreach ($DC in $DCs){
                                                 Get-AbrADDCRoleFeature -DC $DC
                                             }
@@ -383,6 +383,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }#endregion AD Section
         Write-PscriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
         Remove-PSSession -Session $TempPssSession
+        Write-PscriboMessage "Clearing CIM Session $($TempCIMSession.Id)"
         Remove-CIMSession -CimSession $TempCIMSession
 	}#endregion foreach loop
 }
