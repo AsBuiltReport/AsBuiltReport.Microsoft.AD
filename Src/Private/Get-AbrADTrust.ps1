@@ -34,7 +34,7 @@ function Get-AbrADTrust {
                     $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                     $Trusts = Invoke-Command -Session $TempPssSession {Get-ADTrust -Filter * -Server $using:DC}
                     if ($Trusts) {
-                        Section -Style Heading5 'Domain and Trusts' {
+                        Section -Style Heading4 'Domain and Trusts' {
                             Paragraph "The following section provides a summary of Active Directory Trust information on $($Domain.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()

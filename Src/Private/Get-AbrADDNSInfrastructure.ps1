@@ -31,7 +31,7 @@ function Get-AbrADDNSInfrastructure {
         try {
             $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
             if ($DCs) {
-                Section -Style Heading5 "Infrastructure Summary" {
+                Section -Style Heading4 "Infrastructure Summary" {
                     Paragraph "The following section provides a summary of the DNS Infrastructure configuration."
                     BlankLine
                     $OutObj = @()
@@ -69,7 +69,7 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Domain Controller DNS IP Configuration" {
+                            Section -Style Heading5 "Domain Controller DNS IP Configuration" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
@@ -121,7 +121,7 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Application Directory Partition" {
+                            Section -Style Heading5 "Application Directory Partition" {
                                 foreach ($DC in $DCs) {
                                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Directory Partition" {
                                         Paragraph "The following section provides $($DC.ToString().ToUpper().Split(".")[0]) Directory Partition information."
@@ -174,7 +174,7 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Response Rate Limiting (RRL)" {
+                            Section -Style Heading5 "Response Rate Limiting (RRL)" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting Response Rate Limiting (RRL) information from $($DC)."
@@ -217,7 +217,7 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Scavenging Options" {
+                            Section -Style Heading5 "Scavenging Options" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting Scavenging Options information from $($DC)."
@@ -265,7 +265,7 @@ function Get-AbrADDNSInfrastructure {
                     #                                 DNS Forwarder Section                                       #
                     #---------------------------------------------------------------------------------------------#
                     try {
-                        Section -Style Heading6 "Forwarder Options" {
+                        Section -Style Heading5 "Forwarder Options" {
                             $OutObj = @()
                             foreach ($DC in $DCs) {
                                 Write-PscriboMessage "Collecting Forwarder Options information from $($DC)."
@@ -304,7 +304,7 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Root Hints" {
+                            Section -Style Heading5 "Root Hints" {
                                 foreach ($DC in $DCs) {
                                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Root Hints" {
                                         Paragraph "The following section provides $($DC.ToString().ToUpper().Split(".")[0]) Root Hints information."
@@ -352,7 +352,7 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Section -Style Heading6 "Zone Scope Recursion" {
+                            Section -Style Heading5 "Zone Scope Recursion" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting Zone Scope Recursion information from $($DC)."

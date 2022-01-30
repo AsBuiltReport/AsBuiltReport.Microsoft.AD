@@ -33,7 +33,7 @@ function Get-AbrADDNSZone {
         try {
             $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder"}
             if ($DNSSetting) {
-                Section -Style Heading5 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zone Configuration" {
+                Section -Style Heading4 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zone Configuration" {
                     $OutObj = @()
                     Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                     foreach ($Zones in $DNSSetting) {
@@ -97,7 +97,7 @@ function Get-AbrADDNSZone {
                             }
 
                             if ($OutObj) {
-                                Section -Style Heading6 "Zone Delegation" {
+                                Section -Style Heading5 "Zone Delegation" {
 
                                     $TableParams = @{
                                         Name = "Zone Delegations - $($Domain.ToString().ToUpper())"
@@ -120,7 +120,7 @@ function Get-AbrADDNSZone {
                         try {
                             $DNSSetting = Invoke-Command -Session $DCPssSession {Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object {$_ -match 'SecondaryServers'}}
                             if ($DNSSetting) {
-                                Section -Style Heading6 "Zone Transfers" {
+                                Section -Style Heading5 "Zone Transfers" {
                                     $OutObj = @()
                                     foreach ($Zone in $DNSSetting) {
                                         try {
@@ -163,7 +163,7 @@ function Get-AbrADDNSZone {
                     try {
                         $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession | Where-Object {$_.IsReverseLookupZone -like "True"}
                         if ($DNSSetting) {
-                            Section -Style Heading6 "Reverse Lookup Zone Configuration" {
+                            Section -Style Heading5 "Reverse Lookup Zone Configuration" {
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC (Domain Name System Zone)"
                                 foreach ($Zones in $DNSSetting) {
@@ -244,7 +244,7 @@ function Get-AbrADDNSZone {
                             $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -eq "Primary"} | Select-Object -ExpandProperty ZoneName
                             $Zones = Get-DnsServerZoneAging -CimSession $TempCIMSession -Name $DNSSetting
                             if ($Zones) {
-                                Section -Style Heading6 "Zone Scope Aging Properties" {
+                                Section -Style Heading5 "Zone Scope Aging Properties" {
                                     $OutObj = @()
                                     foreach ($Settings in $Zones) {
                                         try {

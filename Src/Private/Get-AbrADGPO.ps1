@@ -29,7 +29,7 @@ function Get-AbrADGPO {
 
     process {
         try {
-            Section -Style Heading5 "Group Policy Objects Summary" {
+            Section -Style Heading4 "Group Policy Objects Summary" {
                 Paragraph "The following section provides a summary of the Group Policy Objects for domain $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -121,7 +121,7 @@ function Get-AbrADGPO {
                         $PATH = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
                         $CentralStore = Invoke-Command -Session $TempPssSession -ScriptBlock {Test-Path $using:PATH}
                         if ($PATH) {
-                            Section -Style Heading6 "GPO Central Store Repository" {
+                            Section -Style Heading5 "GPO Central Store Repository" {
                                 Paragraph "The following section provides information of the status of Central Store. Corrective Action: Deploy centralized GPO repository."
                                 BlankLine
                                 $OutObj = @()
@@ -185,7 +185,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading6 "GPO with User Logon/Logoff Script" {
+                            Section -Style Heading5 "GPO with User Logon/Logoff Script" {
                                 Paragraph "The following section provides a summary of Group Policy Objects with Logon/Logoff Script."
                                 BlankLine
 
@@ -241,7 +241,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading6 "GPO with Computer Startup/Shutdown Script" {
+                            Section -Style Heading5 "GPO with Computer Startup/Shutdown Script" {
                                 Paragraph "The following section provides a summary of Group Policy Objects with Startup/Shutdown Script."
                                 BlankLine
 
@@ -293,7 +293,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading6 "Health Check - Unlinked GPO" {
+                            Section -Style Heading5 "Health Check - Unlinked GPO" {
                                 Paragraph "The following section provides a summary of the Unlinked Group Policy Objects. Corrective Action: Remove Unused GPO."
                                 BlankLine
 
@@ -341,7 +341,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading6 "Health Check - Empty GPOs" {
+                            Section -Style Heading5 "Health Check - Empty GPOs" {
                                 Paragraph "The following section provides a summary of the Empty Group Policy Objects. Corrective Action: No User and Computer parameters are set : Remove Unused GPO."
                                 BlankLine
 
@@ -394,7 +394,7 @@ function Get-AbrADGPO {
                         }
 
                         if ($OutObj) {
-                            Section -Style Heading6 "Health Check - Enforced GPO" {
+                            Section -Style Heading5 "Health Check - Enforced GPO" {
                                 Paragraph "The following section provides a summary of the Enforced Group Policy Objects."
                                 BlankLine
 

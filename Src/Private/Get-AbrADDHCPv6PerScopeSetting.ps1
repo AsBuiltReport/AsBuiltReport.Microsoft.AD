@@ -33,7 +33,7 @@ function Get-AbrADDHCPv6PerScopeSetting {
     process {
         $DHCPScopeOptions = Get-DhcpServerv6OptionValue -CimSession $TempCIMSession -ComputerName $Server -Prefix $Scope
         if ($DHCPScopeOptions) {
-            Section -Style Heading6 "$Scope Scope Options" {
+            Section -Style Heading5 "$Scope" {
                 Paragraph "The following section provides a summary of the DHCP servers IPv6 Scope Server Options information."
                 BlankLine
                 $OutObj = @()

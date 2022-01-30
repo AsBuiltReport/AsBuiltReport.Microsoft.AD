@@ -33,7 +33,7 @@ function Get-AbrADOU {
             Write-PscriboMessage "Discovered Active Directory Organizational Unit information on DC $DC. (Organizational Unit)"
             $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter *}
             if ($OUs) {
-                Section -Style Heading5 "Organizational Units" {
+                Section -Style Heading4 "Organizational Units" {
                     Paragraph "The following section provides a summary of Active Directory Organizational Unit information."
                     BlankLine
                     $OutObj = @()
@@ -102,7 +102,7 @@ function Get-AbrADOU {
                                 }
                             }
                             if ($OutObj) {
-                                Section -Style Heading5 "Health Check - OU with GPO Blocked Inheritance" {
+                                Section -Style Heading4 "Health Check - OU with GPO Blocked Inheritance" {
                                     Paragraph "The following section provides a summary of the Blocked Inheritance Group Policy Objects."
                                     BlankLine
 

@@ -30,7 +30,7 @@ function Get-AbrADDomainObject {
     process {
         if ($InfoLevel.Domain -ge 2) {
             try {
-                Section -Style Heading5 'Domain Object Count' {
+                Section -Style Heading4 'Domain Object Count' {
                     Paragraph "The following section provides a summary of the Active Directory Object Count on $($Domain.ToString().ToUpper())."
                     BlankLine
                     $OutObj = @()
@@ -77,7 +77,7 @@ function Get-AbrADDomainObject {
             }
         }
         try {
-            Section -Style Heading5 'Default Domain Password Policy' {
+            Section -Style Heading4 'Default Domain Password Policy' {
                 Paragraph "The following section provides a summary of the Default Domain Password Policy on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -129,7 +129,7 @@ function Get-AbrADDomainObject {
                         $DC =  Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator}
                         $PasswordPolicy =  Invoke-Command -Session $TempPssSession {Get-ADFineGrainedPasswordPolicy -Server $using:DC -Filter {Name -like "*"} -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
                         if ($PasswordPolicy) {
-                            Section -Style Heading5 'Fined Grained Password Policies' {
+                            Section -Style Heading4 'Fined Grained Password Policies' {
                                 Paragraph "The following section provides a summary of the Fined Grained Password Policies on $($Domain.ToString().ToUpper())."
                                 BlankLine
                                 $OutObj = @()
@@ -189,7 +189,7 @@ function Get-AbrADDomainObject {
                         Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts from DC $DC."
                         $GMSA = Invoke-Command -Session $TempPssSession {Get-ADServiceAccount -Server $using:DC -Filter * -Properties *}
                         if ($GMSA) {
-                            Section -Style Heading5 'Group Managed Service Accounts (GMSA)' {
+                            Section -Style Heading4 'Group Managed Service Accounts (GMSA)' {
                                 Paragraph "The following section provides a summary of the Group Managed Service Accounts on $($Domain.ToString().ToUpper())."
                                 BlankLine
                                 $OutObj = @()

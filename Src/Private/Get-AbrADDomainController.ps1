@@ -71,7 +71,7 @@ function Get-AbrADDomainController {
         if ($InfoLevel.Domain -ge 2) {
             try {
                 Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
-                Section -Style Heading6 'Hardware Inventory' {
+                Section -Style Heading5 'Hardware Inventory' {
                     Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
                     BlankLine
                     $OutObj = @()
@@ -138,7 +138,7 @@ function Get-AbrADDomainController {
         }
         try {
             Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
-            Section -Style Heading6 'NTDS Information' {
+            Section -Style Heading5 'NTDS Information' {
                 Paragraph "The following section provides a summary of the Domain Controller NTDS file size on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -186,7 +186,7 @@ function Get-AbrADDomainController {
         }
         try {
             Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
-            Section -Style Heading6 'Time Source Information' {
+            Section -Style Heading5 'Time Source Information' {
                 Paragraph "The following section provides a summary of the Domain Controller Time Source configuration on $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -246,7 +246,7 @@ function Get-AbrADDomainController {
         if ($HealthCheck.DomainController.Software) {
             try {
                 Write-PscriboMessage "Collecting additional software running on the Domain Controller."
-                Section -Style Heading6 'HealthCheck - Installed Software on DC' {
+                Section -Style Heading5 'HealthCheck - Installed Software on DC' {
                     Paragraph "The following section provides a summary of additional software running on $($Domain.ToString().ToUpper())."
                     BlankLine
                     Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."

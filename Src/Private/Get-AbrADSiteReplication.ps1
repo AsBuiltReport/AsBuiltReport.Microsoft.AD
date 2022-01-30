@@ -33,7 +33,7 @@ function Get-AbrADSiteReplication {
         if ($DCs) {
             Write-PscriboMessage "Discovering Active Directory Sites Replication information on $Domain. (Sites Replication)"
             try {
-                Section -Style Heading5 'Sites Replication' {
+                Section -Style Heading4 'Sites Replication' {
                     Paragraph "The following section provides a summary of the Active Directory Site Replication information."
                     BlankLine
                     $OutObj = @()
@@ -95,7 +95,7 @@ function Get-AbrADSiteReplication {
                 Write-PscriboMessage "Discovered Active Directory Sites Replication Failure on $Domain. (Sites Replication Failure)"
                 $Failures =  Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADReplicationFailure -Target $using:Domain -Scope Domain}
                 if ($Failures) {
-                    Section -Style Heading5 'Sites Replication Failure' {
+                    Section -Style Heading4 'Sites Replication Failure' {
                         Paragraph "The following section provides a summary of the Active Directory Site Replication Failure information."
                         BlankLine
                         foreach ($Fails in $Failures) {

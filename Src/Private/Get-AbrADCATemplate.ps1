@@ -5,7 +5,7 @@ function Get-AbrADCATemplate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,10 +29,10 @@ function Get-AbrADCATemplate {
 
     process {
         if ($Templates) {
-            Section -Style Heading4 "Certificate Template Summary" {
+            Section -Style Heading3 "Certificate Template Summary" {
                 Paragraph "The following section provides the certificate templates that are assigned to a specified Certification Authority (CA). CA server can issue certificates only based on assigned templates."
                 BlankLine
-                Section -Style Heading5 "$($CA.Name) Certificate Template" {
+                Section -Style Heading4 "$($CA.Name) Certificate Template" {
                     $OutObj = @()
                     foreach ($Template in $Templates) {
                         Write-PscriboMessage "Collecting $($Template.DisplayName) Issued Certificate Template information from $($CA.Name)."
@@ -62,10 +62,10 @@ function Get-AbrADCATemplate {
                 }
                 if ($InfoLevel.CA -ge 3) {
                     try {
-                        Section -Style Heading5 "Issued Certificate Template ACLs" {
+                        Section -Style Heading4 "Issued Certificate Template ACLs" {
                             Paragraph "The following section provides the certificate templates Access Control List that are assigned to a specified Certification Authority (CA)."
                             BlankLine
-                            Section -Style Heading6 "$($CA.Name)" {
+                            Section -Style Heading5 "$($CA.Name)" {
                                 foreach ($Template in $Templates) {
                                     try {
                                         $Rights = Get-CertificateTemplateAcl -Template $Template.Name | Select-Object -ExpandProperty Access
@@ -113,7 +113,7 @@ function Get-AbrADCATemplate {
                     try {
                         $Templates =  Get-CertificateTemplate
                         if ($Templates) {
-                            Section -Style Heading5 "Certificate Template In Active Directory" {
+                            Section -Style Heading4 "Certificate Template In Active Directory" {
                                 Paragraph "The following section provides registered certificate templates from Active Directory."
                                 BlankLine
                                 $OutObj = @()

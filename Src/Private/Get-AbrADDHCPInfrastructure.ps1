@@ -32,7 +32,7 @@ function Get-AbrADDHCPInfrastructure {
             $DHCPinDC = Get-DhcpServerInDC | Where-Object {$_.DnsName.split(".", 2)[1] -eq $Domain}
             if ($DHCPinDC) {
                 Write-PScriboMessage "Discovered '$(($DHCPinDC | Measure-Object).Count)' DHCP Servers in forest $($Domain)."
-                Section -Style Heading5 'DHCP Servers In Active Directory' {
+                Section -Style Heading4 'DHCP Servers In Active Directory' {
                     Paragraph "The following section provides a summary of the DHCP servers information on $($Domain.ToString().ToUpper())."
                     BlankLine
                     $OutObj = @()
@@ -69,7 +69,7 @@ function Get-AbrADDHCPInfrastructure {
                     }
                     $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                     try {
-                        Section -Style Heading6 'Service Database' {
+                        Section -Style Heading5 'Service Database' {
                             $OutObj = @()
                             foreach ($DHCPServer in $DHCPinDC) {
                                 try {
@@ -112,7 +112,7 @@ function Get-AbrADDHCPInfrastructure {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Service Database Table)"
                     }
                     try {
-                        Section -Style Heading6 'Dynamic DNS credentials' {
+                        Section -Style Heading5 'Dynamic DNS credentials' {
                             $OutObj = @()
                             foreach ($DHCPServer in $DHCPinDC) {
                                 try{

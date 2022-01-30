@@ -33,7 +33,7 @@ function Get-AbrADDHCPv4Scope {
         try {
             $DHCPScopes = Get-DhcpServerv4Scope -CimSession $TempCIMSession -ComputerName $Server
             if ($DHCPScopes) {
-                Section -Style Heading6 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scopes" {
+                Section -Style Heading5 "$($Server.ToUpper().split(".", 2)[0]) IPv4 Scopes" {
                     Paragraph "The following section provides detailed information of the IPv4 Scope configuration."
                     BlankLine
                     $OutObj = @()

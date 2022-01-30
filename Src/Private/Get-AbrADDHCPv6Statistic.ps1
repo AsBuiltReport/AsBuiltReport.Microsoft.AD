@@ -31,7 +31,7 @@ function Get-AbrADDHCPv6Statistic {
         try  {
             $DHCPinDC = Get-DhcpServerInDC -CimSession $TempCIMSession | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $Domain}
             if ($DHCPinDC) {
-                Section -Style Heading6 'IPv6 Service Statistics' {
+                Section -Style Heading5 'IPv6 Service Statistics' {
                     $OutObj = @()
                     foreach ($DHCPServers in $DHCPinDC) {
                         try {

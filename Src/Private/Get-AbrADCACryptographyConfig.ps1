@@ -5,7 +5,7 @@ function Get-AbrADCACryptographyConfig {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.6.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,7 +24,7 @@ function Get-AbrADCACryptographyConfig {
 
     process {
         if ($CAs) {
-            Section -Style Heading4 "Cryptography Configuration" {
+            Section -Style Heading3 "Cryptography Configuration" {
                 Paragraph "The following section provides the Certification Authority Cryptography Configuration information."
                 BlankLine
                 $OutObj = @()

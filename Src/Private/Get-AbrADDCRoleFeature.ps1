@@ -33,7 +33,7 @@ function Get-AbrADDCRoleFeature {
             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
             if ($DCPssSession) {
                 Write-PscriboMessage "Discovered Active Directory DC Role & Features information of $DC."
-                Section -Style Heading6 "Roles on $($DC.ToString().ToUpper().Split(".")[0])" {
+                Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0])" {
                     Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
                     BlankLine
                     $OutObj = @()
