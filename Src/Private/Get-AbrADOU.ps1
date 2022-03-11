@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -72,7 +72,7 @@ function Get-AbrADOU {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                    $OutObj | Sort-Object -Property 'Path' | Table @TableParams
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
