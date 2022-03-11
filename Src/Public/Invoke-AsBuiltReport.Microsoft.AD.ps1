@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -104,6 +104,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                     BlankLine
                                     Get-AbrADDomain -Domain $Domain
+                                    Get-AbrADDomainLastBackup -Domain $Domain
                                     Get-AbrADFSMO -Domain $Domain
                                     Get-AbrADTrust -Domain $Domain
                                     Get-AbrADDomainObject -Domain $Domain
