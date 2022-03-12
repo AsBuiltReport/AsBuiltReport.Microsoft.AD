@@ -38,7 +38,7 @@ function Get-AbrADDomainLastBackup {
                         BlankLine
                         $OutObj = @()
                         foreach ($LastBackup in $LastBackups) {
-                            Write-PscriboMessage "Collecting Domain information of '$($Domain)'."
+                            Write-PscriboMessage "Collecting Domain information of $($Domain)."
                             $inObj = [ordered] @{
                                 'Naming Context' = $LastBackup.NamingContext
                                 'Last Backup' = $LastBackup.LastBackup.ToString("yyyy:MM:dd")
