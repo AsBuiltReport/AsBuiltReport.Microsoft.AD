@@ -86,11 +86,13 @@ function Get-AbrADForest {
                     foreach ($Item in $Data) {
                         try {
                             Write-PscriboMessage "Collecting Optional Features '$($Item.Name)'"
-                            $Forest = Invoke-Command -Session $TempPssSession {Get-ADForest}
                             $inObj = [ordered] @{
                                 'Name' = $Item.Name
                                 'Required Forest Mode' = $Item.RequiredForestMode
-                                'Forest' = $Forest.RootDomain.toUpper()
+                                'Enabled' = Switch (($Item.EnabledScopes).count) {
+                                    0 {'No'}
+                                    default {'Yes'}
+                                }
                             }
                             $OutObj += [pscustomobject]$inobj
                         }
