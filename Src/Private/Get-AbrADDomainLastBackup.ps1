@@ -28,27 +28,36 @@ function Get-AbrADDomainLastBackup {
     }
 
     process {
-        if ($Domain) {
+        if ($Domain -and $HealthCheck.Domain.Backup) {
             try {
                 $LastBackups =  Get-WinADLastBackup -Domain $Domain
                 Write-PscriboMessage "Discovered last taken backup information of domain $Domain."
                 if ($LastBackups) {
-                    Section -Style Heading4 'Domain Naming Context Last Backup' {
+                    Section -Style Heading4 'Health Check - Naming Context Last Backup' {
                         Paragraph "The following section details naming context last backup time for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
                         foreach ($LastBackup in $LastBackups) {
-                            Write-PscriboMessage "Collecting Domain information of $($Domain)."
-                            $inObj = [ordered] @{
-                                'Naming Context' = $LastBackup.NamingContext
-                                'Last Backup' = $LastBackup.LastBackup.ToString("yyyy:MM:dd")
-                                'Last Backup in Days' = $LastBackup.LastBackupDaysAgo
+                            try {
+                                Write-PscriboMessage "Collecting Naming Context Last Backup information of $($Domain)."
+                                $inObj = [ordered] @{
+                                    'Naming Context' = $LastBackup.NamingContext
+                                    'Last Backup' = $LastBackup.LastBackup.ToString("yyyy:MM:dd")
+                                    'Last Backup in Days' = $LastBackup.LastBackupDaysAgo
+                                }
+                                $OutObj += [pscustomobject]$inobj
+
+                                if ($HealthCheck.Domain.Backup) {
+                                    $OutObj | Where-Object { $_.'Last Backup in Days' -gt 180 } | Set-Style -Style Warning -Property 'Last Backup in Days'
+                                }
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup Item)"
+                            }
                         }
 
                         $TableParams = @{
-                            Name = "Domain Last Backup - $($Domain.ToString().ToUpper())"
+                            Name = "Naming Context Last Backup - $($Domain.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 60, 20, 20
                         }
@@ -61,7 +70,7 @@ function Get-AbrADDomainLastBackup {
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup)"
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup Table)"
             }
         }
     }

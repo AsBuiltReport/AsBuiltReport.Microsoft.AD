@@ -105,6 +105,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     BlankLine
                                     Get-AbrADDomain -Domain $Domain
                                     Get-AbrADDomainLastBackup -Domain $Domain
+                                    Get-AbrADDFSHealth -Domain $Domain
                                     Get-AbrADFSMO -Domain $Domain
                                     Get-AbrADTrust -Domain $Domain
                                     Get-AbrADDomainObject -Domain $Domain
