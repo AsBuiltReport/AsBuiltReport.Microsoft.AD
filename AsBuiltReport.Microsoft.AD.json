@@ -23,7 +23,9 @@
     "HealthCheck": {
         "Domain": {
             "GMSA": true,
-            "GPO": true
+            "GPO": true,
+            "Backup": true,
+            "DFS": true
         },
         "DomainController": {
             "Diagnostic": true,
