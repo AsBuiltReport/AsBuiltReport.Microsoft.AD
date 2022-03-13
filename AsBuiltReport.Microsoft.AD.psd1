@@ -61,8 +61,8 @@ RequiredModules = @(
         ModuleVersion = '3.7.2'
     },
     @{
-        ModuleName = 'ADEssentials';
-        ModuleVersion = '0.0.140'
+        ModuleName = 'PSSharedGoods';
+        ModuleVersion = '0.0.224'
     }
 )
 
