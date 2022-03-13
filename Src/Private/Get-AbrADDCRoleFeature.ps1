@@ -34,8 +34,6 @@ function Get-AbrADDCRoleFeature {
             if ($DCPssSession) {
                 Write-PscriboMessage "Discovered Active Directory DC Role & Features information of $DC."
                 Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0])" {
-                    Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
-                    BlankLine
                     $OutObj = @()
                     $Features = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-WindowsFeature | Where-Object {$_.installed -eq "True" -and $_.FeatureType -eq 'Role'}}
                     Remove-PSSession -Session $DCPssSession

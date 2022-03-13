@@ -36,8 +36,6 @@ function Get-AbrADDCDiag {
                 $DCDIAG = Invoke-DcDiag -DomainController $DC
                 if ($DCDIAG) {
                     Section -Style Heading5 "$($DC.ToString().split('.')[0].ToUpper())" {
-                        Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
-                        BlankLine
                         $OutObj = @()
                         Write-PscriboMessage "Discovered Active Directory DCDiag information for DC $DC."
                         foreach ($Result in $DCDIAG) {
