@@ -36,8 +36,6 @@ function Get-AbrADDomainLastBackup {
                     Section -Style Heading4 'Health Check - Naming Context Last Backup' {
                         Paragraph "The following section details naming context last backup time for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
-                        Paragraph "Corrective Actions: Ensure there is a recent (<180 days) Active Directory backup." -Italic -Bold
-                        BlankLine
                         $OutObj = @()
                         Write-PscriboMessage "Collecting Naming Context Last Backup information of $($Domain)."
                         foreach ($LastBackup in $LastBackups) {
@@ -68,6 +66,8 @@ function Get-AbrADDomainLastBackup {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Sort-Object -Property 'Naming Context' | Table @TableParams
+                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Corrective Actions: Ensure there is a recent (<180 days) Active Directory backup." -Italic -Bold
                     }
                 }
             }

@@ -27,10 +27,6 @@ function Get-AbrADSite {
             $Site =  Invoke-Command -Session $TempPssSession {Get-ADReplicationSite -Filter * -Properties *}
             if ($Site) {
                 Section -Style Heading3 'Domain Sites' {
-                    if ($HealthCheck.Site.BestPractice) {
-                        Paragraph "Best Practices: Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
-                        BlankLine
-                    }
                     $OutObj = @()
                     Write-PscriboMessage "Discovered Active Directory Sites information of forest $ForestInfo"
                     foreach ($Item in $Site) {
@@ -72,14 +68,19 @@ function Get-AbrADSite {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Sort-Object -Property 'Site Name' | Table @TableParams
+                    if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Subnets' -eq '-'}) -or ($OutObj | Where-Object { $_.'Description' -eq '-'}))) {
+                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        if ($OutObj | Where-Object { $_.'Subnets' -eq '-'}) {
+                            Paragraph "Corrective Actions: Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
+                        }
+                        if ($OutObj | Where-Object { $_.'Description' -eq '-'}) {
+                            Paragraph "Best Practices: Ensure Sites have a defined description." -Italic -Bold
+                        }
+                    }
                     try {
                         $Subnet = Invoke-Command -Session $TempPssSession {Get-ADReplicationSubnet -Filter * -Properties *}
                         if ($Subnet) {
                             Section -Style Heading4 'Site Subnets' {
-                                if ($HealthCheck.Site.BestPractice) {
-                                    Paragraph "Best Practices: Ensure that subnets has a defined description." -Italic -Bold
-                                    BlankLine
-                                }
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Active Directory Sites Subnets information of forest $ForestInfo"
                                 foreach ($Item in $Subnet) {
@@ -111,6 +112,10 @@ function Get-AbrADSite {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'Subnet' | Table @TableParams
+                                if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Description' -eq '-'})) {
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Best Practices: Ensure that subnets has a defined description." -Italic -Bold
+                                }
                             }
                         }
                     }

@@ -31,8 +31,6 @@ function Get-AbrADDuplicateSPN {
                     Section -Style Heading4 'Health Check - Duplicate SPN' {
                         Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
-                        Paragraph "Corrective Actions: Ensure there aren't any duplicate SPNs (other than krbtgt)." -Italic -Bold
-                        BlankLine
                         $OutObj = @()
                         foreach ($SPN in $SPNs) {
                             try {
@@ -63,6 +61,10 @@ function Get-AbrADDuplicateSPN {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                        if ($HealthCheck.Domain.SPN) {
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Corrective Actions: Ensure there aren't any duplicate SPNs (other than krbtgt)." -Italic -Bold
+                        }
                     }
                 }
             }

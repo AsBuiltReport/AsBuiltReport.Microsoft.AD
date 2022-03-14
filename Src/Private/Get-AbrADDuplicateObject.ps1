@@ -36,8 +36,6 @@ function Get-AbrADDuplicateObject {
                     Section -Style Heading4 'Health Check - Duplicate Objects' {
                         Paragraph "The following section details Duplicate Objects discovered on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
-                        Paragraph "Corrective Actions: Ensure there aren't any duplicate object." -Italic -Bold
-                        BlankLine
                         $OutObj = @()
                         foreach ($Object in $Objects) {
                             try {
@@ -69,6 +67,8 @@ function Get-AbrADDuplicateObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Table @TableParams
+                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Corrective Actions: Ensure there aren't any duplicate object." -Italic -Bold
                     }
                 }
             }
