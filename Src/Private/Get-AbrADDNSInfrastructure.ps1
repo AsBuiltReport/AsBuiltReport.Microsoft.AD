@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -70,6 +70,8 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading5 "Domain Controller DNS IP Configuration" {
+                                Paragraph "Best Practices: DNS configuration on network adapter should include the loopback address, but not as the first entry." -Italic -Bold
+                                BlankLine
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
@@ -122,10 +124,10 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading5 "Application Directory Partition" {
+                                Paragraph "The following section provides Directory Partition information."
+                                BlankLine
                                 foreach ($DC in $DCs) {
                                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Directory Partition" {
-                                        Paragraph "The following section provides $($DC.ToString().ToUpper().Split(".")[0]) Directory Partition information."
-                                        BlankLine
                                         $OutObj = @()
                                         Write-PscriboMessage "Collecting Directory Partition information from $($DC)."
                                         try {
@@ -134,7 +136,14 @@ function Get-AbrADDNSInfrastructure {
                                                 try {
                                                     $inObj = [ordered] @{
                                                         'Name' = $Partition.DirectoryPartitionName
-                                                        'State' = ConvertTo-EmptyToFiller $Partition.State
+                                                        'State' = Switch ($Partition.State) {
+                                                            $Null {'-'}
+                                                            0 {'DNS_DP_OKAY'}
+                                                            1 {'DNS_DP_STATE_REPL_INCOMING'}
+                                                            2 {'DNS_DP_STATE_REPL_OUTGOING'}
+                                                            3 {'DNS_DP_STATE_UNKNOWN'}
+                                                            default {$Partition.State}
+                                                        }
                                                         'Flags' = $Partition.Flags
                                                         'Zone Count' = $Partition.ZoneCount
                                                     }
@@ -148,14 +157,11 @@ function Get-AbrADDNSInfrastructure {
                                         catch {
                                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Directory Partitions Item)"
                                         }
-                                        if ($HealthCheck.DNS.DP) {
-                                            $OutObj | Where-Object { $_.'State' -ne 0 -and $_.'State' -ne "-"} | Set-Style -Style Warning -Property 'Name','State','Flags','Zone Count'
-                                        }
 
                                         $TableParams = @{
                                             Name = "Directory Partitions - $($Domain.ToString().ToUpper())"
                                             List = $false
-                                            ColumnWidths = 50, 15, 25, 10
+                                            ColumnWidths = 40, 25, 25, 10
                                         }
                                         if ($Report.ShowTableCaptions) {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -305,10 +311,10 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading5 "Root Hints" {
+                                Paragraph "The following section provides Root Hints information."
+                                BlankLine
                                 foreach ($DC in $DCs) {
                                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Root Hints" {
-                                        Paragraph "The following section provides $($DC.ToString().ToUpper().Split(".")[0]) Root Hints information."
-                                        BlankLine
                                         $OutObj = @()
                                         Write-PscriboMessage "Collecting Root Hint information from $($DC)."
                                         try {

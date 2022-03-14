@@ -121,6 +121,10 @@ function Get-AbrADDNSZone {
                             $DNSSetting = Invoke-Command -Session $DCPssSession {Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object {$_ -match 'SecondaryServers'}}
                             if ($DNSSetting) {
                                 Section -Style Heading5 "Zone Transfers" {
+                                    if ($HealthCheck.DNS.Zones) {
+                                        Paragraph "Best Practices: Configure all DNS zones only to allow zone transfers from Trusted IP addresses." -Italic -Bold
+                                        BlankLine
+                                    }
                                     $OutObj = @()
                                     foreach ($Zone in $DNSSetting) {
                                         try {
@@ -139,10 +143,14 @@ function Get-AbrADDNSZone {
                                             }
                                             $OutObj = [pscustomobject]$inobj
 
+                                            if ($HealthCheck.DNS.Zones) {
+                                                $OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them."} | Set-Style -Style Warning
+                                            }
+
                                             $TableParams = @{
                                                 Name = "Zone Transfers - $($Zone.PSChildName)"
-                                                List = $true
-                                                ColumnWidths = 40, 60
+                                                List = $false
+                                                ColumnWidths = 25, 20, 20, 35
                                             }
                                             if ($Report.ShowTableCaptions) {
                                                 $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -245,6 +253,10 @@ function Get-AbrADDNSZone {
                             $Zones = Get-DnsServerZoneAging -CimSession $TempCIMSession -Name $DNSSetting
                             if ($Zones) {
                                 Section -Style Heading5 "Zone Scope Aging Properties" {
+                                    if ($HealthCheck.DNS.Zones) {
+                                        Paragraph "Best Practices: Configure all DNS zones only to allow zone transfers from Trusted IP addresses." -Italic -Bold
+                                        BlankLine
+                                    }
                                     $OutObj = @()
                                     foreach ($Settings in $Zones) {
                                         try {

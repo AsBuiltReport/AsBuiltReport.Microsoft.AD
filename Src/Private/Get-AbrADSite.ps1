@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,6 +27,10 @@ function Get-AbrADSite {
             $Site =  Invoke-Command -Session $TempPssSession {Get-ADReplicationSite -Filter * -Properties *}
             if ($Site) {
                 Section -Style Heading3 'Domain Sites' {
+                    if ($HealthCheck.Site.BestPractice) {
+                        Paragraph "Best Practices: Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
+                        BlankLine
+                    }
                     $OutObj = @()
                     Write-PscriboMessage "Discovered Active Directory Sites information of forest $ForestInfo"
                     foreach ($Item in $Site) {
@@ -48,6 +52,11 @@ function Get-AbrADSite {
                                 'Creation Date' = $Item.createTimeStamp.ToShortDateString()
                             }
                             $OutObj += [pscustomobject]$inobj
+
+                            if ($HealthCheck.Site.BestPractice) {
+                                $OutObj | Where-Object { $_.'Subnets' -eq '-'} | Set-Style -Style Warning -Property 'Subnets'
+                                $OutObj | Where-Object { $_.'Description' -eq '-'} | Set-Style -Style Warning -Property 'Description'
+                            }
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Site)"
@@ -67,6 +76,10 @@ function Get-AbrADSite {
                         $Subnet = Invoke-Command -Session $TempPssSession {Get-ADReplicationSubnet -Filter * -Properties *}
                         if ($Subnet) {
                             Section -Style Heading4 'Site Subnets' {
+                                if ($HealthCheck.Site.BestPractice) {
+                                    Paragraph "Best Practices: Ensure that subnets has a defined description." -Italic -Bold
+                                    BlankLine
+                                }
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Active Directory Sites Subnets information of forest $ForestInfo"
                                 foreach ($Item in $Subnet) {
@@ -79,6 +92,10 @@ function Get-AbrADSite {
                                             'Creation Date' = $Item.Created.ToShortDateString()
                                         }
                                         $OutObj += [pscustomobject]$inObj
+
+                                        if ($HealthCheck.Site.BestPractice) {
+                                            $OutObj | Where-Object { $_.'Description' -eq '-'} | Set-Style -Style Warning -Property 'Description'
+                                        }
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"

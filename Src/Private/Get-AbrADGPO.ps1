@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,6 +31,10 @@ function Get-AbrADGPO {
         try {
             Section -Style Heading4 "Group Policy Objects Summary" {
                 Paragraph "The following section provides a summary of the Group Policy Objects for domain $($Domain.ToString().ToUpper())."
+                BlankLine
+                if ($HealthCheck.Domain.GPO) {
+                    Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
+                }
                 BlankLine
                 $OutObj = @()
                 $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-GPO -Domain $using:Domain -All}
@@ -123,6 +127,10 @@ function Get-AbrADGPO {
                         if ($PATH) {
                             Section -Style Heading5 "GPO Central Store Repository" {
                                 Paragraph "The following section provides information of the status of Central Store. Corrective Action: Deploy centralized GPO repository."
+                                BlankLine
+                                if ($HealthCheck.Domain.GPO) {
+                                    Paragraph "Best Practices: Ensure Central Store is deployed to centralized GPO repository." -Italic -Bold
+                                }
                                 BlankLine
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Active Directory Central Store information on $Domain. (Central Store)"
@@ -294,7 +302,9 @@ function Get-AbrADGPO {
                         }
                         if ($OutObj) {
                             Section -Style Heading5 "Health Check - Unlinked GPO" {
-                                Paragraph "The following section provides a summary of the Unlinked Group Policy Objects. Corrective Action: Remove Unused GPO."
+                                Paragraph "The following section provides a summary of the Unlinked Group Policy Objects. "
+                                BlankLine
+                                Paragraph "Corrective Actions: Remove Unused GPO from Active Directory." -Italic -Bold
                                 BlankLine
 
                                 if ($HealthCheck.Domain.GPO) {
@@ -342,7 +352,9 @@ function Get-AbrADGPO {
                         }
                         if ($OutObj) {
                             Section -Style Heading5 "Health Check - Empty GPOs" {
-                                Paragraph "The following section provides a summary of the Empty Group Policy Objects. Corrective Action: No User and Computer parameters are set : Remove Unused GPO."
+                                Paragraph "The following section provides a summary of the Empty Group Policy Objects."
+                                BlankLine
+                                Paragraph "Corrective Actions: No User and Computer parameters are set: Remove Unused GPO in Active Directory." -Italic -Bold
                                 BlankLine
 
                                 if ($HealthCheck.Domain.GPO) {
@@ -396,6 +408,8 @@ function Get-AbrADGPO {
                         if ($OutObj) {
                             Section -Style Heading5 "Health Check - Enforced GPO" {
                                 Paragraph "The following section provides a summary of the Enforced Group Policy Objects."
+                                BlankLine
+                                Paragraph "Corrective Actions: Review use of enforcement and blocked policy inheritance in Active Directory." -Italic -Bold
                                 BlankLine
 
                                 if ($HealthCheck.Domain.GPO) {

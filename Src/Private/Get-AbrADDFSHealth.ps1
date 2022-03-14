@@ -36,6 +36,8 @@ function Get-AbrADDFSHealth {
                     Section -Style Heading4 'Health Check - DFS Health' {
                         Paragraph "The following section details Distributed File System health status for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
+                        Paragraph "Corrective Actions: Ensure an identical GPO/SYSVOL content for the domain controller in all Active Directory domains." -Italic -Bold
+                        BlankLine
                         $OutObj = @()
                         foreach ($DCStatus in $DFS) {
                             try {

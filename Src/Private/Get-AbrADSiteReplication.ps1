@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -97,6 +97,8 @@ function Get-AbrADSiteReplication {
                 if ($Failures) {
                     Section -Style Heading4 'Sites Replication Failure' {
                         Paragraph "The following section provides a summary of the Active Directory Site Replication Failure information."
+                        BlankLine
+                        Paragraph "Best Practices: Failing SYSVOL replication may cause Group Policy problems." -Italic -Bold
                         BlankLine
                         foreach ($Fails in $Failures) {
                             try {

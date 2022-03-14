@@ -36,6 +36,8 @@ function Get-AbrADDomainLastBackup {
                     Section -Style Heading4 'Health Check - Naming Context Last Backup' {
                         Paragraph "The following section details naming context last backup time for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
+                        Paragraph "Corrective Actions: Ensure there is a recent (<180 days) Active Directory backup." -Italic -Bold
+                        BlankLine
                         $OutObj = @()
                         foreach ($LastBackup in $LastBackups) {
                             try {

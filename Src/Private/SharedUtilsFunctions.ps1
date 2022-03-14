@@ -241,7 +241,7 @@ function ConvertTo-ADCanonicalName {
     return $ADObject;
 }# end
 
-function Convert-TimeToDays {
+function Convert-TimeToDay {
     [CmdletBinding()]
     param (
         $StartTime,
@@ -321,14 +321,14 @@ function Get-WinADLastBackup {
                 Domain            = $Domain
                 NamingContext     = $Name
                 LastBackup        = $LastBackup
-                LastBackupDaysAgo = - (Convert-TimeToDays -StartTime ($CurrentDate) -EndTime ($LastBackup))
+                LastBackupDaysAgo = - (Convert-TimeToDay -StartTime ($CurrentDate) -EndTime ($LastBackup))
             }
         }
         $Output
     }
 }
 function Get-WinADDFSHealth {
-            <#
+    <#
     .SYNOPSIS
     Used by As Built Report to get DFS health AD forest info.
     .DESCRIPTION
@@ -462,45 +462,7 @@ function Get-WinADDFSHealth {
                 $DomainSummary.Remove('GroupPolicyCount')
                 $DomainSummary.Remove('SYSVOLCount')
             }
-            <#
-            PS C:\Windows\system32> Get-CimData -NameSpace "root\microsoftdfs" -Class 'dfsrreplicatedfolderinfo' -ComputerName ad | Where-Object { $_.ReplicationGroupname -eq 'Domain System Volume' }
 
-
-            CurrentConflictSizeInMb  : 0
-            CurrentStageSizeInMb     : 1
-            LastConflictCleanupTime  : 2020-03-22 23:54:17
-            LastErrorCode            : 0
-            LastErrorMessageId       : 0
-            LastTombstoneCleanupTime : 2020-03-22 23:54:17
-            MemberGuid               : 9650D20E-0D00-43AC-AC1F-4D11EDC17E27
-            MemberName               : AD
-            ReplicatedFolderGuid     : 5FFB282C-A802-4700-89A5-B59B7A0EF671
-            ReplicatedFolderName     : SYSVOL Share
-            ReplicationGroupGuid     : C2E87E8F-18CC-41A4-8072-A1B9A4F2ACF6
-            ReplicationGroupName     : Domain System Volume
-            State                    : 4
-            PSComputerName           : AD
-
-
-            #>
-
-
-            <# NameSpace "root\microsoftdfs" Class 'dfsrreplicatedfolderinfo'
-            CurrentConflictSizeInMb  : 0
-            CurrentStageSizeInMb     : 0
-            LastConflictCleanupTime  : 13.09.2019 07:59:38
-            LastErrorCode            : 0
-            LastErrorMessageId       : 0
-            LastTombstoneCleanupTime : 13.09.2019 07:59:38
-            MemberGuid               : A8930B63-1405-4E0B-AE43-840DAAC64DCE
-            MemberName               : AD1
-            ReplicatedFolderGuid     : 58836C0B-1AB9-49A9-BE64-57689A5A6350
-            ReplicatedFolderName     : SYSVOL Share
-            ReplicationGroupGuid     : 7DA3CD45-CF61-4D95-AB46-6DC859DD689B
-            ReplicationGroupName     : Domain System Volume
-            State                    : 2
-            PSComputerName           : AD1
-            #>
             $WarningVar = $null
             $DFSReplicatedFolderInfoAll = Get-CimData -NameSpace "root\microsoftdfs" -Class 'dfsrreplicatedfolderinfo' -ComputerName $Hostname -WarningAction SilentlyContinue -WarningVariable WarningVar -Verbose:$false
             $DFSReplicatedFolderInfo = $DFSReplicatedFolderInfoAll | Where-Object { $_.ReplicationGroupName -eq 'Domain System Volume' }
@@ -595,4 +557,206 @@ function Get-WinADDFSHealth {
         }
     }
     $Table
+}
+
+
+function Get-WinADDuplicateSPN {
+    <#
+    .SYNOPSIS
+    Detects and lists duplicate Service Principal Names (SPNs) in the Active Directory Domain.
+    .DESCRIPTION
+    Detects and lists duplicate Service Principal Names (SPNs) in the Active Directory Domain.
+    .PARAMETER All
+    Returns all duplicate and non-duplicate SPNs. Default is to only return duplicate SPNs.
+    .PARAMETER Exclude
+    Provides ability to exclude specific SPNs from the duplicate detection. By default it excludes kadmin/changepw as with multiple forests it will happen for sure.
+    .PARAMETER Forest
+    Target different Forest, by default current forest is used
+    .PARAMETER ExcludeDomains
+    Exclude domain from search, by default whole forest is scanned
+    .PARAMETER IncludeDomains
+    Include only specific domains, by default whole forest is scanned
+    .PARAMETER ExtendedForestInformation
+    Ability to provide Forest Information from another command to speed up processing
+    .EXAMPLE
+    Get-WinADDuplicateSPN | Format-Table
+    .EXAMPLE
+    Get-WinADDuplicateSPN -All | Format-Table
+    .NOTES
+        Version:        0.1.0
+        Author:         Przemysław Kłys
+    #>
+    [CmdletBinding()]
+    param(
+        [switch] $All,
+        [string[]] $Exclude,
+        [alias('ForestName')][string] $Forest,
+        [string[]] $ExcludeDomains,
+        [alias('Domain', 'Domains')][string[]] $IncludeDomains,
+        [Parameter(ParameterSetName = 'Forest')][System.Collections.IDictionary] $ExtendedForestInformation
+    )
+    $Excluded = @(
+        'kadmin/changepw'
+        foreach ($Item in $Exclude) {
+            $iTEM
+        }
+    )
+
+    $SPNCache = [ordered] @{}
+    $ForestInformation = Get-WinADForestDetails -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation
+    foreach ($Domain in $ForestInformation.Domains) {
+        Write-Verbose -Message "Get-WinADDuplicateSPN - Processing $Domain"
+        $Objects = (Get-ADObject -LDAPFilter "ServicePrincipalName=*" -Properties ServicePrincipalName -Server $ForestInformation['QueryServers'][$domain]['HostName'][0])
+        Write-Verbose -Message "Get-WinADDuplicateSPN - Found $($Objects.Count) objects. Processing..."
+        foreach ($Object in $Objects) {
+            foreach ($SPN in $Object.ServicePrincipalName) {
+                if (-not $SPNCache[$SPN]) {
+                    $SPNCache[$SPN] = [PSCustomObject] @{
+                        Name      = $SPN
+                        Duplicate = $false
+                        Count     = 0
+                        Excluded  = $false
+                        List      = [System.Collections.Generic.List[Object]]::new()
+                    }
+                }
+                if ($SPN -in $Excluded) {
+                    $SPNCache[$SPN].Excluded = $true
+                }
+                $SPNCache[$SPN].List.Add($Object)
+                $SPNCache[$SPN].Count++
+            }
+        }
+    }
+    Write-Verbose -Message "Get-WinADDuplicateSPN - Finalizing output. Processing..."
+    foreach ($SPN in $SPNCache.Values) {
+        if ($SPN.Count -gt 1 -and $SPN.Excluded -ne $true) {
+            $SPN.Duplicate = $true
+        }
+        if ($All) {
+            $SPN
+        } else {
+            if ($SPN.Duplicate) {
+                $SPN
+            }
+        }
+    }
+}
+
+Function Get-WinADDuplicateObject {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to get AD duplicate object info.
+    .DESCRIPTION
+
+    .NOTES
+        Version:        0.1.0
+        Author:         Przemysław Kłys
+
+    .EXAMPLE
+
+    .LINK
+
+    #>
+
+    [alias('Get-WinADForestObjectsConflict')]
+    [CmdletBinding()]
+    Param(
+        [alias('ForestName')][string] $Forest,
+        [string[]] $ExcludeDomains,
+        [alias('Domain', 'Domains')][string[]] $IncludeDomains,
+        [System.Collections.IDictionary] $ExtendedForestInformation,
+        [string] $PartialMatchDistinguishedName,
+        [string[]] $IncludeObjectClass,
+        [string[]] $ExcludeObjectClass,
+        [switch] $Extended,
+        [switch] $NoPostProcessing
+    )
+    # Based on https://gallery.technet.microsoft.com/scriptcenter/Get-ADForestConflictObjects-4667fa37
+    $ForestInformation = Get-WinADForestDetails -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation
+    foreach ($Domain in $ForestInformation.Domains) {
+        $DC = $ForestInformation['QueryServers']["$Domain"].HostName[0]
+        #Get conflict objects
+        $getADObjectSplat = @{
+            LDAPFilter  = "(|(cn=*\0ACNF:*)(ou=*CNF:*))"
+            Properties  = 'DistinguishedName', 'ObjectClass', 'DisplayName', 'SamAccountName', 'Name', 'ObjectCategory', 'WhenCreated', 'WhenChanged', 'ProtectedFromAccidentalDeletion', 'ObjectGUID'
+            Server      = $DC
+            SearchScope = 'Subtree'
+        }
+        $Objects = Get-ADObject @getADObjectSplat
+        foreach ($_ in $Objects) {
+            # Lets allow users to filter on it
+            if ($ExcludeObjectClass) {
+                if ($ExcludeObjectClass -contains $_.ObjectClass) {
+                    continue
+                }
+            }
+            if ($IncludeObjectClass) {
+                if ($IncludeObjectClass -notcontains $_.ObjectClass) {
+                    continue
+                }
+            }
+            if ($PartialMatchDistinguishedName) {
+                if ($_.DistinguishedName -notlike $PartialMatchDistinguishedName) {
+                    continue
+                }
+            }
+            if ($NoPostProcessing) {
+                $_
+                continue
+            }
+            $DomainName = ConvertFrom-DistinguishedName -DistinguishedName $_.DistinguishedName -ToDomainCN
+            # Lets create separate objects for different purpoeses
+            $ConflictObject = [ordered] @{
+                ConflictDN          = $_.DistinguishedName
+                ConflictWhenChanged = $_.WhenChanged
+                DomainName          = $DomainName
+                ObjectClass         = $_.ObjectClass
+            }
+            $LiveObjectData = [ordered] @{
+                LiveDn          = "N/A"
+                LiveWhenChanged = "N/A"
+            }
+            $RestData = [ordered] @{
+                DisplayName                     = $_.DisplayName
+                Name                            = $_.Name.Replace("`n", ' ')
+                SamAccountName                  = $_.SamAccountName
+                ObjectCategory                  = $_.ObjectCategory
+                WhenCreated                     = $_.WhenCreated
+                WhenChanged                     = $_.WhenChanged
+                ProtectedFromAccidentalDeletion = $_.ProtectedFromAccidentalDeletion
+                ObjectGUID                      = $_.ObjectGUID.Guid
+            }
+            if ($Extended) {
+                $LiveObject = $null
+                $ConflictObject = $ConflictObject + $LiveObjectData + $RestData
+                #See if we are dealing with a 'cn' conflict object
+                if (Select-String -SimpleMatch "\0ACNF:" -InputObject $ConflictObject.ConflictDn) {
+                    #Split the conflict object DN so we can remove the conflict notation
+                    $SplitConfDN = $ConflictObject.ConflictDn -split "0ACNF:"
+                    #Remove the conflict notation from the DN and try to get the live AD object
+                    try {
+                        $LiveObject = Get-ADObject -Identity "$($SplitConfDN[0].TrimEnd("\"))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
+                    } catch {}
+                    if ($LiveObject) {
+                        $ConflictObject.LiveDN = $LiveObject.DistinguishedName
+                        $ConflictObject.LiveWhenChanged = $LiveObject.WhenChanged
+                    }
+                } else {
+                    #Split the conflict object DN so we can remove the conflict notation for OUs
+                    $SplitConfDN = $ConflictObject.ConflictDn -split "CNF:"
+                    #Remove the conflict notation from the DN and try to get the live AD object
+                    try {
+                        $LiveObject = Get-ADObject -Identity "$($SplitConfDN[0])$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
+                    } catch {}
+                    if ($LiveObject) {
+                        $ConflictObject.LiveDN = $LiveObject.DistinguishedName
+                        $ConflictObject.LiveWhenChanged = $LiveObject.WhenChanged
+                    }
+                }
+            } else {
+                $ConflictObject = $ConflictObject + $RestData
+            }
+            [PSCustomObject] $ConflictObject
+        }
+    }
 }

@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -246,9 +246,10 @@ function Get-AbrADDomainController {
         if ($HealthCheck.DomainController.Software) {
             try {
                 Write-PscriboMessage "Collecting additional software running on the Domain Controller."
-                Section -Style Heading5 'HealthCheck - Installed Software on DC' {
+                Section -Style Heading5 'Health Check - Installed Software on DC' {
                     Paragraph "The following section provides a summary of additional software running on $($Domain.ToString().ToUpper())."
                     BlankLine
+                    Paragraph "Best Practices: Do not run other software or services on a Domain Controller." -Italic -Bold
                     Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                     if ($DCs) {
                         foreach ($DC in $DCs) {
@@ -260,8 +261,6 @@ function Get-AbrADDomainController {
                                 Remove-PSSession -Session $DCPssSession
                                 if ( $Software ) {
                                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) additional software" {
-                                        Paragraph "The following section provides a summary of additional software running on $($DC.ToString().ToUpper().Split(".")[0])."
-                                        BlankLine
                                         foreach ($APP in $Software) {
                                             try {
                                                 $inObj = [ordered] @{
@@ -270,6 +269,10 @@ function Get-AbrADDomainController {
                                                     'Install Date' = $APP.InstallDate
                                                 }
                                                 $OutObj = [pscustomobject]$inobj
+
+                                                if ($HealthCheck.DomainController.Software) {
+                                                    $OutObj | Set-Style -Style Warning
+                                                }
                                             }
                                             catch {
                                                 Write-PscriboMessage -IsWarning $_.Exception.Message

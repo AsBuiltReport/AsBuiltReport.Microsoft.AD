@@ -109,6 +109,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Get-AbrADFSMO -Domain $Domain
                                     Get-AbrADTrust -Domain $Domain
                                     Get-AbrADDomainObject -Domain $Domain
+                                    Get-AbrADDuplicateObject -Domain $Domain
+                                    if ($Domain -like $ADSystem.RootDomain) {
+                                        Get-AbrADDuplicateSPN
+                                    }
                                     Section -Style Heading4 'Domain Controller Summary' {
                                         if ($Options.ShowDefinitionInfo) {
                                             Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
@@ -130,8 +134,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         }
                                         if ($HealthCheck.DomainController.Diagnostic) {
                                             try {
-                                                Section -Style Heading5 'DC Diagnostic' {
+                                                Section -Style Heading5 'Health Check - DC Diagnostic' {
                                                     Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                                                    BlankLine
+                                                    Paragraph "Corrective Actions: If there are failed tests perform more extensive diagnostics." -Italic -Bold
                                                     $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                                     foreach ($DC in $DCs){
                                                         Get-AbrADDCDiag -Domain $Domain -DC $DC
