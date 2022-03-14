@@ -52,14 +52,14 @@ function Get-AbrADDFSHealth {
 
                                 }
                                 $OutObj += [pscustomobject]$inobj
-
-                                if ($HealthCheck.Domain.DFS) {
-                                    $OutObj | Where-Object { $_.'Identical Count' -like 'No' } | Set-Style -Style Warning -Property 'Identical Count'
-                                }
                             }
                             catch {
                                 Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DFS Health Item)"
                             }
+                        }
+
+                        if ($HealthCheck.Domain.DFS) {
+                            $OutObj | Where-Object { $_.'Identical Count' -like 'No' } | Set-Style -Style Warning -Property 'Identical Count'
                         }
 
                         $TableParams = @{
