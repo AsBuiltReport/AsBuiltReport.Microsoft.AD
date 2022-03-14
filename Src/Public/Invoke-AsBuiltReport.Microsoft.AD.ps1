@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -104,9 +104,16 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                     BlankLine
                                     Get-AbrADDomain -Domain $Domain
+                                    Get-AbrADDomainLastBackup -Domain $Domain
+                                    Get-AbrADDFSHealth -Domain $Domain
                                     Get-AbrADFSMO -Domain $Domain
                                     Get-AbrADTrust -Domain $Domain
                                     Get-AbrADDomainObject -Domain $Domain
+                                    Get-AbrADSecurityAssessment -Domain $Domain
+                                    Get-AbrADDuplicateObject -Domain $Domain
+                                    if ($Domain -like $ADSystem.RootDomain) {
+                                        Get-AbrADDuplicateSPN
+                                    }
                                     Section -Style Heading4 'Domain Controller Summary' {
                                         if ($Options.ShowDefinitionInfo) {
                                             Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
@@ -128,8 +135,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         }
                                         if ($HealthCheck.DomainController.Diagnostic) {
                                             try {
-                                                Section -Style Heading5 'DC Diagnostic' {
+                                                Section -Style Heading5 'Health Check - DC Diagnostic' {
                                                     Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                                                    BlankLine
                                                     $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                                     foreach ($DC in $DCs){
                                                         Get-AbrADDCDiag -Domain $Domain -DC $DC

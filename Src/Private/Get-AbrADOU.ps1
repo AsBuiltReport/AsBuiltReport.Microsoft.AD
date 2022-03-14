@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -72,7 +72,7 @@ function Get-AbrADOU {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                    $OutObj | Sort-Object -Property 'Path' | Table @TableParams
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
@@ -105,7 +105,6 @@ function Get-AbrADOU {
                                 Section -Style Heading4 "Health Check - OU with GPO Blocked Inheritance" {
                                     Paragraph "The following section provides a summary of the Blocked Inheritance Group Policy Objects."
                                     BlankLine
-
                                     if ($HealthCheck.Domain.GPO) {
                                         $OutObj | Set-Style -Style Warning
                                     }
@@ -120,6 +119,8 @@ function Get-AbrADOU {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Sort-Object -Property 'OU Name' | Table @TableParams
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Corrective Actions: Review use of enforcement and blocked policy inheritance in Active Directory." -Italic -Bold
                                 }
                             }
 

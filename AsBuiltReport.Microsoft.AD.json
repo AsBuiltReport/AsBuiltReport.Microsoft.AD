@@ -23,7 +23,12 @@
     "HealthCheck": {
         "Domain": {
             "GMSA": true,
-            "GPO": true
+            "GPO": true,
+            "Backup": true,
+            "DFS": true,
+            "SPN": true,
+            "DuplicateObject": true,
+            "Security": true
         },
         "DomainController": {
             "Diagnostic": true,
@@ -31,11 +36,13 @@
             "Software": true
         },
         "Site": {
-            "Replication": true
+            "Replication": true,
+            "BestPractice": true
         },
         "DNS": {
             "Aging": true,
-            "DP": true
+            "DP": true,
+            "Zones": true
         },
         "DHCP": {
             "Summary": true,

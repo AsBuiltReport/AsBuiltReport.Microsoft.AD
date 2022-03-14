@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -48,6 +48,11 @@ function Get-AbrADSite {
                                 'Creation Date' = $Item.createTimeStamp.ToShortDateString()
                             }
                             $OutObj += [pscustomobject]$inobj
+
+                            if ($HealthCheck.Site.BestPractice) {
+                                $OutObj | Where-Object { $_.'Subnets' -eq '-'} | Set-Style -Style Warning -Property 'Subnets'
+                                $OutObj | Where-Object { $_.'Description' -eq '-'} | Set-Style -Style Warning -Property 'Description'
+                            }
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Site)"
@@ -63,6 +68,15 @@ function Get-AbrADSite {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Sort-Object -Property 'Site Name' | Table @TableParams
+                    if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Subnets' -eq '-'}) -or ($OutObj | Where-Object { $_.'Description' -eq '-'}))) {
+                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        if ($OutObj | Where-Object { $_.'Subnets' -eq '-'}) {
+                            Paragraph "Corrective Actions: Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
+                        }
+                        if ($OutObj | Where-Object { $_.'Description' -eq '-'}) {
+                            Paragraph "Best Practices: Ensure Sites have a defined description." -Italic -Bold
+                        }
+                    }
                     try {
                         $Subnet = Invoke-Command -Session $TempPssSession {Get-ADReplicationSubnet -Filter * -Properties *}
                         if ($Subnet) {
@@ -79,6 +93,10 @@ function Get-AbrADSite {
                                             'Creation Date' = $Item.Created.ToShortDateString()
                                         }
                                         $OutObj += [pscustomobject]$inObj
+
+                                        if ($HealthCheck.Site.BestPractice) {
+                                            $OutObj | Where-Object { $_.'Description' -eq '-'} | Set-Style -Style Warning -Property 'Description'
+                                        }
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
@@ -94,6 +112,10 @@ function Get-AbrADSite {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'Subnet' | Table @TableParams
+                                if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Description' -eq '-'})) {
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Best Practices: Ensure that subnets has a defined description." -Italic -Bold
+                                }
                             }
                         }
                     }

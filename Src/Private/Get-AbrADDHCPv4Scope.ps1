@@ -39,18 +39,27 @@ function Get-AbrADDHCPv4Scope {
                     $OutObj = @()
                     foreach ($Scope in $DHCPScopes) {
                         Write-PscriboMessage "Collecting DHCP Server IPv4 $($Scope.ScopeId) Scope from $($Server.split(".", 2)[0])"
-                        $SubnetMask = Convert-IpAddressToMaskLength $Scope.SubnetMask
-                        $inObj = [ordered] @{
-                            'Scope Id' = "$($Scope.ScopeId)/$($SubnetMask)"
-                            'Scope Name' = $Scope.Name
-                            'Scope Range' = "$($Scope.StartRange) - $($Scope.EndRange)"
-                            'Lease Duration' = Switch ($Scope.LeaseDuration) {
-                                "10675199.02:48:05.4775807" {"Unlimited"}
-                                default {$Scope.LeaseDuration}
+                        try {
+                            $SubnetMask = Convert-IpAddressToMaskLength $Scope.SubnetMask.IPAddressToString
+                            $inObj = [ordered] @{
+                                'Scope Id' = "$($Scope.ScopeId)/$($SubnetMask)"
+                                'Scope Name' = $Scope.Name
+                                'Scope Range' = "$($Scope.StartRange) - $($Scope.EndRange)"
+                                'Lease Duration' = Switch ($Scope.LeaseDuration) {
+                                    "10675199.02:48:05.4775807" {"Unlimited"}
+                                    default {$Scope.LeaseDuration}
+                                }
+                                'State' = $Scope.State
                             }
-                            'State' = $Scope.State
+                            $OutObj += [pscustomobject]$inobj
                         }
-                        $OutObj += [pscustomobject]$inobj
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Item)"
+                        }
+                    }
+
+                    if ($HealthCheck.DHCP.BP) {
+                        $OutObj | Where-Object { $_.'State' -ne 'Active'} | Set-Style -Style Warning -Property 'State'
                     }
 
                     $TableParams = @{
@@ -62,6 +71,11 @@ function Get-AbrADDHCPv4Scope {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Sort-Object -Property 'Scope Id' | Table @TableParams
+
+                    if ($HealthCheck.DHCP.BP -and ($OutObj | Where-Object { $_.'State' -ne 'Active'} )) {
+                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Corrective Action: Ensure inactive scope are removed from DHCP server." -Italic -Bold
+                    }
 
                     try {
                         $DHCPScopes = Get-DhcpServerv4ScopeStatistics -CimSession $TempCIMSession -ComputerName $Server
@@ -132,6 +146,7 @@ function Get-AbrADDHCPv4Scope {
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv4 Scope Failover Item)"
                                     }
+
                                     if ($HealthCheck.DHCP.BP) {
                                         $OutObj | Where-Object { $_.'Authetication Enable' -eq 'No'} | Set-Style -Style Warning -Property 'Authetication Enable'
                                     }
@@ -145,6 +160,10 @@ function Get-AbrADDHCPv4Scope {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Table @TableParams
+                                    if ($HealthCheck.DHCP.BP -and ($OutObj | Where-Object { $_.'Authetication Enable' -eq 'No'})) {
+                                        Paragraph "Health Check:" -Italic -Bold -Underline
+                                        Paragraph "Corrective Action: Ensure Dhcp servers require authentication (a shared secret) in order to secure communications between failover partners." -Italic -Bold
+                                    }
                                 }
                             }
                         }
