@@ -33,8 +33,6 @@ function Get-AbrADDHCPv4ScopeServerSetting {
         $DHCPScopeOptions = Get-DhcpServerv4OptionValue -CimSession $TempCIMSession -ComputerName $Server
         if ($DHCPScopeOptions) {
             Section -Style Heading5 "$($DHCPServer.ToUpper().split(".", 2)[0]) IPv4 Scope Server Options" {
-                Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
-                BlankLine
                 $OutObj = @()
                 Write-PScriboMessage "Discovered '$(($DHCPScopeOptions | Measure-Object).Count)' DHCP scopes server opions on $($Server)."
                 foreach ($Option in $DHCPScopeOptions) {
@@ -86,6 +84,10 @@ function Get-AbrADDHCPv4ScopeServerSetting {
                                 }
                             }
 
+                            if ($HealthCheck.DHCP.BP) {
+                                $OutObj | Where-Object { $_.'Dynamic Updates' -ne 'Always'} | Set-Style -Style Warning -Property 'Dynamic Updates'
+                            }
+
                             $TableParams = @{
                                 Name = "IPv4 Scopes DNS Setting - $($Server.split(".", 2)[0])"
                                 List = $true
@@ -95,6 +97,10 @@ function Get-AbrADDHCPv4ScopeServerSetting {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
+                            if ($HealthCheck.DHCP.BP -and ($OutObj | Where-Object { $_.'Dynamic Updates' -ne 'Always'})) {
+                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Best Practice: 'Always dynamically update dns records' should be configured if secure dynamic DNS update is enabled and the domain controller is on the same host as the DHCP server." -Italic -Bold
+                            }
                         }
                     }
                 }

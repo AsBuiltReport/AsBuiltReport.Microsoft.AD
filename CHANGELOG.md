@@ -1,5 +1,27 @@
 # :arrows_counterclockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.0] - 2022-03-14
+
+### Added
+
+- Implemented health check explanations.
+- Added Health Check:
+  - Search for Duplicate Object.
+  - Search for Duplicate SID.
+  - DFS Health Status
+  - Search for Account Security Issues.
+- Added Naming Context Backup information.
+
+### Changed
+
+- Improve Health Check content.
+- Added enabled status on Forest Optional Features section.
+
+### Fixed
+
+- Fix DNS section issues.
+- Sort "Organizational Unit" section by path. Closes #27
+
 ## [0.6.3] - 2022-01-30
 
 ### Changed

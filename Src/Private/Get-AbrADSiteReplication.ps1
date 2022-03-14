@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -71,6 +71,10 @@ function Get-AbrADSiteReplication {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $OutObj | Table @TableParams
+                                        if ($HealthCheck.Site.Replication -and ($OutObj | Where-Object { $_.'Enabled' -ne 'Yes'})) {
+                                            Paragraph "Health Check:" -Italic -Bold -Underline
+                                            Paragraph "Best Practices: Remove unused Sites replication connections." -Italic -Bold
+                                        }
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Item)"
@@ -124,6 +128,10 @@ function Get-AbrADSiteReplication {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Table @TableParams
+                                if ($HealthCheck.Site.Replication -and ($OutObj | Where-Object {$NULL -notlike $_.'Last Error'})) {
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Best Practices: Failing SYSVOL replication may cause Group Policy problems." -Italic -Bold
+                                }
                             }
                             catch {
                                 Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Failure)"
