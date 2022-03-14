@@ -19,7 +19,7 @@
 
 ### Fixed
 
-- Fix DNS section issues on retreaving information from child domains.
+- Fix DNS section issues.
 - Sort "Organizational Unit" section by path. Closes #27
 
 ## [0.6.3] - 2022-01-30
