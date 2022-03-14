@@ -68,7 +68,7 @@ PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are require
 - [GroupPolicy Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps)
 - [DhcpServer Module](https://docs.microsoft.com/en-us/powershell/module/dhcpserver/?view=windowsserver2019-ps)
 - [DnsServer Module](https://docs.microsoft.com/en-us/powershell/module/dnsserver/?view=windowsserver2019-ps)
-- [ADEssentials Module](https://www.powershellgallery.com/packages/ADEssentials/)
+- [PSSharedGoods Module](https://www.powershellgallery.com/packages/PSSharedGoods/)
 
 ### Linux & macOS
 
