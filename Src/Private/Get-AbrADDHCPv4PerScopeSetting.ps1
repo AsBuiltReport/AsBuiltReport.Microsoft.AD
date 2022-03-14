@@ -34,8 +34,6 @@ function Get-AbrADDHCPv4PerScopeSetting {
         $DHCPScopeOptions = Get-DhcpServerv4OptionValue -CimSession $TempCIMSession -ComputerName $Server -ScopeId $Scope
         if ($DHCPScopeOptions) {
             Section -Style Heading6 "$Scope" {
-                Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
-                BlankLine
                 $OutObj = @()
                 foreach ($Option in $DHCPScopeOptions) {
                     try {

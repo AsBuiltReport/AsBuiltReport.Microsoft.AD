@@ -105,9 +105,6 @@ function Get-AbrADOU {
                                 Section -Style Heading4 "Health Check - OU with GPO Blocked Inheritance" {
                                     Paragraph "The following section provides a summary of the Blocked Inheritance Group Policy Objects."
                                     BlankLine
-                                    Paragraph "Corrective Actions: Review use of enforcement and blocked policy inheritance in Active Directory." -Italic -Bold
-                                    BlankLine
-
                                     if ($HealthCheck.Domain.GPO) {
                                         $OutObj | Set-Style -Style Warning
                                     }
@@ -122,6 +119,8 @@ function Get-AbrADOU {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Sort-Object -Property 'OU Name' | Table @TableParams
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Corrective Actions: Review use of enforcement and blocked policy inheritance in Active Directory." -Italic -Bold
                                 }
                             }
 

@@ -121,10 +121,6 @@ function Get-AbrADDNSZone {
                             $DNSSetting = Invoke-Command -Session $DCPssSession {Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object {$_ -match 'SecondaryServers'}}
                             if ($DNSSetting) {
                                 Section -Style Heading5 "Zone Transfers" {
-                                    if ($HealthCheck.DNS.Zones) {
-                                        Paragraph "Best Practices: Configure all DNS zones only to allow zone transfers from Trusted IP addresses." -Italic -Bold
-                                        BlankLine
-                                    }
                                     $OutObj = @()
                                     foreach ($Zone in $DNSSetting) {
                                         try {
@@ -144,7 +140,7 @@ function Get-AbrADDNSZone {
                                             $OutObj += [pscustomobject]$inobj
 
                                             if ($HealthCheck.DNS.Zones) {
-                                                $OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them."} | Set-Style -Style Warning
+                                                $OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them."} | Set-Style -Style Warning -Property 'Secure Secondaries'
                                             }
                                         }
                                         catch {
@@ -161,6 +157,10 @@ function Get-AbrADDNSZone {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Table @TableParams
+                                    if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them."})) {
+                                        Paragraph "Health Check:" -Italic -Bold -Underline
+                                        Paragraph "Best Practices: Configure all DNS zones only to allow zone transfers from Trusted IP addresses." -Italic -Bold
+                                    }
                                 }
                             }
                         }
@@ -253,10 +253,6 @@ function Get-AbrADDNSZone {
                             $Zones = Get-DnsServerZoneAging -CimSession $TempCIMSession -Name $DNSSetting -ComputerName $DC
                             if ($Zones) {
                                 Section -Style Heading5 "Zone Scope Aging Properties" {
-                                    if ($HealthCheck.DNS.Zones) {
-                                        Paragraph "Best Practices: Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs." -Italic -Bold
-                                        BlankLine
-                                    }
                                     $OutObj = @()
                                     foreach ($Settings in $Zones) {
                                         try {
@@ -292,6 +288,10 @@ function Get-AbrADDNSZone {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
+                                    if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Aging Enabled' -ne 'Yes'})) {
+                                        Paragraph "Health Check:" -Italic -Bold -Underline
+                                        Paragraph "Best Practices: Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs." -Italic -Bold
+                                    }
                                 }
                             }
                         }

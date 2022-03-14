@@ -71,6 +71,10 @@ function Get-AbrADSiteReplication {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $OutObj | Table @TableParams
+                                        if ($HealthCheck.Site.Replication -and ($OutObj | Where-Object { $_.'Enabled' -ne 'Yes'})) {
+                                            Paragraph "Health Check:" -Italic -Bold -Underline
+                                            Paragraph "Best Practices: Remove unused Sites replication connections." -Italic -Bold
+                                        }
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Item)"
@@ -98,8 +102,6 @@ function Get-AbrADSiteReplication {
                     Section -Style Heading4 'Sites Replication Failure' {
                         Paragraph "The following section provides a summary of the Active Directory Site Replication Failure information."
                         BlankLine
-                        Paragraph "Best Practices: Failing SYSVOL replication may cause Group Policy problems." -Italic -Bold
-                        BlankLine
                         foreach ($Fails in $Failures) {
                             try {
                                 Write-PscriboMessage "Collecting Active Directory Sites Replication Failure on '$($Fails.Server)'. (Sites Replication Failure)"
@@ -126,6 +128,10 @@ function Get-AbrADSiteReplication {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Table @TableParams
+                                if ($HealthCheck.Site.Replication -and ($OutObj | Where-Object {$NULL -notlike $_.'Last Error'})) {
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Best Practices: Failing SYSVOL replication may cause Group Policy problems." -Italic -Bold
+                                }
                             }
                             catch {
                                 Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Failure)"

@@ -70,8 +70,6 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading5 "Domain Controller DNS IP Configuration" {
-                                Paragraph "Best Practices: DNS configuration on network adapter should include the loopback address, but not as the first entry." -Italic -Bold
-                                BlankLine
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
@@ -108,7 +106,7 @@ function Get-AbrADDNSInfrastructure {
                                 }
 
                                 $TableParams = @{
-                                    Name = "IP Configuration -$($Domain.ToString().ToUpper())"
+                                    Name = "IP Configuration - $($Domain.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 20, 20, 15, 15, 15, 15
                                 }
@@ -116,6 +114,10 @@ function Get-AbrADDNSInfrastructure {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                                if ($HealthCheck.DNS.DP -and ($OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"})) {
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Best Practices: DNS configuration on network adapter should include the loopback address, but not as the first entry." -Italic -Bold
+                                }
                             }
                         }
                         catch {
@@ -228,10 +230,6 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading5 "Scavenging Options" {
-                                if ($HealthCheck.DNS.Zones) {
-                                    Paragraph "Best Practices: Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs." -Italic -Bold
-                                    BlankLine
-                                }
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     Write-PscriboMessage "Collecting Scavenging Options information from $($DC)."
@@ -273,6 +271,10 @@ function Get-AbrADDNSInfrastructure {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                                if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Scavenging State' -eq 'Disabled'})) {
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Best Practices: Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs." -Italic -Bold
+                                }
                             }
                         }
                         catch {
@@ -324,7 +326,6 @@ function Get-AbrADDNSInfrastructure {
                         try {
                             Section -Style Heading5 "Root Hints" {
                                 Paragraph "The following section provides Root Hints information."
-                                BlankLine
                                 foreach ($DC in $DCs) {
                                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Root Hints" {
                                         $OutObj = @()

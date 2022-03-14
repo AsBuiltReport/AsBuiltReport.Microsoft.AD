@@ -249,7 +249,6 @@ function Get-AbrADDomainController {
                 Section -Style Heading5 'Health Check - Installed Software on DC' {
                     Paragraph "The following section provides a summary of additional software running on $($Domain.ToString().ToUpper())."
                     BlankLine
-                    Paragraph "Best Practices: Do not run other software or services on a Domain Controller." -Italic -Bold
                     Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                     if ($DCs) {
                         foreach ($DC in $DCs) {
@@ -287,6 +286,10 @@ function Get-AbrADDomainController {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                                        if ($HealthCheck.DomainController.Software) {
+                                            Paragraph "Health Check:" -Italic -Bold -Underline
+                                            Paragraph "Best Practices: Do not run other software or services on a Domain Controller." -Italic -Bold
+                                        }
                                     }
                                 }
                             }

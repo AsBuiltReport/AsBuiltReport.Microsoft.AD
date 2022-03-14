@@ -39,9 +39,9 @@ function Get-AbrADDomainLastBackup {
                         Paragraph "Corrective Actions: Ensure there is a recent (<180 days) Active Directory backup." -Italic -Bold
                         BlankLine
                         $OutObj = @()
+                        Write-PscriboMessage "Collecting Naming Context Last Backup information of $($Domain)."
                         foreach ($LastBackup in $LastBackups) {
                             try {
-                                Write-PscriboMessage "Collecting Naming Context Last Backup information of $($Domain)."
                                 $inObj = [ordered] @{
                                     'Naming Context' = $LastBackup.NamingContext
                                     'Last Backup' = $LastBackup.LastBackup.ToString("yyyy:MM:dd")

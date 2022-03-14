@@ -32,10 +32,6 @@ function Get-AbrADGPO {
             Section -Style Heading4 "Group Policy Objects Summary" {
                 Paragraph "The following section provides a summary of the Group Policy Objects for domain $($Domain.ToString().ToUpper())."
                 BlankLine
-                if ($HealthCheck.Domain.GPO) {
-                    Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
-                }
-                BlankLine
                 $OutObj = @()
                 $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-GPO -Domain $using:Domain -All}
                 Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
@@ -48,8 +44,7 @@ function Get-AbrADGPO {
                                     $inObj = [ordered] @{
                                         'GPO Name' = $GPO.DisplayName
                                         'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
-                                        'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
-                                        'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
+                                        'Owner' = $GPO.Owner
                                     }
                                     $OutObj += [pscustomobject]$inobj
                                 }
@@ -60,19 +55,22 @@ function Get-AbrADGPO {
 
                             if ($HealthCheck.Domain.GPO) {
                                 $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
-                                $OutObj | Where-Object {$Null -eq $_.'Owner'} | Set-Style -Style Warning -Property 'Owner'
                             }
 
                             $TableParams = @{
                                 Name = "GPO - $($Domain.ToString().ToUpper())"
                                 List = $false
-                                ColumnWidths = 45, 25, 15, 15
+                                ColumnWidths = 45, 25, 30
                             }
 
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
+                            if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
+                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
+                            }
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Summary)"
@@ -128,10 +126,6 @@ function Get-AbrADGPO {
                             Section -Style Heading5 "GPO Central Store Repository" {
                                 Paragraph "The following section provides information of the status of Central Store. Corrective Action: Deploy centralized GPO repository."
                                 BlankLine
-                                if ($HealthCheck.Domain.GPO) {
-                                    Paragraph "Best Practices: Ensure Central Store is deployed to centralized GPO repository." -Italic -Bold
-                                }
-                                BlankLine
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Active Directory Central Store information on $Domain. (Central Store)"
                                 $inObj = [ordered] @{
@@ -155,6 +149,10 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Table @TableParams
+                                if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'Configured' -eq 'No'})) {
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Best Practices: Ensure Central Store is deployed to centralized GPO repository." -Italic -Bold
+                                }
                             }
                         }
                     }
@@ -304,8 +302,6 @@ function Get-AbrADGPO {
                             Section -Style Heading5 "Health Check - Unlinked GPO" {
                                 Paragraph "The following section provides a summary of the Unlinked Group Policy Objects. "
                                 BlankLine
-                                Paragraph "Corrective Actions: Remove Unused GPO from Active Directory." -Italic -Bold
-                                BlankLine
 
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
@@ -321,6 +317,8 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
+                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Corrective Actions: Remove Unused GPO from Active Directory." -Italic -Bold
                             }
                         }
                     }
@@ -354,8 +352,6 @@ function Get-AbrADGPO {
                             Section -Style Heading5 "Health Check - Empty GPOs" {
                                 Paragraph "The following section provides a summary of the Empty Group Policy Objects."
                                 BlankLine
-                                Paragraph "Corrective Actions: No User and Computer parameters are set: Remove Unused GPO in Active Directory." -Italic -Bold
-                                BlankLine
 
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
@@ -371,6 +367,8 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
+                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Corrective Actions: No User and Computer parameters are set: Remove Unused GPO in Active Directory." -Italic -Bold
                             }
                         }
                     }
@@ -409,9 +407,6 @@ function Get-AbrADGPO {
                             Section -Style Heading5 "Health Check - Enforced GPO" {
                                 Paragraph "The following section provides a summary of the Enforced Group Policy Objects."
                                 BlankLine
-                                Paragraph "Corrective Actions: Review use of enforcement and blocked policy inheritance in Active Directory." -Italic -Bold
-                                BlankLine
-
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -426,6 +421,9 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
+                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Corrective Actions: Review use of enforcement and blocked policy inheritance in Active Directory." -Italic -Bold
+
                             }
                         }
                     }

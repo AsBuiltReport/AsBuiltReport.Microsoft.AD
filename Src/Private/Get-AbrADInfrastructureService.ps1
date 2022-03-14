@@ -35,7 +35,6 @@ function Get-AbrADInfrastructureService {
             if ($Available) {
                 Section -Style Heading5 "Infrastructure Services Status" {
                     Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
-                    BlankLine
                     Write-PscriboMessage "Discovered Active Directory DC Infrastructure Services information of $DC."
                     Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0])" {
                         $OutObj = @()

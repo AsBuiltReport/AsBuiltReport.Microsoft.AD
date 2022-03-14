@@ -173,6 +173,7 @@ function Convert-IpAddressToMaskLength {
 
     [IPAddress] $MASK = $SubnetMask
     $octets = $MASK.IPAddressToString.Split('.')
+    $result = $Null
     foreach ($octet in $octets) {
         while (0 -ne $octet) {
             $octet = ($octet -shl 1) -band [byte]::MaxValue

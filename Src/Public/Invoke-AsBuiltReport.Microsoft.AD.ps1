@@ -137,7 +137,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                 Section -Style Heading5 'Health Check - DC Diagnostic' {
                                                     Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
                                                     BlankLine
-                                                    Paragraph "Corrective Actions: If there are failed tests perform more extensive diagnostics." -Italic -Bold
                                                     $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                                     foreach ($DC in $DCs){
                                                         Get-AbrADDCDiag -Domain $Domain -DC $DC
