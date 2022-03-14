@@ -109,6 +109,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Get-AbrADFSMO -Domain $Domain
                                     Get-AbrADTrust -Domain $Domain
                                     Get-AbrADDomainObject -Domain $Domain
+                                    Get-AbrADSecurityAssessment -Domain $Domain
                                     Get-AbrADDuplicateObject -Domain $Domain
                                     if ($Domain -like $ADSystem.RootDomain) {
                                         Get-AbrADDuplicateSPN

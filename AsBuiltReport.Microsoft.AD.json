@@ -27,7 +27,8 @@
             "Backup": true,
             "DFS": true,
             "SPN": true,
-            "DuplicateObject": true
+            "DuplicateObject": true,
+            "Security": true
         },
         "DomainController": {
             "Diagnostic": true,
