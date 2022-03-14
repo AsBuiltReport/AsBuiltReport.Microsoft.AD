@@ -1,5 +1,16 @@
 # :arrows_counterclockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.1] - 2022-03-14
+
+### Added
+
+- Added Kerberos Audit section.
+  - Added Health Check condition and explanatione
+
+### Fixed
+
+- Fix release workflows to include PSSharedGoods module.
+
 ## [0.7.0] - 2022-03-14
 
 ### Added
