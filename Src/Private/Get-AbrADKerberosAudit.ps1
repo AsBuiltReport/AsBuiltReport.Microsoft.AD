@@ -39,15 +39,17 @@ function Get-AbrADKerberosAudit {
                         BlankLine
                         $OutObj = @()
                         Write-PscriboMessage "Collecting Unconstrained Kerberos delegation information from $($Domain)."
-                        try {
-                            $inObj = [ordered] @{
-                                'Name' = $Unconstrained.Name
-                                'Distinguished Name' = $Unconstrained.DistinguishedName
+                        foreach ($Item in $Unconstrained) {
+                            try {
+                                $inObj = [ordered] @{
+                                    'Name' = $Item.Name
+                                    'Distinguished Name' = $Item.DistinguishedName
+                                }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                            $OutObj += [pscustomobject]$inobj
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Item)"
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Item)"
+                            }
                         }
 
                         if ($HealthCheck.Domain.Security) {
