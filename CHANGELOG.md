@@ -1,4 +1,4 @@
-# :arrows_counterclockwise: Microsoft AD As Built Report Changelog
+# :arrows_clockwise: Microsoft AD As Built Report Changelog
 
 ## [0.7.1] - 2022-03-14
 
