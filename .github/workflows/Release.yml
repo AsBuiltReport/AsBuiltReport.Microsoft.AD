@@ -25,6 +25,10 @@ jobs:
         shell: pwsh
         run: |
           Install-Module -Name PSSharedGoods -Repository PSGallery -Force
+      - name: Install PSWriteColor module
+        shell: pwsh
+        run: |
+          Install-Module -Name PSWriteColor -Repository PSGallery -Force
       - name: Test Module Manifest
         shell: pwsh
         run: |
