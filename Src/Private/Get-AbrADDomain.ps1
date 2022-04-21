@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,6 +32,13 @@ function Get-AbrADDomain {
         if ($Domain) {
             try {
                 $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
+                $DC = $DomainInfo | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1
+                $RIDPool = Invoke-Command -Session $TempPssSession {Get-ADObject -Server $using:DC -Identity "CN=RID Manager$,CN=System,$(($using:DomainInfo).DistinguishedName)" -Properties rIDAvailablePool -ErrorAction SilentlyContinue}
+                $RIDavailable = $RIDPool.rIDAvailablePool
+                [int32] $CompleteSIDS = $($RIDavailable) / ([math]::Pow(2,32))
+                [int64] $TEMP = $CompleteSIDS * ([math]::Pow(2,32))
+                $RIDsIssued = [int32]($($RIDavailable) - $TEMP)
+                $RIDsRemaining = $CompleteSIDS - $RIDsIssued
                 Write-PscriboMessage "Discovered Active Directory Domain information of domain $Domain."
                 if ($DomainInfo) {
                     Write-PscriboMessage "Collecting Domain information of '$($DomainInfo)'."
@@ -51,6 +58,9 @@ function Get-AbrADDomain {
                         'Systems Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.SystemsContainer -Domain $Domain
                         'Users Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.UsersContainer -Domain $Domain
                         'ReadOnly Replica Directory Servers' = ConvertTo-EmptyToFiller $DomainInfo.ReadOnlyReplicaDirectoryServers
+                        'ms-DS-MachineAccountQuota' = Invoke-Command -Session $TempPssSession {(Get-ADObject -Server $using:DC -Identity (($using:DomainInfo).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota'}
+                        'RID Issued' = $RIDsIssued
+                        'RID Available' = $RIDsRemaining
                     }
                     $OutObj += [pscustomobject]$inobj
 

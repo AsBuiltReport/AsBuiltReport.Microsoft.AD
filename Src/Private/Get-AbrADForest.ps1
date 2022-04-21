@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.0
+        Version:        0.7.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -50,6 +50,9 @@ function Get-AbrADForest {
                             'Tombstone Lifetime (days)' = $TombstoneLifetime
                             'Domains' = $Item.Domains -join '; '
                             'Global Catalogs' = $Item.GlobalCatalogs -join '; '
+                            'Domains Count' = $Item.Domains.Count
+                            'Global Catalogs Count' = $Item.GlobalCatalogs.Count
+                            'Sites Count' = $Item.Sites.Count
                             'Application Partitions' = $Item.ApplicationPartitions
                             'PartitionsContainer' = [string]$Item.PartitionsContainer
                             'SPN Suffixes' = ConvertTo-EmptyToFiller $Item.SPNSuffixes

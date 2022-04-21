@@ -69,6 +69,7 @@ PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are require
 - [DhcpServer Module](https://docs.microsoft.com/en-us/powershell/module/dhcpserver/?view=windowsserver2019-ps)
 - [DnsServer Module](https://docs.microsoft.com/en-us/powershell/module/dnsserver/?view=windowsserver2019-ps)
 - [PSSharedGoods Module](https://www.powershellgallery.com/packages/PSSharedGoods/)
+- [PSWriteColor Module](https://www.powershellgallery.com/packages/PSWriteColor/0.87.3)
 
 ### Linux & macOS
 
@@ -86,17 +87,23 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 ### PowerShell v5.x running on a Domain Controller server
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
-Install-Module AsBuiltReport.Microsoft.AD
-Install-WindowsFeature RSAT-AD-PowerShell
-Install-WindowsFeature RSAT-DNS-Server
-Install-WindowsFeature RSAT-DHCP
-Install-WindowsFeature GPMC
+Install-Module -Name PSPKI
+Install-Module -Name PSWriteColor
+Install-Module -Name PSSharedGoods
+Install-Module -Name AsBuiltReport.Microsoft.AD
+Install-WindowsFeature -Name RSAT-AD-PowerShell
+Install-WindowsFeature -Name RSAT-DNS-Server
+Install-WindowsFeature -Name RSAT-DHCP
+Install-WindowsFeature -Name GPMC
 ```
 
 ### PowerShell v5.x running on Windows 10 client computer
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
-Install-Module AsBuiltReport.Microsoft.AD
+Install-Module -Name PSPKI
+Install-Module -Name PSWriteColor
+Install-Module -Name PSSharedGoods
+Install-Module -Name AsBuiltReport.Microsoft.AD
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -online -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0'
 Add-WindowsCapability –online –Name 'Rsat.Dns.Tools~~~~0.0.1.0'
