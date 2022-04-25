@@ -1,4 +1,19 @@
-# :arrows_counterclockwise: Microsoft AD As Built Report Changelog
+# :arrows_clockwise: Microsoft AD As Built Report Changelog
+
+## [0.7.2] - 2022-04-25
+
+### Added
+
+- Improved AD user/group object stats
+  - Added Privileged Group count information
+- Improved AD computer object stats
+  - Added Operating System Count information
+- Added RID Pool Issued/Available information
+- Added Domain,Site and Global Catalog count information
+
+### Fixed
+
+- Fix report module dependencies. Closes #35
 
 ## [0.7.1] - 2022-03-14
 
