@@ -77,6 +77,135 @@ function Get-AbrADDomainObject {
             }
         }
         try {
+            Section -Style Heading4 'User Accounts in Active Directory' {
+                Paragraph "The following table provide a summary of the User Accounts from $($Domain.ToString().ToUpper())."
+                BlankLine
+                $OutObj = @()
+                $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties *}
+                if ($Users) {
+                    $Categories = @('Enabled','Disabled')
+                    Write-PscriboMessage "Collecting User Accounts in Active Directory."
+                    foreach ($Category in $Categories) {
+                        if ($Category -eq 'Enabled') {
+                            $Values = $Users.Enabled -eq $True
+                        }
+                        else {$Values = $Users.Enabled -eq $False}
+                        $inObj = [ordered] @{
+                            'Status' = $Category
+                            'Count' = $Values.Count
+                            'Percentage' = "$([math]::Round((($Values).Count / $Users.Count * 100), 0))%"
+                        }
+                        $OutObj += [pscustomobject]$inobj
+                    }
+
+                    $TableParams = @{
+                        Name = "User Accounts in Active Directory - $($Domain.ToString().ToUpper())"
+                        List = $false
+                        ColumnWidths = 50, 25, 25
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    $OutObj |  Table @TableParams
+                }
+            }
+        }
+        catch {
+            Write-PscriboMessage -IsWarning $($_.Exception.Message)
+        }
+        try {
+            Section -Style Heading4 'Status of Users Accounts' {
+                Paragraph "The following table provide a summary of the User Accounts from $($Domain.ToString().ToUpper())."
+                BlankLine
+                $OutObj = @()
+                $DaysInactive = 90
+                $dormanttime = ((Get-Date).AddDays(-90)).Date
+                $passwordtime = (Get-Date).Adddays(-42)
+                $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties *}
+                $CannotChangePassword = Invoke-Command -Session $TempPssSession {Get-ADUser -Filter * -Properties * | Where-Object {$_.CannotChangePassword}}
+                $PasswordNextLogon = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -LDAPFilter "(pwdLastSet=0)"}
+                $passwordNeverExpires = Invoke-Command -Session $TempPssSession {get-aduser -Server $using:DC -filter * -properties Name, PasswordNeverExpires | Where-Object {$_.passwordNeverExpires -eq "true" }}
+                $SmartcardLogonRequired = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties 'SmartcardLogonRequired' | Where-Object {$_.SmartcardLogonRequired -eq $True}}
+                $SidHistory = $Users | Select-Object -ExpandProperty SIDHistory
+                $PasswordLastSet = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter {PasswordNeverExpires -eq $false -and PasswordNotRequired -eq $false} -Properties PasswordLastSet,PasswordNeverExpires,PasswordNotRequired}
+                $NeverloggedIn = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter {(lastlogontimestamp -notlike "*")}}
+                $Dormant = $Users | Where-Object {($_.LastLogonDate) -lt $dormanttime}
+                $PasswordNotRequired = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter {PasswordNotRequired -eq $true}}
+                $AccountExpired = Invoke-Command -Session $TempPssSession {Search-ADAccount -Server $using:DC -AccountExpired}
+                $AccountLockout = Invoke-Command -Session $TempPssSession {Search-ADAccount -Server $using:DC -LockedOut}
+                $Categories = @('Cannot Change Password','Password Never Expires','Must Change Password at Logon','Password Age (> 42 days)','SmartcardLogonRequired','SidHistory', 'Never Logged in','Dormant (> 90 days)','Password Not Required','Account Expired','Account Lockout')
+                if ($Categories) {
+                    Write-PscriboMessage "Collecting User Accounts in Active Directory."
+                    foreach ($Category in $Categories) {
+                        try {
+                            if ($Category -eq 'Cannot Change Password') {
+                                $Values = $CannotChangePassword
+                            }
+                            elseif ($Category -eq 'Must Change Password at Logon') {
+                                $Values = $PasswordNextLogon
+                            }
+                            elseif ($Category -eq 'Password Never Expires') {
+                                $Values = $passwordNeverExpires
+                            }
+                            elseif ($Category -eq 'Password Age (> 42 days)') {
+                                $Values = $PasswordLastSet | Where-Object {$_.PasswordLastSet -le $passwordtime}
+                            }
+                            elseif ($Category -eq 'SmartcardLogonRequired') {
+                                $Values = $SmartcardLogonRequired
+                            }
+                            elseif ($Category -eq 'Never Logged in') {
+                                $Values = $NeverloggedIn
+                            }
+                            elseif ($Category -eq 'Dormant (> 90 days)') {
+                                $Values = $Dormant
+                            }
+                            elseif ($Category -eq 'Password Not Required') {
+                                $Values = $PasswordNotRequired
+                            }
+                            elseif ($Category -eq 'Account Expired') {
+                                $Values = $AccountExpired
+                            }
+                            elseif ($Category -eq 'Account Lockout') {
+                                $Values = $AccountLockout
+                            }
+                            elseif ($Category -eq 'SidHistory') {
+                                $Values = $SidHistory
+                            }
+                            $inObj = [ordered] @{
+                                'Category' = $Category
+                                'Enabled Count' = ($Values.Enabled -eq $True).Count
+                                'Enabled %' = [math]::Round((($Values.Enabled -eq $True).Count / $Users.Count * 100), 0)
+                                'Disabled Count' = ($Values.Enabled -eq $False).Count
+                                'Disabled %' = [math]::Round((($Values.Enabled -eq $False).Count / $Users.Count * 100), 0)
+                                'Total Count' = ($Values.Enabled).Count
+                                'Total %' = [math]::Round((($Values.Enabled).Count / $Users.Count * 100), 0)
+
+                            }
+                            $OutObj += [pscustomobject]$inobj
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Status of User Accounts)"
+                        }
+                    }
+
+                    $TableParams = @{
+                        Name = "Status of User Accounts - $($Domain.ToString().ToUpper())"
+                        List = $false
+                        ColumnWidths = 28, 12, 12, 12, 12, 12, 12
+                    }
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    $OutObj |  Table @TableParams
+                }
+            }
+        }
+        catch {
+            Write-PscriboMessage -IsWarning $($_.Exception.Message)
+        }
+        try {
             Section -Style Heading4 'Privileged Group Count' {
                 Paragraph "The following table provide a summary of the Privileged Group count from $($Domain.ToString().ToUpper())."
                 BlankLine
@@ -171,9 +300,8 @@ function Get-AbrADDomainObject {
                 $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties *}
                 $Dormant = $Computers | Where-Object {[datetime]::FromFileTime($_.lastlogontimestamp) -lt $dormanttime}
                 $PasswordAge = $Computers | Where-Object {$_.PasswordLastSet -le $passwordtime}
-                $CreatorSID = $Computers | Select-Object -Expandproperty mS-DS-CreatorSID | Select-Object -ExpandProperty Value
                 $SidHistory = $Computers | Select-Object -ExpandProperty SIDHistory
-                $Categories = @('Dormant (> 90 days)','Password Age (> 30 days)','mS-DS-CreatorSID','SidHistory')
+                $Categories = @('Dormant (> 90 days)','Password Age (> 30 days)','SidHistory')
                 if ($Categories) {
                     Write-PscriboMessage "Collecting Computer Accounts in Active Directory."
                     foreach ($Category in $Categories) {
@@ -183,9 +311,6 @@ function Get-AbrADDomainObject {
                             }
                             elseif ($Category -eq 'Password Age (> 30 days)') {
                                 $Values = $PasswordAge
-                            }
-                            elseif ($Category -eq 'mS-DS-CreatorSID') {
-                                $Values = $CreatorSID
                             }
                             elseif ($Category -eq 'SidHistory') {
                                 $Values = $SidHistory

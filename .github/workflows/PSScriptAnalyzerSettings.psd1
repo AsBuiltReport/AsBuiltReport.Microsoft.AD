@@ -4,6 +4,7 @@
         'PSUseToExportFieldsInManifest',
         'PSReviewUnusedParameter',
         'PSUseDeclaredVarsMoreThanAssignments',
-        'PSAvoidGlobalVars'
+        'PSAvoidGlobalVars',
+        'PSAvoidUsingEmptyCatchBlock'
     )
 }
