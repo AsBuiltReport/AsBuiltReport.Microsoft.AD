@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.0
+        Version:        0.7.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,6 +20,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         [String[]] $Target,
         [PSCredential] $Credential
     )
+    
+    Write-PScriboMessage -IsWarning "Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project."
+    Write-PScriboMessage -IsWarning "Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
+    Write-PScriboMessage -IsWarning "Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues"
 
     #Validate Required Modules and Features
     $OSType = (Get-ComputerInfo).OsProductType
