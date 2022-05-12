@@ -4,10 +4,9 @@
 
 ### Added
 
-- Improved validation of module dependencies
+- Improved module dependency validation
 
-## [0.7.2] - 2022-04-25
-
+## [0.7.2]  - 2022-04
 ### Added
 
 - Improved AD user/group object stats
