@@ -1,5 +1,11 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.3] - 2022-05-xx
+
+### Added
+
+- Improved validation of module dependencies
+
 ## [0.7.2] - 2022-04-25
 
 ### Added

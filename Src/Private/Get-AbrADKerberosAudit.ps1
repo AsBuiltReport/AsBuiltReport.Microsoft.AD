@@ -68,52 +68,98 @@ function Get-AbrADKerberosAudit {
                         $OutObj | Table @TableParams
                         Paragraph "Health Check:" -Italic -Bold -Underline
                         Paragraph "Corrective Actions: Ensure there aren't any unconstrained kerberos delegation in Active Directory." -Italic -Bold
-                        try {
-                            $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                            $KRBTGT = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.Name  -eq 'krbtgt'}}
-                            Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
-                            if ($KRBTGT) {
-                                Section -Style Heading4 'Health Check - KRBTGT Account Audit' {
-                                    Paragraph "The following section provide a summary of KRBTGT account on Domain $($Domain.ToString().ToUpper())."
-                                    BlankLine
-                                    $OutObj = @()
-                                    Write-PscriboMessage "Collecting KRBTGT account information from $($Domain)."
-                                    try {
-                                        $inObj = [ordered] @{
-                                            'Name' = $KRBTGT.Name
-                                            'Created' = $KRBTGT.Created
-                                            'Password Last Set' = $KRBTGT.PasswordLastSet
-                                            'Distinguished Name' = $KRBTGT.DistinguishedName
-                                        }
-                                        $OutObj += [pscustomobject]$inobj
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (KRBTGT account Item)"
-                                    }
-
-                                    if ($HealthCheck.Domain.Security) {
-                                        $OutObj | Set-Style -Style Warning -Property 'Password Last Set'
-                                    }
-
-                                    $TableParams = @{
-                                        Name = "KRBTGT Account Audit - $($Domain.ToString().ToUpper())"
-                                        List = $true
-                                        ColumnWidths = 40, 60
-                                    }
-
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                    }
-                                    $OutObj | Table @TableParams
-                                    Paragraph "Health Check:" -Italic -Bold -Underline
-                                    Paragraph "Best Practice: Microsoft advises changing the krbtgt account password at regular intervals to keep the environment more secure." -Italic -Bold
+                    }
+                }
+                try {
+                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                    $KRBTGT = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.Name  -eq 'krbtgt'}}
+                    Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
+                    if ($KRBTGT) {
+                        Section -Style Heading4 'Health Check - KRBTGT Account Audit' {
+                            Paragraph "The following section provide a summary of KRBTGT account on Domain $($Domain.ToString().ToUpper())."
+                            BlankLine
+                            $OutObj = @()
+                            Write-PscriboMessage "Collecting KRBTGT account information from $($Domain)."
+                            try {
+                                $inObj = [ordered] @{
+                                    'Name' = $KRBTGT.Name
+                                    'Created' = $KRBTGT.Created
+                                    'Password Last Set' = $KRBTGT.PasswordLastSet
+                                    'Distinguished Name' = $KRBTGT.DistinguishedName
                                 }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (KRBTGT account Item)"
+                            }
+
+                            if ($HealthCheck.Domain.Security) {
+                                $OutObj | Set-Style -Style Warning -Property 'Password Last Set'
+                            }
+
+                            $TableParams = @{
+                                Name = "KRBTGT Account Audit - $($Domain.ToString().ToUpper())"
+                                List = $true
+                                ColumnWidths = 40, 60
+                            }
+
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Best Practice: Microsoft advises changing the krbtgt account password at regular intervals to keep the environment more secure." -Italic -Bold
                         }
                     }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
+                }
+                try {
+                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                    $SID = Invoke-Command -Session $TempPssSession { ((Get-ADDomain -Identity $using:Domain).domainsid).ToString() + "-500" }
+                    $ADMIN = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.SID  -eq $using:SID}}
+                    Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
+                    if ($ADMIN) {
+                        Section -Style Heading4 'Health Check - Administrator Account Audit' {
+                            Paragraph "The following section provide a summary of Administrator account on Domain $($Domain.ToString().ToUpper())."
+                            BlankLine
+                            $OutObj = @()
+                            Write-PscriboMessage "Collecting administrator account information from $($Domain)."
+                            try {
+                                $inObj = [ordered] @{
+                                    'Name' = $ADMIN.Name
+                                    'Created' = $ADMIN.Created
+                                    'Password Last Set' = $ADMIN.PasswordLastSet
+                                    'Distinguished Name' = $ADMIN.DistinguishedName
+                                }
+                                $OutObj += [pscustomobject]$inobj
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (ADMIN account Item)"
+                            }
+
+                            if ($HealthCheck.Domain.Security) {
+                                $OutObj | Set-Style -Style Warning -Property 'Password Last Set'
+                            }
+
+                            $TableParams = @{
+                                Name = "Administrator Account Audit - $($Domain.ToString().ToUpper())"
+                                List = $true
+                                ColumnWidths = 40, 60
+                            }
+
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Best Practice: Microsoft advises changing the administrator account password at regular intervals to keep the environment more secure." -Italic -Bold
+                        }
+                    }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
             }
             catch {

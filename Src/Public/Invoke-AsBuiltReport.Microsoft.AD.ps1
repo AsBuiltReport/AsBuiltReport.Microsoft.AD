@@ -21,6 +21,27 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         [PSCredential] $Credential
     )
 
+    #Validate Required Modules and Features
+    $OSType = (Get-ComputerInfo).OsProductType
+    if ($OSType -eq 'WorkStation') {
+        Get-RequiredFeature -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0' -OSType $OSType
+        Get-RequiredFeature -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0' -OSType $OSType
+        Get-RequiredFeature -Name 'Rsat.Dns.Tools~~~~0.0.1.0' -OSType $OSType
+        Get-RequiredFeature -Name 'Rsat.DHCP.Tools~~~~0.0.1.0' -OSType $OSType
+
+    }
+    if ($OSType -eq 'Server' -or $OSType -eq 'DomainController') {
+        Get-RequiredFeature -Name RSAT-AD-PowerShell -OSType $OSType
+        Get-RequiredFeature -Name RSAT-DNS-Server -OSType $OSType
+        Get-RequiredFeature -Name RSAT-DHCP -OSType $OSType
+        Get-RequiredFeature -Name GPMC -OSType $OSType
+    }
+
+    Get-RequiredModule -Name PSPKI -Version '3.7.2'
+    Get-RequiredModule -Name PSWriteColor -Version '0.87.3'
+    Get-RequiredModule -Name PSSharedGoods -Version '0.0.224'
+
+
     # Import Report Configuration
     $Report = $ReportConfig.Report
     $InfoLevel = $ReportConfig.InfoLevel
