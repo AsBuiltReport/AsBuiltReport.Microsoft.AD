@@ -1,23 +1,22 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
-## [0.7.3] - 2022-05-12
+## [0.7.3] - 2022-05-13
 
 ### Added
 
 - Improved validation of module dependencies
 - Added Option "Exclude.Domains" to allow Active Directory Domain exclusions
-  - Exclude.Domains in AD Services
-  - Exclude.Domains in DNS Services
-  - Exclude.Domains in DHCP Services
+  - Exclude Domains in AD Services
+  - Exclude Domains in DNS Services
+  - Exclude Domains in DHCP Services
 - Added Option "Exclude.DCs" to allow Active Directory Domain Controller exclusions
-  - Exclude.DCs in AD Services
-  - Exclude.DCs in DNS Services
-  - Exclude.DCs in DHCP Services
+  - Exclude DCs in AD Services
+  - Exclude DCs in DNS Services
+  - Exclude DCs in DHCP Services
 - Added Test-Connection test to verify DC connectivity.
 
 ## [0.7.2] - 2022-04-25
 
-## [0.7.2]  - 2022-04
 ### Added
 
 - Improved AD user/group object stats
