@@ -10,7 +10,11 @@
     },
     "Options": {
         "ShowDefinitionInfo": false,
-        "PSDefaultAuthentication": "Negotiate"
+        "PSDefaultAuthentication": "Negotiate",
+        "Exclude": {
+            "Domains": [],
+            "DCs": []
+        }
     },
     "InfoLevel": {
         "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",

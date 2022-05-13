@@ -108,8 +108,8 @@ function Get-AbrADSecurityAssessment {
                             Paragraph "The following section details probable AD Admin accounts (user accounts with AdminCount set to 1) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
+                            Write-PscriboMessage "Collecting Privileged Users Assessment information from $($Domain)."
                             foreach ($PrivilegedUser in $PrivilegedUsers) {
-                                Write-PscriboMessage "Collecting Privileged Users Assessment information from $($Domain)."
                                 try {
                                     $inObj = [ordered] @{
                                         'Username' = $PrivilegedUser.SamAccountName
@@ -160,8 +160,8 @@ function Get-AbrADSecurityAssessment {
                             Paragraph "The following section details probable AD Service Accounts (user accounts with SPNs) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
+                            Write-PscriboMessage "Collecting Service Accounts information from $($Domain)."
                             foreach ($UserSPN in $UserSPNs) {
-                                Write-PscriboMessage "Collecting Service Accounts information from $($Domain)."
                                 try {
                                     $inObj = [ordered] @{
                                         'Username' = $UserSPN.SamAccountName

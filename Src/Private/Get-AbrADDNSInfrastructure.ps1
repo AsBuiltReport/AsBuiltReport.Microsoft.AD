@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.0
+        Version:        0.7.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADDNSInfrastructure {
 
     process {
         try {
-            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object {$_ -notin ($using:Options).Exclude.DCs}}
             if ($DCs) {
                 Section -Style Heading4 "Infrastructure Summary" {
                     Paragraph "The following section provides a summary of the DNS Infrastructure configuration."
@@ -37,21 +37,23 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj = @()
                     Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"
                     foreach ($DC in $DCs) {
-                        Write-PscriboMessage "Collecting Domain Name System Infrastructure information from '$($DC)'."
-                        try {
-                            $DNSSetting = Get-DnsServerSetting -CimSession $TempCIMSession -ComputerName $DC
-                            $inObj = [ordered] @{
-                                'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
-                                'Build Number' = ConvertTo-EmptyToFiller $DNSSetting.BuildNumber
-                                'IPv6' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.EnableIPv6)
-                                'DnsSec' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.EnableDnsSec)
-                                'ReadOnly DC' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.IsReadOnlyDC)
-                                'Listening IP' = $DNSSetting.ListeningIPAddress
+                        if  (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                            Write-PscriboMessage "Collecting Domain Name System Infrastructure information from '$($DC)'."
+                            try {
+                                $DNSSetting = Get-DnsServerSetting -CimSession $TempCIMSession -ComputerName $DC
+                                $inObj = [ordered] @{
+                                    'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
+                                    'Build Number' = ConvertTo-EmptyToFiller $DNSSetting.BuildNumber
+                                    'IPv6' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.EnableIPv6)
+                                    'DnsSec' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.EnableDnsSec)
+                                    'ReadOnly DC' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.IsReadOnlyDC)
+                                    'Listening IP' = $DNSSetting.ListeningIPAddress
+                                }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                            $OutObj += [pscustomobject]$inobj
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning " $($_.Exception.Message) (Infrastructure Summary)"
+                            catch {
+                                Write-PscriboMessage -IsWarning " $($_.Exception.Message) (Infrastructure Summary)"
+                            }
                         }
                     }
 
@@ -72,29 +74,31 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading5 "Domain Controller DNS IP Configuration" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
-                                    Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
-                                    $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                                    try {
-                                        $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4 }
-                                        foreach ($DNSSetting in $DNSSettings) {
-                                            try {
-                                                $inObj = [ordered] @{
-                                                    'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
-                                                    'Interface' = $DNSSetting.InterfaceAlias
-                                                    'DNS IP 1' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[0]
-                                                    'DNS IP 2' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[1]
-                                                    'DNS IP 3' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[2]
-                                                    'DNS IP 4' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[3]
+                                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                                        Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
+                                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                        try {
+                                            $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4 }
+                                            foreach ($DNSSetting in $DNSSettings) {
+                                                try {
+                                                    $inObj = [ordered] @{
+                                                        'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                                        'Interface' = $DNSSetting.InterfaceAlias
+                                                        'DNS IP 1' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[0]
+                                                        'DNS IP 2' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[1]
+                                                        'DNS IP 3' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[2]
+                                                        'DNS IP 4' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[3]
+                                                    }
+                                                    $OutObj += [pscustomobject]$inobj
                                                 }
-                                                $OutObj += [pscustomobject]$inobj
-                                            }
-                                            catch {
-                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                catch {
+                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                }
                                             }
                                         }
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
+                                        catch {
+                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
+                                        }
                                     }
                                 }
                                 if ($DCPssSession) {
@@ -133,46 +137,48 @@ function Get-AbrADDNSInfrastructure {
                                 Paragraph "The following section provides Directory Partition information."
                                 BlankLine
                                 foreach ($DC in $DCs) {
-                                    Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Directory Partition" {
-                                        $OutObj = @()
-                                        Write-PscriboMessage "Collecting Directory Partition information from $($DC)."
-                                        try {
-                                            $DNSSetting = Get-DnsServerDirectoryPartition -CimSession $TempCIMSession -ComputerName $DC
-                                            foreach ($Partition in $DNSSetting) {
-                                                try {
-                                                    $inObj = [ordered] @{
-                                                        'Name' = $Partition.DirectoryPartitionName
-                                                        'State' = Switch ($Partition.State) {
-                                                            $Null {'-'}
-                                                            0 {'DNS_DP_OKAY'}
-                                                            1 {'DNS_DP_STATE_REPL_INCOMING'}
-                                                            2 {'DNS_DP_STATE_REPL_OUTGOING'}
-                                                            3 {'DNS_DP_STATE_UNKNOWN'}
-                                                            default {$Partition.State}
+                                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                                        Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Directory Partition" {
+                                            $OutObj = @()
+                                            Write-PscriboMessage "Collecting Directory Partition information from $($DC)."
+                                            try {
+                                                $DNSSetting = Get-DnsServerDirectoryPartition -CimSession $TempCIMSession -ComputerName $DC
+                                                foreach ($Partition in $DNSSetting) {
+                                                    try {
+                                                        $inObj = [ordered] @{
+                                                            'Name' = $Partition.DirectoryPartitionName
+                                                            'State' = Switch ($Partition.State) {
+                                                                $Null {'-'}
+                                                                0 {'DNS_DP_OKAY'}
+                                                                1 {'DNS_DP_STATE_REPL_INCOMING'}
+                                                                2 {'DNS_DP_STATE_REPL_OUTGOING'}
+                                                                3 {'DNS_DP_STATE_UNKNOWN'}
+                                                                default {$Partition.State}
+                                                            }
+                                                            'Flags' = $Partition.Flags
+                                                            'Zone Count' = $Partition.ZoneCount
                                                         }
-                                                        'Flags' = $Partition.Flags
-                                                        'Zone Count' = $Partition.ZoneCount
+                                                        $OutObj += [pscustomobject]$inobj
                                                     }
-                                                    $OutObj += [pscustomobject]$inobj
-                                                }
-                                                catch {
-                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                    catch {
+                                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                    }
                                                 }
                                             }
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Directory Partitions Item)"
-                                        }
+                                            catch {
+                                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Directory Partitions Item)"
+                                            }
 
-                                        $TableParams = @{
-                                            Name = "Directory Partitions - $($Domain.ToString().ToUpper())"
-                                            List = $false
-                                            ColumnWidths = 40, 25, 25, 10
+                                            $TableParams = @{
+                                                Name = "Directory Partitions - $($Domain.ToString().ToUpper())"
+                                                List = $false
+                                                ColumnWidths = 40, 25, 25, 10
+                                            }
+                                            if ($Report.ShowTableCaptions) {
+                                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                                            }
+                                            $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                         }
-                                        if ($Report.ShowTableCaptions) {
-                                            $TableParams['Caption'] = "- $($TableParams.Name)"
-                                        }
-                                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     }
                                 }
                             }
@@ -189,23 +195,25 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading5 "Response Rate Limiting (RRL)" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
-                                    Write-PscriboMessage "Collecting Response Rate Limiting (RRL) information from $($DC)."
-                                    try {
-                                        $DNSSetting = Get-DnsServerResponseRateLimiting -CimSession $TempCIMSession -ComputerName $DC
-                                        $inObj = [ordered] @{
-                                            'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
-                                            'Status' = ConvertTo-EmptyToFiller $DNSSetting.Mode
-                                            'Responses Per Sec' = ConvertTo-EmptyToFiller $DNSSetting.ResponsesPerSec
-                                            'Errors Per Sec' = ConvertTo-EmptyToFiller $DNSSetting.ErrorsPerSec
-                                            'Window In Sec' = ConvertTo-EmptyToFiller $DNSSetting.WindowInSec
-                                            'Leak Rate' = ConvertTo-EmptyToFiller $DNSSetting.LeakRate
-                                            'Truncate Rate' = ConvertTo-EmptyToFiller $DNSSetting.TruncateRate
+                                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                                        Write-PscriboMessage "Collecting Response Rate Limiting (RRL) information from $($DC)."
+                                        try {
+                                            $DNSSetting = Get-DnsServerResponseRateLimiting -CimSession $TempCIMSession -ComputerName $DC
+                                            $inObj = [ordered] @{
+                                                'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
+                                                'Status' = ConvertTo-EmptyToFiller $DNSSetting.Mode
+                                                'Responses Per Sec' = ConvertTo-EmptyToFiller $DNSSetting.ResponsesPerSec
+                                                'Errors Per Sec' = ConvertTo-EmptyToFiller $DNSSetting.ErrorsPerSec
+                                                'Window In Sec' = ConvertTo-EmptyToFiller $DNSSetting.WindowInSec
+                                                'Leak Rate' = ConvertTo-EmptyToFiller $DNSSetting.LeakRate
+                                                'Truncate Rate' = ConvertTo-EmptyToFiller $DNSSetting.TruncateRate
 
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
                                         }
-                                        $OutObj += [pscustomobject]$inobj
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
+                                        catch {
+                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
+                                        }
                                     }
                                 }
 
@@ -232,29 +240,31 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading5 "Scavenging Options" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
-                                    Write-PscriboMessage "Collecting Scavenging Options information from $($DC)."
-                                    try {
-                                        $DNSSetting = Get-DnsServerScavenging -CimSession $TempCIMSession -ComputerName $DC
-                                        $inObj = [ordered] @{
-                                            'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
-                                            'NoRefresh Interval' = ConvertTo-EmptyToFiller $DNSSetting.NoRefreshInterval
-                                            'Refresh Interval' = ConvertTo-EmptyToFiller $DNSSetting.RefreshInterval
-                                            'Scavenging Interval' = ConvertTo-EmptyToFiller $DNSSetting.ScavengingInterval
-                                            'Last Scavenge Time' = Switch ($DNSSetting.LastScavengeTime) {
-                                                "" {"-"; break}
-                                                $Null {"-"; break}
-                                                default {ConvertTo-EmptyToFiller ($DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy"))}
+                                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                                        Write-PscriboMessage "Collecting Scavenging Options information from $($DC)."
+                                        try {
+                                            $DNSSetting = Get-DnsServerScavenging -CimSession $TempCIMSession -ComputerName $DC
+                                            $inObj = [ordered] @{
+                                                'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
+                                                'NoRefresh Interval' = ConvertTo-EmptyToFiller $DNSSetting.NoRefreshInterval
+                                                'Refresh Interval' = ConvertTo-EmptyToFiller $DNSSetting.RefreshInterval
+                                                'Scavenging Interval' = ConvertTo-EmptyToFiller $DNSSetting.ScavengingInterval
+                                                'Last Scavenge Time' = Switch ($DNSSetting.LastScavengeTime) {
+                                                    "" {"-"; break}
+                                                    $Null {"-"; break}
+                                                    default {ConvertTo-EmptyToFiller ($DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy"))}
+                                                }
+                                                'Scavenging State' = Switch ($DNSSetting.ScavengingState) {
+                                                    "True" {"Enabled"}
+                                                    "False" {"Disabled"}
+                                                    default {ConvertTo-EmptyToFiller $DNSSetting.ScavengingState}
+                                                }
                                             }
-                                            'Scavenging State' = Switch ($DNSSetting.ScavengingState) {
-                                                "True" {"Enabled"}
-                                                "False" {"Disabled"}
-                                                default {ConvertTo-EmptyToFiller $DNSSetting.ScavengingState}
-                                            }
+                                            $OutObj += [pscustomobject]$inobj
                                         }
-                                        $OutObj += [pscustomobject]$inobj
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Item)"
+                                        catch {
+                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Item)"
+                                        }
                                     }
                                 }
 
@@ -288,21 +298,23 @@ function Get-AbrADDNSInfrastructure {
                         Section -Style Heading5 "Forwarder Options" {
                             $OutObj = @()
                             foreach ($DC in $DCs) {
-                                Write-PscriboMessage "Collecting Forwarder Options information from $($DC)."
-                                try {
-                                    $DNSSetting = Get-DnsServerForwarder -CimSession $TempCIMSession -ComputerName $DC
-                                    $Recursion = Get-DnsServerRecursion -CimSession $TempCIMSession -ComputerName $DC | Select-Object -ExpandProperty Enable
-                                    $inObj = [ordered] @{
-                                        'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
-                                        'IP Address' = $DNSSetting.IPAddress
-                                        'Timeout' = ("$($DNSSetting.Timeout)/s")
-                                        'Use Root Hint' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.UseRootHint)
-                                        'Use Recursion' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $Recursion)
+                                if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                                    Write-PscriboMessage "Collecting Forwarder Options information from $($DC)."
+                                    try {
+                                        $DNSSetting = Get-DnsServerForwarder -CimSession $TempCIMSession -ComputerName $DC
+                                        $Recursion = Get-DnsServerRecursion -CimSession $TempCIMSession -ComputerName $DC | Select-Object -ExpandProperty Enable
+                                        $inObj = [ordered] @{
+                                            'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
+                                            'IP Address' = $DNSSetting.IPAddress
+                                            'Timeout' = ("$($DNSSetting.Timeout)/s")
+                                            'Use Root Hint' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.UseRootHint)
+                                            'Use Recursion' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $Recursion)
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
                                     }
-                                    $OutObj += [pscustomobject]$inobj
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Item)"
+                                    catch {
+                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Item)"
+                                    }
                                 }
                             }
                             $TableParams = @{
@@ -327,37 +339,39 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading5 "Root Hints" {
                                 Paragraph "The following section provides Root Hints information."
                                 foreach ($DC in $DCs) {
-                                    Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Root Hints" {
-                                        $OutObj = @()
-                                        Write-PscriboMessage "Collecting Root Hint information from $($DC)."
-                                        try {
-                                            $DNSSetting = Get-DnsServerRootHint -CimSession $TempCIMSession -ComputerName $DC | Select-Object @{Name="Name"; E={$_.NameServer.RecordData.Nameserver}},@{Name="IPAddress"; E={$_.IPAddress.RecordData.IPv6Address.IPAddressToString,$_.IPAddress.RecordData.IPv4Address.IPAddressToString} }
-                                            foreach ($Hints in $DNSSetting) {
-                                                try {
-                                                    $inObj = [ordered] @{
-                                                        'Name' = $Hints.Name
-                                                        'IP Address' = (($Hints.IPAddress).Where({ $_ -ne $Null })) -join ", "
+                                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                                        Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Root Hints" {
+                                            $OutObj = @()
+                                            Write-PscriboMessage "Collecting Root Hint information from $($DC)."
+                                            try {
+                                                $DNSSetting = Get-DnsServerRootHint -CimSession $TempCIMSession -ComputerName $DC | Select-Object @{Name="Name"; E={$_.NameServer.RecordData.Nameserver}},@{Name="IPAddress"; E={$_.IPAddress.RecordData.IPv6Address.IPAddressToString,$_.IPAddress.RecordData.IPv4Address.IPAddressToString} }
+                                                foreach ($Hints in $DNSSetting) {
+                                                    try {
+                                                        $inObj = [ordered] @{
+                                                            'Name' = $Hints.Name
+                                                            'IP Address' = (($Hints.IPAddress).Where({ $_ -ne $Null })) -join ", "
+                                                        }
+                                                        $OutObj += [pscustomobject]$inobj
                                                     }
-                                                    $OutObj += [pscustomobject]$inobj
-                                                }
-                                                catch {
-                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                    catch {
+                                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                    }
                                                 }
                                             }
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Item)"
-                                        }
+                                            catch {
+                                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Item)"
+                                            }
 
-                                        $TableParams = @{
-                                            Name = "Root Hints - $($Domain.ToString().ToUpper())"
-                                            List = $false
-                                            ColumnWidths = 50, 50
+                                            $TableParams = @{
+                                                Name = "Root Hints - $($Domain.ToString().ToUpper())"
+                                                List = $false
+                                                ColumnWidths = 50, 50
+                                            }
+                                            if ($Report.ShowTableCaptions) {
+                                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                                            }
+                                            $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                         }
-                                        if ($Report.ShowTableCaptions) {
-                                            $TableParams['Caption'] = "- $($TableParams.Name)"
-                                        }
-                                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     }
                                 }
                             }
@@ -374,22 +388,24 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading5 "Zone Scope Recursion" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
-                                    Write-PscriboMessage "Collecting Zone Scope Recursion information from $($DC)."
-                                    try {
-                                        $DNSSetting = Get-DnsServerRecursionScope -CimSession $TempCIMSession -ComputerName $DC
-                                        $inObj = [ordered] @{
-                                            'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
-                                            'Zone Name' = Switch ($DNSSetting.Name) {
-                                                "." {"Root"}
-                                                default {ConvertTo-EmptyToFiller $DNSSetting.Name}
+                                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                                        Write-PscriboMessage "Collecting Zone Scope Recursion information from $($DC)."
+                                        try {
+                                            $DNSSetting = Get-DnsServerRecursionScope -CimSession $TempCIMSession -ComputerName $DC
+                                            $inObj = [ordered] @{
+                                                'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
+                                                'Zone Name' = Switch ($DNSSetting.Name) {
+                                                    "." {"Root"}
+                                                    default {ConvertTo-EmptyToFiller $DNSSetting.Name}
+                                                }
+                                                'Forwarder' = $DNSSetting.Forwarder
+                                                'Use Recursion' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.EnableRecursion)
                                             }
-                                            'Forwarder' = $DNSSetting.Forwarder
-                                            'Use Recursion' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.EnableRecursion)
+                                            $OutObj += [pscustomobject]$inobj
                                         }
-                                        $OutObj += [pscustomobject]$inobj
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Item)"
+                                        catch {
+                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Item)"
+                                        }
                                     }
                                 }
 
