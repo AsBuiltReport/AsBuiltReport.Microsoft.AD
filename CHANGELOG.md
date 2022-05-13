@@ -1,6 +1,6 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
-## [0.7.3] - 2022-05-xx
+## [0.7.3] - 2022-05-12
 
 ### Added
 
@@ -17,6 +17,7 @@
 
 ## [0.7.2] - 2022-04-25
 
+## [0.7.2]  - 2022-04
 ### Added
 
 - Improved AD user/group object stats
