@@ -155,7 +155,11 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Section -Style Heading5 "Roles" {
                                                 Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
                                                 foreach ($DC in $DCs){
-                                                    if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                    $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 1
+                                                    if ($DCStatus -eq $false) {
+                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
+                                                    }
+                                                    if ($DC -notin $Options.Exclude.DCs -and $DCStatus) {
                                                         Get-AbrADDCRoleFeature -DC $DC
                                                     }
                                                 }
