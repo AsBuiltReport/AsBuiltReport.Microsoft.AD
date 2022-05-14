@@ -20,7 +20,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         [String[]] $Target,
         [PSCredential] $Credential
     )
-    
+
     Write-PScriboMessage -IsWarning "Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project."
     Write-PScriboMessage -IsWarning "Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
     Write-PScriboMessage -IsWarning "Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues"
@@ -124,7 +124,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     }
                     foreach ($Domain in (Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
-                            if (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}) {
+                            if (($Domain -notin $Options.Exclude.Domains ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain})) {
                                 Section -Style Heading3 "$($Domain.ToString().ToUpper()) Domain Configuration" {
                                     Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                     BlankLine
@@ -155,7 +155,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Section -Style Heading5 "Roles" {
                                                 Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
                                                 foreach ($DC in $DCs){
-                                                    Get-AbrADDCRoleFeature -DC $DC
+                                                    $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 1
+                                                    if ($DCStatus -eq $false) {
+                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
+                                                    }
+                                                    if ($DC -notin $Options.Exclude.DCs -and $DCStatus) {
+                                                        Get-AbrADDCRoleFeature -DC $DC
+                                                    }
                                                 }
                                             }
                                         }
@@ -166,7 +172,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                     BlankLine
                                                     $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                                     foreach ($DC in $DCs){
-                                                        Get-AbrADDCDiag -Domain $Domain -DC $DC
+                                                        if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                            Get-AbrADDCDiag -Domain $Domain -DC $DC
+                                                        }
                                                     }
                                                 }
                                             }
@@ -179,7 +187,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         try {
                                             $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
                                             foreach ($DC in $DCs){
-                                                Get-AbrADInfrastructureService -DC $DC
+                                                if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                    Get-AbrADInfrastructureService -DC $DC
+                                                }
                                             }
                                         }
                                         catch {
@@ -214,17 +224,19 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         Paragraph "The following section provides a summary of the Active Directory DNS Infrastructure Information."
                         BlankLine
                     }
-                    foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
+                    foreach ($Domain in (Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
                         try {
-                            if (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}) {
+                            if (($Domain -notin $Options.Exclude.Domains) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
                                 Section -Style Heading3 "$($Domain.ToString().ToUpper()) DNS Configuration" {
                                     Paragraph "The following section provides a configuration summary of the DNS service."
                                     BlankLine
                                     Get-AbrADDNSInfrastructure -Domain $Domain
-                                    $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                    $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}}
                                     foreach ($DC in $DCs){
-                                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                                        Get-AbrADDNSZone -Domain $Domain -DC $DC
+                                        if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                            Get-AbrADDNSZone -Domain $Domain -DC $DC
+                                        }
                                     }
                                 }
                             }
@@ -249,9 +261,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         Paragraph "The following section provides a summary of the Active Directory DHCP Infrastructure Information."
                         BlankLine
                     }
-                    foreach ($Domain in ( Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Sort-Object -Descending})) {
+                    foreach ($Domain in (Invoke-Command -Session $TempPssSession {Get-ADForest | Select-Object -ExpandProperty Domains | Where-Object { $_ -notin ($using:Options).Exclude.Domains} | Sort-Object -Descending})) {
                         try {
-                            $DomainDHCPs = Get-DhcpServerInDC -CimSession $TempCIMSession | Where-Object {$_.DnsName.split(".", 2)[1] -eq $Domain} | Select-Object -ExpandProperty DnsName
+                            $DomainDHCPs = Get-DhcpServerInDC -CimSession $TempCIMSession | Where-Object {$_.DnsName.split(".", 2)[1] -eq $Domain} | Select-Object -ExpandProperty DnsName | Where-Object {$_ -notin $Options.Exclude.DCs}
                             if ($DomainDHCPs) {
                                 Section -Style Heading3 "$($Domain.ToString().ToUpper()) Domain DHCP Configuration" {
                                     Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
@@ -268,33 +280,35 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Statistics)"
                                         }
                                         foreach ($DHCPServer in $DomainDHCPs){
-                                            try {
-                                                Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer
-                                            }
-                                            catch {
-                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope information)"
-                                            }
-                                            if ($InfoLevel.DHCP -ge 2) {
+                                            if (Test-Connection -ComputerName $DHCPServer -Quiet -Count 1) {
                                                 try {
-                                                    Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer
-                                                    $DHCPScopes =  Get-DhcpServerv4Scope -CimSession $TempCIMSession -ComputerName $DHCPServer| Select-Object -ExpandProperty ScopeId
-                                                    if ($DHCPScopes) {
-                                                        Section -Style Heading5 "Scope Options" {
-                                                            Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
-                                                            foreach ($Scope in $DHCPScopes) {
-                                                                try {
-                                                                    Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
-                                                                }
-                                                                catch {
-                                                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope configuration)"
+                                                    Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer
+                                                }
+                                                catch {
+                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope information)"
+                                                }
+                                                if ($InfoLevel.DHCP -ge 2) {
+                                                    try {
+                                                        Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer
+                                                        $DHCPScopes =  Get-DhcpServerv4Scope -CimSession $TempCIMSession -ComputerName $DHCPServer| Select-Object -ExpandProperty ScopeId
+                                                        if ($DHCPScopes) {
+                                                            Section -Style Heading5 "Scope Options" {
+                                                                Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
+                                                                foreach ($Scope in $DHCPScopes) {
+                                                                    try {
+                                                                        Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
+                                                                    }
+                                                                    catch {
+                                                                        Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
+                                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope configuration)"
+                                                                    }
                                                                 }
                                                             }
                                                         }
                                                     }
-                                                }
-                                                catch {
-                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Scope Server Options)"
+                                                    catch {
+                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Scope Server Options)"
+                                                    }
                                                 }
                                             }
                                         }
@@ -310,36 +324,37 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Server IPv6 Statistics)"
                                         }
                                         foreach ($DHCPServer in $DomainDHCPs){
-                                            Write-PScriboMessage "Discovering Dhcp Server IPv6 Scopes from $DHCPServer"
-
-                                            try {
-                                                Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer
-                                            }
-                                            catch {
-                                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Information)"
-                                            }
-                                            if ($InfoLevel.DHCP -ge 2) {
+                                            if (Test-Connection -ComputerName $DHCPServer -Quiet -Count 1) {
+                                                Write-PScriboMessage "Discovering Dhcp Server IPv6 Scopes from $DHCPServer"
                                                 try {
-                                                    Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer
-                                                    $DHCPScopes =  Get-DhcpServerv6Scope -CimSession $TempCIMSession -ComputerName $DHCPServer | Select-Object -ExpandProperty Prefix
-                                                    if ($DHCPScopes) {
-                                                        Section -Style Heading5 "Scope Options" {
-                                                            Paragraph "The following section provides a summary 6 Scope Server Options information."
-                                                            BlankLine
-                                                            foreach ($Scope in $DHCPScopes) {
-                                                                try {
-                                                                    Get-AbrADDHCPv6PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
-                                                                }
-                                                                catch {
-                                                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Per DHCP Scope configuration)"
+                                                    Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer
+                                                }
+                                                catch {
+                                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Information)"
+                                                }
+                                                if ($InfoLevel.DHCP -ge 2) {
+                                                    try {
+                                                        Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer
+                                                        $DHCPScopes =  Get-DhcpServerv6Scope -CimSession $TempCIMSession -ComputerName $DHCPServer | Select-Object -ExpandProperty Prefix
+                                                        if ($DHCPScopes) {
+                                                            Section -Style Heading5 "Scope Options" {
+                                                                Paragraph "The following section provides a summary 6 Scope Server Options information."
+                                                                BlankLine
+                                                                foreach ($Scope in $DHCPScopes) {
+                                                                    try {
+                                                                        Get-AbrADDHCPv6PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
+                                                                    }
+                                                                    catch {
+                                                                        Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
+                                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Per DHCP Scope configuration)"
+                                                                    }
                                                                 }
                                                             }
                                                         }
                                                     }
-                                                }
-                                                catch {
-                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Server Options)"
+                                                    catch {
+                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Server Options)"
+                                                    }
                                                 }
                                             }
                                         }
