@@ -5,7 +5,7 @@ function Get-AbrADDHCPv6Statistic {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,27 +29,29 @@ function Get-AbrADDHCPv6Statistic {
 
     process {
         try  {
-            $DHCPinDC = Get-DhcpServerInDC -CimSession $TempCIMSession | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $Domain}
+            $DHCPinDC = Get-DhcpServerInDC -CimSession $TempCIMSession | Where-Object {$_.DnsName.split(".", 2)[1]  -eq $Domain -and $_.DnsName -notin $Options.Exclude.DCs}
             if ($DHCPinDC) {
                 Section -Style Heading5 'IPv6 Service Statistics' {
                     $OutObj = @()
-                    foreach ($DHCPServers in $DHCPinDC) {
-                        try {
-                            Write-PScriboMessage "Collecting DHCP Server IPv6 Statistics from $($DHCPServers.DnsName.split(".", 2)[0])"
-                            $Setting = Get-DhcpServerv6Statistics -CimSession $TempCIMSession -ComputerName ($DHCPServers).DnsName
-                            $inObj = [ordered] @{
-                                'DC Name' = $DHCPServers.DnsName.Split(".", 2)[0]
-                                'Total Scopes' = ConvertTo-EmptyToFiller $Setting.TotalScopes
-                                'Total Addresses' = ConvertTo-EmptyToFiller $Setting.TotalAddresses
-                                'Addresses In Use' = ConvertTo-EmptyToFiller $Setting.AddressesInUse
-                                'Addresses Available' = ConvertTo-EmptyToFiller $Setting.AddressesAvailable
-                                'Percentage In Use' = ConvertTo-EmptyToFiller ([math]::Round($Setting.PercentageInUse, 0))
-                                'Percentage Available' = ConvertTo-EmptyToFiller ([math]::Round($Setting.PercentageAvailable, 0))
+                    foreach ($DHCPServer in $DHCPinDC) {
+                        if (Test-Connection -ComputerName $DHCPServer.DnsName -Quiet -Count 1) {
+                            try {
+                                Write-PScriboMessage "Collecting DHCP Server IPv6 Statistics from $($DHCPServer.DnsName.split(".", 2)[0])"
+                                $Setting = Get-DhcpServerv6Statistics -CimSession $TempCIMSession -ComputerName ($DHCPServer).DnsName
+                                $inObj = [ordered] @{
+                                    'DC Name' = $DHCPServer.DnsName.Split(".", 2)[0]
+                                    'Total Scopes' = ConvertTo-EmptyToFiller $Setting.TotalScopes
+                                    'Total Addresses' = ConvertTo-EmptyToFiller $Setting.TotalAddresses
+                                    'Addresses In Use' = ConvertTo-EmptyToFiller $Setting.AddressesInUse
+                                    'Addresses Available' = ConvertTo-EmptyToFiller $Setting.AddressesAvailable
+                                    'Percentage In Use' = ConvertTo-EmptyToFiller ([math]::Round($Setting.PercentageInUse, 0))
+                                    'Percentage Available' = ConvertTo-EmptyToFiller ([math]::Round($Setting.PercentageAvailable, 0))
+                                }
+                                $OutObj += [pscustomobject]$inobj
                             }
-                            $OutObj += [pscustomobject]$inobj
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Service Statistics Item)"
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Service Statistics Item)"
+                            }
                         }
                     }
 

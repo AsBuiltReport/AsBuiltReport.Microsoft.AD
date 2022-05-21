@@ -261,16 +261,25 @@ function Get-AbrADDomainObject {
                     $Categories = @('Enabled','Disabled')
                     Write-PscriboMessage "Collecting Computer Accounts in Active Directory."
                     foreach ($Category in $Categories) {
-                        if ($Category -eq 'Enabled') {
-                            $Values = $Computers.Enabled -eq $True
+                            try {
+                            if ($Category -eq 'Enabled') {
+                                $Values = $Computers.Enabled -eq $True
+                            }
+                            else {$Values = $Computers.Enabled -eq $False}
+                            $inObj = [ordered] @{
+                                'Status' = $Category
+                                'Count' = $Values.Count
+                                'Percentage' = Switch ($Computers.Count) {
+                                    0 {'0'}
+                                    $Null {'0'}
+                                    default {"$([math]::Round((($Values).Count / $Computers.Count * 100), 0))%"}
+                                }
+                            }
+                            $OutObj += [pscustomobject]$inobj
                         }
-                        else {$Values = $Computers.Enabled -eq $False}
-                        $inObj = [ordered] @{
-                            'Status' = $Category
-                            'Count' = $Values.Count
-                            'Percentage' = "$([math]::Round((($Values).Count / $Computers.Count * 100), 0))%"
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Computer Accounts in Active Directory)"
                         }
-                        $OutObj += [pscustomobject]$inobj
                     }
 
                     $TableParams = @{
@@ -303,7 +312,7 @@ function Get-AbrADDomainObject {
                 $SidHistory = $Computers | Select-Object -ExpandProperty SIDHistory
                 $Categories = @('Dormant (> 90 days)','Password Age (> 30 days)','SidHistory')
                 if ($Categories) {
-                    Write-PscriboMessage "Collecting Computer Accounts in Active Directory."
+                    Write-PscriboMessage "Collecting Status of Computer Accounts."
                     foreach ($Category in $Categories) {
                         try {
                             if ($Category -eq 'Dormant (> 90 days)') {
@@ -318,11 +327,23 @@ function Get-AbrADDomainObject {
                             $inObj = [ordered] @{
                                 'Category' = $Category
                                 'Enabled Count' = ($Values.Enabled -eq $True).Count
-                                'Enabled %' = [math]::Round((($Values.Enabled -eq $True).Count / $Computers.Count * 100), 0)
+                                'Enabled %' = Switch ($Computers.Count) {
+                                    0 {'0'}
+                                    $Null {'0'}
+                                    default {[math]::Round((($Values.Enabled -eq $True).Count / $Computers.Count * 100), 0)}
+                                }
                                 'Disabled Count' = ($Values.Enabled -eq $False).Count
-                                'Disabled %' = [math]::Round((($Values.Enabled -eq $False).Count / $Computers.Count * 100), 0)
+                                'Disabled %' = Switch ($Computers.Count) {
+                                    0 {'0'}
+                                    $Null {'0'}
+                                    default {[math]::Round((($Values.Enabled -eq $False).Count / $Computers.Count * 100), 0)}
+                                }
                                 'Total Count' = ($Values.Enabled).Count
-                                'Total %' = [math]::Round((($Values.Enabled).Count / $Computers.Count * 100), 0)
+                                'Total %' = Switch ($Computers.Count) {
+                                    0 {'0'}
+                                    $Null {'0'}
+                                    default {[math]::Round((($Values.Enabled).Count / $Computers.Count * 100), 0)}
+                                }
 
                             }
                             $OutObj += [pscustomobject]$inobj

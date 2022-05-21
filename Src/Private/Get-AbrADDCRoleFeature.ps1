@@ -61,6 +61,10 @@ function Get-AbrADDCRoleFeature {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Table @TableParams
+                    if ($HealthCheck.DomainController.Software) {
+                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Best Practices: Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation" -Italic -Bold
+                    }
                 }
             }
         }

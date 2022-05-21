@@ -42,7 +42,10 @@ function Get-AbrADDomainLastBackup {
                             try {
                                 $inObj = [ordered] @{
                                     'Naming Context' = $LastBackup.NamingContext
-                                    'Last Backup' = $LastBackup.LastBackup.ToString("yyyy:MM:dd")
+                                    'Last Backup' = Switch ($LastBackup.LastBackup) {
+                                        $Null {'Unknown'; break}
+                                        default {$LastBackup.LastBackup.ToString("yyyy:MM:dd")}
+                                    }
                                     'Last Backup in Days' = $LastBackup.LastBackupDaysAgo
                                 }
                                 $OutObj += [pscustomobject]$inobj
