@@ -42,8 +42,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     }
 
     Get-RequiredModule -Name PSPKI -Version '3.7.2'
-    Get-RequiredModule -Name PSWriteColor -Version '0.87.3'
-    Get-RequiredModule -Name PSSharedGoods -Version '0.0.224'
 
 
     # Import Report Configuration

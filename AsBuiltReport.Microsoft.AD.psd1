@@ -59,14 +59,6 @@ RequiredModules = @(
     @{
         ModuleName = 'PSPKI';
         ModuleVersion = '3.7.2'
-    },
-    @{
-        ModuleName = 'PSSharedGoods';
-        ModuleVersion = '0.0.224'
-    },
-    @{
-        ModuleName = 'PSWriteColor';
-        ModuleVersion = '0.87.3'
     }
 )
 
