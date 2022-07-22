@@ -211,14 +211,20 @@ function Get-AbrADDomainObject {
                 BlankLine
                 $OutObj = @()
                 if ($Domain) {
+                    $DomainSID = (get-addomain).domainsid.Value
                     Write-PscriboMessage "Collecting Privileged Group in Active Directory."
                     try {
                         $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                         if ($Domain -eq (Get-ADForest).Name) {
-                            $Groups = 'Domain Admins','Enterprise Admins','Administrators','Server Operators','DnsAdmins','Remote Desktop Users','Incoming Forest Trust Builders','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators','Schema Admins'
+                            #$Groups = 'Domain Admins','Enterprise Admins','Administrators','Server Operators','DnsAdmins','Remote Desktop Users','Incoming Forest Trust Builders','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators','Schema Admins'
+                            $GroupsSID = "$domainsid-512","$DomainSID-519",'S-1-5-32-544','S-1-5-32-549',"$DomainSID-1104",'S-1-5-32-555','S-1-5-32-557',"$DomainSID-526",'S-1-5-32-551',"$DomainSID-517",'S-1-5-32-550','S-1-5-32-548',"$DomainSID-518"
+                            $groups = $GroupsSID | Get-ADGroup | select -ExpandProperty name
+
                         }
                         else {
-                            $Groups = 'Domain Admins','Server Operators','DnsAdmins','Remote Desktop Users','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators'
+                            #$Groups = 'Domain Admins','Server Operators','DnsAdmins','Remote Desktop Users','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators'
+                            $GroupsSID = "$domainsid-512",'S-1-5-32-544','S-1-5-32-549',"$DomainSID-1104",'S-1-5-32-555','S-1-5-32-557',"$DomainSID-526",'S-1-5-32-551',"$DomainSID-517",'S-1-5-32-550','S-1-5-32-548'
+                            $groups = $GroupsSID | Get-ADGroup | select -ExpandProperty name
                         }
                         if ($Groups) {
                             foreach ($Group in $Groups) {
