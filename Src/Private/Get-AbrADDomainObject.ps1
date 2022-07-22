@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.2
+        Version:        0.7.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -213,21 +213,37 @@ function Get-AbrADDomainObject {
                 if ($Domain) {
                     Write-PscriboMessage "Collecting Privileged Group in Active Directory."
                     try {
+                        $DomainSID = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).domainsid.Value}
                         $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                        if ($Domain -eq (Get-ADForest).Name) {
-                            $Groups = 'Domain Admins','Enterprise Admins','Administrators','Server Operators','DnsAdmins','Remote Desktop Users','Incoming Forest Trust Builders','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators','Schema Admins'
+                        if ($Domain -eq $ADSystem.Name) {
+                            #$Groups = 'Domain Admins','Enterprise Admins','Administrators','Server Operators','DnsAdmins','Remote Desktop Users','Incoming Forest Trust Builders','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators','Schema Admins'
+                            $GroupsSID = "$DomainSID-512","$DomainSID-519",'S-1-5-32-544','S-1-5-32-549',"$DomainSID-1101",'S-1-5-32-555','S-1-5-32-557',"$DomainSID-526",'S-1-5-32-551',"$DomainSID-517",'S-1-5-32-550','S-1-5-32-548',"$DomainSID-518"
                         }
                         else {
-                            $Groups = 'Domain Admins','Server Operators','DnsAdmins','Remote Desktop Users','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators'
+                            #$Groups = 'Domain Admins','Server Operators','DnsAdmins','Remote Desktop Users','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators'
+                            $GroupsSID = "$DomainSID-512",'S-1-5-32-544','S-1-5-32-549',"$DomainSID-1101",'S-1-5-32-555','S-1-5-32-557',"$DomainSID-526",'S-1-5-32-551',"$DomainSID-517",'S-1-5-32-550','S-1-5-32-548'
                         }
-                        if ($Groups) {
-                            foreach ($Group in $Groups) {
-                                $GroupObject = Invoke-Command -Session $TempPssSession {Get-ADGroupMember -Server $using:DC -Identity $using:Group -Recursive -ErrorAction SilentlyContinue}
-                                $inObj = [ordered] @{
-                                    'Group Name' = $Group
-                                    'Count' = ($GroupObject | Measure-Object).Count
+                        if ($GroupsSID) {
+                            foreach ($GroupSID in $GroupsSID) {
+                                try {
+                                    $Group = Invoke-Command -Session $TempPssSession {Get-ADGroup -Server $using:DC -Filter * | Select-Object -Property SID,Name | Where-Object {$_.SID -like $using:GroupSID}}
+                                    if ($Group) {
+                                        Write-PscriboMessage "Collecting Privileged Group $($Group.Name) with SID $($Group.SID)"
+                                        $GroupObject = Invoke-Command -Session $TempPssSession {Get-ADGroupMember -Server $using:DC -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue}
+                                        $inObj = [ordered] @{
+                                            'Group Name' = $Group.Name
+                                            'Count' = ($GroupObject | Measure-Object).Count
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                catch {
+                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group in Active Directory item)"
+                                }
+                            }
+
+                            if ($HealthCheck.Domain.Security) {
+                                $OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
                             }
 
                             $TableParams = @{
@@ -238,7 +254,11 @@ function Get-AbrADDomainObject {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Sort-Object -Property 'Group Name' |  Table @TableParams
+                            $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
+                            if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 })) {
+                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Secutiry Best Practice: The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed." -Italic -Bold
+                            }
                         }
                     }
                     catch {
