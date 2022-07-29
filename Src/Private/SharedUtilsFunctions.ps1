@@ -587,7 +587,8 @@ function ConvertTo-OperatingSystem {
     ConvertTo-OperatingSystem -OperatingSystem $Registry.ProductName -OperatingSystemVersion $Registry.CurrentBuildNumber
 
     .NOTES
-    General notes
+        Version:        0.1.0
+        Author:         Przemysław Kłys
     #>
     [CmdletBinding()]
     param(
@@ -909,6 +910,20 @@ Function Get-WinADDuplicateObject {
 }
 
 function Get-ComputerSplit {
+    <#
+    .SYNOPSIS
+
+    .DESCRIPTION
+
+    .NOTES
+        Version:        0.1.0
+        Author:         Przemysław Kłys
+
+    .EXAMPLE
+
+    .LINK
+
+    #>
     [CmdletBinding()]
     param(
         [string[]] $ComputerName
@@ -1330,7 +1345,9 @@ function Get-CimData {
     # Get-CimClass to get all classes
 
     .NOTES
-    General notes
+        Version:        0.1.0
+        Author:         Przemysław Kłys
+
     #>
 
     [CmdletBinding()]
@@ -1445,7 +1462,9 @@ function ConvertFrom-DistinguishedName {
     Microsoft Exchange Security Groups
 
     .NOTES
-    General notes
+        Version:        0.1.0
+        Author:         Przemysław Kłys
+
     #>
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     param(
