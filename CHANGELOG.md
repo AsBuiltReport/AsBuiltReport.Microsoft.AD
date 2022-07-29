@@ -1,5 +1,14 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.4] - 2022-xx-xx
+### Changed
+
+- Access well known groups via SID to include international names and expand them to localized group names.
+- Removed PSSharedGoods/PSWriteColor module dependency
+
+### Fixed
+
+- Fixes [#42](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/42)
 ## [0.7.3] - 2022-05-13
 
 ### Added

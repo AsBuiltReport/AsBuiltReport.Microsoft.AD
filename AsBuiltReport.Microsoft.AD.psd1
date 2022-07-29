@@ -12,7 +12,7 @@
 RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.7.3'
+ModuleVersion = '0.7.4'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -59,14 +59,6 @@ RequiredModules = @(
     @{
         ModuleName = 'PSPKI';
         ModuleVersion = '3.7.2'
-    },
-    @{
-        ModuleName = 'PSSharedGoods';
-        ModuleVersion = '0.0.224'
-    },
-    @{
-        ModuleName = 'PSWriteColor';
-        ModuleVersion = '0.87.3'
     }
 )
 

@@ -133,6 +133,7 @@ function Get-AbrADSiteReplication {
                                 if ($HealthCheck.Site.Replication -and ($OutObj | Where-Object {$NULL -notlike $_.'Last Error'})) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
                                     Paragraph "Best Practices: Failing SYSVOL replication may cause Group Policy problems." -Italic -Bold
+                                    BlankLine
                                 }
                             }
                             catch {

@@ -24,6 +24,9 @@
             <img src="https://img.shields.io/twitter/follow/AsBuiltReport.svg?style=social"/></a>
 </p>
 <!-- ********** DO NOT EDIT THESE LINKS ********** -->
+<p align="center">
+    <a href='https://ko-fi.com/F1F8DEV80' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi1.png?v=3'            border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+</p>
 
 # Microsoft AD As Built Report
 
@@ -68,8 +71,6 @@ PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are require
 - [GroupPolicy Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps)
 - [DhcpServer Module](https://docs.microsoft.com/en-us/powershell/module/dhcpserver/?view=windowsserver2019-ps)
 - [DnsServer Module](https://docs.microsoft.com/en-us/powershell/module/dnsserver/?view=windowsserver2019-ps)
-- [PSSharedGoods Module](https://www.powershellgallery.com/packages/PSSharedGoods/)
-- [PSWriteColor Module](https://www.powershellgallery.com/packages/PSWriteColor/0.87.3)
 
 ### Linux & macOS
 
@@ -88,8 +89,6 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module -Name PSPKI
-Install-Module -Name PSWriteColor
-Install-Module -Name PSSharedGoods
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Install-WindowsFeature -Name RSAT-AD-PowerShell
 Install-WindowsFeature -Name RSAT-DNS-Server
@@ -101,8 +100,6 @@ Install-WindowsFeature -Name GPMC
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module -Name PSPKI
-Install-Module -Name PSWriteColor
-Install-Module -Name PSSharedGoods
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -online -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0'
