@@ -1,5 +1,11 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.5] - 2022-xx-xx
+### Added
+
+- Added SYSVOL/NETLOGON folder content status
+  - Added Health Check for malicious/unnecessary file extensions
+
 ## [0.7.4] - 2022-xx-xx
 ### Changed
 
@@ -9,6 +15,7 @@
 ### Fixed
 
 - Fixes [#42](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/42)
+
 ## [0.7.3] - 2022-05-13
 
 ### Added
