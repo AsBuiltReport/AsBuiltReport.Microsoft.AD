@@ -1,6 +1,7 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
 ## [0.7.5] - 2022-08-06
+
 ### Added
 
 - Added SYSVOL/NETLOGON folder content status
@@ -14,6 +15,7 @@
 - Improved Sites Replication (repadmin) section
 
 ## [0.7.4] - 2022-07-29
+
 ### Changed
 
 - Access well known groups via SID to include international names and expand them to localized group names.
