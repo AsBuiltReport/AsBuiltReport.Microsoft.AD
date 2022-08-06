@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.3
+        Version:        0.7.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -79,6 +79,116 @@ function Get-AbrADDFSHealth {
             }
             catch {
                 Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DFS Health Table)"
+            }
+            try {
+                Write-PscriboMessage "Discovered AD Domain Sysvol Health information from $Domain."
+                $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
+                $SYSVOLFolder = Invoke-Command -Session $DCPssSession {Get-ChildItem -path $('\\'+$using:Domain+'\SYSVOL\'+$using:Domain) -Recurse | Where-Object -FilterScript {$_.PSIsContainer -eq $false} | Group-Object -Property Extension | ForEach-Object -Process {
+                    New-Object -TypeName PSObject -Property @{
+                        'Extension'= $_.name
+                        'Count' = $_.count
+                        'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
+                        } } | Sort-Object -Descending -Property 'Totalsize'}
+                if ($SYSVOLFolder) {
+                    Section -Style Heading4 'Health Check - Sysvol Folder Status' {
+                        Paragraph "The following section details domain $($Domain.ToString().ToUpper()) sysvol health status."
+                        BlankLine
+                        $OutObj = @()
+                        foreach ($Extension in $SYSVOLFolder) {
+                            try {
+                                Write-PscriboMessage "Collecting Sysvol information from $($Domain)."
+                                $inObj = [ordered] @{
+                                    'Extension' = $Extension.Extension
+                                    'File Count' = $Extension.Count
+                                    'Size' = "$($Extension.TotalSize) MB"
+                                }
+                                $OutObj += [pscustomobject]$inobj
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Sysvol Health Item)"
+                            }
+                        }
+
+                        if ($HealthCheck.Domain.DFS) {
+                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico') } | Set-Style -Style Warning -Property 'Extension'
+                        }
+
+                        $TableParams = @{
+                            Name = "Sysvol Folder Status - $($Domain.ToString().ToUpper())"
+                            List = $false
+                            ColumnWidths = 33, 33, 34
+                        }
+
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
+                        if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico')}) {
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Corrective Actions: Make sure Sysvol content has no malicious extensions or unnecessary content." -Italic -Bold
+                        }
+                    }
+                }
+            }
+            catch {
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Sysvol Health Table)"
+            }
+            try {
+                Write-PscriboMessage "Discovered AD Domain Netlogon Health information from $Domain."
+                $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
+                $NetlogonFolder = Invoke-Command -Session $DCPssSession {Get-ChildItem -path $('\\'+$using:Domain+'\NETLOGON\') -Recurse | Where-Object -FilterScript {$_.PSIsContainer -eq $false} | Group-Object -Property Extension | ForEach-Object -Process {
+                    New-Object -TypeName PSObject -Property @{
+                        'Extension'= $_.name
+                        'Count' = $_.count
+                        'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
+                        } } | Sort-Object -Descending -Property 'Totalsize'}
+                if ($NetlogonFolder) {
+                    Section -Style Heading4 'Health Check - Netlogon Folder Status' {
+                        Paragraph "The following section details domain $($Domain.ToString().ToUpper()) netlogon health status."
+                        BlankLine
+                        $OutObj = @()
+                        foreach ($Extension in $NetlogonFolder) {
+                            try {
+                                Write-PscriboMessage "Collecting Netlogon information from $($Domain)."
+                                $inObj = [ordered] @{
+                                    'Extension' = $Extension.Extension
+                                    'File Count' = $Extension.Count
+                                    'Size' = "$($Extension.TotalSize) MB"
+                                }
+                                $OutObj += [pscustomobject]$inobj
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Netlogon Health Item)"
+                            }
+                        }
+
+                        if ($HealthCheck.Domain.DFS) {
+                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico') } | Set-Style -Style Warning -Property 'Extension'
+                        }
+
+                        $TableParams = @{
+                            Name = "Netlogon Folder Status - $($Domain.ToString().ToUpper())"
+                            List = $false
+                            ColumnWidths = 33, 33, 34
+                        }
+
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
+                        if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico')}) {
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Corrective Actions: Make sure Netlogon content has no malicious extensions or unnecessary content." -Italic -Bold
+                        }
+                    }
+                }
+            }
+            catch {
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Sysvol Health Table)"
             }
         }
     }
