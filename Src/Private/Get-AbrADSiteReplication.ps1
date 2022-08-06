@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.0
+        Version:        0.7.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,13 +28,13 @@ function Get-AbrADSiteReplication {
     }
 
     process {
-        Write-PscriboMessage "Collecting AD Domain Sites Replication Summary. (Sites Replication)"
+        Write-PscriboMessage "Collecting AD Domain Sites Replication Summary. (Sites Replication Connection)"
         $DCs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
         if ($DCs) {
             Write-PscriboMessage "Discovering Active Directory Sites Replication information on $Domain. (Sites Replication)"
             try {
-                Section -Style Heading4 'Sites Replication' {
-                    Paragraph "The following section provides a summary of the Active Directory Site Replication information."
+                Section -Style Heading4 'Sites Replication Connection' {
+                    Paragraph "The following section provides a summary of the Active Directory Site Replication Connection."
                     BlankLine
                     $OutObj = @()
                     foreach ($DC in $DCs) {
@@ -42,7 +42,7 @@ function Get-AbrADSiteReplication {
                             try {
                                 $Replication = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADReplicationConnection -Server $using:DC -Properties *}
                                 if ($Replication) {
-                                    Write-PscriboMessage "Collecting Active Directory Sites Replication information on $DC. (Sites Replication)"
+                                    Write-PscriboMessage "Collecting Active Directory Sites Replication information on $DC. (Sites Replication Connection)"
                                     foreach ($Repl in $Replication) {
                                         try {
                                             $inObj = [ordered] @{
@@ -78,74 +78,77 @@ function Get-AbrADSiteReplication {
                                             }
                                         }
                                         catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Item)"
+                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Connection Item)"
                                         }
                                     }
                                 }
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Section)"
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Connection Section)"
                             }
                         }
                     }
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication)"
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Connection)"
             }
         }
         try {
-            if (($HealthCheck.Site.Replication) -and (Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADReplicationFailure -Target $using:Domain -Scope Domain})) {
-                Write-PscriboMessage "Discovering Active Directory Sites Replication Failure on $Domain. (Sites Replication Failure)"
-                $OutObj = @()
-                Write-PscriboMessage "Discovered Active Directory Sites Replication Failure on $Domain. (Sites Replication Failure)"
-                $Failures =  Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADReplicationFailure -Target $using:Domain -Scope Domain}
-                if ($Failures) {
-                    Section -Style Heading4 'Sites Replication Failure' {
-                        Paragraph "The following section provides a summary of the Active Directory Site Replication Failure information."
+            if ($HealthCheck.Site.Replication) {
+                Write-PscriboMessage "Discovering Active Directory Sites Replication Status on $Domain. (Sites Replication Status)"
+                $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                Write-PscriboMessage "Discovered Active Directory Sites Replication Status on $Domain. (Sites Replication Status)"
+                $RepStatus =  Invoke-Command -Session $DCPssSession -ScriptBlock {repadmin /showrepl /repsto /csv | ConvertFrom-Csv}
+                if ($RepStatus) {
+                    Section -Style Heading4 'Sites Replication Status' {
+                        Paragraph "The following section provides a summary of the Active Directory Site Replication Status information."
                         BlankLine
-                        foreach ($Fails in $Failures) {
+                        $OutObj = @()
+                        foreach ($Status in $RepStatus) {
                             try {
-                                Write-PscriboMessage "Collecting Active Directory Sites Replication Failure on '$($Fails.Server)'. (Sites Replication Failure)"
-                                    $inObj = [ordered] @{
-                                        'Server Name' = $Fails.Server.Split(".", 2)[0]
-                                        'Partner' =  ConvertTo-ADObjectName $Fails.Partner.Split(",", 2)[1] -Session $TempPssSession -DC $DC
-                                        'Last Error' = $Fails.LastError
-                                        'Failure Type' =  $Fails.FailureType
-                                        'Failure Count' = $Fails.FailureCount
-                                        'First Failure Time' = ($Fails.FirstFailureTime).ToUniversalTime().toString("r")
-                                    }
-                                $OutObj = [pscustomobject]$inobj
+                                Write-PscriboMessage "Collecting Active Directory Sites Replication Status from $($Domain). (Sites Replication Status)"
+                                $inObj = [ordered] @{
+                                    'Destination DSA' = $Status.'Destination DSA'
+                                    'Source DSA' = $Status.'Source DSA'
+                                    'Source DSA Site' = $Status.'Source DSA Site'
+                                    'Last Success Time' =  $Status.'Last Success Time'
+                                    'Last Failure Status' = $Status.'Last Failure Status'
+                                    'Last Failure Time' = $Status.'Last Failure Time'
+                                    'Number of failures' = $Status.'Number of Failures'
+                                }
+                                $OutObj += [pscustomobject]$inobj
 
-                                if ($HealthCheck.Site.Replication) {
-                                    $OutObj | Where-Object {$NULL -notlike $_.'Last Error'} | Set-Style -Style Warning -Property 'Last Error', 'Failure Type', 'Failure Count', 'First Failure Time'
-                                }
-
-                                $TableParams = @{
-                                    Name = "Site Replication Failure - $($Fails.Server.ToUpper().Split(".", 2)[0])"
-                                    List = $true
-                                    ColumnWidths = 40, 60
-                                }
-                                if ($Report.ShowTableCaptions) {
-                                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                                }
-                                $OutObj | Table @TableParams
-                                if ($HealthCheck.Site.Replication -and ($OutObj | Where-Object {$NULL -notlike $_.'Last Error'})) {
-                                    Paragraph "Health Check:" -Italic -Bold -Underline
-                                    Paragraph "Best Practices: Failing SYSVOL replication may cause Group Policy problems." -Italic -Bold
-                                    BlankLine
-                                }
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Failure)"
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Status)"
                             }
+                        }
+                        if ($HealthCheck.Site.Replication) {
+                            $OutObj | Where-Object {$_.'Last Failure Status' -gt 0} | Set-Style -Style Warning -Property 'Last Failure Status'
+                        }
+
+                        $TableParams = @{
+                            Name = "Site Replication Status - $($Domain.ToUpper())"
+                            List = $false
+                            ColumnWidths = 14, 14, 14, 15, 14, 15 ,14
+                        }
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Table @TableParams
+                        if ($HealthCheck.Site.Replication -and ($OutObj | Where-Object {$_.'Last Failure Status' -gt 0})) {
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Best Practices: Replication failure can lead to object inconsistencies and major problems in Active Directory." -Italic -Bold
+                            BlankLine
                         }
                     }
                 }
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Failure)"
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Status)"
         }
     }
 

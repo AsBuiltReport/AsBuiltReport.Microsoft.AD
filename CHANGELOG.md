@@ -1,12 +1,19 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
-## [0.7.5] - 2022-xx-xx
+## [0.7.5] - 2022-08-06
 ### Added
 
 - Added SYSVOL/NETLOGON folder content status
-  - Added Health Check for malicious/unnecessary file extensions
+  - Added Health Check for malicious/unessential file extensions
+- Added Domain Controller SRV Records Status
+  - Added Health Check for SRV Records Status
+- Added Health Check for Unsupported Operating System findings in the Active Directory Domain
+### Changed
 
-## [0.7.4] - 2022-xx-xx
+- Allowed the Forest Root Domain to be the fisrt Domain in the report
+- Improved Sites Replication (repadmin) section
+
+## [0.7.4] - 2022-07-29
 ### Changed
 
 - Access well known groups via SID to include international names and expand them to localized group names.

@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.4
+        Version:        0.7.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -401,13 +401,16 @@ function Get-AbrADDomainObject {
                         if ($OSObjects) {
                             foreach ($OSObject in $OSObjects) {
                                 $inObj = [ordered] @{
-                                    'Operating System' = Switch (($OSObject.Name).count) {
-                                        0 {'Unknown'}
+                                    'Operating System' = Switch ([string]::IsNullOrEmpty($OSObject.Name)) {
+                                        $True {'Unknown'}
                                         default {$OSObject.Name}
                                     }
                                     'Count' = $OSObject.Count
                                 }
                                 $OutObj += [pscustomobject]$inobj
+                            }
+                            if ($HealthCheck.Domain.Security) {
+                                $OutObj | Where-Object {$_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *'  -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*'} | Set-Style -Style Critical -Property 'Operating System'
                             }
 
                             $TableParams = @{
@@ -419,6 +422,10 @@ function Get-AbrADDomainObject {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Sort-Object -Property 'Operating System' |  Table @TableParams
+                            if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object {$_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *'  -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*'})) {
+                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Secutiry Best Practice: Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture" -Italic -Bold
+                            }
                         }
                     }
                     catch {
