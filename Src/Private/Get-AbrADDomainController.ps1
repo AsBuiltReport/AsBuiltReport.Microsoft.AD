@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.3
+        Version:        0.7.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -250,6 +250,129 @@ function Get-AbrADDomainController {
         }
         catch {
             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Time Source)"
+        }
+        if ($HealthCheck.DomainController.Diagnostic) {
+            try {
+                Write-PscriboMessage "Collecting AD Domain Controller SRV Records Status."
+                Section -Style Heading5 'Health Check - SRV Records Status' {
+                    Paragraph "The following section provides a status of the Domain Controller dns srv records status on $($Domain.ToString().ToUpper())."
+                    BlankLine
+                    $OutObj = @()
+                    Write-PscriboMessage "Discovering Active Directory Domain Controller SRV Records Status in $Domain."
+                    if ($DCs) {
+                        Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller in domain $Domain."
+                        foreach ($DC in $DCs) {
+                            if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                                try {
+                                    Write-PscriboMessage "Collecting AD Domain Controller SRV Records Status for $DC."
+                                    $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                    $PDCEmulator = Invoke-Command -Session $TempPssSession {(Get-ADDomain $using:Domain -ErrorAction Stop).PDCEmulator}
+                                    if ($Domain -eq $ADSystem.RootDomain) {
+                                        $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName _msdcs.$Domain -RRType Srv
+                                        $DCARR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType A | Where-Object {$_.Hostname -eq $DC.ToString().ToUpper().Split(".")[0]}
+                                        if ($DC -in $PDCEmulator) {
+                                            $PDC = $SRVRR | Where-Object {$_.Hostname -eq "_ldap._tcp.pdc" -and $_.RecordData.DomainName -eq "$($DC)."}
+                                        } else {$PDC = 'NonPDC'}
+                                        if ($DC -in $ADSystem.GlobalCatalogs) {
+                                            $GC = $SRVRR | Where-Object {$_.Hostname -eq "_ldap._tcp.gc" -and $_.RecordData.DomainName -eq "$($DC)."}
+                                        } else {$GC = 'NonGC'}
+                                        $KDC = $SRVRR | Where-Object {$_.Hostname -eq "_kerberos._tcp.dc" -and $_.RecordData.DomainName -eq "$($DC)."}
+                                        $DCRR = $SRVRR | Where-Object {$_.Hostname -eq "_ldap._tcp.dc" -and $_.RecordData.DomainName -eq "$($DC)."}
+                                    } else {
+                                        $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType Srv
+                                        $DCARR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType A | Where-Object {$_.Hostname -eq $DC.ToString().ToUpper().Split(".")[0]}
+                                        if ($DC -in $PDCEmulator) {
+                                            $PDC = $SRVRR | Where-Object {$_.Hostname -eq "_ldap._tcp.pdc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)."}
+                                        } else {$PDC = 'NonPDC'}
+                                        if ($DC -in $ADSystem.GlobalCatalogs) {
+                                            $GC = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName "_msdcs.$($ADSystem.RootDomain)" -RRType Srv | Where-Object {$_.Hostname -eq "_ldap._tcp.gc" -and $_.RecordData.DomainName -eq "$($DC)."}
+                                        } else {$GC = 'NonGC'}
+                                        $KDC = $SRVRR | Where-Object {$_.Hostname -eq "_kerberos._tcp.dc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)."}
+                                        $DCRR = $SRVRR | Where-Object {$_.Hostname -eq "_ldap._tcp.dc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)."}
+                                    }
+                                    Remove-CimSession $CimSession
+                                    if ( $SRVRR ) {
+                                        try {
+                                            $inObj = [ordered] @{
+                                                'Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                                'A Record' = Switch ([string]::IsNullOrEmpty($DCARR)) {
+                                                    $True {'Fail'}
+                                                    default {'OK'}
+                                                }
+                                                'KDC SRV' = Switch ([string]::IsNullOrEmpty($KDC)) {
+                                                    $True {'Fail'}
+                                                    default {'OK'}
+                                                }
+                                                'PDC SRV' = Switch ([string]::IsNullOrEmpty($PDC)) {
+                                                    $True {'Fail'}
+                                                    $False {
+                                                        Switch ($PDC) {
+                                                            'NonPDC' {'Non PDC'}
+                                                            default {'OK'}
+                                                        }
+                                                    }
+                                                }
+                                                'GC SRV' = Switch ([string]::IsNullOrEmpty($GC)) {
+                                                    $True {'Fail'}
+                                                    $False {
+                                                        Switch ($GC) {
+                                                            'NonGC' {'Non GC'}
+                                                            default {'OK'}
+                                                        }
+                                                    }
+                                                }
+                                                'DC SRV' = Switch ([string]::IsNullOrEmpty($DCRR)) {
+                                                    $True {'Fail'}
+                                                    default {'OK'}
+                                                }
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
+                                        }
+                                        catch {
+                                            Write-PscriboMessage -IsWarning  "$($_.Exception.Message) (SRV Records Status Item)"
+                                        }
+                                        if ($HealthCheck.DomainController.Diagnostic) {
+                                            $OutObj | Where-Object { $_.'A Record' -eq 'Fail' } | Set-Style -Style Critical -Property 'A Record'
+                                            $OutObj | Where-Object { $_.'KDC SRV' -eq 'Fail' } | Set-Style -Style Critical -Property 'KDC SRV'
+                                            $OutObj | Where-Object { $_.'PDC SRV' -eq 'Fail' } | Set-Style -Style Critical -Property 'PDC SRV'
+                                            $OutObj | Where-Object { $_.'GC SRV' -eq 'Fail' } | Set-Style -Style Critical -Property 'GC SRV'
+                                            $OutObj | Where-Object { $_.'GC SRV' -eq 'Non GC' } | Set-Style -Style Warning -Property 'GC SRV'
+                                            $OutObj | Where-Object { $_.'DC SRV' -eq 'Fail' } | Set-Style -Style Critical -Property 'DC SRV'
+                                        }
+                                    }
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status Table)"
+                                }
+                            }
+                        }
+
+                        $TableParams = @{
+                            Name = "SRV Records Status - $($Domain.ToString().ToUpper())"
+                            List = $false
+                            ColumnWidths = 20, 16, 16, 16, 16, 16
+                        }
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                        if ( $OutObj | Where-Object { { $_.'KDC SRV' -eq 'Fail' } -or { $_.'PDC SRV' -eq 'Fail' } -or { $_.'GC SRV' -eq 'Fail' } -or { $_.'DC SRV' -eq 'Fail' }}) {
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Best Practice: The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory." -Italic -Bold
+                            Paragraph "Corrective Actions: Attempted to fix the situation by doing the following:
+
+                                1.  on the DC, run ipconfig /flushDNS
+
+                                2.  ipconfig /registerDNS
+
+                                3.  net stop NETLOGON, net start NETLOGON (should register the SRV records)" -Italic -Bold
+                        }
+                    }
+                }
+            }
+            catch {
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status)"
+            }
         }
         if ($HealthCheck.DomainController.Software) {
             try {
