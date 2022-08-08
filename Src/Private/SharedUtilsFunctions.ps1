@@ -360,7 +360,7 @@ function Get-WinADDFSHealth {
     $Yesterday = (Get-Date -Hour 0 -Second 0 -Minute 0 -Millisecond 0).AddDays(-$EventDays)
 
     if (-not $SkipAutodetection) {
-        $ForestInformation = Get-WinADForestDetails -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExcludeDomainControllers $ExcludeDomainControllers -IncludeDomainControllers $IncludeDomainControllers -SkipRODC:$SkipRODC -ExtendedForestInformation $ExtendedForestInformation -Extended
+        $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExcludeDomainControllers $ExcludeDomainControllers -IncludeDomainControllers $IncludeDomainControllers -SkipRODC:$SkipRODC -ExtendedForestInformation $ExtendedForestInformation -Extended
     } else {
         if (-not $IncludeDomains) {
             Write-Warning "Get-WinADDFSHealth - You need to specify domain when using SkipAutodetection."
@@ -591,6 +591,7 @@ function ConvertTo-OperatingSystem {
         Author:         Przemysław Kłys
     #>
     [CmdletBinding()]
+    [OutputType([String])]
     param(
         [string] $OperatingSystem,
         [string] $OperatingSystemVersion
@@ -751,7 +752,7 @@ function Get-WinADDuplicateSPN {
     )
 
     $SPNCache = [ordered] @{}
-    $ForestInformation = Get-WinADForestDetails -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation
+    $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation
     foreach ($Domain in $ForestInformation.Domains) {
         Write-Verbose -Message "Get-WinADDuplicateSPN - Processing $Domain"
         $Objects = (Get-ADObject -LDAPFilter "ServicePrincipalName=*" -Properties ServicePrincipalName -Server $ForestInformation['QueryServers'][$domain]['HostName'][0])
@@ -820,7 +821,7 @@ Function Get-WinADDuplicateObject {
         [switch] $NoPostProcessing
     )
     # Based on https://gallery.technet.microsoft.com/scriptcenter/Get-ADForestConflictObjects-4667fa37
-    $ForestInformation = Get-WinADForestDetails -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation
+    $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation
     foreach ($Domain in $ForestInformation.Domains) {
         $DC = $ForestInformation['QueryServers']["$Domain"].HostName[0]
         #Get conflict objects
@@ -925,6 +926,7 @@ function Get-ComputerSplit {
 
     #>
     [CmdletBinding()]
+    [OutputType([Array])]
     param(
         [string[]] $ComputerName
     )
@@ -951,7 +953,7 @@ function Get-ComputerSplit {
 }
 
 
-function Get-WinADForestDetails {
+function Get-WinADForestDetail {
 
     <#
     .SYNOPSIS
@@ -1016,7 +1018,7 @@ function Get-WinADForestDetails {
             }
             #>
         } catch {
-            Write-Warning "Get-WinADForestDetails - Error discovering DC for Forest - $($_.Exception.Message)"
+            Write-Warning "Get-WinADForestDetail - Error discovering DC for Forest - $($_.Exception.Message)"
             return
         }
         if (-not $ForestInformation) {
@@ -1054,7 +1056,7 @@ function Get-WinADForestDetails {
                 }
 
             } catch {
-                Write-Warning "Get-WinADForestDetails - Error discovering DC for domain $Domain - $($_.Exception.Message)"
+                Write-Warning "Get-WinADForestDetail - Error discovering DC for domain $Domain - $($_.Exception.Message)"
                 continue
             }
             if ($Domain -eq $Findings['Forest']['Name']) {
@@ -1068,7 +1070,7 @@ function Get-WinADForestDetails {
         # we need to make sure to remove domains that don't have DCs for some reason
         [Array] $Findings['Domains'] = foreach ($Domain in $Findings['Domains']) {
             if ($Domain -notin $DomainsActive) {
-                Write-Warning "Get-WinADForestDetails - Domain $Domain doesn't seem to be active (no DCs). Skipping."
+                Write-Warning "Get-WinADForestDetail - Domain $Domain doesn't seem to be active (no DCs). Skipping."
                 continue
             }
             $Domain
@@ -1081,7 +1083,7 @@ function Get-WinADForestDetails {
                 try {
                     $DomainControllers = Get-ADDomainController -Filter $Filter -Server $QueryServer -ErrorAction Stop
                 } catch {
-                    Write-Warning "Get-WinADForestDetails - Error listing DCs for domain $Domain - $($_.Exception.Message)"
+                    Write-Warning "Get-WinADForestDetail - Error listing DCs for domain $Domain - $($_.Exception.Message)"
                     continue
                 }
                 foreach ($S in $DomainControllers) {
@@ -1229,7 +1231,7 @@ function Get-WinADForestDetails {
                     $NetBios = $Findings['DomainsExtended'][$DomainEx]['NetBIOSName']
                     $Findings['DomainsExtendedNetBIOS'][$NetBios] = $Findings['DomainsExtended'][$DomainEx]
                 } catch {
-                    Write-Warning "Get-WinADForestDetails - Error gathering Domain Information for domain $DomainEx - $($_.Exception.Message)"
+                    Write-Warning "Get-WinADForestDetail - Error gathering Domain Information for domain $DomainEx - $($_.Exception.Message)"
                     continue
                 }
             }
@@ -1351,6 +1353,7 @@ function Get-CimData {
     #>
 
     [CmdletBinding()]
+    [OutputType([System.Object[]])]
     param(
         [parameter(Mandatory)][string] $Class,
         [string] $NameSpace = 'root\cimv2',
@@ -1369,7 +1372,7 @@ function Get-CimData {
         # Process all remote computers
         $Computers = $ComputersSplit[1]
         if ($Computers.Count -gt 0) {
-            if ($Protocol = 'Default') {
+            if ($Protocol -eq 'Default') {
                 Get-CimInstance -ClassName $Class -ComputerName $Computers -ErrorAction SilentlyContinue -Property $PropertiesOnly -Namespace $NameSpace -Verbose:$false -ErrorVariable ErrorsToProcess | Select-Object -Property $Properties -ExcludeProperty $ExcludeProperties
             } else {
                 $Option = New-CimSessionOption -Protocol $Protocol
