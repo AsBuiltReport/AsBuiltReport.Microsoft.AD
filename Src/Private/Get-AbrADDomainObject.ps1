@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.5
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -257,7 +257,7 @@ function Get-AbrADDomainObject {
                             $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
                             if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 })) {
                                 Paragraph "Health Check:" -Italic -Bold -Underline
-                                Paragraph "Secutiry Best Practice: The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed." -Italic -Bold
+                                Paragraph "Security Best Practice: The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed." -Italic -Bold
                             }
                         }
                     }
@@ -424,7 +424,7 @@ function Get-AbrADDomainObject {
                             $OutObj | Sort-Object -Property 'Operating System' |  Table @TableParams
                             if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object {$_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *'  -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*'})) {
                                 Paragraph "Health Check:" -Italic -Bold -Underline
-                                Paragraph "Secutiry Best Practice: Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture" -Italic -Bold
+                                Paragraph "Security Best Practice: Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture" -Italic -Bold
                             }
                         }
                     }

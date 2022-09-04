@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.3
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,7 +35,6 @@ function Get-AbrADDNSInfrastructure {
                     Paragraph "The following section provides a summary of the DNS Infrastructure configuration."
                     BlankLine
                     $OutObj = @()
-                    Write-PscriboMessage "Discovered '$(($DCs | Measure-Object).Count)' Active Directory Domain Controller on $Domain"
                     foreach ($DC in $DCs) {
                         if  (Test-Connection -ComputerName $DC -Quiet -Count 1) {
                             Write-PscriboMessage "Collecting Domain Name System Infrastructure information from '$($DC)'."
@@ -58,7 +57,7 @@ function Get-AbrADDNSInfrastructure {
                     }
 
                     $TableParams = @{
-                        Name = "Infrastructure Setting - $($Domain.ToString().ToUpper())"
+                        Name = "Infrastructure Summary - $($Domain.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 30, 10, 9, 10, 11, 30
                     }
@@ -110,7 +109,7 @@ function Get-AbrADDNSInfrastructure {
                                 }
 
                                 $TableParams = @{
-                                    Name = "IP Configuration - $($Domain.ToString().ToUpper())"
+                                    Name = "DNS IP Configuration - $($Domain.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 20, 20, 15, 15, 15, 15
                                 }
@@ -170,7 +169,7 @@ function Get-AbrADDNSInfrastructure {
                                             }
 
                                             $TableParams = @{
-                                                Name = "Directory Partitions - $($Domain.ToString().ToUpper())"
+                                                Name = "Directory Partitions - $($DC.ToString().ToUpper().Split(".")[0])"
                                                 List = $false
                                                 ColumnWidths = 40, 25, 25, 10
                                             }
@@ -340,7 +339,7 @@ function Get-AbrADDNSInfrastructure {
                                 Paragraph "The following section provides Root Hints information."
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
-                                        Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Root Hints" {
+                                        Section -Style Heading6 $($DC.ToString().ToUpper().Split(".")[0]) {
                                             $OutObj = @()
                                             Write-PscriboMessage "Collecting Root Hint information from $($DC)."
                                             try {

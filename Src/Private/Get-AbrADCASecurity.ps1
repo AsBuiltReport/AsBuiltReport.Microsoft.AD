@@ -5,7 +5,7 @@ function Get-AbrADCASecurity {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -54,7 +54,7 @@ function Get-AbrADCASecurity {
                 }
                 $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
                 try {
-                    Section -Style Heading4 "Access Control List (ACL) Summary" {
+                    Section -Style Heading4 "Access Control List (ACL)" {
                         $OutObj = @()
                         foreach ($CA in $CAs) {
                             try {
