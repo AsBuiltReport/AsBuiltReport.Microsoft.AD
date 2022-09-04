@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.5
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,8 +31,6 @@ function Get-AbrADDomainObject {
         if ($InfoLevel.Domain -ge 2) {
             try {
                 Section -Style Heading4 'Domain Object Count' {
-                    Paragraph "The following section provides a summary of the Active Directory Object Count on $($Domain.ToString().ToUpper())."
-                    BlankLine
                     $OutObj = @()
                     if ($Domain) {
                         Write-PscriboMessage "Collecting the Active Directory Object Count of domain $Domain."
@@ -78,8 +76,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'User Accounts in Active Directory' {
-                Paragraph "The following table provide a summary of the User Accounts from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                 $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties *}
@@ -116,8 +112,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Status of Users Accounts' {
-                Paragraph "The following table provide a summary of the User Accounts from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 $DaysInactive = 90
                 $dormanttime = ((Get-Date).AddDays(-90)).Date
@@ -207,8 +201,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Privileged Group Count' {
-                Paragraph "The following table provide a summary of the Privileged Group count from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 if ($Domain) {
                     Write-PscriboMessage "Collecting Privileged Group in Active Directory."
@@ -257,7 +249,7 @@ function Get-AbrADDomainObject {
                             $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
                             if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 })) {
                                 Paragraph "Health Check:" -Italic -Bold -Underline
-                                Paragraph "Secutiry Best Practice: The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed." -Italic -Bold
+                                Paragraph "Security Best Practice: The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed." -Italic -Bold
                             }
                         }
                     }
@@ -272,8 +264,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Computer Accounts in Active Directory' {
-                Paragraph "The following table provide a summary of the Computer Accounts from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                 $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties *}
@@ -319,8 +309,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Status of Computer Accounts' {
-                Paragraph "The following table provide a summary of the Computer Accounts from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 $DaysInactive = 90
                 $dormanttime = (Get-Date).Adddays(-90)
@@ -390,8 +378,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Operating Systems Count' {
-                Paragraph "The following table provide a summary of the Operating System count from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 if ($Domain) {
                     Write-PscriboMessage "Collecting Operating Systems in Active Directory."
@@ -424,7 +410,7 @@ function Get-AbrADDomainObject {
                             $OutObj | Sort-Object -Property 'Operating System' |  Table @TableParams
                             if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object {$_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *'  -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*'})) {
                                 Paragraph "Health Check:" -Italic -Bold -Underline
-                                Paragraph "Secutiry Best Practice: Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture" -Italic -Bold
+                                Paragraph "Security Best Practice: Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture" -Italic -Bold
                             }
                         }
                     }
@@ -439,8 +425,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Default Domain Password Policy' {
-                Paragraph "The following section provides a summary of the Default Domain Password Policy on $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 if ($Domain) {
                     Write-PscriboMessage "Collecting the Active Directory Default Domain Password Policy of domain $Item."
@@ -490,8 +474,6 @@ function Get-AbrADDomainObject {
                         $PasswordPolicy =  Invoke-Command -Session $TempPssSession {Get-ADFineGrainedPasswordPolicy -Server $using:DC -Filter {Name -like "*"} -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
                         if ($PasswordPolicy) {
                             Section -Style Heading4 'Fined Grained Password Policies' {
-                                Paragraph "The following section provides a summary of the Fined Grained Password Policies on $($Domain.ToString().ToUpper())."
-                                BlankLine
                                 $OutObj = @()
                                 foreach ($FGPP in $PasswordPolicy) {
                                     try {
@@ -550,8 +532,6 @@ function Get-AbrADDomainObject {
                         $GMSA = Invoke-Command -Session $TempPssSession {Get-ADServiceAccount -Server $using:DC -Filter * -Properties *}
                         if ($GMSA) {
                             Section -Style Heading4 'Group Managed Service Accounts (GMSA)' {
-                                Paragraph "The following section provides a summary of the Group Managed Service Accounts on $($Domain.ToString().ToUpper())."
-                                BlankLine
                                 $OutObj = @()
                                 foreach ($Account in $GMSA) {
                                     try {

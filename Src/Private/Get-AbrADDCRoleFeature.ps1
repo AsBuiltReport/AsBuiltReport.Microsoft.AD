@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrADDCRoleFeature {
             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
             if ($DCPssSession) {
                 Write-PscriboMessage "Discovered Active Directory DC Role & Features information of $DC."
-                Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0])" {
+                Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
                     $OutObj = @()
                     $Features = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-WindowsFeature | Where-Object {$_.installed -eq "True" -and $_.FeatureType -eq 'Role'}}
                     Remove-PSSession -Session $DCPssSession

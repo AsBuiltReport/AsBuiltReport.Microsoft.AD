@@ -1,5 +1,15 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.6] - 2022-09-04
+
+### Changed
+
+- Improve report table of content
+
+### Fixed
+
+- close [#52](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/52)
+
 ## [0.7.5] - 2022-08-06
 
 ### Added
@@ -9,6 +19,7 @@
 - Added Domain Controller SRV Records Status
   - Added Health Check for SRV Records Status
 - Added Health Check for Unsupported Operating System findings in the Active Directory Domain
+
 ### Changed
 
 - Allowed the Forest Root Domain to be the fisrt Domain in the report

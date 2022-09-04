@@ -5,7 +5,7 @@ function Get-AbrADDuplicateSPN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.0
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,7 +28,7 @@ function Get-AbrADDuplicateSPN {
                 $SPNs = Get-WinADDuplicateSPN
                 Write-PscriboMessage "Discovered AD Duplicate SPN information from $Domain."
                 if ($SPNs) {
-                    Section -Style Heading4 'Health Check - Duplicate SPN' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Duplicate SPN' {
                         Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()

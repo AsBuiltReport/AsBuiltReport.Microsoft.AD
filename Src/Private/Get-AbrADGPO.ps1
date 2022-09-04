@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.0
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -123,9 +123,7 @@ function Get-AbrADGPO {
                         $PATH = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
                         $CentralStore = Invoke-Command -Session $TempPssSession -ScriptBlock {Test-Path $using:PATH}
                         if ($PATH) {
-                            Section -Style Heading5 "GPO Central Store Repository" {
-                                Paragraph "The following section provides information of the status of Central Store. Corrective Action: Deploy centralized GPO repository."
-                                BlankLine
+                            Section -Style Heading5 "Central Store Repository" {
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Active Directory Central Store information on $Domain. (Central Store)"
                                 $inObj = [ordered] @{
@@ -191,10 +189,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "GPO with User Logon/Logoff Script" {
-                                Paragraph "The following section provides a summary of Group Policy Objects with Logon/Logoff Script."
-                                BlankLine
-
+                            Section -Style Heading5 "User Logon/Logoff Script" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                 }
@@ -247,10 +242,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "GPO with Computer Startup/Shutdown Script" {
-                                Paragraph "The following section provides a summary of Group Policy Objects with Startup/Shutdown Script."
-                                BlankLine
-
+                            Section -Style Heading5 "Computer Startup/Shutdown Script" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                 }
@@ -299,10 +291,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "Health Check - Unlinked GPO" {
-                                Paragraph "The following section provides a summary of the Unlinked Group Policy Objects. "
-                                BlankLine
-
+                            Section -Style Heading5 "Unlinked GPO" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -349,10 +338,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "Health Check - Empty GPOs" {
-                                Paragraph "The following section provides a summary of the Empty Group Policy Objects."
-                                BlankLine
-
+                            Section -Style Heading5 "Empty GPOs" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -404,9 +390,7 @@ function Get-AbrADGPO {
                         }
 
                         if ($OutObj) {
-                            Section -Style Heading5 "Health Check - Enforced GPO" {
-                                Paragraph "The following section provides a summary of the Enforced Group Policy Objects."
-                                BlankLine
+                            Section -Style Heading5 "Enforced GPO" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }

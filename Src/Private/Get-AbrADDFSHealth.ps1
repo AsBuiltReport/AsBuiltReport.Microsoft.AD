@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.5
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,7 +35,7 @@ function Get-AbrADDFSHealth {
                 } Else {$DFS = Get-WinADDFSHealth -Domain $Domain}
                 Write-PscriboMessage "Discovered AD Domain DFS Health information from $Domain."
                 if ($DFS) {
-                    Section -Style Heading4 'Health Check - DFS Health' {
+                    Section -Style NOTOCHeading5 'DFS Health' {
                         Paragraph "The following section details Distributed File System health status for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
@@ -92,7 +92,7 @@ function Get-AbrADDFSHealth {
                         'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
                         } } | Sort-Object -Descending -Property 'Totalsize'}
                 if ($SYSVOLFolder) {
-                    Section -Style Heading4 'Health Check - Sysvol Folder Status' {
+                    Section -Style NOTOCHeading5 'Sysvol Folder Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) sysvol health status."
                         BlankLine
                         $OutObj = @()
@@ -147,7 +147,7 @@ function Get-AbrADDFSHealth {
                         'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
                         } } | Sort-Object -Descending -Property 'Totalsize'}
                 if ($NetlogonFolder) {
-                    Section -Style Heading4 'Health Check - Netlogon Folder Status' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Netlogon Folder Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) netlogon health status."
                         BlankLine
                         $OutObj = @()

@@ -5,7 +5,7 @@ function Get-AbrADDuplicateObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.0
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrADDuplicateObject {
                 $Objects = Get-WinADDuplicateObject -Domain $Domain
                 Write-PscriboMessage "Discovered AD Duplicate Objects information from $Domain."
                 if ($Objects) {
-                    Section -Style Heading4 'Health Check - Duplicate Objects' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Duplicate Objects' {
                         Paragraph "The following section details Duplicate Objects discovered on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()

@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,8 +35,6 @@ function Get-AbrADTrust {
                     $Trusts = Invoke-Command -Session $TempPssSession {Get-ADTrust -Filter * -Server $using:DC}
                     if ($Trusts) {
                         Section -Style Heading4 'Domain and Trusts' {
-                            Paragraph "The following section provides a summary of Active Directory Trust information on $($Domain.ToString().ToUpper())."
-                            BlankLine
                             $OutObj = @()
                             Write-PScriboMessage "Discovered created trusts in domain $Domain"
                             foreach ($Trust in $Trusts) {

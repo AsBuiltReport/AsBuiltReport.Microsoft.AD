@@ -5,7 +5,7 @@ function Get-AbrADCACRLSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,7 +24,7 @@ function Get-AbrADCACRLSetting {
 
     process {
         try {
-            Section -Style Heading3 "Certificate Revocation List (CRL) Configuration" {
+            Section -Style Heading3 "Certificate Revocation List (CRL)" {
                 Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
                 BlankLine
                 Section -Style Heading4 "CRL Validity Period" {

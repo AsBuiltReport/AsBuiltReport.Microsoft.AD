@@ -5,7 +5,7 @@ function Get-AbrADDHCPv4PerScopeSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrADDHCPv4PerScopeSetting {
     process {
         $DHCPScopeOptions = Get-DhcpServerv4OptionValue -CimSession $TempCIMSession -ComputerName $Server -ScopeId $Scope
         if ($DHCPScopeOptions) {
-            Section -Style Heading6 "$Scope" {
+            Section -ExcludeFromTOC -Style NOTOCHeading6 $Scope {
                 $OutObj = @()
                 foreach ($Option in $DHCPScopeOptions) {
                     try {
