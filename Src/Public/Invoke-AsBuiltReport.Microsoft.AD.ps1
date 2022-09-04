@@ -146,7 +146,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Get-AbrADFSMO -Domain $Domain
                                     Get-AbrADTrust -Domain $Domain
                                     Get-AbrADDomainObject -Domain $Domain
-                                    if (-Not $InfoLevel.Domain.PSObject.Properties.Value) {
+                                    if ($InfoLevel.Domain.Backup -or $InfoLevel.Domain.DFS -or $InfoLevel.Domain.SPN -or $InfoLevel.Domain.Security -or $InfoLevel.Domain.DuplicateObject) {
                                         Section -Style Heading4 'Health Checks' {
                                             Get-AbrADDomainLastBackup -Domain $Domain
                                             Get-AbrADDFSHealth -Domain $Domain
@@ -189,7 +189,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             }
                                             if ($HealthCheck.DomainController.Diagnostic) {
                                                 try {
-                                                    Section -Style Heading5 'Health Check - DC Diagnostic' {
+                                                    Section -Style Heading5 'DC Diagnostic' {
                                                         Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
                                                         BlankLine
                                                         foreach ($DC in $DCs){

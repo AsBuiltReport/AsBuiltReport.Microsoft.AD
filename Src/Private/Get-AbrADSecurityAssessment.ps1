@@ -46,7 +46,7 @@ function Get-AbrADSecurityAssessment {
                 $DomainUsersWithSIDHistoryArray = $DomainUsers | Where-Object {$_.SIDHistory -like "*"} | Measure-Object
                 Write-PscriboMessage "Discovered AD Account Security Assessment information from $Domain."
                 if ($DomainUsers) {
-                    Section -Style Heading5 'Account Security Assessment' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Account Security Assessment' {
                         Paragraph "The following section provide a summary of the Account Security Assessment on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
@@ -104,7 +104,7 @@ function Get-AbrADSecurityAssessment {
                     $PrivilegedUsers = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:Domain -filter {AdminCount -eq 1} -Properties Name,Created,PasswordLastSet,LastLogonDate}
                     Write-PscriboMessage "Discovered Privileged Users information from $Domain."
                     if ($PrivilegedUsers) {
-                        Section -Style Heading5 'Privileged Users Assessment' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Privileged Users Assessment' {
                             Paragraph "The following section details probable AD Admin accounts (user accounts with AdminCount set to 1) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
@@ -156,7 +156,7 @@ function Get-AbrADSecurityAssessment {
                     $UserSPNs = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:Domain -filter {ServicePrincipalName -like '*'} -Properties PasswordLastSet,LastLogonDate,ServicePrincipalName,TrustedForDelegation,TrustedtoAuthForDelegation}
                     Write-PscriboMessage "Discovered Service Accounts information from $Domain."
                     if ($UserSPNs) {
-                        Section -Style Heading5 'Service Accounts Assessment' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Service Accounts Assessment' {
                             Paragraph "The following section details probable AD Service Accounts (user accounts with SPNs) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()

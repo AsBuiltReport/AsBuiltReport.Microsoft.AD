@@ -5,7 +5,7 @@ function Get-AbrADCATemplate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADCATemplate {
             Section -Style Heading3 "Certificate Template Summary" {
                 Paragraph "The following section provides the certificate templates that are assigned to a specified Certification Authority (CA). CA server can issue certificates only based on assigned templates."
                 BlankLine
-                Section -Style Heading4 "$($CA.Name) Certificate Template" {
+                Section -Style Heading4 "$($CA.Name)" {
                     $OutObj = @()
                     foreach ($Template in $Templates) {
                         Write-PscriboMessage "Collecting $($Template.DisplayName) Issued Certificate Template information from $($CA.Name)."

@@ -28,7 +28,7 @@ function Get-AbrADDuplicateSPN {
                 $SPNs = Get-WinADDuplicateSPN
                 Write-PscriboMessage "Discovered AD Duplicate SPN information from $Domain."
                 if ($SPNs) {
-                    Section -Style Heading5 'Duplicate SPN' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Duplicate SPN' {
                         Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()

@@ -33,7 +33,7 @@ function Get-AbrADDuplicateObject {
                 $Objects = Get-WinADDuplicateObject -Domain $Domain
                 Write-PscriboMessage "Discovered AD Duplicate Objects information from $Domain."
                 if ($Objects) {
-                    Section -Style Heading5 'Duplicate Objects' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Duplicate Objects' {
                         Paragraph "The following section details Duplicate Objects discovered on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()

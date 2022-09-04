@@ -71,61 +71,62 @@ function Get-AbrADDomainController {
             try {
                 Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
                 Section -Style Heading5 'Hardware Inventory' {
-                    Paragraph "The following section provides a summary of the Domain Controller Hardware for $($Domain.ToString().ToUpper())."
+                    Paragraph "The following section provides detailed Domain Controller Hardware information for domain $($Domain.ToString().ToUpper())."
                     BlankLine
-                    $OutObj = @()
                     Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                     foreach ($DC in $DCs) {
                         if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
-                            try {
-                                Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
-                                $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                                $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
-                                $License =  Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
-                                $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
-                                $HWBIOS = Get-CimInstance -Class Win32_Bios -CimSession $CimSession
-                                Remove-PSSession -Session $DCPssSession
-                                Remove-CimSession $CimSession
-                                if ($HW) {
-                                    $inObj = [ordered] @{
-                                        'Name' = $HW.CsDNSHostName
-                                        'Windows Product Name' = $HW.WindowsProductName
-                                        'Windows Current Version' = $HW.WindowsCurrentVersion
-                                        'Windows Build Number' = $HW.OsVersion
-                                        'Windows Install Type' = $HW.WindowsInstallationType
-                                        'AD Domain' = $HW.CsDomain
-                                        'Windows Installation Date' = $HW.OsInstallDate
-                                        'Time Zone' = $HW.TimeZone
-                                        'License Type' = $License.ProductKeyChannel
-                                        'Partial Product Key' = $License.PartialProductKey
-                                        'Manufacturer' = $HW.CsManufacturer
-                                        'Model' = $HW.CsModel
-                                        'Serial Number' = $HostBIOS.SerialNumber
-                                        'Bios Type' = $HW.BiosFirmwareType
-                                        'BIOS Version' = $HostBIOS.Version
-                                        'Processor Manufacturer' = $HWCPU[0].Manufacturer
-                                        'Processor Model' = $HWCPU[0].Name
-                                        'Number of Processors' = $HWCPU.Length
-                                        'Number of CPU Cores' = $HWCPU[0].NumberOfCores
-                                        'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
-                                        'Physical Memory (GB)' = ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
-                                    }
-                                    $OutObj = [pscustomobject]$inobj
+                            Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                $OutObj = @()
+                                try {
+                                    Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
+                                    $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                    $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                    $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
+                                    $License =  Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
+                                    $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
+                                    $HWBIOS = Get-CimInstance -Class Win32_Bios -CimSession $CimSession
+                                    Remove-PSSession -Session $DCPssSession
+                                    Remove-CimSession $CimSession
+                                    if ($HW) {
+                                        $inObj = [ordered] @{
+                                            'Windows Product Name' = $HW.WindowsProductName
+                                            'Windows Current Version' = $HW.WindowsCurrentVersion
+                                            'Windows Build Number' = $HW.OsVersion
+                                            'Windows Install Type' = $HW.WindowsInstallationType
+                                            'AD Domain' = $HW.CsDomain
+                                            'Windows Installation Date' = $HW.OsInstallDate
+                                            'Time Zone' = $HW.TimeZone
+                                            'License Type' = $License.ProductKeyChannel
+                                            'Partial Product Key' = $License.PartialProductKey
+                                            'Manufacturer' = $HW.CsManufacturer
+                                            'Model' = $HW.CsModel
+                                            'Serial Number' = $HostBIOS.SerialNumber
+                                            'Bios Type' = $HW.BiosFirmwareType
+                                            'BIOS Version' = $HostBIOS.Version
+                                            'Processor Manufacturer' = $HWCPU[0].Manufacturer
+                                            'Processor Model' = $HWCPU[0].Name
+                                            'Number of Processors' = $HWCPU.Length
+                                            'Number of CPU Cores' = $HWCPU[0].NumberOfCores
+                                            'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
+                                            'Physical Memory (GB)' = ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                                        }
+                                        $OutObj = [pscustomobject]$inobj
 
-                                    $TableParams = @{
-                                        Name = "Domain Controller Hardware - $($HW.CsDNSHostName.ToString().ToUpper())"
-                                        List = $true
-                                        ColumnWidths = 40, 60
+                                        $TableParams = @{
+                                            Name = "Hardware Inventory - $($DC.ToString().ToUpper().Split(".")[0])"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
                                     }
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                    }
-                                    $OutObj | Table @TableParams
                                 }
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Item)"
+                                catch {
+                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Hardware Inventory Item)"
+                                }
                             }
                         }
                     }
@@ -138,8 +139,6 @@ function Get-AbrADDomainController {
         try {
             Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
             Section -Style Heading5 'NTDS Information' {
-                Paragraph "The following section provides a summary of the Domain Controller NTDS file size on $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 foreach ($DC in $DCs) {
@@ -186,8 +185,6 @@ function Get-AbrADDomainController {
         try {
             Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
             Section -Style Heading5 'Time Source Information' {
-                Paragraph "The following section provides a summary of the Domain Controller Time Source configuration on $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 foreach ($DC in $DCs) {
@@ -245,8 +242,6 @@ function Get-AbrADDomainController {
             try {
                 Write-PscriboMessage "Collecting AD Domain Controller SRV Records Status."
                 Section -Style Heading5 'SRV Records Status' {
-                    Paragraph "The following section provides a status of the Domain Controller dns srv records status on $($Domain.ToString().ToUpper())."
-                    BlankLine
                     $OutObj = @()
                     Write-PscriboMessage "Discovering Active Directory Domain Controller SRV Records Status in $Domain."
                     foreach ($DC in $DCs) {
@@ -377,7 +372,7 @@ function Get-AbrADDomainController {
                                 $Software = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
                                 Remove-PSSession -Session $DCPssSession
                                 if ( $Software ) {
-                                    Section -Style Heading6 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                    Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
                                         foreach ($APP in $Software) {
                                             try {
                                                 $inObj = [ordered] @{

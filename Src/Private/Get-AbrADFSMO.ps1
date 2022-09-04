@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,8 +33,6 @@ function Get-AbrADFSMO {
             $ForestData = Invoke-Command -Session $TempPssSession {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
             if ($DomainData -and $ForestData) {
                 Section -Style Heading4 'Flexible Single Master Operations (FSMO)' {
-                    Paragraph "The following section provides a summary of the Active Directory FSMO for Domain $($Domain.ToString().ToUpper())."
-                    BlankLine
                     $OutObj = @()
                     try {
                         Write-PscriboMessage "Discovered Active Directory FSMO information of domain $Domain."

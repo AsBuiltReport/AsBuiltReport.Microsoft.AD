@@ -31,8 +31,6 @@ function Get-AbrADDomainObject {
         if ($InfoLevel.Domain -ge 2) {
             try {
                 Section -Style Heading4 'Domain Object Count' {
-                    Paragraph "The following section provides a summary of the Active Directory Object Count on $($Domain.ToString().ToUpper())."
-                    BlankLine
                     $OutObj = @()
                     if ($Domain) {
                         Write-PscriboMessage "Collecting the Active Directory Object Count of domain $Domain."
@@ -78,8 +76,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'User Accounts in Active Directory' {
-                Paragraph "The following table provide a summary of the User Accounts from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                 $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties *}
@@ -116,8 +112,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Status of Users Accounts' {
-                Paragraph "The following table provide a summary of the User Accounts from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 $DaysInactive = 90
                 $dormanttime = ((Get-Date).AddDays(-90)).Date
@@ -207,8 +201,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Privileged Group Count' {
-                Paragraph "The following table provide a summary of the Privileged Group count from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 if ($Domain) {
                     Write-PscriboMessage "Collecting Privileged Group in Active Directory."
@@ -272,8 +264,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Computer Accounts in Active Directory' {
-                Paragraph "The following table provide a summary of the Computer Accounts from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                 $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties *}
@@ -319,8 +309,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Status of Computer Accounts' {
-                Paragraph "The following table provide a summary of the Computer Accounts from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 $DaysInactive = 90
                 $dormanttime = (Get-Date).Adddays(-90)
@@ -390,8 +378,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Operating Systems Count' {
-                Paragraph "The following table provide a summary of the Operating System count from $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 if ($Domain) {
                     Write-PscriboMessage "Collecting Operating Systems in Active Directory."
@@ -439,8 +425,6 @@ function Get-AbrADDomainObject {
         }
         try {
             Section -Style Heading4 'Default Domain Password Policy' {
-                Paragraph "The following section provides a summary of the Default Domain Password Policy on $($Domain.ToString().ToUpper())."
-                BlankLine
                 $OutObj = @()
                 if ($Domain) {
                     Write-PscriboMessage "Collecting the Active Directory Default Domain Password Policy of domain $Item."
@@ -490,8 +474,6 @@ function Get-AbrADDomainObject {
                         $PasswordPolicy =  Invoke-Command -Session $TempPssSession {Get-ADFineGrainedPasswordPolicy -Server $using:DC -Filter {Name -like "*"} -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
                         if ($PasswordPolicy) {
                             Section -Style Heading4 'Fined Grained Password Policies' {
-                                Paragraph "The following section provides a summary of the Fined Grained Password Policies on $($Domain.ToString().ToUpper())."
-                                BlankLine
                                 $OutObj = @()
                                 foreach ($FGPP in $PasswordPolicy) {
                                     try {
@@ -550,8 +532,6 @@ function Get-AbrADDomainObject {
                         $GMSA = Invoke-Command -Session $TempPssSession {Get-ADServiceAccount -Server $using:DC -Filter * -Properties *}
                         if ($GMSA) {
                             Section -Style Heading4 'Group Managed Service Accounts (GMSA)' {
-                                Paragraph "The following section provides a summary of the Group Managed Service Accounts on $($Domain.ToString().ToUpper())."
-                                BlankLine
                                 $OutObj = @()
                                 foreach ($Account in $GMSA) {
                                     try {

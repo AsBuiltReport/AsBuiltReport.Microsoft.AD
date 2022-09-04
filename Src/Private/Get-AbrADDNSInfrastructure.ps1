@@ -137,7 +137,7 @@ function Get-AbrADDNSInfrastructure {
                                 BlankLine
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
-                                        Section -Style Heading6 "$($DC.ToString().ToUpper().Split(".")[0]) Directory Partition" {
+                                        Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
                                             $OutObj = @()
                                             Write-PscriboMessage "Collecting Directory Partition information from $($DC)."
                                             try {
@@ -339,7 +339,7 @@ function Get-AbrADDNSInfrastructure {
                                 Paragraph "The following section provides Root Hints information."
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
-                                        Section -Style Heading6 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                        Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
                                             $OutObj = @()
                                             Write-PscriboMessage "Collecting Root Hint information from $($DC)."
                                             try {
