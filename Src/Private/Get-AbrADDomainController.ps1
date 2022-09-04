@@ -342,13 +342,6 @@ function Get-AbrADDomainController {
                     if ( $OutObj | Where-Object { { $_.'KDC SRV' -eq 'Fail' } -or { $_.'PDC SRV' -eq 'Fail' } -or { $_.'GC SRV' -eq 'Fail' } -or { $_.'DC SRV' -eq 'Fail' }}) {
                         Paragraph "Health Check:" -Italic -Bold -Underline
                         Paragraph "Best Practice: The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory." -Italic -Bold
-                        Paragraph "Corrective Actions: Attempted to fix the situation by doing the following:
-
-                            1.  on the DC, run ipconfig /flushDNS
-
-                            2.  ipconfig /registerDNS
-
-                            3.  net stop NETLOGON, net start NETLOGON (should register the SRV records)" -Italic -Bold
                     }
                 }
             }

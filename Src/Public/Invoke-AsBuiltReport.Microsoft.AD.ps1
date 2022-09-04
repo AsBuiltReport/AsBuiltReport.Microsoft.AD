@@ -61,9 +61,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     # Used to set values to TitleCase where required
     $TextInfo = (Get-Culture).TextInfo
 
-	# Update/rename the $System variable and build out your code within the ForEach loop. The ForEach loop enables AsBuiltReport to generate an as built configuration against multiple defined targets.
-
-    #region foreach loop
     #---------------------------------------------------------------------------------------------#
     #                                 Connection Section                                          #
     #---------------------------------------------------------------------------------------------#
