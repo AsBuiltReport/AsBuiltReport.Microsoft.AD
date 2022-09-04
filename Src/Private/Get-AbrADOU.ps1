@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.0
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -102,9 +102,7 @@ function Get-AbrADOU {
                                 }
                             }
                             if ($OutObj) {
-                                Section -Style Heading4 "Health Check - OU with GPO Blocked Inheritance" {
-                                    Paragraph "The following section provides a summary of the Blocked Inheritance Group Policy Objects."
-                                    BlankLine
+                                Section -Style Heading4 "GPO Blocked Inheritance" {
                                     if ($HealthCheck.Domain.GPO) {
                                         $OutObj | Set-Style -Style Warning
                                     }

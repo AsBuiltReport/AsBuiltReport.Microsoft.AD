@@ -5,7 +5,7 @@ function Get-AbrADCAAIA {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.2
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,7 +24,7 @@ function Get-AbrADCAAIA {
 
     process {
         if ($CAs) {
-            Section -Style Heading3 "Authority Information Access (AIA) Summary" {
+            Section -Style Heading3 "Authority Information Access (AIA)" {
                 Paragraph "The following section provides the Certification Authority Authority Information Access information."
                 BlankLine
                 foreach ($CA in $CAs) {

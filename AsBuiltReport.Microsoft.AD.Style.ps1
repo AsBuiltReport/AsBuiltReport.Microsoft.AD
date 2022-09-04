@@ -10,9 +10,13 @@ Style -Name 'Title 3' -Size 12 -Color '00447C' -Align Left
 Style -Name 'Heading 1' -Size 16 -Color '00447C'
 Style -Name 'Heading 2' -Size 14 -Color '00447C'
 Style -Name 'Heading 3' -Size 12 -Color '00447C'
+Style -Name 'NO TOC Heading 3' -Size 12 -Color '00447C'
 Style -Name 'Heading 4' -Size 11 -Color '00447C'
+Style -Name 'NO TOC Heading 4' -Size 11 -Color '00447C'
 Style -Name 'Heading 5' -Size 11 -Color '00447C'
+Style -Name 'NO TOC Heading 5' -Size 11 -Color '00447C'
 Style -Name 'Heading 6' -Size 11 -Color '00447C'
+Style -Name 'NO TOC Heading 6' -Size 11 -Color '00447C'
 Style -Name 'Normal' -Size 10 -Color '565656' -Default
 Style -Name 'Caption' -Size 10 -Color '565656' -Italic -Align Center
 Style -Name 'Header' -Size 10 -Color '565656' -Align Center

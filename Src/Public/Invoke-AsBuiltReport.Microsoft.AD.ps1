@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.5
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -25,6 +25,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-PScriboMessage -IsWarning "Do not forget to update your report configuration file after each new release."
     Write-PScriboMessage -IsWarning "Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
     Write-PScriboMessage -IsWarning "Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues"
+
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+
+    if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+
+        throw "The requested operation requires elevation: Run PowerShell console as administrator"
+    }
+
 
     #Validate Required Modules and Features
     $OSType = (Get-ComputerInfo).OsProductType
@@ -53,21 +61,17 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     # Used to set values to TitleCase where required
     $TextInfo = (Get-Culture).TextInfo
 
-	# Update/rename the $System variable and build out your code within the ForEach loop. The ForEach loop enables AsBuiltReport to generate an as built configuration against multiple defined targets.
-
-    #region foreach loop
     #---------------------------------------------------------------------------------------------#
     #                                 Connection Section                                          #
     #---------------------------------------------------------------------------------------------#
     foreach ($System in $Target) {
         Try {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
-            $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-            $script:TempCIMSession = New-CIMSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+            $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
+            $script:TempCIMSession = New-CIMSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
             $ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
         } Catch {
-            Write-Verbose "Unable to connect to the Domain Controller: $System"
-            throw
+            throw "Unable to connect to the Domain Controller: $System"
         }
         $script:ForestInfo =  $ADSystem.RootDomain.toUpper()
         [array]$RootDomains = $ADSystem.RootDomain
@@ -136,16 +140,20 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                     Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                     BlankLine
                                     Get-AbrADDomain -Domain $Domain
-                                    Get-AbrADDomainLastBackup -Domain $Domain
-                                    Get-AbrADDFSHealth -Domain $Domain
                                     Get-AbrADFSMO -Domain $Domain
                                     Get-AbrADTrust -Domain $Domain
                                     Get-AbrADDomainObject -Domain $Domain
-                                    Get-AbrADSecurityAssessment -Domain $Domain
-                                    Get-AbrADKerberosAudit -Domain $Domain
-                                    Get-AbrADDuplicateObject -Domain $Domain
-                                    if ($Domain -like $ADSystem.RootDomain) {
-                                        Get-AbrADDuplicateSPN
+                                    if ($InfoLevel.Domain.Backup -or $InfoLevel.Domain.DFS -or $InfoLevel.Domain.SPN -or $InfoLevel.Domain.Security -or $InfoLevel.Domain.DuplicateObject) {
+                                        Section -Style Heading4 'Health Checks' {
+                                            Get-AbrADDomainLastBackup -Domain $Domain
+                                            Get-AbrADDFSHealth -Domain $Domain
+                                            if ($Domain -like $ADSystem.RootDomain) {
+                                                Get-AbrADDuplicateSPN
+                                            }
+                                            Get-AbrADSecurityAssessment -Domain $Domain
+                                            Get-AbrADKerberosAudit -Domain $Domain
+                                            Get-AbrADDuplicateObject -Domain $Domain
+                                        }
                                     }
                                     Section -Style Heading4 'Domain Controller Summary' {
                                         if ($Options.ShowDefinitionInfo) {
@@ -156,53 +164,59 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Paragraph "The following section provides a summary of the Active Directory Domain Controllers."
                                             BlankLine
                                         }
-                                        Get-AbrADDomainController -Domain $Domain
-                                        $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                                        if ($InfoLevel.Domain -ge 2) {
-                                            Section -Style Heading5 "Roles" {
-                                                Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
-                                                foreach ($DC in $DCs){
-                                                    $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 1
-                                                    if ($DCStatus -eq $false) {
-                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
-                                                    }
-                                                    if ($DC -notin $Options.Exclude.DCs -and $DCStatus) {
-                                                        Get-AbrADDCRoleFeature -DC $DC
+                                        $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}}
+
+                                        if ($DCs) {
+
+                                            Get-AbrADDomainController -Domain $Domain -Dcs $DCs
+
+                                            if ($InfoLevel.Domain -ge 2) {
+                                                Section -Style Heading5 "Roles" {
+                                                    Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
+                                                    foreach ($DC in $DCs){
+                                                        $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 1
+                                                        if ($DCStatus -eq $false) {
+                                                            Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
+                                                        }
+                                                        if ($DC -notin $Options.Exclude.DCs -and $DCStatus) {
+                                                            Get-AbrADDCRoleFeature -DC $DC
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                        if ($HealthCheck.DomainController.Diagnostic) {
+                                            if ($HealthCheck.DomainController.Diagnostic) {
+                                                try {
+                                                    Section -Style Heading5 'DC Diagnostic' {
+                                                        Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                                                        BlankLine
+                                                        foreach ($DC in $DCs){
+                                                            if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                                Get-AbrADDCDiag -Domain $Domain -DC $DC
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                catch {
+                                                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
+                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                    continue
+                                                }
+                                            }
                                             try {
-                                                Section -Style Heading5 'Health Check - DC Diagnostic' {
-                                                    Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
-                                                    BlankLine
-                                                    $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
+                                                Section -Style Heading5 "Infrastructure Services Status" {
+                                                    Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                                                     foreach ($DC in $DCs){
                                                         if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
-                                                            Get-AbrADDCDiag -Domain $Domain -DC $DC
+                                                            Get-AbrADInfrastructureService -DC $DC
                                                         }
                                                     }
                                                 }
                                             }
                                             catch {
-                                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
+                                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
                                                 Write-PscriboMessage -IsWarning $_.Exception.Message
                                                 continue
                                             }
-                                        }
-                                        try {
-                                            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
-                                            foreach ($DC in $DCs){
-                                                if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
-                                                    Get-AbrADInfrastructureService -DC $DC
-                                                }
-                                            }
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
-                                            Write-PscriboMessage -IsWarning $_.Exception.Message
-                                            continue
                                         }
                                         Get-AbrADSiteReplication -Domain $Domain
                                         Get-AbrADGPO -Domain $Domain

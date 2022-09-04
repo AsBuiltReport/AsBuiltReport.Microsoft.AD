@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.0
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,7 +35,7 @@ function Get-AbrADDCDiag {
                 Write-PscriboMessage "Discovering Active Directory DCDiag information for DC $DC."
                 $DCDIAG = Invoke-DcDiag -DomainController $DC
                 if ($DCDIAG) {
-                    Section -Style Heading5 "$($DC.ToString().split('.')[0].ToUpper())" {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().split('.')[0].ToUpper()) {
                         $OutObj = @()
                         Write-PscriboMessage "Discovered Active Directory DCDiag information for DC $DC."
                         foreach ($Result in $DCDIAG) {

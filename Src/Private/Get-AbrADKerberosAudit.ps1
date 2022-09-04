@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.1
+        Version:        0.7.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,7 +34,7 @@ function Get-AbrADKerberosAudit {
                 $Unconstrained = Invoke-Command -Session $TempPssSession {Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
                 Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                 if ($Unconstrained) {
-                    Section -Style Heading4 'Health Check - Unconstrained Kerberos Delegation' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Unconstrained Kerberos Delegation' {
                         Paragraph "The following section provide a summary of unconstrained kerberos delegation on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
@@ -75,7 +75,7 @@ function Get-AbrADKerberosAudit {
                     $KRBTGT = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.Name  -eq 'krbtgt'}}
                     Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($KRBTGT) {
-                        Section -Style Heading4 'Health Check - KRBTGT Account Audit' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 'KRBTGT Account Audit' {
                             Paragraph "The following section provide a summary of KRBTGT account on Domain $($Domain.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()
@@ -121,7 +121,7 @@ function Get-AbrADKerberosAudit {
                     $ADMIN = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.SID  -eq $using:SID}}
                     Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($ADMIN) {
-                        Section -Style Heading4 'Health Check - Administrator Account Audit' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Administrator Account Audit' {
                             Paragraph "The following section provide a summary of Administrator account on Domain $($Domain.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()
