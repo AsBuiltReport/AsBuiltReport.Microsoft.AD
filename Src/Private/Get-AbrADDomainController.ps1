@@ -359,21 +359,31 @@ function Get-AbrADDomainController {
                     foreach ($DC in $DCs) {
                         if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
                             try {
-                                $OutObj = @()
+                                $Software = @()
                                 Write-PscriboMessage "Collecting AD Domain Controller installed software information for $DC."
                                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                                $Software = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
+                                $SoftwareX64 = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
+                                $SoftwareX86 = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
                                 Remove-PSSession -Session $DCPssSession
+
+                                If ($SoftwareX64) {
+                                    $Software += $SoftwareX64
+                                }
+                                If ($SoftwareX86) {
+                                    $Software += $SoftwareX86
+                                }
+
                                 if ( $Software ) {
                                     Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                        $OutObj = @()
                                         foreach ($APP in $Software) {
                                             try {
                                                 $inObj = [ordered] @{
                                                     'Name' = $APP.DisplayName
-                                                    'Publisher' = $APP.Publisher
-                                                    'Install Date' = $APP.InstallDate
+                                                    'Publisher' = ConvertTo-EmptyToFiller $APP.Publisher
+                                                    'Install Date' = ConvertTo-EmptyToFiller $APP.InstallDate
                                                 }
-                                                $OutObj = [pscustomobject]$inobj
+                                                $OutObj += [pscustomobject]$inobj
 
                                                 if ($HealthCheck.DomainController.Software) {
                                                     $OutObj | Set-Style -Style Warning
