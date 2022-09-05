@@ -25,7 +25,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-PScriboMessage -IsWarning "Do not forget to update your report configuration file after each new release."
     Write-PScriboMessage -IsWarning "Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
     Write-PScriboMessage -IsWarning "Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues"
-    
+
     $InstalledVersion = Get-Module -ListAvailable -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
 
     if ($InstalledVersion) {
