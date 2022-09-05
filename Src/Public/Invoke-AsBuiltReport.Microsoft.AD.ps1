@@ -26,12 +26,15 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-PScriboMessage -IsWarning "Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
     Write-PScriboMessage -IsWarning "Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues"
 
-    $InstalledVersion = (Get-Module -ListAvailable -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue).Version.ToString()
-    $MostCurrentVersion = (Find-Module -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue).Version.ToString()
+    $InstalledVersion = Get-Module -ListAvailable -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
 
-    if ($InstalledVersion -and $MostCurrentVersion) {
-        Write-PScriboMessage -IsWarning "Installed AsBuiltReport.Microsoft.AD Version: $($InstalledVersion)"
-        Write-PScriboMessage -IsWarning "Online AsBuiltReport.Microsoft.AD available Version: $($MostCurrentVersion)"
+    if ($InstalledVersion) {
+        Write-PScriboMessage -IsWarning "Installed AsBuiltReport.Microsoft.AD Version: $($InstalledVersion.ToString())"
+        $MostCurrentVersion = Find-Module -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
+        if ($MostCurrentVersion -and ($MostCurrentVersion -gt $InstalledVersion)) {
+            Write-PScriboMessage -IsWarning "New Update: AsBuiltReport.Microsoft.AD Version: $($MostCurrentVersion.ToString())"
+            Write-PScriboMessage -IsWarning "To Update run: Update-Module -Name AsBuiltReport.Microsoft.AD -Force"
+        }
     }
 
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
