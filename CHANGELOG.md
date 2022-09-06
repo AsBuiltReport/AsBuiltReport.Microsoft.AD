@@ -1,5 +1,19 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.7] - 2022-09-0?
+
+### Added
+
+- Add table to show the pending/missing Windows updates (Health Check)
+
+### Changed
+
+- Improve domain controller dcdiag table
+### Fixed
+
+- close [#59](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/59)
+- close [#57](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/57)
+
 ## [0.7.6] - 2022-09-04
 
 ### Changed
