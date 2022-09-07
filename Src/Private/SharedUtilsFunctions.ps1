@@ -98,7 +98,7 @@ function Invoke-DcDiag {
         [ValidateNotNullOrEmpty()]
         [string]$DomainController
     )
-    $result = Invoke-Command -Session $TempPssSession {dcdiag /s:$using:DomainController}
+    $result = Invoke-Command -Session $TempPssSession {dcdiag /c /s:$using:DomainController}
     $result | select-string -pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
         $obj = @{
             TestName = $_.Matches.Groups[3].Value
