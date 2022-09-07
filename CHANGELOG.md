@@ -16,7 +16,7 @@
 - close [#59](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/59)
 - close [#60](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/60)
 - close [#61](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/61)
-- close [#62](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/)
+- close [#62](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/62)
 
 ## [0.7.6] - 2022-09-04
 
