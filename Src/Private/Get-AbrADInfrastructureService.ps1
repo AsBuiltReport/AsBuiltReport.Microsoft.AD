@@ -37,7 +37,7 @@ function Get-AbrADInfrastructureService {
                 Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
                     $OutObj = @()
                     if ($DC) {
-                        $Services = @('CertSvc','DHCPServer','DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS')
+                        $Services = @('CertSvc','DHCPServer','DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS','RPCSS','EVENTSYSTEM','DNSCACHE','SAMSS','WORKSTATION')
                         foreach ($Service in $Services) {
                             try {
                                 $Status = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service $using:Service -ErrorAction SilentlyContinue | Select-Object DisplayName, Name, Status}
