@@ -59,6 +59,10 @@ RequiredModules = @(
     @{
         ModuleName = 'PSPKI';
         ModuleVersion = '3.7.2'
+    },
+    @{
+        ModuleName = 'PScriboCharts';
+        ModuleVersion = '0.9.0'
     }
 )
 
