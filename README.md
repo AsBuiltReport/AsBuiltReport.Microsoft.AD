@@ -42,7 +42,7 @@ Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for m
 
 Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.html)
 
-Sample Microsoft AD As Built report PDF file: [Sample Microsoft AD As Built Report.pdf](https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/ace27b82c3c7b78035b0ee102594eef1b2be96df/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.pdf)
+Sample Microsoft AD As Built report PDF file: [Sample Microsoft AD As Built Report.pdf](https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.pdf)
 
 # :beginner: Getting Started
 
