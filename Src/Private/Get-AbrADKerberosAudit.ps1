@@ -118,7 +118,7 @@ function Get-AbrADKerberosAudit {
                 try {
                     $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                     $SID = Invoke-Command -Session $TempPssSession { ((Get-ADDomain -Identity $using:Domain).domainsid).ToString() + "-500" }
-                    $ADMIN = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.SID  -eq $using:SID}}
+                    $ADMIN = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet,LastLogonDate -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.SID  -eq $using:SID}}
                     Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($ADMIN) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Administrator Account Audit' {
@@ -131,6 +131,7 @@ function Get-AbrADKerberosAudit {
                                     'Name' = $ADMIN.Name
                                     'Created' = $ADMIN.Created
                                     'Password Last Set' = $ADMIN.PasswordLastSet
+                                    'Last Logon Date' = $ADMIN.LastLogonDate
                                     'Distinguished Name' = $ADMIN.DistinguishedName
                                 }
                                 $OutObj += [pscustomobject]$inobj
