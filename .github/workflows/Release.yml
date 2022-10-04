@@ -21,6 +21,10 @@ jobs:
         shell: pwsh
         run: |
           Install-Module -Name PSPKI -Repository PSGallery -Force
+      - name: Install PScriboCharts module
+        shell: pwsh
+        run: |
+          Install-Module -Name PScriboCharts -Repository PSGallery -Force
       - name: Test Module Manifest
         shell: pwsh
         run: |
