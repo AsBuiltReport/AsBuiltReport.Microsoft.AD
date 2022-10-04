@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.7
+        Version:        0.7.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -37,7 +37,7 @@ function Get-AbrADInfrastructureService {
                 Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
                     $OutObj = @()
                     if ($DC) {
-                        $Services = @('CertSvc','DHCPServer','DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS','RPCSS','EVENTSYSTEM','DNSCACHE','SAMSS','WORKSTATION')
+                        $Services = @('CertSvc','DHCPServer','DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS','RPCSS','EVENTSYSTEM','DNSCACHE','SAMSS','WORKSTATION','Spooler')
                         foreach ($Service in $Services) {
                             try {
                                 $Status = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service $using:Service -ErrorAction SilentlyContinue | Select-Object DisplayName, Name, Status}
@@ -57,7 +57,8 @@ function Get-AbrADInfrastructureService {
                         }
 
                         if ($HealthCheck.DomainController.Services) {
-                            $OutObj | Where-Object { $_.'Status' -notlike 'Running'} | Set-Style -Style Warning -Property 'Status'
+                            $OutObj | Where-Object { $_.'Status' -notlike 'Running' -and $_.'Short Name' -notlike 'Spooler'} | Set-Style -Style Warning -Property 'Status'
+                            $OutObj | Where-Object { $_.'Short Name' -eq 'Spooler'} | Set-Style -Style Critical
                         }
 
                         $TableParams = @{
@@ -69,6 +70,10 @@ function Get-AbrADInfrastructureService {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Sort-Object -Property 'Display Name' | Table @TableParams
+                        if ($HealthCheck.DomainController.Services -and ($OutObj | Where-Object { $_.'Short Name' -eq 'Spooler' -and $_.'Status' -like 'Running' })) {
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Corrective Actions: Disable Print Spooler service on DCs and all servers that do not perform Print services." -Italic -Bold
+                        }
                     }
                     Remove-PSSession -Session $DCPssSession
                 }
