@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -119,7 +119,7 @@ function Get-AbrADDomainObject {
                         Name              = 'exampleChartSeries'
                         XField            = 'Status'
                         YField            = 'Count'
-                        Palette           = 'Pastel'
+                        Palette           = 'Blue'
                         ColorPerDataPoint = $true
                     }
                     $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
@@ -257,7 +257,7 @@ function Get-AbrADDomainObject {
                         Name              = 'exampleChartSeries'
                         XField            = 'Category'
                         YField            = 'Total Count'
-                        Palette           = 'Pastel'
+                        Palette           = 'Blue'
                         ColorPerDataPoint = $true
                     }
                     $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
@@ -413,7 +413,7 @@ function Get-AbrADDomainObject {
                         Name              = 'exampleChartSeries'
                         XField            = 'Status'
                         YField            = 'Count'
-                        Palette           = 'Pastel'
+                        Palette           = 'Blue'
                         ColorPerDataPoint = $true
                     }
                     $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
@@ -530,7 +530,7 @@ function Get-AbrADDomainObject {
                         Name              = 'exampleChartSeries'
                         XField            = 'Category'
                         YField            = 'Total Count'
-                        Palette           = 'Pastel'
+                        Palette           = 'Blue'
                         ColorPerDataPoint = $true
                     }
                     $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
@@ -558,7 +558,7 @@ function Get-AbrADDomainObject {
                 }
                 if ($OutObj) {
                     Section -Style Heading4 'Status of Computer Accounts' {
-                        if ($chartFileItem) {
+                        if ($chartFileItem -and ($OutObj.'Total Count' | Measure-Object -Sum).Sum -ne 0) {
                             Image -Text 'Status of Computer Accounts - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                         }
                         $OutObj | Table @TableParams

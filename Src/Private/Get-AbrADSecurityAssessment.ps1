@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -106,7 +106,7 @@ function Get-AbrADSecurityAssessment {
                             Name              = 'exampleChartSeries'
                             XField            = 'Category'
                             YField            = 'Value'
-                            Palette           = 'Pastel'
+                            Palette           = 'Blue'
                             ColorPerDataPoint = $true
                         }
                         $sampleData | Add-ColumnChartSeries @addChartSeriesParams

@@ -1,4 +1,14 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
+## [0.7.8] - 2022-10-??
+
+### Added
+
+- Added Simple Chart support
+
+### Fixed
+
+- close [#67](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/67)
+- close [#68](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/68)
 
 ## [0.7.7] - 2022-09-07
 
