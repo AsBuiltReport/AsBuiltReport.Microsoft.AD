@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -46,52 +46,102 @@ function Get-AbrADSecurityAssessment {
                 $DomainUsersWithSIDHistoryArray = $DomainUsers | Where-Object {$_.SIDHistory -like "*"} | Measure-Object
                 Write-PscriboMessage "Discovered AD Account Security Assessment information from $Domain."
                 if ($DomainUsers) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Account Security Assessment' {
-                        Paragraph "The following section provide a summary of the Account Security Assessment on Domain $($Domain.ToString().ToUpper())."
-                        BlankLine
-                        $OutObj = @()
-                        Write-PscriboMessage "Collecting Account Security Assessment information from $($Domain)."
-                        try {
-                            $inObj = [ordered] @{
-                                'Total Users' = $DomainUsers.Count
-                                'Enabled Users' = $DomainEnabledUsers.Count
-                                'Disabled Users' = $DomainDisabledUsers.Count
-                                'Enabled Inactive Users' = $DomainEnabledInactiveUsers.Count
-                                'Users With Reversible Encryption Password' = $DomainUsersWithReversibleEncryptionPasswordArray.Count
-                                'User Password Not Required' = $DomainUserPasswordNotRequiredArray.Count
-                                'User Password Never Expires' = $DomainUserPasswordNeverExpiresArray.Count
-                                'Kerberos DES Users' = $DomainKerberosDESUsersArray.Count
-                                'User Does Not Require Pre Auth' = $DomainUserDoesNotRequirePreAuthArray.Count
-                                'Users With SID History' = $DomainUsersWithSIDHistoryArray.Count
+                    $OutObj = @()
+                    Write-PscriboMessage "Collecting Account Security Assessment information from $($Domain)."
+                    try {
+                        $inObj = [ordered] @{
+                            'Total Users' = $DomainUsers.Count
+                            'Enabled Users' = $DomainEnabledUsers.Count
+                            'Disabled Users' = $DomainDisabledUsers.Count
+                            'Enabled Inactive Users' = $DomainEnabledInactiveUsers.Count
+                            'Users With Reversible Encryption Password' = $DomainUsersWithReversibleEncryptionPasswordArray.Count
+                            'Password Not Required' = $DomainUserPasswordNotRequiredArray.Count
+                            'Password Never Expires' = $DomainUserPasswordNeverExpiresArray.Count
+                            'Kerberos DES Users' = $DomainKerberosDESUsersArray.Count
+                            'Does Not Require Pre Auth' = $DomainUserDoesNotRequirePreAuthArray.Count
+                            'Users With SID History' = $DomainUsersWithSIDHistoryArray.Count
+                        }
+                        $OutObj += [pscustomobject]$inobj
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Item)"
+                    }
+
+                    if ($HealthCheck.Domain.Security) {
+                        $OutObj | Where-Object {$_.'Enabled Inactive Users' -gt 0} | Set-Style -Style Warning -Property 'Enabled Inactive Users'
+                        $OutObj | Where-Object {$_.'Users With Reversible Encryption Password' -gt 0} | Set-Style -Style Warning -Property 'Users With Reversible Encryption Password'
+                        $OutObj | Where-Object {$_.'User Password Not Required' -gt 0} | Set-Style -Style Warning -Property 'User Password Not Required'
+                        $OutObj | Where-Object {$_.'User Password Never Expires' -gt 0} | Set-Style -Style Warning -Property 'User Password Never Expires'
+                        $OutObj | Where-Object {$_.'Kerberos DES Users' -gt 0} | Set-Style -Style Warning -Property 'Kerberos DES Users'
+                        $OutObj | Where-Object {$_.'User Does Not Require Pre Auth' -gt 0} | Set-Style -Style Warning -Property 'User Does Not Require Pre Auth'
+                        $OutObj | Where-Object {$_.'Users With SID History' -gt 0} | Set-Style -Style Warning -Property 'Users With SID History'
+                    }
+
+                    $TableParams = @{
+                        Name = "Account Security Assessment - $($Domain.ToString().ToUpper())"
+                        List = $true
+                        ColumnWidths = 40, 60
+                    }
+
+                    if ($Report.ShowTableCaptions) {
+                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                    }
+                    try {
+                        $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}}
+                        $exampleChart = New-Chart -Name AccountSecurityAssessment -Width 600 -Height 400
+
+                        $addChartAreaParams = @{
+                            Chart                 = $exampleChart
+                            Name                  = 'Account Security Assessment'
+                            AxisXTitle            = 'Categories'
+                            AxisYTitle            = 'Number of Users'
+                            NoAxisXMajorGridLines = $true
+                            NoAxisYMajorGridLines = $true
+                        }
+                        $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+
+                        $addChartSeriesParams = @{
+                            Chart             = $exampleChart
+                            ChartArea         = $exampleChartArea
+                            Name              = 'exampleChartSeries'
+                            XField            = 'Category'
+                            YField            = 'Value'
+                            Palette           = 'Blue'
+                            ColorPerDataPoint = $true
+                        }
+                        $sampleData | Add-ColumnChartSeries @addChartSeriesParams
+
+                        $addChartTitleParams = @{
+                            Chart     = $exampleChart
+                            ChartArea = $exampleChartArea
+                            Name      = 'AccountSecurityAssessment'
+                            Text      = 'Assessment'
+                            Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+                        }
+                        Add-ChartTitle @addChartTitleParams
+
+                        $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+
+                        if ($PassThru)
+                        {
+                            Write-Output -InputObject $chartFileItem
+                        }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
+                    }
+
+                    if ($OutObj) {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Account Security Assessment' {
+                            Paragraph "The following section provide a summary of the Account Security Assessment on Domain $($Domain.ToString().ToUpper())."
+                            BlankLine
+                            if ($chartFileItem) {
+                                Image -Text 'Account Security Assessment - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            $OutObj | Table @TableParams
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Corrective Actions: Ensure there aren't any account with weak security posture." -Italic -Bold
                         }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Item)"
-                        }
-
-                        if ($HealthCheck.Domain.Security) {
-                            $OutObj | Where-Object {$_.'Enabled Inactive Users' -gt 0} | Set-Style -Style Warning -Property 'Enabled Inactive Users'
-                            $OutObj | Where-Object {$_.'Users With Reversible Encryption Password' -gt 0} | Set-Style -Style Warning -Property 'Users With Reversible Encryption Password'
-                            $OutObj | Where-Object {$_.'User Password Not Required' -gt 0} | Set-Style -Style Warning -Property 'User Password Not Required'
-                            $OutObj | Where-Object {$_.'User Password Never Expires' -gt 0} | Set-Style -Style Warning -Property 'User Password Never Expires'
-                            $OutObj | Where-Object {$_.'Kerberos DES Users' -gt 0} | Set-Style -Style Warning -Property 'Kerberos DES Users'
-                            $OutObj | Where-Object {$_.'User Does Not Require Pre Auth' -gt 0} | Set-Style -Style Warning -Property 'User Does Not Require Pre Auth'
-                            $OutObj | Where-Object {$_.'Users With SID History' -gt 0} | Set-Style -Style Warning -Property 'Users With SID History'
-                        }
-
-                        $TableParams = @{
-                            Name = "Account Security Assessment - $($Domain.ToString().ToUpper())"
-                            List = $true
-                            ColumnWidths = 40, 60
-                        }
-
-                        if ($Report.ShowTableCaptions) {
-                            $TableParams['Caption'] = "- $($TableParams.Name)"
-                        }
-                        $OutObj | Table @TableParams
-                        Paragraph "Health Check:" -Italic -Bold -Underline
-                        Paragraph "Corrective Actions: Ensure there aren't any account with weak security posture." -Italic -Bold
                     }
                 }
             }
