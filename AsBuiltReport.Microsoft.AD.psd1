@@ -12,7 +12,7 @@
 RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.7.7'
+ModuleVersion = '0.7.8'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -59,6 +59,10 @@ RequiredModules = @(
     @{
         ModuleName = 'PSPKI';
         ModuleVersion = '3.7.2'
+    },
+    @{
+        ModuleName = 'PScriboCharts';
+        ModuleVersion = '0.9.0'
     }
 )
 

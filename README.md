@@ -68,6 +68,7 @@ This report is compatible with the following PowerShell versions;
 PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
+- [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
 - [PSPKI Module](https://www.powershellgallery.com/packages/PSPKI/3.7.2)
 - [GroupPolicy Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps)
@@ -91,6 +92,7 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module -Name PSPKI
+Install-Module -Name PScriboCharts
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Install-WindowsFeature -Name RSAT-AD-PowerShell
 Install-WindowsFeature -Name RSAT-DNS-Server
@@ -102,6 +104,7 @@ Install-WindowsFeature -Name GPMC
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module -Name PSPKI
+Install-Module -Name PScriboCharts
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -online -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0'
