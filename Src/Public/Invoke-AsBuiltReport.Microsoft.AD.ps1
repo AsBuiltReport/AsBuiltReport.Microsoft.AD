@@ -418,7 +418,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 Certificate Authority Section                               #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.CA -ge 1) {
-                $Global:CAs = Get-CertificationAuthority -Enterprise
+                try {
+                    Write-PScriboMessage "Collecting Certification Authority information from $($System.split(".")[0])"
+                    $Global:CAs = Get-CertificationAuthority -Enterprise
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                }
+
                 if ($CAs) {
                     try {
                         Section -Style Heading2 "Certificate Authority Summary" {
