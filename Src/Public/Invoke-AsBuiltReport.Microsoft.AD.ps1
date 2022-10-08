@@ -418,84 +418,89 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 Certificate Authority Section                               #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.CA -ge 1) {
-                try {
-                    Write-PScriboMessage "Collecting Certification Authority information from $($System.split(".")[0])"
-                    $Global:CAs = Get-CertificationAuthority -Enterprise
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning $_.Exception.Message
-                }
-
-                if ($CAs) {
+                $CurrentMachineADDomain = Get-ComputerADDomain -ErrorAction SilentlyContinue
+                if ($CurrentMachineADDomain.Name -in $ADSystem.Domains) {
+                    Write-PScriboMessage "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forrest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
                     try {
-                        Section -Style Heading2 "Certificate Authority Summary" {
-                            if ($Options.ShowDefinitionInfo) {
-                                Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
-                                BlankLine
-                            }
-                            if (!$Options.ShowDefinitionInfo) {
-                                Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
-                                BlankLine
-                            }
-                            try {
-                                Get-AbrADCASummary
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
-                            }
-                            if ($InfoLevel.CA -ge 2) {
+                        Write-PScriboMessage "Collecting Certification Authority information from $($System.split(".")[0])"
+                        $Global:CAs = Get-CertificationAuthority -Enterprise
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                    }
+
+                    if ($CAs) {
+                        try {
+                            Section -Style Heading2 "Certificate Authority Summary" {
+                                if ($Options.ShowDefinitionInfo) {
+                                    Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
+                                    BlankLine
+                                }
+                                if (!$Options.ShowDefinitionInfo) {
+                                    Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
+                                    BlankLine
+                                }
                                 try {
-                                    Get-AbrADCARoot
-                                    Get-AbrADCASubordinate
+                                    Get-AbrADCASummary
                                 }
                                 catch {
                                     Write-PscriboMessage -IsWarning $_.Exception.Message
                                 }
-                            }
-                            try {
-                                Get-AbrADCASecurity
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
-                            }
-                            try {
-                                Get-AbrADCACryptographyConfig
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
-                            }
-                            if ($InfoLevel.CA -ge 2) {
-                                try {
-                                    Get-AbrADCAAIA
-                                    Get-AbrADCACRLSetting
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning $_.Exception.Message
-                                }
-                            }
-                            if ($InfoLevel.CA -ge 2) {
-                                foreach ($CA in $CAs) {
+                                if ($InfoLevel.CA -ge 2) {
                                     try {
-                                        Get-AbrADCATemplate -CA $CA
+                                        Get-AbrADCARoot
+                                        Get-AbrADCASubordinate
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning $_.Exception.Message
                                     }
                                 }
-                            }
-                            try {
-                                Get-AbrADCAKeyRecoveryAgent
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                try {
+                                    Get-AbrADCASecurity
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                }
+                                try {
+                                    Get-AbrADCACryptographyConfig
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                }
+                                if ($InfoLevel.CA -ge 2) {
+                                    try {
+                                        Get-AbrADCAAIA
+                                        Get-AbrADCACRLSetting
+                                    }
+                                    catch {
+                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                    }
+                                }
+                                if ($InfoLevel.CA -ge 2) {
+                                    foreach ($CA in $CAs) {
+                                        try {
+                                            Get-AbrADCATemplate -CA $CA
+                                        }
+                                        catch {
+                                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                                        }
+                                    }
+                                }
+                                try {
+                                    Get-AbrADCAKeyRecoveryAgent
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                }
                             }
                         }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                            continue
+                        }
                     }
-                    catch {
-                        Write-PscriboMessage -IsWarning $_.Exception.Message
-                        continue
-                    }
-                }
+                } else {Write-PScriboMessage -IsWarning "Current PC Domain $($CurrentMachineADDomain.Name) is not in the Forrest Domain list of $($ADSystem.Name). Disabling Certificate Authority section"
+            }
             }
         }#endregion AD Section
         Write-PscriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"

@@ -1687,3 +1687,21 @@ function Test-ComputerPort {
         }
     }
 }
+
+function Get-ComputerADDomain
+{
+    <#
+            .Synopsis
+            Return the current domain
+            .DESCRIPTION
+            Use .net to get the current domain
+            .EXAMPLE
+            Get-ComputerADDomain
+    #>
+    [CmdletBinding()]
+    [OutputType([System.DirectoryServices.ActiveDirectory.Domain])]
+    Param
+    ()
+    Write-Verbose -Message 'Calling GetCurrentDomain()'
+    ([DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain())
+}
