@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -25,14 +25,13 @@ function Get-AbrADCASubordinate {
     process {
         try {
             Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
-            $CAs = Get-CertificationAuthority -Enterprise | Where-Object {$_.IsRoot -like 'False'}
-            if ($CAs) {
+            if ($CAs | Where-Object {$_.IsRoot -like 'False'}) {
                 Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
                 Section -Style Heading3 "Enterprise Subordinate Certificate Authority" {
                     Paragraph "The following section provides the Enterprise Subordinate CA information."
                     BlankLine
                     $OutObj = @()
-                    foreach ($CA in $CAs) {
+                    foreach ($CA in ($CAs | Where-Object {$_.IsRoot -like 'False'})) {
                         try {
                             Write-PscriboMessage "Collecting Enterprise Subordinate Certificate Authority information from $($CA.DisplayName)."
                             $inObj = [ordered] @{

@@ -455,42 +455,47 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         Write-PscriboMessage -IsWarning $_.Exception.Message
                                     }
                                 }
-                                try {
-                                    Get-AbrADCASecurity
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning $_.Exception.Message
-                                }
-                                try {
-                                    Get-AbrADCACryptographyConfig
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning $_.Exception.Message
-                                }
-                                if ($InfoLevel.CA -ge 2) {
-                                    try {
-                                        Get-AbrADCAAIA
-                                        Get-AbrADCACRLSetting
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning $_.Exception.Message
-                                    }
-                                }
-                                if ($InfoLevel.CA -ge 2) {
-                                    foreach ($CA in $CAs) {
-                                        try {
-                                            Get-AbrADCATemplate -CA $CA
+                                foreach ($CA in ($CAs | Where-Object {$_.IsAccessible -notlike 'False'}).ComputerName) {
+                                    $CAObject = Get-CertificationAuthority -Enterprise -ComputerName $CA
+                                    if ($CAObject) {
+                                        Section -Style Heading2 "$($CAObject.DisplayName) Details" {
+                                            try {
+                                                Get-AbrADCASecurity -CA $CAObject
+                                            }
+                                            catch {
+                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            }
+                                            try {
+                                                Get-AbrADCACryptographyConfig -CA $CAObject
+                                            }
+                                            catch {
+                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            }
+                                            if ($InfoLevel.CA -ge 2) {
+                                                try {
+                                                    Get-AbrADCAAIA -CA $CAObject
+                                                    Get-AbrADCACRLSetting -CA $CAObject
+                                                }
+                                                catch {
+                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                }
+                                            }
+                                            if ($InfoLevel.CA -ge 2) {
+                                                try {
+                                                    Get-AbrADCATemplate -CA $CAObject
+                                                }
+                                                catch {
+                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                }
+                                            }
+                                            try {
+                                                Get-AbrADCAKeyRecoveryAgent -CA $CAObject
+                                            }
+                                            catch {
+                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            }
                                         }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning $_.Exception.Message
-                                        }
                                     }
-                                }
-                                try {
-                                    Get-AbrADCAKeyRecoveryAgent
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning $_.Exception.Message
                                 }
                             }
                         }

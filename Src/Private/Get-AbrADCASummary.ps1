@@ -5,7 +5,7 @@ function Get-AbrADCASummary {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -26,7 +26,6 @@ function Get-AbrADCASummary {
         $OutObj = @()
         if ($ForestInfo) {
             Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
-            $CAs =  Get-CertificationAuthority -Enterprise
             foreach ($CA in $CAs) {
                 Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
                 try {

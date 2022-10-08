@@ -5,7 +5,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,6 +16,10 @@ function Get-AbrADCAKeyRecoveryAgent {
     #>
     [CmdletBinding()]
     param (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            $CA
     )
 
     begin {
@@ -24,23 +28,22 @@ function Get-AbrADCAKeyRecoveryAgent {
 
     process {
         $OutObj = @()
-        foreach ($CA in $CAs) {
-            try {
-                $KRA = Get-CAKRACertificate -CertificationAuthority $CA
-                if ($KRA.Certificate) {
-                    Write-PscriboMessage "Collecting Key Recovery Agent Certificate Certificate information of $($KRA.DisplayName)."
-                    $inObj = [ordered] @{
-                        'CA Name' = $KRA.DisplayName
-                        'Server Name' = $KRA.ComputerName.ToString().ToUpper().Split(".")[0]
-                        'Certificate' = $KRA.Certificate
-                    }
-                    $OutObj += [pscustomobject]$inobj
+        try {
+            $KRA = Get-CAKRACertificate -CertificationAuthority $CA
+            if ($KRA.Certificate) {
+                Write-PscriboMessage "Collecting Key Recovery Agent Certificate Certificate information of $($KRA.DisplayName)."
+                $inObj = [ordered] @{
+                    'CA Name' = $KRA.DisplayName
+                    'Server Name' = $KRA.ComputerName.ToString().ToUpper().Split(".")[0]
+                    'Certificate' = $KRA.Certificate
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Key Recovery Agent Certificate Item)"
+                $OutObj += [pscustomobject]$inobj
             }
         }
+        catch {
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Key Recovery Agent Certificate Item)"
+        }
+
         if ($OutObj) {
             Section -Style Heading3 "Key Recovery Agent Certificate" {
                 Paragraph "The following section provides the Key Recovery Agent certificate used to encrypt user's certificate private key and store it in CA database. In the case when user cannot access his or her certificate private key it is possible to recover it by Key Recovery Agent if Key Archival procedure was taken against particular certificate."
