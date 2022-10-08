@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.7
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -160,7 +160,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                 Get-AbrADDomainLastBackup -Domain $Domain
                                                 Get-AbrADDFSHealth -Domain $Domain
                                                 if ($Domain -like $ADSystem.RootDomain) {
-                                                    Get-AbrADDuplicateSPN
+                                                    Get-AbrADDuplicateSPN -Domain $ADSystem.RootDomain
                                                 }
                                                 Get-AbrADSecurityAssessment -Domain $Domain
                                                 Get-AbrADKerberosAudit -Domain $Domain

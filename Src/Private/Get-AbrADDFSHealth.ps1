@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,8 +31,8 @@ function Get-AbrADDFSHealth {
         if ($Domain -and $HealthCheck.Domain.DFS) {
             try {
                 if ($Options.Exclude.DCs) {
-                    $DFS = Get-WinADDFSHealth -Domain $Domain | Where-Object {$_.DomainController -notin ($Options.Exclude.DCs).split(".", 2)[0]}
-                } Else {$DFS = Get-WinADDFSHealth -Domain $Domain}
+                    $DFS = Get-WinADDFSHealth -SkipAutodetection -Domain $Domain -Credential $Credential | Where-Object {$_.DomainController -notin ($Options.Exclude.DCs).split(".", 2)[0]}
+                } Else {$DFS = Get-WinADDFSHealth -SkipAutodetection -Domain $Domain -Credential $Credential}
                 Write-PscriboMessage "Discovered AD Domain DFS Health information from $Domain."
                 if ($DFS) {
                     Section -ExcludeFromTOC -Style NOTOCHeading5 'DFS Health' {
