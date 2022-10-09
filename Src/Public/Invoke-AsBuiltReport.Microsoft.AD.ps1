@@ -49,6 +49,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     $OSType = (Get-ComputerInfo).OsProductType
     if ($OSType -eq 'WorkStation') {
         Get-RequiredFeature -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0' -OSType $OSType
+        Get-RequiredFeature -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.Dns.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.DHCP.Tools~~~~0.0.1.0' -OSType $OSType
@@ -56,6 +57,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     }
     if ($OSType -eq 'Server' -or $OSType -eq 'DomainController') {
         Get-RequiredFeature -Name RSAT-AD-PowerShell -OSType $OSType
+        Get-RequiredFeature -Name RSAT-ADCS -OSType $OSType
+        Get-RequiredFeature -Name RSAT-ADCS-mgmt -OSType $OSType
         Get-RequiredFeature -Name RSAT-DNS-Server -OSType $OSType
         Get-RequiredFeature -Name RSAT-DHCP -OSType $OSType
         Get-RequiredFeature -Name GPMC -OSType $OSType
