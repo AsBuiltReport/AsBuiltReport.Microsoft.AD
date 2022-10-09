@@ -5,7 +5,7 @@ function Get-AbrADCACryptographyConfig {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,6 +16,10 @@ function Get-AbrADCACryptographyConfig {
     #>
     [CmdletBinding()]
     param (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            $CA
     )
 
     begin {
@@ -23,14 +27,14 @@ function Get-AbrADCACryptographyConfig {
     }
 
     process {
-        if ($CAs) {
-            Section -Style Heading3 "Cryptography Configuration" {
-                Paragraph "The following section provides the Certification Authority Cryptography Configuration information."
-                BlankLine
-                $OutObj = @()
-                foreach ($CA in $CAs) {
+        if ($CA) {
+            $CryptoConfig = Get-CACryptographyConfig -CertificationAuthority $CA
+            if ($CryptoConfig) {
+                Section -Style Heading4 "Cryptography Configuration" {
+                    Paragraph "The following section provides the Certification Authority Cryptography Configuration information."
+                    BlankLine
+                    $OutObj = @()
                     try {
-                        $CryptoConfig = Get-CACryptographyConfig -CertificationAuthority $CA
                         Write-PscriboMessage "Discovered Cryptography Configuration information from $($CryptoConfig.Name)."
                         $inObj = [ordered] @{
                             'CA Name' = $CryptoConfig.Name

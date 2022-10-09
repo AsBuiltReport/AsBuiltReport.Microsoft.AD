@@ -5,7 +5,7 @@ function Get-AbrADCARoot {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.6.3
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -25,14 +25,13 @@ function Get-AbrADCARoot {
     process {
         try {
             Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
-            $CAs = Get-CertificationAuthority -Enterprise | Where-Object {$_.IsRoot -like 'True'}
             Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
-            if ($CAs) {
+            if ($CAs | Where-Object {$_.IsRoot -like 'True'}) {
                 Section -Style Heading3 "Enterprise Root Certificate Authority" {
                     Paragraph "The following section provides the Enterprise Root CA information."
                     BlankLine
                     $OutObj = @()
-                    foreach ($CA in $CAs) {
+                    foreach ($CA in ($CAs | Where-Object {$_.IsRoot -like 'True'})) {
                         Write-PscriboMessage "Collecting Enterprise Root Certificate Authority information from $($CA.DisplayName)."
                         $inObj = [ordered] @{
                             'CA Name' = $CA.DisplayName

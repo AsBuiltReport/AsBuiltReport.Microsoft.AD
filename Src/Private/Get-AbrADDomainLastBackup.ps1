@@ -5,7 +5,7 @@ function Get-AbrADDomainLastBackup {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,7 +30,7 @@ function Get-AbrADDomainLastBackup {
     process {
         if ($Domain -and $HealthCheck.Domain.Backup) {
             try {
-                $LastBackups =  Get-WinADLastBackup -Domain $Domain
+                $LastBackups =  Get-WinADLastBackup -Domain $Domain -Credential $Credential
                 Write-PscriboMessage "Discovered last taken backup information of domain $Domain."
                 if ($LastBackups) {
                     Section -ExcludeFromTOC -Style NOTOCHeading5 'Naming Context Last Backup' {

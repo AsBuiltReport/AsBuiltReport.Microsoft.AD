@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,11 +31,11 @@ function Get-AbrADDFSHealth {
         if ($Domain -and $HealthCheck.Domain.DFS) {
             try {
                 if ($Options.Exclude.DCs) {
-                    $DFS = Get-WinADDFSHealth -Domain $Domain | Where-Object {$_.DomainController -notin ($Options.Exclude.DCs).split(".", 2)[0]}
-                } Else {$DFS = Get-WinADDFSHealth -Domain $Domain}
+                    $DFS = Get-WinADDFSHealth -SkipAutodetection -Domain $Domain -Credential $Credential | Where-Object {$_.DomainController -notin ($Options.Exclude.DCs).split(".", 2)[0]}
+                } Else {$DFS = Get-WinADDFSHealth -SkipAutodetection -Domain $Domain -Credential $Credential}
                 Write-PscriboMessage "Discovered AD Domain DFS Health information from $Domain."
                 if ($DFS) {
-                    Section -Style NOTOCHeading5 'DFS Health' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'DFS Health' {
                         Paragraph "The following section details Distributed File System health status for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
@@ -92,7 +92,7 @@ function Get-AbrADDFSHealth {
                         'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
                         } } | Sort-Object -Descending -Property 'Totalsize'}
                 if ($SYSVOLFolder) {
-                    Section -Style NOTOCHeading5 'Sysvol Folder Status' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Sysvol Folder Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) sysvol health status."
                         BlankLine
                         $OutObj = @()

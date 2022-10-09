@@ -242,6 +242,48 @@ function ConvertTo-ADCanonicalName {
     return $ADObject;
 }# end
 
+function Copy-DictionaryManual {
+    [CmdletBinding()]
+    [OutputType([System.Collections.Hashtable])]
+    param(
+        [System.Collections.IDictionary] $Dictionary
+    )
+
+    $clone = @{}
+    foreach ($Key in $Dictionary.Keys) {
+        $value = $Dictionary.$Key
+
+        $clonedValue = switch ($Dictionary.$Key) {
+            { $null -eq $_ } {
+                $null
+                continue
+            }
+            { $_ -is [System.Collections.IDictionary] } {
+                Copy-DictionaryManual -Dictionary $_
+                continue
+            }
+            {
+                $type = $_.GetType()
+                $type.IsPrimitive -or $type.IsValueType -or $_ -is [string]
+            } {
+                $_
+                continue
+            }
+            default {
+                $_ | Select-Object -Property *
+            }
+
+        }
+
+        if ($value -is [System.Collections.IList]) {
+            $clone[$Key] = @($clonedValue)
+        } else {
+            $clone[$Key] = $clonedValue
+        }
+    }
+
+    $clone
+}
 function Convert-TimeToDay {
     [CmdletBinding()]
     param (
@@ -283,31 +325,33 @@ function Get-WinADLastBackup {
     $LastBackup = Get-WinADLastBackup -Domain 'ad.evotec.pl'
     $LastBackup | Format-Table -AutoSize
     .NOTES
-        Version:        0.1.0
-        Author:         Przemysław Kłys
+    General notes
     #>
     [cmdletBinding()]
     param(
-        [string[]] $Domains
+        [string[]] $Domains,
+        [pscredential] $Credential
     )
     $NameUsed = [System.Collections.Generic.List[string]]::new()
     [DateTime] $CurrentDate = Get-Date
     if (-not $Domains) {
         try {
-            $Forest = Get-ADForest -ErrorAction Stop
+            $Forest = $ADSystem
             $Domains = $Forest.Domains
         } catch {
             Write-Warning "Get-WinADLastBackup - Failed to gather Forest Domains $($_.Exception.Message)"
+            break
         }
     }
     foreach ($Domain in $Domains) {
         try {
-            [string[]]$Partitions = (Get-ADRootDSE -Server $Domain -ErrorAction Stop).namingContexts
+            [string[]]$Partitions = (Get-ADRootDSE -Credential $Credential -Server $Domain -ErrorAction Stop).namingContexts
             [System.DirectoryServices.ActiveDirectory.DirectoryContextType] $contextType = [System.DirectoryServices.ActiveDirectory.DirectoryContextType]::Domain
-            [System.DirectoryServices.ActiveDirectory.DirectoryContext] $context = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext($contextType, $Domain)
+            [System.DirectoryServices.ActiveDirectory.DirectoryContext] $context = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext($contextType, $Domain, $Credential.UserName,$Credential.GetNetworkCredential().Password)
             [System.DirectoryServices.ActiveDirectory.DomainController] $domainController = [System.DirectoryServices.ActiveDirectory.DomainController]::FindOne($context)
         } catch {
-            Write-Warning "Get-WinADLastBackup - Failed to gather partitions information for $Domain with error $($_.Exception.Message)"
+            Write-Warning "Get-WinADLastBackup - Failed to gather partitions information for $Domain with error: $($_.Exception.Message)"
+            break
         }
         $Output = ForEach ($Name in $Partitions) {
             if ($NameUsed -contains $Name) {
@@ -354,13 +398,14 @@ function Get-WinADDFSHealth {
         [int] $EventDays = 1,
         [switch] $SkipGPO,
         [switch] $SkipAutodetection,
-        [System.Collections.IDictionary] $ExtendedForestInformation
+        [System.Collections.IDictionary] $ExtendedForestInformation,
+        [pscredential] $Credential
     )
     $Today = (Get-Date)
     $Yesterday = (Get-Date -Hour 0 -Second 0 -Minute 0 -Millisecond 0).AddDays(-$EventDays)
 
     if (-not $SkipAutodetection) {
-        $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExcludeDomainControllers $ExcludeDomainControllers -IncludeDomainControllers $IncludeDomainControllers -SkipRODC:$SkipRODC -ExtendedForestInformation $ExtendedForestInformation -Extended
+        $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExcludeDomainControllers $ExcludeDomainControllers -IncludeDomainControllers $IncludeDomainControllers -SkipRODC:$SkipRODC -ExtendedForestInformation $ExtendedForestInformation -Extended -Credential $Credential
     } else {
         if (-not $IncludeDomains) {
             Write-Warning "Get-WinADDFSHealth - You need to specify domain when using SkipAutodetection."
@@ -375,7 +420,7 @@ function Get-WinADDFSHealth {
             $ForestInformation['DomainDomainControllers'][$Domain] = [System.Collections.Generic.List[Object]]::new()
             foreach ($DC in $IncludeDomainControllers) {
                 try {
-                    $DCInformation = Get-ADDomainController -Identity $DC -Server $Domain -ErrorAction Stop
+                    $DCInformation = Get-ADDomainController -Identity $DC -Server $Domain -ErrorAction Stop -Credential $Credential
                     Add-Member -InputObject $DCInformation -MemberType NoteProperty -Value $DCInformation.ComputerObjectDN -Name 'DistinguishedName' -Force
                     $ForestInformation['DomainDomainControllers'][$Domain].Add($DCInformation)
                 } catch {
@@ -403,7 +448,7 @@ function Get-WinADDFSHealth {
                 if ($SystemsContainer) {
                     $PoliciesSearchBase = -join ("CN=Policies,", $SystemsContainer)
                 }
-                [Array]$GPOs = Get-ADObject -ErrorAction Stop -SearchBase $PoliciesSearchBase -SearchScope OneLevel -Filter * -Server $QueryServer -Properties Name, gPCFileSysPath, DisplayName, DistinguishedName, Description, Created, Modified, ObjectClass, ObjectGUID
+                [Array]$GPOs = Get-ADObject -ErrorAction Stop -SearchBase $PoliciesSearchBase -SearchScope OneLevel -Filter * -Server $QueryServer -Properties Name, gPCFileSysPath, DisplayName, DistinguishedName, Description, Created, Modified, ObjectClass, ObjectGUID -Credential $Credential
             } catch {
                 $GPOs = $null
             }
@@ -480,26 +525,26 @@ function Get-WinADDFSHealth {
                 $DomainSummary['CentralRepositoryDC'] = $false
             }
             try {
-                $MemberReference = (Get-ADObject -Identity $Subscriber -Properties msDFSR-MemberReference -Server $QueryServer -ErrorAction Stop).'msDFSR-MemberReference' -like "CN=$DCName,*"
+                $MemberReference = (Get-ADObject -Credential $Credential -Identity $Subscriber -Properties msDFSR-MemberReference -Server $QueryServer -ErrorAction Stop).'msDFSR-MemberReference' -like "CN=$DCName,*"
                 $DomainSummary['MemberReference'] = if ($MemberReference) { $true } else { $false }
             } catch {
                 $DomainSummary['MemberReference'] = $false
             }
             try {
-                $DFSLocalSetting = Get-ADObject -Identity $LocalSettings -Server $QueryServer -ErrorAction Stop
+                $DFSLocalSetting = Get-ADObject -Credential $Credential -Identity $LocalSettings -Server $QueryServer -ErrorAction Stop
                 $DomainSummary['DFSLocalSetting'] = if ($DFSLocalSetting) { $true } else { $false }
             } catch {
                 $DomainSummary['DFSLocalSetting'] = $false
             }
 
             try {
-                $DomainSystemVolume = Get-ADObject -Identity $Subscriber -Server $QueryServer -ErrorAction Stop
+                $DomainSystemVolume = Get-ADObject -Credential $Credential -Identity $Subscriber -Server $QueryServer -ErrorAction Stop
                 $DomainSummary['DomainSystemVolume'] = if ($DomainSystemVolume) { $true } else { $false }
             } catch {
                 $DomainSummary['DomainSystemVolume'] = $false
             }
             try {
-                $SysVolSubscription = Get-ADObject -Identity $Subscription -Server $QueryServer -ErrorAction Stop
+                $SysVolSubscription = Get-ADObject -Credential $Credential -Identity $Subscription -Server $QueryServer -ErrorAction Stop
                 $DomainSummary['SYSVOLSubscription'] = if ($SysVolSubscription) { $true } else { $false }
             } catch {
                 $DomainSummary['SYSVOLSubscription'] = $false
@@ -742,7 +787,8 @@ function Get-WinADDuplicateSPN {
         [alias('ForestName')][string] $Forest,
         [string[]] $ExcludeDomains,
         [alias('Domain', 'Domains')][string[]] $IncludeDomains,
-        [Parameter(ParameterSetName = 'Forest')][System.Collections.IDictionary] $ExtendedForestInformation
+        [Parameter(ParameterSetName = 'Forest')][System.Collections.IDictionary] $ExtendedForestInformation,
+        [pscredential] $Credential
     )
     $Excluded = @(
         'kadmin/changepw'
@@ -752,10 +798,10 @@ function Get-WinADDuplicateSPN {
     )
 
     $SPNCache = [ordered] @{}
-    $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation
+    $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation -Credential $Credential
     foreach ($Domain in $ForestInformation.Domains) {
         Write-Verbose -Message "Get-WinADDuplicateSPN - Processing $Domain"
-        $Objects = (Get-ADObject -LDAPFilter "ServicePrincipalName=*" -Properties ServicePrincipalName -Server $ForestInformation['QueryServers'][$domain]['HostName'][0])
+        $Objects = (Get-ADObject -Credential $Credential -LDAPFilter "ServicePrincipalName=*" -Properties ServicePrincipalName -Server $ForestInformation['QueryServers'][$domain]['HostName'][0])
         Write-Verbose -Message "Get-WinADDuplicateSPN - Found $($Objects.Count) objects. Processing..."
         foreach ($Object in $Objects) {
             foreach ($SPN in $Object.ServicePrincipalName) {
@@ -818,10 +864,12 @@ Function Get-WinADDuplicateObject {
         [string[]] $IncludeObjectClass,
         [string[]] $ExcludeObjectClass,
         [switch] $Extended,
-        [switch] $NoPostProcessing
+        [switch] $NoPostProcessing,
+        [pscredential] $Credential
+
     )
     # Based on https://gallery.technet.microsoft.com/scriptcenter/Get-ADForestConflictObjects-4667fa37
-    $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation
+    $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation -Credential $Credential
     foreach ($Domain in $ForestInformation.Domains) {
         $DC = $ForestInformation['QueryServers']["$Domain"].HostName[0]
         #Get conflict objects
@@ -830,6 +878,7 @@ Function Get-WinADDuplicateObject {
             Properties  = 'DistinguishedName', 'ObjectClass', 'DisplayName', 'SamAccountName', 'Name', 'ObjectCategory', 'WhenCreated', 'WhenChanged', 'ProtectedFromAccidentalDeletion', 'ObjectGUID'
             Server      = $DC
             SearchScope = 'Subtree'
+            Credential = $Credential
         }
         $Objects = Get-ADObject @getADObjectSplat
         foreach ($_ in $Objects) {
@@ -884,7 +933,7 @@ Function Get-WinADDuplicateObject {
                     $SplitConfDN = $ConflictObject.ConflictDn -split "0ACNF:"
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
-                        $LiveObject = Get-ADObject -Identity "$($SplitConfDN[0].TrimEnd("\"))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
+                        $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0].TrimEnd("\"))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
                     } catch {}
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
@@ -895,7 +944,7 @@ Function Get-WinADDuplicateObject {
                     $SplitConfDN = $ConflictObject.ConflictDn -split "CNF:"
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
-                        $LiveObject = Get-ADObject -Identity "$($SplitConfDN[0])$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
+                        $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0])$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
                     } catch {}
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
@@ -952,7 +1001,6 @@ function Get-ComputerSplit {
     , @($ComputersLocal, $Computers)
 }
 
-
 function Get-WinADForestDetail {
 
     <#
@@ -984,7 +1032,8 @@ function Get-WinADForestDetail {
         [int] $PortsTimeout = 100,
         [int] $PingCount = 1,
         [switch] $Extended,
-        [System.Collections.IDictionary] $ExtendedForestInformation
+        [System.Collections.IDictionary] $ExtendedForestInformation,
+        [pscredential] $Credential
     )
     if ($Global:ProgressPreference -ne 'SilentlyContinue') {
         $TemporaryProgress = $Global:ProgressPreference
@@ -996,27 +1045,11 @@ function Get-WinADForestDetail {
         $Findings = [ordered] @{ }
         try {
             if ($Forest) {
-                $ForestInformation = Get-ADForest -ErrorAction Stop -Identity $Forest
+                $ForestInformation = Get-ADForest -ErrorAction Stop -Server $System -Credential $Credential
             } else {
-                $ForestInformation = Get-ADForest -ErrorAction Stop
+                $ForestInformation = Get-ADForest -ErrorAction Stop -Server $System -Credential $Credential
             }
-            <#
-            $ForestInformation = [ordered] @{
-                ApplicationPartitions = $ForestInf.ApplicationPartitions | ForEach-Object -Process { $_ } # : {DC=DomainDnsZones,DC=ad,DC=evotec,DC=xyz, DC=DomainDnsZones,DC=ad,DC=evotec,DC=pl, DC=ForestDnsZones,DC=ad,DC=evotec,DC=xyz}
-                CrossForestReferences = $ForestInf.CrossForestReferences | ForEach-Object -Process { $_ } # : {}
-                DomainNamingMaster    = $ForestInf.DomainNamingMaster    # : AD1.ad.evotec.xyz
-                Domains               = $ForestInf.Domains | ForEach-Object -Process { $_ }              # : {ad.evotec.xyz, ad.evotec.pl}
-                ForestMode            = $ForestInf.ForestMode            # : Windows2012R2Forest
-                GlobalCatalogs        = $ForestInf.GlobalCatalogs | ForEach-Object -Process { $_ }        # : {AD1.ad.evotec.xyz, AD2.ad.evotec.xyz, ADRODC.ad.evotec.pl, AD3.ad.evotec.xyz...}
-                Name                  = $ForestInf.Name                  # : ad.evotec.xyz
-                PartitionsContainer   = $ForestInf.PartitionsContainer   # : CN=Partitions,CN=Configuration,DC=ad,DC=evotec,DC=xyz
-                RootDomain            = $ForestInf.RootDomain            # : ad.evotec.xyz
-                SchemaMaster          = $ForestInf.SchemaMaster          # : AD1.ad.evotec.xyz
-                Sites                 = $ForestInf.Sites | ForEach-Object -Process { $_ }                # : {KATOWICE-1, KATOWICE-2}
-                SPNSuffixes           = $ForestInf.SPNSuffixes | ForEach-Object -Process { $_ }         # : {}
-                UPNSuffixes           = $ForestInf.UPNSuffixes | ForEach-Object -Process { $_ }          # : {myneva.eu, single.evotec.xyz, newUPN@com, evotec.xyz...}
-            }
-            #>
+
         } catch {
             Write-Warning "Get-WinADForestDetail - Error discovering DC for Forest - $($_.Exception.Message)"
             return
@@ -1081,7 +1114,7 @@ function Get-WinADForestDetail {
 
             [Array] $AllDC = try {
                 try {
-                    $DomainControllers = Get-ADDomainController -Filter $Filter -Server $QueryServer -ErrorAction Stop
+                    $DomainControllers = Get-ADDomainController -Filter $Filter -Server $QueryServer -ErrorAction Stop -Credential $Credential
                 } catch {
                     Write-Warning "Get-WinADForestDetail - Error listing DCs for domain $Domain - $($_.Exception.Message)"
                     continue
@@ -1190,7 +1223,7 @@ function Get-WinADForestDetail {
                 try {
                     #$Findings['DomainsExtended'][$DomainEx] = Get-ADDomain -Server $Findings['QueryServers'][$DomainEx].HostName[0]
 
-                    $Findings['DomainsExtended'][$DomainEx] = Get-ADDomain -Server $Findings['QueryServers'][$DomainEx].HostName[0] | ForEach-Object {
+                    $Findings['DomainsExtended'][$DomainEx] = Get-ADDomain -Credential $Credential -Server $Findings['QueryServers'][$DomainEx].HostName[0] | ForEach-Object {
                         # We need to use ForEach-Object to convert ADPropertyValueCollection to normal strings. Otherwise Copy-Dictionary fails
                         #True     False    ADPropertyValueCollection                System.Collections.CollectionBase
 
@@ -1654,4 +1687,22 @@ function Test-ComputerPort {
             $Global:ProgressPreference = $TemporaryProgress
         }
     }
+}
+
+function Get-ComputerADDomain
+{
+    <#
+            .Synopsis
+            Return the current domain
+            .DESCRIPTION
+            Use .net to get the current domain
+            .EXAMPLE
+            Get-ComputerADDomain
+    #>
+    [CmdletBinding()]
+    [OutputType([System.DirectoryServices.ActiveDirectory.Domain])]
+    Param
+    ()
+    Write-Verbose -Message 'Calling GetCurrentDomain()'
+    ([DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain())
 }

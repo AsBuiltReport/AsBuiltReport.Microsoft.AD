@@ -5,7 +5,7 @@ function Get-AbrADDuplicateSPN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,6 +16,11 @@ function Get-AbrADDuplicateSPN {
     #>
     [CmdletBinding()]
     param (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            [string]
+            $Domain
     )
 
     begin {
@@ -25,7 +30,7 @@ function Get-AbrADDuplicateSPN {
     process {
         if ($HealthCheck.Domain.SPN) {
             try {
-                $SPNs = Get-WinADDuplicateSPN
+                $SPNs = Get-WinADDuplicateSPN -Domain $Domain -Credential $Credential
                 Write-PscriboMessage "Discovered AD Duplicate SPN information from $Domain."
                 if ($SPNs) {
                     Section -ExcludeFromTOC -Style NOTOCHeading5 'Duplicate SPN' {
