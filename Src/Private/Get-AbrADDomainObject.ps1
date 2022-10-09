@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.8
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,6 @@ function Get-AbrADDomainObject {
         if ($InfoLevel.Domain -ge 2) {
             try {
                 Section -Style Heading4 'Domain Object Count' {
-                    $OutObj = @()
                     if ($Domain) {
                         Write-PscriboMessage "Collecting the Active Directory Object Count of domain $Domain."
                         try {
@@ -43,26 +42,221 @@ function Get-AbrADDomainObject {
                             $Group =  Invoke-Command -Session $TempPssSession {(Get-ADGroup -Server $using:DC -filter * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
                             $DomainController = Invoke-Command -Session $TempPssSession {(Get-ADDomainController -Server $using:DC -filter *) | Select-Object name | Measure-Object}
                             $GC = Invoke-Command -Session $TempPssSession {(Get-ADDomainController -Server $using:DC -filter {IsGlobalCatalog -eq "True"}) | Select-Object name | Measure-Object}
-                            $inObj = [ordered] @{
-                                'Computers' = $Computers.Count
-                                'Servers' = $Servers.Count
-                                'Domain Controller' = $DomainController.Count
-                                'Global Catalog' = $GC.Count
-                                'Users' = $Users.Count
-                                'Privileged Users' = $PrivilegedUsers.Count
-                                'Groups' = $Group.Count
-                            }
-                            $OutObj += [pscustomobject]$inobj
 
-                            $TableParams = @{
-                                Name = "Object Count - $($Domain.ToString().ToUpper())"
-                                List = $true
-                                ColumnWidths = 40, 60
+                            try {
+                                $OutObj = @()
+                                $inObj = [ordered] @{
+                                    'Computers' = $Computers.Count
+                                    'Servers' = $Servers.Count
+                                }
+                                $OutObj += [pscustomobject]$inobj
+
+                                $TableParams = @{
+                                    Name = "Computers Object - $($Domain.ToString().ToUpper())"
+                                    List = $true
+                                    ColumnWidths = 40, 60
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                try {
+                                    $sampleData = $inObj.GetEnumerator()
+
+                                    $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
+
+                                    $addChartAreaParams = @{
+                                        Chart = $exampleChart
+                                        Name  = 'exampleChartArea'
+                                    }
+                                    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+
+                                    $addChartSeriesParams = @{
+                                        Chart             = $exampleChart
+                                        ChartArea         = $exampleChartArea
+                                        Name              = 'exampleChartSeries'
+                                        XField            = 'name'
+                                        YField            = 'value'
+                                        Palette           = 'Blue'
+                                        ColorPerDataPoint = $true
+                                    }
+                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+
+                                    $addChartLegendParams = @{
+                                        Chart             = $exampleChart
+                                        Name              = 'Category'
+                                        TitleAlignment    = 'Center'
+                                    }
+                                    Add-ChartLegend @addChartLegendParams
+
+                                    $addChartTitleParams = @{
+                                        Chart     = $exampleChart
+                                        ChartArea = $exampleChartArea
+                                        Name      = 'ComputersObject'
+                                        Text      = 'Computers Object Count'
+                                        Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+                                    }
+                                    Add-ChartTitle @addChartTitleParams
+
+                                    $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                                }
+                                if ($OutObj) {
+                                    Section -Style Heading4 'Computers Object' {
+                                        if ($chartFileItem) {
+                                            Image -Text 'Computers Object - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                                        }
+                                        $OutObj | Table @TableParams
+                                    }
+                                }
                             }
-                            if ($Report.ShowTableCaptions) {
-                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            catch {
+                                Write-PscriboMessage -IsWarning $($_.Exception.Message)
                             }
-                            $OutObj | Table @TableParams
+                            try {
+                                $OutObj = @()
+                                $inObj = [ordered] @{
+                                    'Domain Controller' = $DomainController.Count
+                                    'Global Catalog' = $GC.Count
+                                }
+                                $OutObj += [pscustomobject]$inobj
+
+                                $TableParams = @{
+                                    Name = "Domain Controller Object - $($Domain.ToString().ToUpper())"
+                                    List = $true
+                                    ColumnWidths = 40, 60
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                try {
+                                    $sampleData = $inObj.GetEnumerator()
+
+                                    $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
+
+                                    $addChartAreaParams = @{
+                                        Chart = $exampleChart
+                                        Name  = 'exampleChartArea'
+                                    }
+                                    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+
+                                    $addChartSeriesParams = @{
+                                        Chart             = $exampleChart
+                                        ChartArea         = $exampleChartArea
+                                        Name              = 'exampleChartSeries'
+                                        XField            = 'name'
+                                        YField            = 'value'
+                                        Palette           = 'Blue'
+                                        ColorPerDataPoint = $true
+                                    }
+                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+
+                                    $addChartLegendParams = @{
+                                        Chart             = $exampleChart
+                                        Name              = 'Category'
+                                        TitleAlignment    = 'Center'
+                                    }
+                                    Add-ChartLegend @addChartLegendParams
+
+                                    $addChartTitleParams = @{
+                                        Chart     = $exampleChart
+                                        ChartArea = $exampleChartArea
+                                        Name      = 'DomainControllerObject'
+                                        Text      = 'Domain Controller Object Count'
+                                        Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+                                    }
+                                    Add-ChartTitle @addChartTitleParams
+
+                                    $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                                }
+                                if ($OutObj) {
+                                    Section -Style Heading4 'Domain Controller Object' {
+                                        if ($chartFileItem) {
+                                            Image -Text 'Domain Controller Object - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                                        }
+                                        $OutObj | Table @TableParams
+                                    }
+                                }
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                            }
+                            try {
+                                $OutObj = @()
+                                $inObj = [ordered] @{
+                                    'Users' = $Users.Count
+                                    'Privileged Users' = $PrivilegedUsers.Count
+                                    'Groups' = $Group.Count
+                                }
+                                $OutObj += [pscustomobject]$inobj
+
+                                $TableParams = @{
+                                    Name = "User Object - $($Domain.ToString().ToUpper())"
+                                    List = $true
+                                    ColumnWidths = 40, 60
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                try {
+                                    $sampleData = $inObj.GetEnumerator()
+
+                                    $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
+
+                                    $addChartAreaParams = @{
+                                        Chart = $exampleChart
+                                        Name  = 'exampleChartArea'
+                                    }
+                                    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+
+                                    $addChartSeriesParams = @{
+                                        Chart             = $exampleChart
+                                        ChartArea         = $exampleChartArea
+                                        Name              = 'exampleChartSeries'
+                                        XField            = 'name'
+                                        YField            = 'value'
+                                        Palette           = 'Blue'
+                                        ColorPerDataPoint = $true
+                                    }
+                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+
+                                    $addChartLegendParams = @{
+                                        Chart             = $exampleChart
+                                        Name              = 'Category'
+                                        TitleAlignment    = 'Center'
+                                    }
+                                    Add-ChartLegend @addChartLegendParams
+
+                                    $addChartTitleParams = @{
+                                        Chart     = $exampleChart
+                                        ChartArea = $exampleChartArea
+                                        Name      = 'UsersObject'
+                                        Text      = 'Users Object Count'
+                                        Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+                                    }
+                                    Add-ChartTitle @addChartTitleParams
+
+                                    $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                                }
+                                if ($OutObj) {
+                                    Section -Style Heading4 'Users Object' {
+                                        if ($chartFileItem) {
+                                            Image -Text 'Users Object  - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                                        }
+                                        $OutObj | Table @TableParams
+                                    }
+                                }
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                            }
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Object Count)"
@@ -310,12 +504,12 @@ function Get-AbrADDomainObject {
                         }
                         else {
                             #$Groups = 'Domain Admins','Server Operators','DnsAdmins','Remote Desktop Users','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators'
-                            $GroupsSID = "$DomainSID-512",'S-1-5-32-544','S-1-5-32-549',"$DomainSID-1101",'S-1-5-32-555','S-1-5-32-557',"$DomainSID-526",'S-1-5-32-551',"$DomainSID-517",'S-1-5-32-550','S-1-5-32-548'
+                            $GroupsSID = "$DomainSID-512",'S-1-5-32-549',"$DomainSID-1101",'S-1-5-32-555','S-1-5-32-557',"$DomainSID-526",'S-1-5-32-551',"$DomainSID-517",'S-1-5-32-550','S-1-5-32-548'
                         }
                         if ($GroupsSID) {
                             foreach ($GroupSID in $GroupsSID) {
                                 try {
-                                    $Group = Invoke-Command -Session $TempPssSession {Get-ADGroup -Server $using:DC -Filter * | Select-Object -Property SID,Name | Where-Object {$_.SID -like $using:GroupSID}}
+                                    $Group = Invoke-Command -Session $TempPssSession {Get-ADGroup -Server $using:DC -Filter {SID -like $using:GroupSID}}
                                     if ($Group) {
                                         Write-PscriboMessage "Collecting Privileged Group $($Group.Name) with SID $($Group.SID)"
                                         $GroupObject = Invoke-Command -Session $TempPssSession {Get-ADGroupMember -Server $using:DC -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue}
