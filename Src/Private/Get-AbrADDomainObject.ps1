@@ -509,7 +509,7 @@ function Get-AbrADDomainObject {
                         if ($GroupsSID) {
                             foreach ($GroupSID in $GroupsSID) {
                                 try {
-                                    $Group = Invoke-Command -Session $TempPssSession {Get-ADGroup -Server $using:DC -Filter {SID -like $using:GroupSID}}
+                                    $Group = Invoke-Command -Session $TempPssSession {Get-ADGroup -Server $using:DC -Filter {SID -like } | Where-Object {$_.SID -like $using:GroupSID}}
                                     if ($Group) {
                                         Write-PscriboMessage "Collecting Privileged Group $($Group.Name) with SID $($Group.SID)"
                                         $GroupObject = Invoke-Command -Session $TempPssSession {Get-ADGroupMember -Server $using:DC -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue}
