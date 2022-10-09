@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.7
+        Version:        0.7.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -49,6 +49,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     $OSType = (Get-ComputerInfo).OsProductType
     if ($OSType -eq 'WorkStation') {
         Get-RequiredFeature -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0' -OSType $OSType
+        Get-RequiredFeature -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.Dns.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.DHCP.Tools~~~~0.0.1.0' -OSType $OSType
@@ -56,6 +57,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     }
     if ($OSType -eq 'Server' -or $OSType -eq 'DomainController') {
         Get-RequiredFeature -Name RSAT-AD-PowerShell -OSType $OSType
+        Get-RequiredFeature -Name RSAT-ADCS -OSType $OSType
+        Get-RequiredFeature -Name RSAT-ADCS-mgmt -OSType $OSType
         Get-RequiredFeature -Name RSAT-DNS-Server -OSType $OSType
         Get-RequiredFeature -Name RSAT-DHCP -OSType $OSType
         Get-RequiredFeature -Name GPMC -OSType $OSType
@@ -142,103 +145,105 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     }
 
                     foreach ($Domain in $OrderedDomains.split(" ")) {
-                        try {
-                            if (($Domain -notin $Options.Exclude.Domains ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain})) {
-                                if ($Domain -eq $RootDomains) {
-                                    $DomainHeading = "$($Domain.ToString().ToUpper()) Root Domain Configuration"
-                                } else {$DomainHeading = "$($Domain.ToString().ToUpper()) Child Domain Configuration"}
-                                Section -Style Heading3 $DomainHeading {
-                                    Paragraph "The following section provides a summary of the Active Directory Domain Information."
-                                    BlankLine
-                                    Get-AbrADDomain -Domain $Domain
-                                    Get-AbrADFSMO -Domain $Domain
-                                    Get-AbrADTrust -Domain $Domain
-                                    Get-AbrADDomainObject -Domain $Domain
-                                    if ($HealthCheck.Domain.Backup -or $HealthCheck.Domain.DFS -or $HealthCheck.Domain.SPN -or $HealthCheck.Domain.Security -or $HealthCheck.Domain.DuplicateObject) {
-                                        Section -Style Heading4 'Health Checks' {
-                                            Get-AbrADDomainLastBackup -Domain $Domain
-                                            Get-AbrADDFSHealth -Domain $Domain
-                                            if ($Domain -like $ADSystem.RootDomain) {
-                                                Get-AbrADDuplicateSPN
+                        if ($Domain) {
+                            try {
+                                if (($Domain -notin $Options.Exclude.Domains ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain})) {
+                                    if ($Domain -eq $RootDomains) {
+                                        $DomainHeading = "$($Domain.ToString().ToUpper()) Root Domain Configuration"
+                                    } else {$DomainHeading = "$($Domain.ToString().ToUpper()) Child Domain Configuration"}
+                                    Section -Style Heading3 $DomainHeading {
+                                        Paragraph "The following section provides a summary of the Active Directory Domain Information."
+                                        BlankLine
+                                        Get-AbrADDomain -Domain $Domain
+                                        Get-AbrADFSMO -Domain $Domain
+                                        Get-AbrADTrust -Domain $Domain
+                                        Get-AbrADDomainObject -Domain $Domain
+                                        if ($HealthCheck.Domain.Backup -or $HealthCheck.Domain.DFS -or $HealthCheck.Domain.SPN -or $HealthCheck.Domain.Security -or $HealthCheck.Domain.DuplicateObject) {
+                                            Section -Style Heading4 'Health Checks' {
+                                                Get-AbrADDomainLastBackup -Domain $Domain
+                                                Get-AbrADDFSHealth -Domain $Domain
+                                                if ($Domain -like $ADSystem.RootDomain) {
+                                                    Get-AbrADDuplicateSPN -Domain $ADSystem.RootDomain
+                                                }
+                                                Get-AbrADSecurityAssessment -Domain $Domain
+                                                Get-AbrADKerberosAudit -Domain $Domain
+                                                Get-AbrADDuplicateObject -Domain $Domain
                                             }
-                                            Get-AbrADSecurityAssessment -Domain $Domain
-                                            Get-AbrADKerberosAudit -Domain $Domain
-                                            Get-AbrADDuplicateObject -Domain $Domain
                                         }
-                                    }
-                                    Section -Style Heading4 'Domain Controller Summary' {
-                                        if ($Options.ShowDefinitionInfo) {
-                                            Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
-                                            BlankLine
-                                        }
-                                        if (!$Options.ShowDefinitionInfo) {
-                                            Paragraph "The following section provides a summary of the Active Directory Domain Controllers."
-                                            BlankLine
-                                        }
-                                        $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}}
+                                        Section -Style Heading4 'Domain Controller Summary' {
+                                            if ($Options.ShowDefinitionInfo) {
+                                                Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
+                                                BlankLine
+                                            }
+                                            if (!$Options.ShowDefinitionInfo) {
+                                                Paragraph "The following section provides a summary of the Active Directory Domain Controllers."
+                                                BlankLine
+                                            }
+                                            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}}
 
-                                        if ($DCs) {
+                                            if ($DCs) {
 
-                                            Get-AbrADDomainController -Domain $Domain -Dcs $DCs
+                                                Get-AbrADDomainController -Domain $Domain -Dcs $DCs
 
-                                            if ($InfoLevel.Domain -ge 2) {
-                                                Section -Style Heading5 "Roles" {
-                                                    Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
-                                                    foreach ($DC in $DCs){
-                                                        $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 1
-                                                        if ($DCStatus -eq $false) {
-                                                            Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
-                                                        }
-                                                        if ($DC -notin $Options.Exclude.DCs -and $DCStatus) {
-                                                            Get-AbrADDCRoleFeature -DC $DC
+                                                if ($InfoLevel.Domain -ge 2) {
+                                                    Section -Style Heading5 "Roles" {
+                                                        Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
+                                                        foreach ($DC in $DCs){
+                                                            $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 1
+                                                            if ($DCStatus -eq $false) {
+                                                                Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
+                                                            }
+                                                            if ($DC -notin $Options.Exclude.DCs -and $DCStatus) {
+                                                                Get-AbrADDCRoleFeature -DC $DC
+                                                            }
                                                         }
                                                     }
                                                 }
-                                            }
-                                            if ($HealthCheck.DomainController.Diagnostic) {
+                                                if ($HealthCheck.DomainController.Diagnostic) {
+                                                    try {
+                                                        Section -Style Heading5 'DC Diagnostic' {
+                                                            Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                                                            BlankLine
+                                                            foreach ($DC in $DCs){
+                                                                if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                                    Get-AbrADDCDiag -Domain $Domain -DC $DC
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    catch {
+                                                        Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
+                                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                        continue
+                                                    }
+                                                }
                                                 try {
-                                                    Section -Style Heading5 'DC Diagnostic' {
-                                                        Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
-                                                        BlankLine
+                                                    Section -Style Heading5 "Infrastructure Services Status" {
+                                                        Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                                                         foreach ($DC in $DCs){
                                                             if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
-                                                                Get-AbrADDCDiag -Domain $Domain -DC $DC
+                                                                Get-AbrADInfrastructureService -DC $DC
                                                             }
                                                         }
                                                     }
                                                 }
                                                 catch {
-                                                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
+                                                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
                                                     Write-PscriboMessage -IsWarning $_.Exception.Message
                                                     continue
                                                 }
                                             }
-                                            try {
-                                                Section -Style Heading5 "Infrastructure Services Status" {
-                                                    Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
-                                                    foreach ($DC in $DCs){
-                                                        if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
-                                                            Get-AbrADInfrastructureService -DC $DC
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            catch {
-                                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
-                                                Write-PscriboMessage -IsWarning $_.Exception.Message
-                                                continue
-                                            }
+                                            Get-AbrADSiteReplication -Domain $Domain
+                                            Get-AbrADGPO -Domain $Domain
+                                            Get-AbrADOU -Domain $Domain
                                         }
-                                        Get-AbrADSiteReplication -Domain $Domain
-                                        Get-AbrADGPO -Domain $Domain
-                                        Get-AbrADOU -Domain $Domain
                                     }
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Active Directory Domain)"
-                            continue
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Active Directory Domain)"
+                                continue
+                            }
                         }
                     }
                 }
@@ -257,28 +262,30 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         BlankLine
                     }
                     foreach ($Domain in $OrderedDomains.split(" ")) {
-                        try {
-                            if (($Domain -notin $Options.Exclude.Domains) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
-                                if ($Domain -eq $RootDomains) {
-                                    $DomainHeading = "$($Domain.ToString().ToUpper()) Root Domain DNS Configuration"
-                                } else {$DomainHeading = "$($Domain.ToString().ToUpper()) Child Domain DNS Configuration"}
-                                Section -Style Heading3 $DomainHeading {
-                                    Paragraph "The following section provides a configuration summary of the DNS service."
-                                    BlankLine
-                                    Get-AbrADDNSInfrastructure -Domain $Domain
-                                    $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}}
-                                    foreach ($DC in $DCs){
-                                        if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
-                                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                                            Get-AbrADDNSZone -Domain $Domain -DC $DC
+                        if ($Domain) {
+                            try {
+                                if (($Domain -notin $Options.Exclude.Domains) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
+                                    if ($Domain -eq $RootDomains) {
+                                        $DomainHeading = "$($Domain.ToString().ToUpper()) Root Domain DNS Configuration"
+                                    } else {$DomainHeading = "$($Domain.ToString().ToUpper()) Child Domain DNS Configuration"}
+                                    Section -Style Heading3 $DomainHeading {
+                                        Paragraph "The following section provides a configuration summary of the DNS service."
+                                        BlankLine
+                                        Get-AbrADDNSInfrastructure -Domain $Domain
+                                        $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}}
+                                        foreach ($DC in $DCs){
+                                            if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                                Get-AbrADDNSZone -Domain $Domain -DC $DC
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Information)"
-                            continue
+                            catch {
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Information)"
+                                continue
+                            }
                         }
                     }
                 }
@@ -297,102 +304,104 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         BlankLine
                     }
                     foreach ($Domain in ( $OrderedDomains.split(" "))) {
-                        if (($Domain -notin $Options.Exclude.Domains) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
-                            try {
-                                $DomainDHCPs = Get-DhcpServerInDC -CimSession $TempCIMSession | Where-Object {$_.DnsName.split(".", 2)[1] -eq $Domain} | Select-Object -ExpandProperty DnsName | Where-Object {$_ -notin $Options.Exclude.DCs}
-                                if ($DomainDHCPs) {
-                                    if ($Domain -eq $RootDomains) {
-                                        $DomainHeading = "$($Domain.ToString().ToUpper()) Root Domain DHCP Configuration"
-                                    } else {$DomainHeading = "$($Domain.ToString().ToUpper()) Child Domain DHCP Configuration"}
-                                    Section -Style Heading3 $DomainHeading {
-                                        Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
-                                        BlankLine
-                                        Get-AbrADDHCPInfrastructure -Domain $Domain
-                                        Section -Style Heading4 "IPv4 Scope Configuration" {
-                                            Paragraph "The following section provides a IPv4 configuration summary of the Dynamic Host Configuration Protocol."
+                        if ($Domain) {
+                            if (($Domain -notin $Options.Exclude.Domains) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
+                                try {
+                                    $DomainDHCPs = Get-DhcpServerInDC -CimSession $TempCIMSession | Where-Object {$_.DnsName.split(".", 2)[1] -eq $Domain} | Select-Object -ExpandProperty DnsName | Where-Object {$_ -notin $Options.Exclude.DCs}
+                                    if ($DomainDHCPs) {
+                                        if ($Domain -eq $RootDomains) {
+                                            $DomainHeading = "$($Domain.ToString().ToUpper()) Root Domain DHCP Configuration"
+                                        } else {$DomainHeading = "$($Domain.ToString().ToUpper()) Child Domain DHCP Configuration"}
+                                        Section -Style Heading3 $DomainHeading {
+                                            Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
                                             BlankLine
-                                            try {
-                                                Get-AbrADDHCPv4Statistic -Domain $Domain
-                                            }
-                                            catch {
-                                                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from  $($Domain.ToString().ToUpper())."
-                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Statistics)"
-                                            }
-                                            foreach ($DHCPServer in $DomainDHCPs){
-                                                if (Test-Connection -ComputerName $DHCPServer -Quiet -Count 1) {
-                                                    try {
-                                                        Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer
-                                                    }
-                                                    catch {
-                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope information)"
-                                                    }
-                                                    if ($InfoLevel.DHCP -ge 2) {
+                                            Get-AbrADDHCPInfrastructure -Domain $Domain
+                                            Section -Style Heading4 "IPv4 Scope Configuration" {
+                                                Paragraph "The following section provides a IPv4 configuration summary of the Dynamic Host Configuration Protocol."
+                                                BlankLine
+                                                try {
+                                                    Get-AbrADDHCPv4Statistic -Domain $Domain
+                                                }
+                                                catch {
+                                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from  $($Domain.ToString().ToUpper())."
+                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Statistics)"
+                                                }
+                                                foreach ($DHCPServer in $DomainDHCPs){
+                                                    if (Test-Connection -ComputerName $DHCPServer -Quiet -Count 1) {
                                                         try {
-                                                            Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer
-                                                            $DHCPScopes =  Get-DhcpServerv4Scope -CimSession $TempCIMSession -ComputerName $DHCPServer| Select-Object -ExpandProperty ScopeId
-                                                            if ($DHCPScopes) {
-                                                                Section -Style Heading5 "Scope Options" {
-                                                                    Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
-                                                                    foreach ($Scope in $DHCPScopes) {
-                                                                        try {
-                                                                            Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
-                                                                        }
-                                                                        catch {
-                                                                            Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope configuration)"
+                                                            Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer
+                                                        }
+                                                        catch {
+                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope information)"
+                                                        }
+                                                        if ($InfoLevel.DHCP -ge 2) {
+                                                            try {
+                                                                Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer
+                                                                $DHCPScopes =  Get-DhcpServerv4Scope -CimSession $TempCIMSession -ComputerName $DHCPServer| Select-Object -ExpandProperty ScopeId
+                                                                if ($DHCPScopes) {
+                                                                    Section -Style Heading5 "Scope Options" {
+                                                                        Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
+                                                                        foreach ($Scope in $DHCPScopes) {
+                                                                            try {
+                                                                                Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
+                                                                            }
+                                                                            catch {
+                                                                                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
+                                                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope configuration)"
+                                                                            }
                                                                         }
                                                                     }
                                                                 }
                                                             }
-                                                        }
-                                                        catch {
-                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Scope Server Options)"
+                                                            catch {
+                                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Scope Server Options)"
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
-                                        Section -Style Heading4 "IPv6 Scope Configuration" {
-                                            Paragraph "The following section provides a IPv6 configuration summary of the Dynamic Host Configuration Protocol."
-                                            BlankLine
-                                            try {
-                                                Get-AbrADDHCPv6Statistic -Domain $Domain
-                                            }
-                                            catch {
-                                                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Statistics from $($Domain.ToString().ToUpper())."
-                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Server IPv6 Statistics)"
-                                            }
-                                            foreach ($DHCPServer in $DomainDHCPs){
-                                                if (Test-Connection -ComputerName $DHCPServer -Quiet -Count 1) {
-                                                    Write-PScriboMessage "Discovering Dhcp Server IPv6 Scopes from $DHCPServer"
-                                                    try {
-                                                        Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer
-                                                    }
-                                                    catch {
-                                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Information)"
-                                                    }
-                                                    if ($InfoLevel.DHCP -ge 2) {
+                                            Section -Style Heading4 "IPv6 Scope Configuration" {
+                                                Paragraph "The following section provides a IPv6 configuration summary of the Dynamic Host Configuration Protocol."
+                                                BlankLine
+                                                try {
+                                                    Get-AbrADDHCPv6Statistic -Domain $Domain
+                                                }
+                                                catch {
+                                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Statistics from $($Domain.ToString().ToUpper())."
+                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Server IPv6 Statistics)"
+                                                }
+                                                foreach ($DHCPServer in $DomainDHCPs){
+                                                    if (Test-Connection -ComputerName $DHCPServer -Quiet -Count 1) {
+                                                        Write-PScriboMessage "Discovering Dhcp Server IPv6 Scopes from $DHCPServer"
                                                         try {
-                                                            Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer
-                                                            $DHCPScopes =  Get-DhcpServerv6Scope -CimSession $TempCIMSession -ComputerName $DHCPServer | Select-Object -ExpandProperty Prefix
-                                                            if ($DHCPScopes) {
-                                                                Section -Style Heading5 "Scope Options" {
-                                                                    Paragraph "The following section provides a summary 6 Scope Server Options information."
-                                                                    BlankLine
-                                                                    foreach ($Scope in $DHCPScopes) {
-                                                                        try {
-                                                                            Get-AbrADDHCPv6PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
-                                                                        }
-                                                                        catch {
-                                                                            Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Per DHCP Scope configuration)"
+                                                            Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer
+                                                        }
+                                                        catch {
+                                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Information)"
+                                                        }
+                                                        if ($InfoLevel.DHCP -ge 2) {
+                                                            try {
+                                                                Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer
+                                                                $DHCPScopes =  Get-DhcpServerv6Scope -CimSession $TempCIMSession -ComputerName $DHCPServer | Select-Object -ExpandProperty Prefix
+                                                                if ($DHCPScopes) {
+                                                                    Section -Style Heading5 "Scope Options" {
+                                                                        Paragraph "The following section provides a summary 6 Scope Server Options information."
+                                                                        BlankLine
+                                                                        foreach ($Scope in $DHCPScopes) {
+                                                                            try {
+                                                                                Get-AbrADDHCPv6PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
+                                                                            }
+                                                                            catch {
+                                                                                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
+                                                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Per DHCP Scope configuration)"
+                                                                            }
                                                                         }
                                                                     }
                                                                 }
                                                             }
-                                                        }
-                                                        catch {
-                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Server Options)"
+                                                            catch {
+                                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Server Options)"
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -400,9 +409,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         }
                                     }
                                 }
-                            }
-                            catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) ($($Domain.ToString().ToUpper()) Domain DHCP Configuration)"
+                                catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) ($($Domain.ToString().ToUpper()) Domain DHCP Configuration)"
+                                }
                             }
                         }
                     }
@@ -411,76 +420,95 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
             #                                 Certificate Authority Section                               #
             #---------------------------------------------------------------------------------------------#
-            $Global:CAs = Get-CertificationAuthority -Enterprise
-            if ($InfoLevel.CA -ge 1 -and ($CAs)) {
-                try {
-                    Section -Style Heading2 "Certificate Authority Summary" {
-                        if ($Options.ShowDefinitionInfo) {
-                            Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
-                            BlankLine
-                        }
-                        if (!$Options.ShowDefinitionInfo) {
-                            Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
-                            BlankLine
-                        }
+            if ($InfoLevel.CA -ge 1) {
+                $CurrentMachineADDomain = Get-ComputerADDomain -ErrorAction SilentlyContinue
+                if ($CurrentMachineADDomain.Name -in $ADSystem.Domains) {
+                    Write-PScriboMessage "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forrest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
+                    try {
+                        Write-PScriboMessage "Collecting Certification Authority information from $($System.split(".")[0])"
+                        $Global:CAs = Get-CertificationAuthority -Enterprise
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                    }
+
+                    if ($CAs) {
                         try {
-                            Get-AbrADCASummary
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
-                        }
-                        if ($InfoLevel.CA -ge 2) {
-                            try {
-                                Get-AbrADCARoot
-                                Get-AbrADCASubordinate
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
-                            }
-                        }
-                        try {
-                            Get-AbrADCASecurity
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
-                        }
-                        try {
-                            Get-AbrADCACryptographyConfig
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
-                        }
-                        if ($InfoLevel.CA -ge 2) {
-                            try {
-                                Get-AbrADCAAIA
-                                Get-AbrADCACRLSetting
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
-                            }
-                        }
-                        if ($InfoLevel.CA -ge 2) {
-                            foreach ($CA in $CAs) {
+                            Section -Style Heading2 "Certificate Authority Summary" {
+                                if ($Options.ShowDefinitionInfo) {
+                                    Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
+                                    BlankLine
+                                }
+                                if (!$Options.ShowDefinitionInfo) {
+                                    Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
+                                    BlankLine
+                                }
                                 try {
-                                    Get-AbrADCATemplate -CA $CA
+                                    Get-AbrADCASummary
                                 }
                                 catch {
                                     Write-PscriboMessage -IsWarning $_.Exception.Message
                                 }
+                                if ($InfoLevel.CA -ge 2) {
+                                    try {
+                                        Get-AbrADCARoot
+                                        Get-AbrADCASubordinate
+                                    }
+                                    catch {
+                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                    }
+                                }
+                                foreach ($CA in ($CAs | Where-Object {$_.IsAccessible -notlike 'False'}).ComputerName) {
+                                    $CAObject = Get-CertificationAuthority -Enterprise -ComputerName $CA
+                                    if ($CAObject) {
+                                        Section -Style Heading3 "$($CAObject.DisplayName) Details" {
+                                            try {
+                                                Get-AbrADCASecurity -CA $CAObject
+                                            }
+                                            catch {
+                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            }
+                                            try {
+                                                Get-AbrADCACryptographyConfig -CA $CAObject
+                                            }
+                                            catch {
+                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            }
+                                            if ($InfoLevel.CA -ge 2) {
+                                                try {
+                                                    Get-AbrADCAAIA -CA $CAObject
+                                                    Get-AbrADCACRLSetting -CA $CAObject
+                                                }
+                                                catch {
+                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                }
+                                            }
+                                            if ($InfoLevel.CA -ge 2) {
+                                                try {
+                                                    Get-AbrADCATemplate -CA $CAObject
+                                                }
+                                                catch {
+                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                }
+                                            }
+                                            try {
+                                                Get-AbrADCAKeyRecoveryAgent -CA $CAObject
+                                            }
+                                            catch {
+                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        }
-                        try {
-                            Get-AbrADCAKeyRecoveryAgent
                         }
                         catch {
                             Write-PscriboMessage -IsWarning $_.Exception.Message
+                            continue
                         }
                     }
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning $_.Exception.Message
-                    continue
-                }
+                } else {Write-PScriboMessage -IsWarning "Current PC Domain $($CurrentMachineADDomain.Name) is not in the Forrest Domain list of $($ADSystem.Name). Disabling Certificate Authority section"
+            }
             }
         }#endregion AD Section
         Write-PscriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
