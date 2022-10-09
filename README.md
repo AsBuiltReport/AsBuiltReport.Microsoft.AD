@@ -70,6 +70,7 @@ PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are require
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
 - [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
+- [ADCSAdministration Module](https://learn.microsoft.com/en-us/powershell/module/adcsadministration/?view=windowsserver2019-ps)
 - [PSPKI Module](https://www.powershellgallery.com/packages/PSPKI/3.7.2)
 - [GroupPolicy Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps)
 - [DhcpServer Module](https://docs.microsoft.com/en-us/powershell/module/dhcpserver/?view=windowsserver2019-ps)
@@ -95,6 +96,7 @@ Install-Module -Name PSPKI
 Install-Module -Name PScriboCharts
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Install-WindowsFeature -Name RSAT-AD-PowerShell
+Install-WindowsFeature -Name RSAT-ADCS,RSAT-ADCS-mgmt
 Install-WindowsFeature -Name RSAT-DNS-Server
 Install-WindowsFeature -Name RSAT-DHCP
 Install-WindowsFeature -Name GPMC
@@ -107,6 +109,7 @@ Install-Module -Name PSPKI
 Install-Module -Name PScriboCharts
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
+Add-WindowsCapability -Online -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0'
 Add-WindowsCapability -online -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0'
 Add-WindowsCapability –online –Name 'Rsat.Dns.Tools~~~~0.0.1.0'
 Add-WindowsCapability -Online -Name 'Rsat.DHCP.Tools~~~~0.0.1.0'
