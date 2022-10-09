@@ -31,7 +31,7 @@ function Get-AbrADCASecurity {
             try {
                 $CFP = Get-CertificateValidityPeriod -CertificationAuthority $CA
                 if ($CFP) {
-                    Section -Style Heading3 "Certificate Validity Period" {
+                    Section -Style Heading4 "Certificate Validity Period" {
                         Paragraph "The following section provides the Certification Authority Certificate Validity Period information."
                         BlankLine
                         $OutObj = @()
@@ -66,7 +66,7 @@ function Get-AbrADCASecurity {
             try {
                 $ACLs =  Get-CertificationAuthorityAcl -CertificationAuthority $CA
                 if ($ACLs) {
-                    Section -Style Heading4 "Access Control List (ACL)" {
+                    Section -Style Heading5 "Access Control List (ACL)" {
                         $OutObj = @()
                         try {
                             Write-PscriboMessage "Collecting Certification Authority Access Control List information of $($CA.Name)."
@@ -98,7 +98,7 @@ function Get-AbrADCASecurity {
                         }
                         $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                         try {
-                            Section -Style Heading5 "$($CA.Name) Rights" {
+                            Section -Style Heading6 "Access Rights" {
                                 $OutObj = @()
                                 Write-PscriboMessage "Collecting AD Certification Authority Access Control List information of $($CA.Name)."
                                 foreach ($ACL in $ACLs.Access) {
@@ -116,7 +116,7 @@ function Get-AbrADCASecurity {
                                 }
 
                                 $TableParams = @{
-                                    Name = "ACL Rights - $($CA.Name)"
+                                    Name = "Access Rights - $($CA.Name)"
                                     List = $false
                                     ColumnWidths = 40, 20, 40
                                 }

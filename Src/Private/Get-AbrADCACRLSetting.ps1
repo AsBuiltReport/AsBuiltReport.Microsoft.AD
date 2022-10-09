@@ -28,10 +28,10 @@ function Get-AbrADCACRLSetting {
 
     process {
         try {
-            Section -Style Heading3 "Certificate Revocation List (CRL)" {
+            Section -Style Heading4 "Certificate Revocation List (CRL)" {
                 Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
                 BlankLine
-                Section -Style Heading4 "CRL Validity Period" {
+                Section -Style Heading5 "CRL Validity Period" {
                     $OutObj = @()
                     try {
                         Write-PscriboMessage "Collecting AD CA CRL Validity Period information on $($CA.Name)."
@@ -67,7 +67,7 @@ function Get-AbrADCACRLSetting {
                     $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
                 }
                 try {
-                    Section -Style Heading4 "CRL Flags Settings" {
+                    Section -Style Heading5 "CRL Flags Settings" {
                         $OutObj = @()
                         try {
                             Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $($CA.Name)."
@@ -105,43 +105,41 @@ function Get-AbrADCACRLSetting {
                     Write-PscriboMessage -IsWarning $_.Exception.Message
                 }
                 try {
-                    Section -Style Heading4 "CRL Distribution Point" {
+                    Section -Style Heading5 "CRL Distribution Point" {
                         Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
                         BlankLine
                         try {
-                            Section -Style Heading5 "$($CA.Name)" {
-                                $OutObj = @()
-                                Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $($CA.NAme)."
-                                $CRL = Get-CRLDistributionPoint -CertificationAuthority $CA
-                                foreach ($URI in $CRL.URI) {
-                                    try {
-                                        $inObj = [ordered] @{
-                                            'Reg URI' = $URI.RegURI
-                                            'Config URI' = $URI.ConfigURI
-                                            'Url Scheme' = $URI.UrlScheme
-                                            'ProjectedURI' = $URI.ProjectedURI
-                                            'Flags' = ConvertTo-EmptyToFiller ($URI.Flags -join ", ")
-                                            'CRL Publish' = ConvertTo-TextYN $URI.IncludeToExtension
-                                            'Delta CRL Publish' = ConvertTo-TextYN $URI.DeltaCRLPublish
-                                            'Add To Cert CDP' = ConvertTo-TextYN $URI.AddToCertCDP
-                                            'Add To Fresh est CRL' = ConvertTo-TextYN $URI.AddToFreshestCRL
-                                            'Add To Crl cdp' = ConvertTo-TextYN $URI.AddToCrlcdp
-                                        }
-                                        $OutObj = [pscustomobject]$inobj
+                            $OutObj = @()
+                            Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $($CA.NAme)."
+                            $CRL = Get-CRLDistributionPoint -CertificationAuthority $CA
+                            foreach ($URI in $CRL.URI) {
+                                try {
+                                    $inObj = [ordered] @{
+                                        'Reg URI' = $URI.RegURI
+                                        'Config URI' = $URI.ConfigURI
+                                        'Url Scheme' = $URI.UrlScheme
+                                        'ProjectedURI' = $URI.ProjectedURI
+                                        'Flags' = ConvertTo-EmptyToFiller ($URI.Flags -join ", ")
+                                        'CRL Publish' = ConvertTo-TextYN $URI.IncludeToExtension
+                                        'Delta CRL Publish' = ConvertTo-TextYN $URI.DeltaCRLPublish
+                                        'Add To Cert CDP' = ConvertTo-TextYN $URI.AddToCertCDP
+                                        'Add To Fresh est CRL' = ConvertTo-TextYN $URI.AddToFreshestCRL
+                                        'Add To Crl cdp' = ConvertTo-TextYN $URI.AddToCrlcdp
+                                    }
+                                    $OutObj = [pscustomobject]$inobj
 
-                                        $TableParams = @{
-                                            Name = "CRL Distribution Point - $($CA.Name)"
-                                            List = $true
-                                            ColumnWidths = 40, 60
-                                        }
-                                        if ($Report.ShowTableCaptions) {
-                                            $TableParams['Caption'] = "- $($TableParams.Name)"
-                                        }
-                                        $OutObj | Table @TableParams
+                                    $TableParams = @{
+                                        Name = "CRL Distribution Point - $($CA.Name)"
+                                        List = $true
+                                        ColumnWidths = 40, 60
                                     }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
+                                    $OutObj | Table @TableParams
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning $_.Exception.Message
                                 }
                             }
                         }
@@ -159,7 +157,7 @@ function Get-AbrADCACRLSetting {
             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (CRL Distribution Point)"
         }
         try {
-            Section -Style Heading3 "AIA and CDP Health Status" {
+            Section -Style Heading4 "AIA and CDP Health Status" {
                 Paragraph "The following section is intended to perform Certification Authority health status checking by CA certificate chain status and validating all CRL Distribution Point (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain."
                 BlankLine
                 $OutObj = @()

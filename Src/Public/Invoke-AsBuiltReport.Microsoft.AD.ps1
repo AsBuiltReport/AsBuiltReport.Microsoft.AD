@@ -458,7 +458,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                 foreach ($CA in ($CAs | Where-Object {$_.IsAccessible -notlike 'False'}).ComputerName) {
                                     $CAObject = Get-CertificationAuthority -Enterprise -ComputerName $CA
                                     if ($CAObject) {
-                                        Section -Style Heading2 "$($CAObject.DisplayName) Details" {
+                                        Section -Style Heading3 "$($CAObject.DisplayName) Details" {
                                             try {
                                                 Get-AbrADCASecurity -CA $CAObject
                                             }

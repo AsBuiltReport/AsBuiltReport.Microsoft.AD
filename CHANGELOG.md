@@ -1,4 +1,27 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
+
+## [0.7.9] - 2022-10-??
+
+### Added
+
+- Added charts to the Domain object count sub-sections
+
+### Changed
+
+- Split the Domain object count section.
+  - Computers Object count
+  - User object count
+  - Domain Controller count
+
+### Fixed
+
+- close [#69](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/69)
+- close [#74](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/74)
+- close [#75](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/75)
+- close [#76](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/76)
+- close [#77](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/77)
+- close [#78](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/78)
+
 ## [0.7.8] - 2022-10-04
 
 ### Added
