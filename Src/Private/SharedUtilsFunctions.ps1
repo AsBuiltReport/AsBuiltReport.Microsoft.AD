@@ -244,6 +244,7 @@ function ConvertTo-ADCanonicalName {
 
 function Copy-DictionaryManual {
     [CmdletBinding()]
+    [OutputType([System.Collections.Hashtable])]
     param(
         [System.Collections.IDictionary] $Dictionary
     )
