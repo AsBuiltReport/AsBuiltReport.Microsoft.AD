@@ -12,7 +12,7 @@
 RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.7.9'
+ModuleVersion = '0.7.10'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -54,7 +54,7 @@ Description = 'A PowerShell module to generate an as built report on the configu
 RequiredModules = @(
     @{
         ModuleName = 'AsBuiltReport.Core';
-        ModuleVersion = '1.2.0'
+        ModuleVersion = '1.3.0'
     },
     @{
         ModuleName = 'PSPKI';
