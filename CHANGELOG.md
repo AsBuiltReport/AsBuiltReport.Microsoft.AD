@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- [#83](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/83)
+- Fix issue [#83](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/83) (Error running report if multiple version are installed together)
 
 ## [0.7.9] - 2022-10-09
 
