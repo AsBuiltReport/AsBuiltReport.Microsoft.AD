@@ -1,10 +1,6 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
-## [0.7.10] - 2022-10-XX
-
-### Changed
-
-- Updated `RequiredModules` for AsBuiltReport.Core 1.3.0
+## [0.7.10] - 2022-10-28
 
 ### Fixed
 

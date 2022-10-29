@@ -54,7 +54,7 @@ Description = 'A PowerShell module to generate an as built report on the configu
 RequiredModules = @(
     @{
         ModuleName = 'AsBuiltReport.Core';
-        ModuleVersion = '1.3.0'
+        ModuleVersion = '1.2.0'
     },
     @{
         ModuleName = 'PSPKI';
