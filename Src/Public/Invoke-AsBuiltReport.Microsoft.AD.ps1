@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.9
+        Version:        0.7.10
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -26,16 +26,20 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-PScriboMessage -IsWarning "Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
     Write-PScriboMessage -IsWarning "Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues"
 
-    $InstalledVersion = Get-Module -ListAvailable -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
+    Try {
+        $InstalledVersion = Get-Module -ListAvailable -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
 
-    if ($InstalledVersion) {
-        Write-PScriboMessage -IsWarning "Installed AsBuiltReport.Microsoft.AD Version: $($InstalledVersion.ToString())"
-        $MostCurrentVersion = Find-Module -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
-        if ($MostCurrentVersion -and ($MostCurrentVersion -gt $InstalledVersion)) {
-            Write-PScriboMessage -IsWarning "New Update: AsBuiltReport.Microsoft.AD Version: $($MostCurrentVersion.ToString())"
-            Write-PScriboMessage -IsWarning "To Update run: Update-Module -Name AsBuiltReport.Microsoft.AD -Force"
+        if ($InstalledVersion) {
+            Write-PScriboMessage -IsWarning "AsBuiltReport.Microsoft.AD $($InstalledVersion.ToString()) is currently installed."
+            $LatestVersion = Find-Module -Name AsBuiltReport.Microsoft.AD -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
+            if ($LatestVersion -gt $InstalledVersion) {
+                Write-PScriboMessage -IsWarning "AsBuiltReport.Microsoft.AD $($LatestVersion.ToString()) is available."
+                Write-PScriboMessage -IsWarning "Run 'Update-Module -Name AsBuiltReport.Microsoft.AD -Force' to install the latest version."
+            }
         }
-    }
+    } Catch {
+            Write-PscriboMessage -IsWarning $_.Exception.Message
+        }
 
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 
