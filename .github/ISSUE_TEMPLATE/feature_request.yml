@@ -1,0 +1,34 @@
+name: Feature Request
+description: Suggest an idea for this project
+labels: ["enhancement"]
+assignees:
+  - tpcarman
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >-
+        Please provide a detailed description of your idea so that the project maintainers and contributors can fully understand what change, feature, or improvement you are proposing.
+    validations:
+      required: true
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: This field is optional. You may provide additional context for the idea you wish to propose. You may wish to include links to any related [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.Azure/issues) or other relevant information.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      description: >-
+        Please ensure your feature request fulfills all of the following requirements.
+        If you are unsure of what a specific requirement means, please follow the links to learn about it and understand why it is necessary before submitting.
+      options:
+        - label: >-
+            I have read [the documentation](https://www.asbuiltreport.com/user-guide/new-asbuiltconfig),
+            and referred to the [known issues](https://www.asbuiltreport.com/user-guide/known-issues/) before submitting this feature request.
+          required: true
+        - label: >-
+            I have checked for previously opened & closed [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.Azure/issues) before submitting this feature request.
+          required: true
