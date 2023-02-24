@@ -2,7 +2,7 @@ name: Bug Report
 description: File a bug report
 labels: ["bug"]
 assignees:
-  - tpcarman
+  - rebelinux
 body:
   - type: textarea
     id: bug-description
