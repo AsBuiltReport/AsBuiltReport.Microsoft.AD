@@ -18,7 +18,7 @@ body:
       label: Command-line input
       description: >-
         Please provide the command line input you are using to run AsBuiltReport. Please ensure that you obscure any sensitive information.
-      placeholder: New-AsBuiltReport -Report Microsoft.Azure -Target xxxxxxx -MFA -Format Word,HTML -OutputFolderPath .\Documents\ -AsBuiltConfigFilePath .\AsBuiltReport\AsBuiltReport.json -ReportConfigFilePath .\AsBuiltReport\AsBuiltReport.Microsoft.Azure.json -EnableHealthCheck -Verbose
+      placeholder: New-AsBuiltReport -Report Microsoft.AD -Target xxxxxxx -Format Word,HTML -OutputFolderPath .\Documents\ -AsBuiltConfigFilePath .\AsBuiltReport\AsBuiltReport.json -ReportConfigFilePath .\AsBuiltReport\AsBuiltReport.Microsoft.AD.json -EnableHealthCheck -Verbose
     validations:
       required: true
   - type: textarea
@@ -69,15 +69,15 @@ body:
     id: powershell-modules
     attributes:
       label: PowerShell Modules
-      description: Please provide information about the PowerShell modules are you using. Please provide the output from the following PowerShell command `Get-Module -ListAvailable @("AsBuiltReport.Core";"AsBuiltReport.Microsoft.Azure";"Az";"PScribo") | Select Name, Version`
-      placeholder: Get-Module -ListAvailable @("AsBuiltReport.Core";"AsBuiltReport.Microsoft.Azure";"Az";"PScribo") | Select Name, Version
+      description: Please provide information about the PowerShell modules are you using. Please provide the output from the following PowerShell command `Get-Module -ListAvailable @("AsBuiltReport.Core";"AsBuiltReport.Microsoft.AD";"PSPKI";"PScriboCharts";"PScribo") | Select Name, Version`
+      placeholder: Get-Module -ListAvailable @("AsBuiltReport.Core";"AsBuiltReport.Microsoft.AD";"PSPKI";"PScriboCharts";"PScribo") | Select Name, Version
     validations:
       required: true
   - type: textarea
     id: additional-context
     attributes:
       label: Additional Context
-      description: This field is optional. You may provide additional context for the bug you wish to report. You may wish to include links to any related [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.Azure/issues) or other relevant information.
+      description: This field is optional. You may provide additional context for the bug you wish to report. You may wish to include links to any related [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues) or other relevant information.
   - type: checkboxes
     id: checklist
     attributes:
@@ -94,5 +94,5 @@ body:
             and referred to the [known issues](https://www.asbuiltreport.com/user-guide/known-issues/) before submitting this bug report.
           required: true
         - label: >-
-            I have checked for previously opened & closed [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.Azure/issues) before submitting this bug report.
+            I have checked for previously opened & closed [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues) before submitting this bug report.
           required: true
