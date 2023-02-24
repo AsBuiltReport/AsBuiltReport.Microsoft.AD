@@ -2,7 +2,7 @@ name: Feature Request
 description: Suggest an idea for this project
 labels: ["enhancement"]
 assignees:
-  - tpcarman
+  - rebelinux
 body:
   - type: textarea
     id: description
@@ -16,7 +16,7 @@ body:
     id: additional-context
     attributes:
       label: Additional Context
-      description: This field is optional. You may provide additional context for the idea you wish to propose. You may wish to include links to any related [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.Azure/issues) or other relevant information.
+      description: This field is optional. You may provide additional context for the idea you wish to propose. You may wish to include links to any related [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues) or other relevant information.
   - type: checkboxes
     id: checklist
     attributes:
@@ -30,5 +30,5 @@ body:
             and referred to the [known issues](https://www.asbuiltreport.com/user-guide/known-issues/) before submitting this feature request.
           required: true
         - label: >-
-            I have checked for previously opened & closed [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.Azure/issues) before submitting this feature request.
+            I have checked for previously opened & closed [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues) before submitting this feature request.
           required: true
