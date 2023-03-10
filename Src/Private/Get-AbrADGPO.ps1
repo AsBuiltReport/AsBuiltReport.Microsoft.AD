@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.11
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,14 +29,14 @@ function Get-AbrADGPO {
 
     process {
         try {
-            Section -Style Heading4 "Group Policy Objects Summary" {
+            Section -Style Heading5 "Group Policy Objects Summary" {
                 Paragraph "The following section provides a summary of the Group Policy Objects for domain $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
                 $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-GPO -Domain $using:Domain -All}
                 Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                 if ($GPOs) {
-                    if ($InfoLevel.Domain -le 2) {
+                    if ($InfoLevel.Domain -eq 1) {
                         try {
                             foreach ($GPO in $GPOs) {
                                 try {
@@ -76,41 +76,45 @@ function Get-AbrADGPO {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Summary)"
                         }
                     }
-                    if ($InfoLevel.Domain -ge 3) {
+                    if ($InfoLevel.Domain -ge 2) {
                         try {
                             foreach ($GPO in $GPOs) {
-                                try {
-                                    Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
-                                    $inObj = [ordered] @{
-                                        'GPO Name' = $GPO.DisplayName
-                                        'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
-                                        'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
-                                        'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
-                                    }
-                                    if ($InfoLevel.Domain -ge 3) {
-                                        $inObj.Add('Description', $GPO.Description)
-                                        $inObj.Add('Owner', $GPO.Owner)
-                                    }
-                                    $OutObj = [pscustomobject]$inobj
+                                Section -ExcludeFromTOC -Style NOTOCHeading6 "$($GPO.DisplayName)" {
+                                    try {
+                                        Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
+                                        $inObj = [ordered] @{
+                                            'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                                            'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
+                                            'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
+                                            'Description' = $GPO.Description
+                                            'Owner' =  $GPO.Owner
+                                        }
 
-                                    if ($HealthCheck.Domain.GPO) {
-                                        $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
-                                        $OutObj | Where-Object {$Null -eq $_.'Owner'} | Set-Style -Style Warning -Property 'Owner'
-                                    }
+                                        $OutObj = [pscustomobject]$inobj
 
-                                    $TableParams = @{
-                                        Name = "GPO - $($GPO.DisplayName)"
-                                        List = $true
-                                        ColumnWidths = 40, 60
-                                    }
+                                        if ($HealthCheck.Domain.GPO) {
+                                            $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
+                                            $OutObj | Where-Object {$Null -eq $_.'Owner'} | Set-Style -Style Warning -Property 'Owner'
+                                        }
 
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        $TableParams = @{
+                                            Name = "GPO - $($GPO.DisplayName)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
+                                        if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
+                                            Paragraph "Health Check:" -Italic -Bold -Underline
+                                            Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
+                                        }
                                     }
-                                    $OutObj | Table @TableParams
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Summary)"
+                                    catch {
+                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Summary)"
+                                    }
                                 }
                             }
                         }
@@ -123,7 +127,7 @@ function Get-AbrADGPO {
                         $PATH = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
                         $CentralStore = Invoke-Command -Session $TempPssSession -ScriptBlock {Test-Path $using:PATH}
                         if ($PATH) {
-                            Section -Style Heading5 "Central Store Repository" {
+                            Section -Style Heading6 "Central Store Repository" {
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Active Directory Central Store information on $Domain. (Central Store)"
                                 $inObj = [ordered] @{
@@ -189,7 +193,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "User Logon/Logoff Script" {
+                            Section -Style Heading6 "User Logon/Logoff Script" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                 }
@@ -242,7 +246,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "Computer Startup/Shutdown Script" {
+                            Section -Style Heading6 "Computer Startup/Shutdown Script" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                 }
@@ -291,7 +295,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "Unlinked GPO" {
+                            Section -Style Heading6 "Unlinked GPO" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -338,7 +342,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "Empty GPOs" {
+                            Section -Style Heading6 "Empty GPOs" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -390,7 +394,7 @@ function Get-AbrADGPO {
                         }
 
                         if ($OutObj) {
-                            Section -Style Heading5 "Enforced GPO" {
+                            Section -Style Heading6 "Enforced GPO" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }

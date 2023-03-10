@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.11
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,7 +35,7 @@ function Get-AbrADTrust {
                     $Trusts = Invoke-Command -Session $TempPssSession {Get-ADTrust -Filter * -Server $using:DC}
                     if ($Trusts) {
                         Section -Style Heading4 'Domain and Trusts' {
-                            $OutObj = @()
+                            $TrustInfo = @()
                             Write-PScriboMessage "Discovered created trusts in domain $Domain"
                             foreach ($Trust in $Trusts) {
                                 try {
@@ -53,21 +53,38 @@ function Get-AbrADTrust {
                                         'Trust Type' = $Trust.TrustType
                                         'Uplevel Only' = ConvertTo-TextYN $Trust.UplevelOnly
                                     }
-                                    $OutObj = [pscustomobject]$inobj
-
-                                    $TableParams = @{
-                                        Name = "Trusts - $($Domain.ToString().ToUpper())"
-                                        List = $true
-                                        ColumnWidths = 40, 60
-                                    }
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                    }
-                                    $OutObj | Table @TableParams
+                                    $TrustInfo += [pscustomobject]$inobj
                                 }
                                 catch {
                                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Item)"
                                 }
+                            }
+
+                            if ($InfoLevel.Domain -ge 2) {
+                                foreach ($Trust in $TrustInfo) {
+                                    Section -Style NOTOCHeading5 -ExcludeFromTOC "$($Trust.Name)" {
+                                        $TableParams = @{
+                                            Name = "Trusts - $($Trust.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $Trust | Table @TableParams
+                                    }
+                                }
+                            } else {
+                                $TableParams = @{
+                                    Name = "Trusts - $($Domain.ToString().ToUpper())"
+                                    List = $false
+                                    Columns = 'Name', 'Path', 'Source', 'Target', 'Direction'
+                                    ColumnWidths = 20, 20, 20, 20, 20
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $TrustInfo | Table @TableParams
                             }
                         }
                     }
