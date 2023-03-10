@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.10
+        Version:        0.7.11
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -425,7 +425,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 Certificate Authority Section                               #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.CA -ge 1) {
-                $CurrentMachineADDomain = Get-ComputerADDomain -ErrorAction SilentlyContinue
+                try {
+                    $CurrentMachineADDomain = Get-ComputerADDomain -ErrorAction SilentlyContinue
+                } catch {
+                    Write-PscriboMessage -IsWarning 'Unable to determine current AD Domain'
+                    Write-PscriboMessage -IsWarning $_.Exception.Message
+
+                }
                 if ($CurrentMachineADDomain.Name -in $ADSystem.Domains) {
                     Write-PScriboMessage "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forrest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
                     try {

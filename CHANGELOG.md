@@ -1,5 +1,28 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.11] - 2023-03-09
+
+### Added
+
+- Added section for Local Administrator Password Solution.
+
+### Changed
+
+- Improved bug and feature request templates
+- Changed default logo from Microsoft to the AsBuiltReport logo due to licensing requirements
+- Changed default report style font to 'Segoe Ui' to align with Microsoft guidelines
+- Changed Required Modules to AsBuiltReport.Core v1.3.0
+- Changed Infolevel 1 table structure on the following section:
+  - Hardware Inventory
+  - Fined Grained Password Policies
+  - Group Managed Service Accounts (GMSA)
+  - Sites Replication Connection
+  - Domain and Trusts
+
+### Fixed
+
+- [#81](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/81)
+
 ## [0.7.10] - 2022-10-28
 
 ### Fixed
