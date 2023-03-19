@@ -1001,7 +1001,7 @@ function Get-AbrADDomainObject {
                     Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts from DC $DC."
                     $GMSA = Invoke-Command -Session $TempPssSession {Get-ADServiceAccount -Server $using:DC -Filter * -Properties *}
                     if ($GMSA) {
-                        Section -Style Heading4 'Group Managed Service Accounts (GMSA)' {
+                        Section -Style Heading4 'gMSA identities' {
                             $GMSAInfo = @()
                             foreach ($Account in $GMSA) {
                                 try {
@@ -1035,7 +1035,7 @@ function Get-AbrADDomainObject {
                                 foreach ($Account in $GMSAInfo) {
                                     Section -Style NOTOCHeading5 -ExcludeFromTOC "$($Account.Name)" {
                                         $TableParams = @{
-                                            Name = "Group Managed Service Accounts - $($Account.Name)"
+                                            Name = "gMSA - $($Account.Name)"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -1047,7 +1047,7 @@ function Get-AbrADDomainObject {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Group Managed Service Accounts - $($Domain.ToString().ToUpper())"
+                                    Name = "gMSA - $($Domain.ToString().ToUpper())"
                                     List = $false
                                     Columns = 'Name', 'SamAccountName', 'DNS Host Name', 'Host Computers', 'Retrieve Managed Password', 'Primary Group', 'Enabled'
                                     ColumnWidths = 16, 14, 16, 14, 14, 14, 12
