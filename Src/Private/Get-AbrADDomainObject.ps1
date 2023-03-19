@@ -274,7 +274,7 @@ function Get-AbrADDomainObject {
             $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties *}
             if ($Users) {
                 $Categories = @('Enabled','Disabled')
-                Write-PscriboMessage "Collecting User Accounts in Active Directory."
+                Write-PscriboMessage "Collecting User Accounts in Domain."
                 foreach ($Category in $Categories) {
                     if ($Category -eq 'Enabled') {
                         $Values = $Users.Enabled -eq $True
@@ -289,7 +289,7 @@ function Get-AbrADDomainObject {
                 }
 
                 $TableParams = @{
-                    Name = "User Accounts in Active Directory - $($Domain.ToString().ToUpper())"
+                    Name = "User Accounts in Domain - $($Domain.ToString().ToUpper())"
                     List = $false
                     ColumnWidths = 50, 25, 25
                 }
@@ -342,9 +342,9 @@ function Get-AbrADDomainObject {
 
             }
             if ($OutObj) {
-                Section -Style Heading4 'User Accounts in Active Directory' {
+                Section -Style Heading4 'User Accounts in Domain' {
                     if ($chartFileItem) {
-                        Image -Text 'User Accounts in Active Directory - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                        Image -Text 'User Accounts in Domain - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                     }
                     $OutObj | Table @TableParams
                 }
@@ -373,7 +373,7 @@ function Get-AbrADDomainObject {
             $AccountLockout = Invoke-Command -Session $TempPssSession {Search-ADAccount -Server $using:DC -LockedOut}
             $Categories = @('Cannot Change Password','Password Never Expires','Must Change Password at Logon','Password Age (> 42 days)','SmartcardLogonRequired','SidHistory', 'Never Logged in','Dormant (> 90 days)','Password Not Required','Account Expired','Account Lockout')
             if ($Categories) {
-                Write-PscriboMessage "Collecting User Accounts in Active Directory."
+                Write-PscriboMessage "Collecting User Accounts in Domain."
                 foreach ($Category in $Categories) {
                     try {
                         if ($Category -eq 'Cannot Change Password') {
@@ -559,7 +559,7 @@ function Get-AbrADDomainObject {
             $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties *}
             if ($Computers) {
                 $Categories = @('Enabled','Disabled')
-                Write-PscriboMessage "Collecting Computer Accounts in Active Directory."
+                Write-PscriboMessage "Collecting Computer Accounts in Domain."
                 foreach ($Category in $Categories) {
                         try {
                         if ($Category -eq 'Enabled') {
@@ -578,12 +578,12 @@ function Get-AbrADDomainObject {
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Computer Accounts in Active Directory)"
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Computer Accounts in Domain)"
                     }
                 }
 
                 $TableParams = @{
-                    Name = "Computer Accounts in Active Directory - $($Domain.ToString().ToUpper())"
+                    Name = "Computer Accounts in Domain - $($Domain.ToString().ToUpper())"
                     List = $false
                     ColumnWidths = 50, 25, 25
                 }
@@ -635,9 +635,9 @@ function Get-AbrADDomainObject {
                 }
             }
             if ($OutObj) {
-                Section -Style Heading4 'Computer Accounts in Active Directory' {
+                Section -Style Heading4 'Computer Accounts in Domain' {
                     if ($chartFileItem) {
-                        Image -Text 'Computer Accounts in Active Directory - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                        Image -Text 'Computer Accounts in Domain - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                     }
                     $OutObj | Table @TableParams
                 }

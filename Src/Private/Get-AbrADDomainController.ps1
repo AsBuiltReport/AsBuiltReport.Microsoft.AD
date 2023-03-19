@@ -35,7 +35,7 @@ function Get-AbrADDomainController {
             foreach ($DC in $DCs) {
                 if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
                     try {
-                        Write-PscriboMessage "Collecting AD Domain Controller Summary information of $DC."
+                        Write-PscriboMessage "Collecting AD Domain Controllers information of $DC."
                         $DCInfo = Invoke-Command -Session $TempPssSession {Get-ADDomainController -Identity $using:DC -Server $using:DC}
                         $inObj = [ordered] @{
                             'DC Name' = ($DCInfo.Name).ToString().ToUpper()
@@ -54,7 +54,7 @@ function Get-AbrADDomainController {
             }
 
             $TableParams = @{
-                Name = "Domain Controller Summary - $($Domain.ToString().ToUpper())"
+                Name = "Domain Controllers - $($Domain.ToString().ToUpper())"
                 List = $false
                 ColumnWidths = 25, 25, 15, 10, 10, 15
             }
