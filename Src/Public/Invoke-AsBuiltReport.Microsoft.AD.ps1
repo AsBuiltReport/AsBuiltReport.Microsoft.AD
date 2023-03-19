@@ -173,7 +173,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                 Get-AbrADDuplicateObject -Domain $Domain
                                             }
                                         }
-                                        Section -Style Heading4 'Domain Controller Summary' {
+                                        Section -Style Heading4 'Domain Controllers' {
                                             if ($Options.ShowDefinitionInfo) {
                                                 Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
                                                 BlankLine
@@ -304,8 +304,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                 if ($InfoLevel.DHCP -ge 1 -and $DHCPinDomain ) {
                     foreach ($Domain in ($OrderedDomains.split(" "))) {
                         if ($Domain -notin $Options.Exclude.Domains) {
-                            $DomainInfo = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
-                            Get-AbrDHCPReport -Domain $DomainInfo
+                            try {
+                                $DomainInfo = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
+                                if ($DomainInfo) {
+                                    Get-AbrDHCPReport -Domain $DomainInfo
+                                }
+                            } catch {
+                                Write-PScriboMessage -IsWarning "Unable to retreive $($Domain) information. Removing Domain from report"
+                            }
                         }
                     }
                 }
