@@ -121,9 +121,9 @@ function Get-AbrADSiteReplication {
                 if ($RepStatus) {
                     Section -Style Heading5 'Sites Replication Status' {
                         $OutObj = @()
+                        Write-PscriboMessage "Collecting Active Directory Sites Replication Status from $($Domain). (Sites Replication Status)"
                         foreach ($Status in $RepStatus) {
                             try {
-                                Write-PscriboMessage "Collecting Active Directory Sites Replication Status from $($Domain). (Sites Replication Status)"
                                 $inObj = [ordered] @{
                                     'Source DSA' = $Status.'Source DSA'
                                     'Destination DSA' = $Status.'Destination DSA'

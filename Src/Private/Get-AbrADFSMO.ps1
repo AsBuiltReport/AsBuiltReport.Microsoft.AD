@@ -32,7 +32,7 @@ function Get-AbrADFSMO {
             $DomainData = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator}
             $ForestData = Invoke-Command -Session $TempPssSession {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
             if ($DomainData -and $ForestData) {
-                Section -Style Heading4 'Flexible Single Master Operations (FSMO)' {
+                Section -Style Heading4 'FSMO Roles' {
                     $OutObj = @()
                     try {
                         Write-PscriboMessage "Discovered Active Directory FSMO information of domain $Domain."
@@ -50,7 +50,7 @@ function Get-AbrADFSMO {
                     }
 
                     $TableParams = @{
-                        Name = "FSMO Server - $($Domain)"
+                        Name = "FSMO Roles - $($Domain)"
                         List = $true
                         ColumnWidths = 40, 60
                     }

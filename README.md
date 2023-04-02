@@ -68,7 +68,6 @@ This report is compatible with the following PowerShell versions;
 PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
-- [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
 - [ADCSAdministration Module](https://learn.microsoft.com/en-us/powershell/module/adcsadministration/?view=windowsserver2019-ps)
 - [PSPKI Module](https://www.powershellgallery.com/packages/PSPKI/3.7.2)
@@ -182,7 +181,7 @@ There are 4 levels (0-3) of detail granularity for each section as follows;
 | Setting | InfoLevel         | Description                                                                                                                                |
 |:-------:|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
 |    0    | Disabled          | Does not collect or display any information                                                                                                |
-|    1    | Enabled | Provides summarised information for a collection of objects                                                                                |
+|    1    | Enabled           | Provides summarised information for a collection of objects                                                                                |
 |    2    | Adv Summary       | Provides condensed, detailed information for a collection of objects                                                                       |
 |    3    | Detailed          | Provides detailed information for individual objects                                                                                       |
 
@@ -192,9 +191,9 @@ The table below outlines the default and maximum **InfoLevel** settings for each
 |--------------|:---------------:|:---------------:|
 | Forest       |        1        |        1        |
 | Domain       |        1        |        3        |
-| DNS          |        1        |        2        |
-| DHCP         |        1        |        2        |
-| CA           |        2        |        3        |
+| DNS          |        0        |        2        |
+| DHCP         |        0        |        2        |
+| CA           |        0        |        3        |
 
 ### Healthcheck
 

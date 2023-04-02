@@ -29,7 +29,7 @@ function Get-AbrADGPO {
 
     process {
         try {
-            Section -Style Heading5 "Group Policy Objects Summary" {
+            Section -Style Heading5 "Group Policy Objects" {
                 Paragraph "The following section provides a summary of the Group Policy Objects for domain $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -49,7 +49,7 @@ function Get-AbrADGPO {
                                     $OutObj += [pscustomobject]$inobj
                                 }
                                 catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Summary)"
+                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
                                 }
                             }
 
@@ -73,7 +73,7 @@ function Get-AbrADGPO {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Summary)"
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
                         }
                     }
                     if ($InfoLevel.Domain -ge 2) {
@@ -113,13 +113,13 @@ function Get-AbrADGPO {
                                         }
                                     }
                                     catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Summary)"
+                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
                                     }
                                 }
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Summary)"
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
                         }
                     }
 
