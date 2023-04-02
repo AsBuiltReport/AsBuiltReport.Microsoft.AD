@@ -300,8 +300,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                 throw "Unable to get DHCP discovery from $System"
             }
 
-            Section -Style Heading1 "DHCP Configuration" {
-                if ($InfoLevel.DHCP -ge 1 -and $DHCPinDomain ) {
+            if ($InfoLevel.DHCP -ge 1 -and $DHCPinDomain ) {
+                Section -Style Heading1 "DHCP Configuration" {
                     foreach ($Domain in ($OrderedDomains.split(" "))) {
                         if ($Domain -notin $Options.Exclude.Domains) {
                             try {
