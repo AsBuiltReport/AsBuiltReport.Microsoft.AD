@@ -65,10 +65,10 @@ if (!($ReportConfig.Report.ShowCoverPageImage)) {
 }
 if ($Orientation -eq 'Portrait') {
     BlankLine -Count 11
-    $LineCount = 32 + $LineCount
+    $LineCount = 23 + $LineCount
 } else {
     BlankLine -Count 7
-    $LineCount = 15 + $LineCount
+    $LineCount = 9 + $LineCount
 }
 
 # Cover Page Image

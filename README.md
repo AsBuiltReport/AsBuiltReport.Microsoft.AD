@@ -65,7 +65,7 @@ This report is compatible with the following PowerShell versions;
 
 ## :wrench: System Requirements
 <!-- ********** Update system requirements ********** -->
-PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
+PowerShell 5.1, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
 - [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
