@@ -63,10 +63,6 @@ RequiredModules = @(
     @{
         ModuleName = 'PScriboCharts';
         ModuleVersion = '0.9.0'
-    },
-    @{
-        ModuleName = 'AsBuiltReport.Microsoft.DHCP';
-        ModuleVersion = '0.1.0'
     }
 )
 

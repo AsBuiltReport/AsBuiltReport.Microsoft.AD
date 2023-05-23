@@ -17,10 +17,6 @@ jobs:
         shell: pwsh
         run: |
           Install-Module -Name AsBuiltReport.Core -Repository PSGallery -Force
-      - name: Install AsBuiltReport.Microsoft.DHCP module
-        shell: pwsh
-        run: |
-          Install-Module -Name AsBuiltReport.Microsoft.DHCP -Repository PSGallery -Force
       - name: Install PSPKI module
         shell: pwsh
         run: |
