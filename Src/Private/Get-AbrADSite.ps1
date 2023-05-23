@@ -42,7 +42,7 @@ function Get-AbrADSite {
                                 'Site Name' = $Item.Name
                                 'Description' = ConvertTo-EmptyToFiller $Item.Description
                                 'Subnets' = Switch (($SubnetArray).count) {
-                                    0 {"-"}
+                                    0 {"--"}
                                     default {$SubnetArray}
                                 }
                                 'Creation Date' = $Item.createTimeStamp.ToShortDateString()

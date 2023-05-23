@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.11
+        Version:        0.7.12
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -56,15 +56,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Get-RequiredFeature -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.Dns.Tools~~~~0.0.1.0' -OSType $OSType
-        Get-RequiredFeature -Name 'Rsat.DHCP.Tools~~~~0.0.1.0' -OSType $OSType
-
     }
     if ($OSType -eq 'Server' -or $OSType -eq 'DomainController') {
         Get-RequiredFeature -Name RSAT-AD-PowerShell -OSType $OSType
         Get-RequiredFeature -Name RSAT-ADCS -OSType $OSType
         Get-RequiredFeature -Name RSAT-ADCS-mgmt -OSType $OSType
         Get-RequiredFeature -Name RSAT-DNS-Server -OSType $OSType
-        Get-RequiredFeature -Name RSAT-DHCP -OSType $OSType
         Get-RequiredFeature -Name GPMC -OSType $OSType
     }
 
@@ -72,9 +69,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
 
     # Import Report Configuration
-    $Report = $ReportConfig.Report
-    $InfoLevel = $ReportConfig.InfoLevel
-    $Options = $ReportConfig.Options
+    $Global:Report = $ReportConfig.Report
+    $Global:InfoLevel = $ReportConfig.InfoLevel
+    $Global:Options = $ReportConfig.Options
 
     # Used to set values to TitleCase where required
     $TextInfo = (Get-Culture).TextInfo
@@ -83,6 +80,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     #                                 Connection Section                                          #
     #---------------------------------------------------------------------------------------------#
     foreach ($System in $Target) {
+
         Try {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
             $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
@@ -91,6 +89,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         } Catch {
             throw "Unable to connect to the Domain Controller: $System"
         }
+
         $script:ForestInfo =  $ADSystem.RootDomain.toUpper()
         [array]$RootDomains = $ADSystem.RootDomain
         [array]$ChildDomains = $ADSystem.Domains | Where-Object {$_ -ne $RootDomains}
@@ -99,13 +98,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #---------------------------------------------------------------------------------------------#
         #                                 Forest Section                                              #
         #---------------------------------------------------------------------------------------------#
-        Section -Style Heading1 "$($ForestInfo.toUpper()) Active Directory Report" {
+        Section -Style Heading1 "$($ForestInfo.toUpper())" {
             Paragraph "The following section provides a summary of the Active Directory Infrastructure configuration for $($ForestInfo)."
             BlankLine
             Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -ge 1) {
                 try {
-                    Section -Style Heading2 "Forest Information."  {
+                    Section -Style Heading2 "Forest Configuration."  {
                         if ($Options.ShowDefinitionInfo) {
                             Paragraph "The Active Directory framework that holds the objects can be viewed at a number of levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest. A forest is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are accessible."
                             BlankLine
@@ -138,7 +137,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #---------------------------------------------------------------------------------------------#
 
             if ($InfoLevel.Domain -ge 1) {
-                Section -Style Heading2 "Active Directory Domain Information" {
+                Section -Style Heading2 "AD Domain Configuration" {
                     if ($Options.ShowDefinitionInfo) {
                         Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user or a group or it can be a hardware component, such as a computer or printer.Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain or an alternate version (which may end in .local)."
                         BlankLine
@@ -152,10 +151,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         if ($Domain) {
                             try {
                                 if (($Domain -notin $Options.Exclude.Domains ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain})) {
-                                    if ($Domain -eq $RootDomains) {
-                                        $DomainHeading = "$($Domain.ToString().ToUpper()) Root Domain Configuration"
-                                    } else {$DomainHeading = "$($Domain.ToString().ToUpper()) Child Domain Configuration"}
-                                    Section -Style Heading3 $DomainHeading {
+                                    Section -Style Heading3 "$($Domain.ToString().ToUpper())" {
                                         Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                         BlankLine
                                         Get-AbrADDomain -Domain $Domain
@@ -174,7 +170,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                 Get-AbrADDuplicateObject -Domain $Domain
                                             }
                                         }
-                                        Section -Style Heading4 'Domain Controller Summary' {
+                                        Section -Style Heading4 'Domain Controllers' {
                                             if ($Options.ShowDefinitionInfo) {
                                                 Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
                                                 BlankLine
@@ -256,7 +252,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             #                                 DNS Section                                                 #
             #---------------------------------------------------------------------------------------------#
             if ($InfoLevel.DNS -ge 1) {
-                Section -Style Heading2 "Domain Name System Summary" {
+                Section -Style Heading2 "DNS Configuration" {
                     if ($Options.ShowDefinitionInfo) {
                         Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
                         BlankLine
@@ -269,10 +265,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         if ($Domain) {
                             try {
                                 if (($Domain -notin $Options.Exclude.Domains) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
-                                    if ($Domain -eq $RootDomains) {
-                                        $DomainHeading = "$($Domain.ToString().ToUpper()) Root Domain DNS Configuration"
-                                    } else {$DomainHeading = "$($Domain.ToString().ToUpper()) Child Domain DNS Configuration"}
-                                    Section -Style Heading3 $DomainHeading {
+                                    Section -Style Heading3 "$($Domain.ToString().ToUpper())" {
                                         Paragraph "The following section provides a configuration summary of the DNS service."
                                         BlankLine
                                         Get-AbrADDNSInfrastructure -Domain $Domain
@@ -294,133 +287,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     }
                 }
             }
-            #---------------------------------------------------------------------------------------------#
-            #                                 DHCP Section                                                #
-            #---------------------------------------------------------------------------------------------#
-            if ($InfoLevel.DHCP -ge 1 -and (Get-DhcpServerInDC -CimSession $TempCIMSession)) {
-                Section -Style Heading2 "Dynamic Host Configuration Protocol Summary" {
-                    if ($Options.ShowDefinitionInfo) {
-                        Paragraph "The Dynamic Host Configuration Protocol (DHCP) is a network management protocol used on Internet Protocol (IP) networks for automatically assigning IP addresses and other communication parameters to devices connected to the network using a client/server architecture."
-                        BlankLine
-                    }
-                    if (!$Options.ShowDefinitionInfo) {
-                        Paragraph "The following section provides a summary of the Active Directory DHCP Infrastructure Information."
-                        BlankLine
-                    }
-                    foreach ($Domain in ( $OrderedDomains.split(" "))) {
-                        if ($Domain) {
-                            if (($Domain -notin $Options.Exclude.Domains) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
-                                try {
-                                    $DomainDHCPs = Get-DhcpServerInDC -CimSession $TempCIMSession | Where-Object {$_.DnsName.split(".", 2)[1] -eq $Domain} | Select-Object -ExpandProperty DnsName | Where-Object {$_ -notin $Options.Exclude.DCs}
-                                    if ($DomainDHCPs) {
-                                        if ($Domain -eq $RootDomains) {
-                                            $DomainHeading = "$($Domain.ToString().ToUpper()) Root Domain DHCP Configuration"
-                                        } else {$DomainHeading = "$($Domain.ToString().ToUpper()) Child Domain DHCP Configuration"}
-                                        Section -Style Heading3 $DomainHeading {
-                                            Paragraph "The following section provides a summary of the Dynamic Host Configuration Protocol."
-                                            BlankLine
-                                            Get-AbrADDHCPInfrastructure -Domain $Domain
-                                            Section -Style Heading4 "IPv4 Scope Configuration" {
-                                                Paragraph "The following section provides a IPv4 configuration summary of the Dynamic Host Configuration Protocol."
-                                                BlankLine
-                                                try {
-                                                    Get-AbrADDHCPv4Statistic -Domain $Domain
-                                                }
-                                                catch {
-                                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Statistics from  $($Domain.ToString().ToUpper())."
-                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Statistics)"
-                                                }
-                                                foreach ($DHCPServer in $DomainDHCPs){
-                                                    if (Test-Connection -ComputerName $DHCPServer -Quiet -Count 1) {
-                                                        try {
-                                                            Get-AbrADDHCPv4Scope -Domain $Domain -Server $DHCPServer
-                                                        }
-                                                        catch {
-                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope information)"
-                                                        }
-                                                        if ($InfoLevel.DHCP -ge 2) {
-                                                            try {
-                                                                Get-AbrADDHCPv4ScopeServerSetting -Domain $Domain -Server $DHCPServer
-                                                                $DHCPScopes =  Get-DhcpServerv4Scope -CimSession $TempCIMSession -ComputerName $DHCPServer| Select-Object -ExpandProperty ScopeId
-                                                                if ($DHCPScopes) {
-                                                                    Section -Style Heading5 "Scope Options" {
-                                                                        Paragraph "The following section provides a summary of the DHCP servers IPv4 Scope Server Options information."
-                                                                        foreach ($Scope in $DHCPScopes) {
-                                                                            try {
-                                                                                Get-AbrADDHCPv4PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
-                                                                            }
-                                                                            catch {
-                                                                                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv4 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Server Scope configuration)"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                            catch {
-                                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv4 DHCP Scope Server Options)"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            Section -Style Heading4 "IPv6 Scope Configuration" {
-                                                Paragraph "The following section provides a IPv6 configuration summary of the Dynamic Host Configuration Protocol."
-                                                BlankLine
-                                                try {
-                                                    Get-AbrADDHCPv6Statistic -Domain $Domain
-                                                }
-                                                catch {
-                                                    Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Statistics from $($Domain.ToString().ToUpper())."
-                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Server IPv6 Statistics)"
-                                                }
-                                                foreach ($DHCPServer in $DomainDHCPs){
-                                                    if (Test-Connection -ComputerName $DHCPServer -Quiet -Count 1) {
-                                                        Write-PScriboMessage "Discovering Dhcp Server IPv6 Scopes from $DHCPServer"
-                                                        try {
-                                                            Get-AbrADDHCPv6Scope -Domain $Domain -Server $DHCPServer
-                                                        }
-                                                        catch {
-                                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Information)"
-                                                        }
-                                                        if ($InfoLevel.DHCP -ge 2) {
-                                                            try {
-                                                                Get-AbrADDHCPv6ScopeServerSetting -Domain $Domain -Server $DHCPServer
-                                                                $DHCPScopes =  Get-DhcpServerv6Scope -CimSession $TempCIMSession -ComputerName $DHCPServer | Select-Object -ExpandProperty Prefix
-                                                                if ($DHCPScopes) {
-                                                                    Section -Style Heading5 "Scope Options" {
-                                                                        Paragraph "The following section provides a summary 6 Scope Server Options information."
-                                                                        BlankLine
-                                                                        foreach ($Scope in $DHCPScopes) {
-                                                                            try {
-                                                                                Get-AbrADDHCPv6PerScopeSetting -Domain $Domain -Server $DHCPServer -Scope $Scope
-                                                                            }
-                                                                            catch {
-                                                                                Write-PScriboMessage -IsWarning "Error: Retreiving DHCP Server IPv6 Scope configuration from $($DHCPServerr.split(".", 2)[0])."
-                                                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 Per DHCP Scope configuration)"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                            catch {
-                                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IPv6 DHCP Scope Server Options)"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) ($($Domain.ToString().ToUpper()) Domain DHCP Configuration)"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+
             #---------------------------------------------------------------------------------------------#
             #                                 Certificate Authority Section                               #
             #---------------------------------------------------------------------------------------------#
@@ -444,7 +311,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
                     if ($CAs) {
                         try {
-                            Section -Style Heading2 "Certificate Authority Summary" {
+                            Section -Style Heading2 "CA Configuration" {
                                 if ($Options.ShowDefinitionInfo) {
                                     Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
                                     BlankLine

@@ -96,9 +96,9 @@ function Get-AbrADDFSHealth {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) sysvol health status."
                         BlankLine
                         $OutObj = @()
+                        Write-PscriboMessage "Collecting Sysvol information from $($Domain)."
                         foreach ($Extension in $SYSVOLFolder) {
                             try {
-                                Write-PscriboMessage "Collecting Sysvol information from $($Domain)."
                                 $inObj = [ordered] @{
                                     'Extension' = $Extension.Extension
                                     'File Count' = $Extension.Count
@@ -151,9 +151,9 @@ function Get-AbrADDFSHealth {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) netlogon health status."
                         BlankLine
                         $OutObj = @()
+                        Write-PscriboMessage "Collecting Netlogon information from $($Domain)."
                         foreach ($Extension in $NetlogonFolder) {
                             try {
-                                Write-PscriboMessage "Collecting Netlogon information from $($Domain)."
                                 $inObj = [ordered] @{
                                     'Extension' = $Extension.Extension
                                     'File Count' = $Extension.Count

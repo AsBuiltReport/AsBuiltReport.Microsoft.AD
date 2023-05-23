@@ -20,9 +20,8 @@
         "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",
         "Forest": 1,
         "Domain": 1,
-        "DHCP": 1,
-        "DNS": 1,
-        "CA": 2
+        "DNS": 0,
+        "CA": 0
     },
     "HealthCheck": {
         "Domain": {
@@ -47,12 +46,6 @@
             "Aging": true,
             "DP": true,
             "Zones": true
-        },
-        "DHCP": {
-            "Summary": true,
-            "Credential": true,
-            "Statistics": true,
-            "BP": true
         },
         "CA": {
             "Status": true,
