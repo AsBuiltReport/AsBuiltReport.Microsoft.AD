@@ -26,8 +26,8 @@ function ConvertTo-TextYN {
         )
 
     switch ($TEXT) {
-            "" {"-"; break}
-            $Null {"-"; break}
+            "" {"--"; break}
+            $Null {"--"; break}
             "True" {"Yes"; break}
             "False" {"No"; break}
             default {$TEXT}
@@ -112,7 +112,7 @@ function Invoke-DcDiag {
 function ConvertTo-EmptyToFiller {
         <#
         .SYNOPSIS
-        Used by As Built Report to convert empty culumns to "-".
+        Used by As Built Report to convert empty culumns to "--".
         .DESCRIPTION
 
         .NOTES
@@ -137,8 +137,8 @@ function ConvertTo-EmptyToFiller {
             )
 
         switch ($TEXT) {
-                "" {"-"; break}
-                $Null {"-"; break}
+                "" {"--"; break}
+                $Null {"--"; break}
                 "True" {"Yes"; break}
                 "False" {"No"; break}
                 default {$TEXT}

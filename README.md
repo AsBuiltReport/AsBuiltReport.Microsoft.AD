@@ -65,7 +65,7 @@ This report is compatible with the following PowerShell versions;
 
 ## :wrench: System Requirements
 <!-- ********** Update system requirements ********** -->
-PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
+PowerShell 5.1, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
 - [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
@@ -73,7 +73,6 @@ PowerShell 5.1 or PowerShell 7, and the following PowerShell modules are require
 - [ADCSAdministration Module](https://learn.microsoft.com/en-us/powershell/module/adcsadministration/?view=windowsserver2019-ps)
 - [PSPKI Module](https://www.powershellgallery.com/packages/PSPKI/3.7.2)
 - [GroupPolicy Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps)
-- [DhcpServer Module](https://docs.microsoft.com/en-us/powershell/module/dhcpserver/?view=windowsserver2019-ps)
 - [DnsServer Module](https://docs.microsoft.com/en-us/powershell/module/dnsserver/?view=windowsserver2019-ps)
 
 ### Linux & macOS
@@ -97,7 +96,6 @@ Install-Module -Name AsBuiltReport.Microsoft.AD
 Install-WindowsFeature -Name RSAT-AD-PowerShell
 Install-WindowsFeature -Name RSAT-ADCS,RSAT-ADCS-mgmt
 Install-WindowsFeature -Name RSAT-DNS-Server
-Install-WindowsFeature -Name RSAT-DHCP
 Install-WindowsFeature -Name GPMC
 ```
 
@@ -110,7 +108,6 @@ Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.
 Add-WindowsCapability -Online -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0'
 Add-WindowsCapability -online -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0'
 Add-WindowsCapability –online –Name 'Rsat.Dns.Tools~~~~0.0.1.0'
-Add-WindowsCapability -Online -Name 'Rsat.DHCP.Tools~~~~0.0.1.0'
 ```
 
 ### GitHub
@@ -191,7 +188,6 @@ The table below outlines the default and maximum **InfoLevel** settings for each
 | Forest       |        1        |        1        |
 | Domain       |        1        |        3        |
 | DNS          |        0        |        2        |
-| DHCP         |        0        |        2        |
 | CA           |        0        |        3        |
 
 ### Healthcheck
@@ -222,5 +218,5 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 
 - Issues with WinRM when using the IP address instead of the "Fully Qualified Domain Name".
 - This project relies heavily on the remote connection function through WinRM. For this reason the use of a Windows 10 client is specifically used as a jumpbox.
-- The report provides the ability to extract the configuration of the DHCP/DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DHCP, RSAT-DNS-Server, RSAT-AD-PowerShell).
+- The report provides the ability to extract the configuration of the DHCP/DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DNS-Server & RSAT-AD-PowerShell).
 - This report assumes that the DNS Server service is running on the same server where Domain Controller is running (Cohost).

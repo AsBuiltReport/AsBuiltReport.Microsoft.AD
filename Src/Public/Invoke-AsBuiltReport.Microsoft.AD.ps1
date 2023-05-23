@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.11
+        Version:        0.7.12
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -56,15 +56,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Get-RequiredFeature -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.Dns.Tools~~~~0.0.1.0' -OSType $OSType
-        Get-RequiredFeature -Name 'Rsat.DHCP.Tools~~~~0.0.1.0' -OSType $OSType
-
     }
     if ($OSType -eq 'Server' -or $OSType -eq 'DomainController') {
         Get-RequiredFeature -Name RSAT-AD-PowerShell -OSType $OSType
         Get-RequiredFeature -Name RSAT-ADCS -OSType $OSType
         Get-RequiredFeature -Name RSAT-ADCS-mgmt -OSType $OSType
         Get-RequiredFeature -Name RSAT-DNS-Server -OSType $OSType
-        Get-RequiredFeature -Name RSAT-DHCP -OSType $OSType
         Get-RequiredFeature -Name GPMC -OSType $OSType
     }
 
@@ -289,33 +286,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         }
                     }
                 }
-            }
-            #---------------------------------------------------------------------------------------------#
-            #                                 DHCP Section                                                #
-            #---------------------------------------------------------------------------------------------#
-
-            Try {
-                $Global:DHCPinDomain = Get-DhcpServerInDC -CimSession $TempCIMSession
-            } Catch {
-                throw "Unable to get DHCP discovery from $System"
-            }
-
-            if ($InfoLevel.DHCP -ge 1 -and $DHCPinDomain ) {
-                Section -Style Heading1 "DHCP Configuration" {
-                    foreach ($Domain in ($OrderedDomains.split(" "))) {
-                        if ($Domain -notin $Options.Exclude.Domains) {
-                            try {
-                                $DomainInfo = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
-                                if ($DomainInfo) {
-                                    Get-AbrDHCPReport -Domain $DomainInfo
-                                }
-                            } catch {
-                                Write-PScriboMessage -IsWarning "Unable to retreive $($Domain) information. Removing Domain from report"
-                            }
-                        }
-                    }
-                }
-
             }
 
             #---------------------------------------------------------------------------------------------#
