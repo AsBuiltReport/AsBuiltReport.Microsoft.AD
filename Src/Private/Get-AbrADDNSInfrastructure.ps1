@@ -249,8 +249,8 @@ function Get-AbrADDNSInfrastructure {
                                                 'Refresh Interval' = ConvertTo-EmptyToFiller $DNSSetting.RefreshInterval
                                                 'Scavenging Interval' = ConvertTo-EmptyToFiller $DNSSetting.ScavengingInterval
                                                 'Last Scavenge Time' = Switch ($DNSSetting.LastScavengeTime) {
-                                                    "" {"-"; break}
-                                                    $Null {"-"; break}
+                                                    "" {"--"; break}
+                                                    $Null {"--"; break}
                                                     default {ConvertTo-EmptyToFiller ($DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy"))}
                                                 }
                                                 'Scavenging State' = Switch ($DNSSetting.ScavengingState) {
