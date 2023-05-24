@@ -147,7 +147,7 @@ function Get-AbrADDNSInfrastructure {
                                                         $inObj = [ordered] @{
                                                             'Name' = $Partition.DirectoryPartitionName
                                                             'State' = Switch ($Partition.State) {
-                                                                $Null {'-'}
+                                                                $Null {'--'}
                                                                 0 {'DNS_DP_OKAY'}
                                                                 1 {'DNS_DP_STATE_REPL_INCOMING'}
                                                                 2 {'DNS_DP_STATE_REPL_OUTGOING'}

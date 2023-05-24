@@ -164,15 +164,15 @@ function Get-AbrADSecurityAssessment {
                                     $inObj = [ordered] @{
                                         'Username' = $PrivilegedUser.SamAccountName
                                         'Created' = Switch ($PrivilegedUser.Created) {
-                                            $Null {'-'}
+                                            $Null {'--'}
                                             default {$PrivilegedUser.Created.ToShortDateString()}
                                         }
                                         'Password Last Set' = Switch ($PrivilegedUser.PasswordLastSet) {
-                                            $Null {'-'}
+                                            $Null {'--'}
                                             default {$PrivilegedUser.PasswordLastSet.ToShortDateString()}
                                         }
                                         'Last Logon Date' = Switch ($PrivilegedUser.LastLogonDate) {
-                                            $Null {'-'}
+                                            $Null {'--'}
                                             default {$PrivilegedUser.LastLogonDate.ToShortDateString()}
                                         }
                                     }
@@ -217,11 +217,11 @@ function Get-AbrADSecurityAssessment {
                                         'Username' = $UserSPN.SamAccountName
                                         'Enabled' = ConvertTo-TextYN $UserSPN.Enabled
                                         'Password Last Set' = Switch ($UserSPN.PasswordLastSet) {
-                                            $Null {'-'}
+                                            $Null {'--'}
                                             default {$UserSPN.PasswordLastSet.ToShortDateString()}
                                         }
                                         'Last Logon Date' = Switch ($UserSPN.LastLogonDate) {
-                                            $Null {'-'}
+                                            $Null {'--'}
                                             default {$UserSPN.LastLogonDate.ToShortDateString()}
                                         }
                                         'Service Principal Name' = $UserSPN.ServicePrincipalName

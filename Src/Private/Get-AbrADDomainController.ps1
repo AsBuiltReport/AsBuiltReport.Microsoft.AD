@@ -111,6 +111,9 @@ function Get-AbrADDomainController {
                                     'Physical Memory' = ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
                                 }
                                 $DCHWInfo += [pscustomobject]$inobj
+                                if ($HealthCheck.DomainController.Diagnostic) {
+                                    if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(?!.*\d+)").value) -lt 8) { $DCHWInfo | Set-Style -Style Warning -Property 'Physical Memory' }
+                                }
                             }
                         }
                         catch {
@@ -131,6 +134,12 @@ function Get-AbrADDomainController {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $DCHW | Table @TableParams
+                            if ($HealthCheck.DomainController.Diagnostic) {
+                                if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(?!.*\d+)").value) -lt 8) {
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Best Practice: Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on." -Italic -Bold
+                                 }
+                            }
                         }
                     }
                 } else {
@@ -144,6 +153,12 @@ function Get-AbrADDomainController {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $DCHWInfo | Table @TableParams
+                    if ($HealthCheck.DomainController.Diagnostic) {
+                        if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(?!.*\d+)").value) -lt 8) {
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Best Practice: Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on." -Italic -Bold
+                         }
+                    }
                 }
             }
         }
@@ -354,7 +369,7 @@ function Get-AbrADDomainController {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                    if ( $OutObj | Where-Object { { $_.'KDC SRV' -eq 'Fail' } -or { $_.'PDC SRV' -eq 'Fail' } -or { $_.'GC SRV' -eq 'Fail' } -or { $_.'DC SRV' -eq 'Fail' }}) {
+                    if ( $OutObj | Where-Object { $_.'KDC SRV' -eq 'Fail' -or  $_.'PDC SRV' -eq 'Fail' -or  $_.'GC SRV' -eq 'Fail' -or  $_.'DC SRV' -eq 'Fail' }) {
                         Paragraph "Health Check:" -Italic -Bold -Underline
                         Paragraph "Best Practice: The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory." -Italic -Bold
                     }

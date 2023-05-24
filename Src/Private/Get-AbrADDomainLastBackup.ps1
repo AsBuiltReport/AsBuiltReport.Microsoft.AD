@@ -69,8 +69,10 @@ function Get-AbrADDomainLastBackup {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Sort-Object -Property 'Naming Context' | Table @TableParams
-                        Paragraph "Health Check:" -Italic -Bold -Underline
-                        Paragraph "Corrective Actions: Ensure there is a recent (<180 days) Active Directory backup." -Italic -Bold
+                        if ($OutObj | Where-Object { $_.'Last Backup in Days' -gt 180 }) {
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Corrective Actions: Ensure there is a recent (<180 days) Active Directory backup." -Italic -Bold
+                        }
                     }
                 }
             }
