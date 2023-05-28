@@ -271,7 +271,7 @@ function Get-AbrADDomainObject {
         try {
             $OutObj = @()
             $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-            $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties *}
+            $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties Enabled}
             if ($Users) {
                 $Categories = @('Enabled','Disabled')
                 Write-PscriboMessage "Collecting User Accounts in Domain."
@@ -359,11 +359,11 @@ function Get-AbrADDomainObject {
             $dormanttime = ((Get-Date).AddDays(-90)).Date
             $passwordtime = (Get-Date).Adddays(-42)
             $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-            $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties *}
-            $CannotChangePassword = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties * | Where-Object {$_.CannotChangePassword}}
+            $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties SmartcardLogonRequired,Name,Enabled,LastLogonDate,lastlogontimestamp,SIDHistory,CannotChangePassword}
+            $CannotChangePassword = $Users | Where-Object {$_.CannotChangePassword}
             $PasswordNextLogon = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -LDAPFilter "(pwdLastSet=0)"}
-            $passwordNeverExpires = Invoke-Command -Session $TempPssSession {get-aduser -Server $using:DC -filter * -properties Name, PasswordNeverExpires | Where-Object {$_.passwordNeverExpires -eq "true" }}
-            $SmartcardLogonRequired = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties 'SmartcardLogonRequired' | Where-Object {$_.SmartcardLogonRequired -eq $True}}
+            $passwordNeverExpires = $Users | Where-Object { $_.passwordNeverExpires -eq "true" }
+            $SmartcardLogonRequired = $Users | Where-Object {$_.SmartcardLogonRequired -eq $True}
             $SidHistory = $Users | Select-Object -ExpandProperty SIDHistory
             $PasswordLastSet = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter {PasswordNeverExpires -eq $false -and PasswordNotRequired -eq $false} -Properties PasswordLastSet,PasswordNeverExpires,PasswordNotRequired}
             $NeverloggedIn = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter {(lastlogontimestamp -notlike "*")}}
@@ -556,7 +556,7 @@ function Get-AbrADDomainObject {
         try {
             $OutObj = @()
             $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-            $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties *}
+            $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties Enabled}
             if ($Computers) {
                 $Categories = @('Enabled','Disabled')
                 Write-PscriboMessage "Collecting Computer Accounts in Domain."
@@ -652,7 +652,7 @@ function Get-AbrADDomainObject {
             $dormanttime = (Get-Date).Adddays(-90)
             $passwordtime = (Get-Date).Adddays(-30)
             $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-            $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties *}
+            $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties Enabled,lastlogontimestamp,PasswordLastSet,SIDHistory}
             $Dormant = $Computers | Where-Object {[datetime]::FromFileTime($_.lastlogontimestamp) -lt $dormanttime}
             $PasswordAge = $Computers | Where-Object {$_.PasswordLastSet -le $passwordtime}
             $SidHistory = $Computers | Select-Object -ExpandProperty SIDHistory
@@ -865,7 +865,7 @@ function Get-AbrADDomainObject {
                                 try {
                                     $Accounts = @()
                                     foreach ($ADObject in $FGPP.AppliesTo) {
-                                        $Accounts += Invoke-Command -Session $TempPssSession {Get-ADObject $using:ADObject -Server $using:DC -Properties * | Select-Object -ExpandProperty sAMAccountName }
+                                        $Accounts += Invoke-Command -Session $TempPssSession {Get-ADObject $using:ADObject -Server $using:DC -Properties sAMAccountName | Select-Object -ExpandProperty sAMAccountName }
                                     }
                                     $inObj = [ordered] @{
                                         'Name' = $FGPP.Name
