@@ -28,250 +28,246 @@ function Get-AbrADDomainObject {
     }
 
     process {
-        if ($InfoLevel.Domain -ge 2) {
-            try {
-                Section -Style Heading4 'Domain Object Count' {
-                    if ($Domain) {
-                        Write-PscriboMessage "Collecting the Active Directory Object Count of domain $Domain."
+        try {
+            Section -Style Heading4 'Domain Object Count' {
+                if ($Domain) {
+                    Write-PscriboMessage "Collecting the Active Directory Object Count of domain $Domain."
+                    try {
+                        $script:DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                        $Computers =  Invoke-Command -Session $TempPssSession {(Get-ADComputer -Server $using:DC -Filter * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
+                        $Servers = Invoke-Command -Session $TempPssSession {(Get-ADComputer -Server $using:DC -Filter { OperatingSystem -like "Windows Ser*"} -Property OperatingSystem -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
+                        $script:Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties SmartcardLogonRequired,Name,Enabled,LastLogonDate,lastlogontimestamp,SIDHistory,CannotChangePassword,passwordNeverExpires,PasswordNotRequired,PasswordLastSet,PwdLastSet,LockedOut -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName }
+                        $PrivilegedUsers =  Invoke-Command -Session $TempPssSession {(Get-ADUser -Server $using:DC -filter {AdminCount -eq "1"} -Properties AdminCount -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
+                        $Group =  Invoke-Command -Session $TempPssSession {(Get-ADGroup -Server $using:DC -filter * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
+                        $DomainController = Invoke-Command -Session $TempPssSession {(Get-ADDomainController -Server $using:DC -filter *) | Select-Object name | Measure-Object}
+                        $GC = Invoke-Command -Session $TempPssSession {(Get-ADDomainController -Server $using:DC -filter {IsGlobalCatalog -eq "True"}) | Select-Object name | Measure-Object}
+
                         try {
-                            $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                            $Computers =  Invoke-Command -Session $TempPssSession {(Get-ADComputer -Server $using:DC -Filter * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
-                            $Servers = Invoke-Command -Session $TempPssSession {(Get-ADComputer -Server $using:DC -Filter { OperatingSystem -like "Windows Ser*"} -Property OperatingSystem -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
-                            $Users =  Invoke-Command -Session $TempPssSession {(Get-ADUser -Server $using:DC -filter * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
-                            $PrivilegedUsers =  Invoke-Command -Session $TempPssSession {(Get-ADUser -Server $using:DC -filter {AdminCount -eq "1"} -Properties AdminCount -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
-                            $Group =  Invoke-Command -Session $TempPssSession {(Get-ADGroup -Server $using:DC -filter * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
-                            $DomainController = Invoke-Command -Session $TempPssSession {(Get-ADDomainController -Server $using:DC -filter *) | Select-Object name | Measure-Object}
-                            $GC = Invoke-Command -Session $TempPssSession {(Get-ADDomainController -Server $using:DC -filter {IsGlobalCatalog -eq "True"}) | Select-Object name | Measure-Object}
+                            $OutObj = @()
+                            $inObj = [ordered] @{
+                                'Computers' = $Computers.Count
+                                'Servers' = $Servers.Count
+                            }
+                            $OutObj += [pscustomobject]$inobj
 
+                            $TableParams = @{
+                                Name = "Computers Object - $($Domain.ToString().ToUpper())"
+                                List = $true
+                                ColumnWidths = 40, 60
+                            }
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
                             try {
-                                $OutObj = @()
-                                $inObj = [ordered] @{
-                                    'Computers' = $Computers.Count
-                                    'Servers' = $Servers.Count
+                                $sampleData = $inObj.GetEnumerator()
+
+                                $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
+
+                                $addChartAreaParams = @{
+                                    Chart = $exampleChart
+                                    Name  = 'exampleChartArea'
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
 
-                                $TableParams = @{
-                                    Name = "Computers Object - $($Domain.ToString().ToUpper())"
-                                    List = $true
-                                    ColumnWidths = 40, 60
+                                $addChartSeriesParams = @{
+                                    Chart             = $exampleChart
+                                    ChartArea         = $exampleChartArea
+                                    Name              = 'exampleChartSeries'
+                                    XField            = 'name'
+                                    YField            = 'value'
+                                    Palette           = 'Blue'
+                                    ColorPerDataPoint = $true
                                 }
-                                if ($Report.ShowTableCaptions) {
-                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+
+                                $addChartLegendParams = @{
+                                    Chart             = $exampleChart
+                                    Name              = 'Category'
+                                    TitleAlignment    = 'Center'
                                 }
-                                try {
-                                    $sampleData = $inObj.GetEnumerator()
+                                Add-ChartLegend @addChartLegendParams
 
-                                    $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
-
-                                    $addChartAreaParams = @{
-                                        Chart = $exampleChart
-                                        Name  = 'exampleChartArea'
-                                    }
-                                    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
-
-                                    $addChartSeriesParams = @{
-                                        Chart             = $exampleChart
-                                        ChartArea         = $exampleChartArea
-                                        Name              = 'exampleChartSeries'
-                                        XField            = 'name'
-                                        YField            = 'value'
-                                        Palette           = 'Blue'
-                                        ColorPerDataPoint = $true
-                                    }
-                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
-
-                                    $addChartLegendParams = @{
-                                        Chart             = $exampleChart
-                                        Name              = 'Category'
-                                        TitleAlignment    = 'Center'
-                                    }
-                                    Add-ChartLegend @addChartLegendParams
-
-                                    $addChartTitleParams = @{
-                                        Chart     = $exampleChart
-                                        ChartArea = $exampleChartArea
-                                        Name      = 'ComputersObject'
-                                        Text      = 'Computers Object Count'
-                                        Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                                    }
-                                    Add-ChartTitle @addChartTitleParams
-
-                                    $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+                                $addChartTitleParams = @{
+                                    Chart     = $exampleChart
+                                    ChartArea = $exampleChartArea
+                                    Name      = 'ComputersObject'
+                                    Text      = 'Computers Object Count'
+                                    Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
                                 }
-                                catch {
-                                    Write-PscriboMessage -IsWarning $($_.Exception.Message)
-                                }
-                                if ($OutObj) {
-                                    Section -Style Heading4 'Computers Object' {
-                                        if ($chartFileItem) {
-                                            Image -Text 'Computers Object - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
-                                        }
-                                        $OutObj | Table @TableParams
-                                    }
-                                }
+                                Add-ChartTitle @addChartTitleParams
+
+                                $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
                             }
                             catch {
                                 Write-PscriboMessage -IsWarning $($_.Exception.Message)
                             }
-                            try {
-                                $OutObj = @()
-                                $inObj = [ordered] @{
-                                    'Domain Controller' = $DomainController.Count
-                                    'Global Catalog' = $GC.Count
-                                }
-                                $OutObj += [pscustomobject]$inobj
-
-                                $TableParams = @{
-                                    Name = "Domain Controller Object - $($Domain.ToString().ToUpper())"
-                                    List = $true
-                                    ColumnWidths = 40, 60
-                                }
-                                if ($Report.ShowTableCaptions) {
-                                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                                }
-                                try {
-                                    $sampleData = $inObj.GetEnumerator()
-
-                                    $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
-
-                                    $addChartAreaParams = @{
-                                        Chart = $exampleChart
-                                        Name  = 'exampleChartArea'
+                            if ($OutObj) {
+                                Section -Style Heading4 'Computers Object' {
+                                    if ($chartFileItem) {
+                                        Image -Text 'Computers Object - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                                     }
-                                    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
-
-                                    $addChartSeriesParams = @{
-                                        Chart             = $exampleChart
-                                        ChartArea         = $exampleChartArea
-                                        Name              = 'exampleChartSeries'
-                                        XField            = 'name'
-                                        YField            = 'value'
-                                        Palette           = 'Blue'
-                                        ColorPerDataPoint = $true
-                                    }
-                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
-
-                                    $addChartLegendParams = @{
-                                        Chart             = $exampleChart
-                                        Name              = 'Category'
-                                        TitleAlignment    = 'Center'
-                                    }
-                                    Add-ChartLegend @addChartLegendParams
-
-                                    $addChartTitleParams = @{
-                                        Chart     = $exampleChart
-                                        ChartArea = $exampleChartArea
-                                        Name      = 'DomainControllerObject'
-                                        Text      = 'Domain Controller Object Count'
-                                        Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                                    }
-                                    Add-ChartTitle @addChartTitleParams
-
-                                    $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+                                    $OutObj | Table @TableParams
                                 }
-                                catch {
-                                    Write-PscriboMessage -IsWarning $($_.Exception.Message)
-                                }
-                                if ($OutObj) {
-                                    Section -Style Heading4 'Domain Controller Object' {
-                                        if ($chartFileItem) {
-                                            Image -Text 'Domain Controller Object - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
-                                        }
-                                        $OutObj | Table @TableParams
-                                    }
-                                }
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning $($_.Exception.Message)
-                            }
-                            try {
-                                $OutObj = @()
-                                $inObj = [ordered] @{
-                                    'Users' = $Users.Count
-                                    'Privileged Users' = $PrivilegedUsers.Count
-                                    'Groups' = $Group.Count
-                                }
-                                $OutObj += [pscustomobject]$inobj
-
-                                $TableParams = @{
-                                    Name = "User Object - $($Domain.ToString().ToUpper())"
-                                    List = $true
-                                    ColumnWidths = 40, 60
-                                }
-                                if ($Report.ShowTableCaptions) {
-                                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                                }
-                                try {
-                                    $sampleData = $inObj.GetEnumerator()
-
-                                    $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
-
-                                    $addChartAreaParams = @{
-                                        Chart = $exampleChart
-                                        Name  = 'exampleChartArea'
-                                    }
-                                    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
-
-                                    $addChartSeriesParams = @{
-                                        Chart             = $exampleChart
-                                        ChartArea         = $exampleChartArea
-                                        Name              = 'exampleChartSeries'
-                                        XField            = 'name'
-                                        YField            = 'value'
-                                        Palette           = 'Blue'
-                                        ColorPerDataPoint = $true
-                                    }
-                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
-
-                                    $addChartLegendParams = @{
-                                        Chart             = $exampleChart
-                                        Name              = 'Category'
-                                        TitleAlignment    = 'Center'
-                                    }
-                                    Add-ChartLegend @addChartLegendParams
-
-                                    $addChartTitleParams = @{
-                                        Chart     = $exampleChart
-                                        ChartArea = $exampleChartArea
-                                        Name      = 'UsersObject'
-                                        Text      = 'Users Object Count'
-                                        Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                                    }
-                                    Add-ChartTitle @addChartTitleParams
-
-                                    $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning $($_.Exception.Message)
-                                }
-                                if ($OutObj) {
-                                    Section -Style Heading4 'Users Object' {
-                                        if ($chartFileItem) {
-                                            Image -Text 'Users Object  - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
-                                        }
-                                        $OutObj | Table @TableParams
-                                    }
-                                }
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning $($_.Exception.Message)
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Object Count)"
+                            Write-PscriboMessage -IsWarning $($_.Exception.Message)
                         }
+                        try {
+                            $OutObj = @()
+                            $inObj = [ordered] @{
+                                'Domain Controller' = $DomainController.Count
+                                'Global Catalog' = $GC.Count
+                            }
+                            $OutObj += [pscustomobject]$inobj
+
+                            $TableParams = @{
+                                Name = "Domain Controller Object - $($Domain.ToString().ToUpper())"
+                                List = $true
+                                ColumnWidths = 40, 60
+                            }
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            try {
+                                $sampleData = $inObj.GetEnumerator()
+
+                                $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
+
+                                $addChartAreaParams = @{
+                                    Chart = $exampleChart
+                                    Name  = 'exampleChartArea'
+                                }
+                                $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+
+                                $addChartSeriesParams = @{
+                                    Chart             = $exampleChart
+                                    ChartArea         = $exampleChartArea
+                                    Name              = 'exampleChartSeries'
+                                    XField            = 'name'
+                                    YField            = 'value'
+                                    Palette           = 'Blue'
+                                    ColorPerDataPoint = $true
+                                }
+                                $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+
+                                $addChartLegendParams = @{
+                                    Chart             = $exampleChart
+                                    Name              = 'Category'
+                                    TitleAlignment    = 'Center'
+                                }
+                                Add-ChartLegend @addChartLegendParams
+
+                                $addChartTitleParams = @{
+                                    Chart     = $exampleChart
+                                    ChartArea = $exampleChartArea
+                                    Name      = 'DomainControllerObject'
+                                    Text      = 'Domain Controller Object Count'
+                                    Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+                                }
+                                Add-ChartTitle @addChartTitleParams
+
+                                $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                            }
+                            if ($OutObj) {
+                                Section -Style Heading4 'Domain Controller Object' {
+                                    if ($chartFileItem) {
+                                        Image -Text 'Domain Controller Object - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                                    }
+                                    $OutObj | Table @TableParams
+                                }
+                            }
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                        }
+                        try {
+                            $OutObj = @()
+                            $inObj = [ordered] @{
+                                'Users' = ($Users | Measure-Object).Count
+                                'Privileged Users' = $PrivilegedUsers.Count
+                                'Groups' = $Group.Count
+                            }
+                            $OutObj += [pscustomobject]$inobj
+
+                            $TableParams = @{
+                                Name = "User Object - $($Domain.ToString().ToUpper())"
+                                List = $true
+                                ColumnWidths = 40, 60
+                            }
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            try {
+                                $sampleData = $inObj.GetEnumerator()
+
+                                $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
+
+                                $addChartAreaParams = @{
+                                    Chart = $exampleChart
+                                    Name  = 'exampleChartArea'
+                                }
+                                $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+
+                                $addChartSeriesParams = @{
+                                    Chart             = $exampleChart
+                                    ChartArea         = $exampleChartArea
+                                    Name              = 'exampleChartSeries'
+                                    XField            = 'name'
+                                    YField            = 'value'
+                                    Palette           = 'Blue'
+                                    ColorPerDataPoint = $true
+                                }
+                                $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+
+                                $addChartLegendParams = @{
+                                    Chart             = $exampleChart
+                                    Name              = 'Category'
+                                    TitleAlignment    = 'Center'
+                                }
+                                Add-ChartLegend @addChartLegendParams
+
+                                $addChartTitleParams = @{
+                                    Chart     = $exampleChart
+                                    ChartArea = $exampleChartArea
+                                    Name      = 'UsersObject'
+                                    Text      = 'Users Object Count'
+                                    Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+                                }
+                                Add-ChartTitle @addChartTitleParams
+
+                                $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                            }
+                            if ($OutObj) {
+                                Section -Style Heading4 'Users Object' {
+                                    if ($chartFileItem) {
+                                        Image -Text 'Users Object  - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                                    }
+                                    $OutObj | Table @TableParams
+                                }
+                            }
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                        }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Object Count)"
                     }
                 }
             }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Object Count)"
-            }
+        }
+        catch {
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Object Count)"
         }
         try {
             $OutObj = @()
-            $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-            $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties Enabled}
             if ($Users) {
                 $Categories = @('Enabled','Disabled')
                 Write-PscriboMessage "Collecting User Accounts in Domain."
@@ -358,17 +354,15 @@ function Get-AbrADDomainObject {
             $DaysInactive = 90
             $dormanttime = ((Get-Date).AddDays(-90)).Date
             $passwordtime = (Get-Date).Adddays(-42)
-            $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-            $Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties SmartcardLogonRequired,Name,Enabled,LastLogonDate,lastlogontimestamp,SIDHistory,CannotChangePassword}
             $CannotChangePassword = $Users | Where-Object {$_.CannotChangePassword}
-            $PasswordNextLogon = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -LDAPFilter "(pwdLastSet=0)"}
+            $PasswordNextLogon = $Users | Where-Object {$_.PasswordLastSet -eq 0 -or $_.PwdLastSet -eq 0}
             $passwordNeverExpires = $Users | Where-Object { $_.passwordNeverExpires -eq "true" }
             $SmartcardLogonRequired = $Users | Where-Object {$_.SmartcardLogonRequired -eq $True}
             $SidHistory = $Users | Select-Object -ExpandProperty SIDHistory
-            $PasswordLastSet = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter {PasswordNeverExpires -eq $false -and PasswordNotRequired -eq $false} -Properties PasswordLastSet,PasswordNeverExpires,PasswordNotRequired}
-            $NeverloggedIn = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter {(lastlogontimestamp -notlike "*")}}
+            $PasswordLastSet = $Users | Where-Object { $_.PasswordNeverExpires -eq $false -and $_.PasswordNotRequired -eq $false}
+            $NeverloggedIn = $Users | Where-Object {-not $_.LastLogonDate}
             $Dormant = $Users | Where-Object {($_.LastLogonDate) -lt $dormanttime}
-            $PasswordNotRequired = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter {PasswordNotRequired -eq $true}}
+            $PasswordNotRequired = $Users | Where-Object {$_.PasswordNotRequired -eq $true}
             $AccountExpired = Invoke-Command -Session $TempPssSession {Search-ADAccount -Server $using:DC -AccountExpired}
             $AccountLockout = Invoke-Command -Session $TempPssSession {Search-ADAccount -Server $using:DC -LockedOut}
             $Categories = @('Cannot Change Password','Password Never Expires','Must Change Password at Logon','Password Age (> 42 days)','SmartcardLogonRequired','SidHistory', 'Never Logged in','Dormant (> 90 days)','Password Not Required','Account Expired','Account Lockout')
@@ -497,13 +491,10 @@ function Get-AbrADDomainObject {
                     Write-PscriboMessage "Collecting Privileged Group in Active Directory."
                     try {
                         $DomainSID = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).domainsid.Value}
-                        $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                         if ($Domain -eq $ADSystem.Name) {
-                            #$Groups = 'Domain Admins','Enterprise Admins','Administrators','Server Operators','DnsAdmins','Remote Desktop Users','Incoming Forest Trust Builders','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators','Schema Admins'
                             $GroupsSID = "$DomainSID-512","$DomainSID-519",'S-1-5-32-544','S-1-5-32-549',"$DomainSID-1101",'S-1-5-32-555','S-1-5-32-557',"$DomainSID-526",'S-1-5-32-551',"$DomainSID-517",'S-1-5-32-550','S-1-5-32-548',"$DomainSID-518"
                         }
                         else {
-                            #$Groups = 'Domain Admins','Server Operators','DnsAdmins','Remote Desktop Users','Key Admins','Backup Operators','Cert Publishers','Print Operators','Account Operators'
                             $GroupsSID = "$DomainSID-512",'S-1-5-32-549',"$DomainSID-1101",'S-1-5-32-555','S-1-5-32-557',"$DomainSID-526",'S-1-5-32-551',"$DomainSID-517",'S-1-5-32-550','S-1-5-32-548'
                         }
                         if ($GroupsSID) {
@@ -555,7 +546,6 @@ function Get-AbrADDomainObject {
         }
         try {
             $OutObj = @()
-            $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
             $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties Enabled}
             if ($Computers) {
                 $Categories = @('Enabled','Disabled')
@@ -651,7 +641,6 @@ function Get-AbrADDomainObject {
             $DaysInactive = 90
             $dormanttime = (Get-Date).Adddays(-90)
             $passwordtime = (Get-Date).Adddays(-30)
-            $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
             $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties Enabled,lastlogontimestamp,PasswordLastSet,SIDHistory}
             $Dormant = $Computers | Where-Object {[datetime]::FromFileTime($_.lastlogontimestamp) -lt $dormanttime}
             $PasswordAge = $Computers | Where-Object {$_.PasswordLastSet -le $passwordtime}
@@ -769,7 +758,6 @@ function Get-AbrADDomainObject {
                 if ($Domain) {
                     Write-PscriboMessage "Collecting Operating Systems in Active Directory."
                     try {
-                        $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                         $OSObjects =  Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter "name -like '*'" -Properties operatingSystem | Group-Object -Property operatingSystem | Select-Object Name,Count}
                         if ($OSObjects) {
                             foreach ($OSObject in $OSObjects) {
@@ -856,8 +844,8 @@ function Get-AbrADDomainObject {
             if ($Domain) {
                 foreach ($Item in $Domain) {
                     Write-PscriboMessage "Collecting the Active Directory Fined Grained Password Policies of domain $Item."
-                    $DC =  Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator}
-                    $PasswordPolicy =  Invoke-Command -Session $TempPssSession {Get-ADFineGrainedPasswordPolicy -Server $using:DC -Filter {Name -like "*"} -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName} | Sort-Object -Property Name
+                    $DCPDC =  Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator}
+                    $PasswordPolicy =  Invoke-Command -Session $TempPssSession {Get-ADFineGrainedPasswordPolicy -Server $using:DCPDC -Filter {Name -like "*"} -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName} | Sort-Object -Property Name
                     if ($PasswordPolicy) {
                         Section -Style Heading4 'Fined Grained Password Policies' {
                             $FGPPInfo = @()
@@ -930,8 +918,8 @@ function Get-AbrADDomainObject {
                 foreach ($Item in $Domain) {
                     Write-PscriboMessage "Collecting the Active Directory LAPS Policies from domain $Item."
                     $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
-                    $DC =  Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator}
-                    $LAPS =  Invoke-Command -Session $TempPssSession {Get-ADObject -Server $using:DC "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:DomainInfo).DistinguishedName)"} | Sort-Object -Property Name
+                    $DCPDC =  Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator}
+                    $LAPS =  Invoke-Command -Session $TempPssSession {Get-ADObject -Server $using:DCPDC "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:DomainInfo).DistinguishedName)"} | Sort-Object -Property Name
                     Section -Style Heading4 'Local Administrator Password Solution' {
                         $LAPSInfo = @()
                         try {
@@ -997,7 +985,6 @@ function Get-AbrADDomainObject {
             if ($Domain) {
                 Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts for $Item."
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                     Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts from DC $DC."
                     $GMSA = Invoke-Command -Session $TempPssSession {Get-ADServiceAccount -Server $using:DC -Filter * -Properties *}
                     if ($GMSA) {
