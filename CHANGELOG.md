@@ -1,5 +1,12 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.13] - 2023-05-29
+
+### Fixed
+
+- Fix HealthCheck section not working after v0.7.12
+- Fix [#98](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/98)
+
 ## [0.7.12] - 2023-05-23
 
 ### Changed
