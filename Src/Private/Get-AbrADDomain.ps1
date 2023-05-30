@@ -76,7 +76,7 @@ function Get-AbrADDomain {
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (AD Domain Summary)"
+                Write-PscriboMessage -IsWarning "AD Domain Summary Section: $($_.Exception.Message)"
             }
         }
     }

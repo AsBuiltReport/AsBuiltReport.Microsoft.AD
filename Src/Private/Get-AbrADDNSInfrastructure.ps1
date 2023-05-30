@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -51,7 +51,7 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning " $($_.Exception.Message) (Infrastructure Summary)"
+                                Write-PscriboMessage -IsWarning "DNS Infrastructure Summary Section: $($_.Exception.Message)"
                             }
                         }
                     }
@@ -91,12 +91,12 @@ function Get-AbrADDNSInfrastructure {
                                                     $OutObj += [pscustomobject]$inobj
                                                 }
                                                 catch {
-                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                    Write-PscriboMessage -IsWarning "$($DC.ToString().ToUpper().Split(".")[0]) DNS IP Configuration Section: $($_.Exception.Message)"
                                                 }
                                             }
                                         }
                                         catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
+                                            Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Table Section: $($_.Exception.Message)"
                                         }
                                     }
                                 }
@@ -124,7 +124,7 @@ function Get-AbrADDNSInfrastructure {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Table)"
+                            Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Section: $($_.Exception.Message)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -160,12 +160,12 @@ function Get-AbrADDNSInfrastructure {
                                                         $OutObj += [pscustomobject]$inobj
                                                     }
                                                     catch {
-                                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                        Write-PscriboMessage -IsWarning "Directory Partitions Item Section: $($_.Exception.Message)"
                                                     }
                                                 }
                                             }
                                             catch {
-                                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Directory Partitions Item)"
+                                                Write-PscriboMessage -IsWarning "Directory Partitions Table Section: $($_.Exception.Message)"
                                             }
 
                                             $TableParams = @{
@@ -183,7 +183,7 @@ function Get-AbrADDNSInfrastructure {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Directory Partitions Table)"
+                            Write-PscriboMessage -IsWarning "Directory Partitions Section: $($_.Exception.Message)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#

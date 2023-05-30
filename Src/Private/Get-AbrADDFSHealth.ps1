@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.9
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -54,7 +54,7 @@ function Get-AbrADDFSHealth {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DFS Health Item)"
+                                Write-PscriboMessage -IsWarning "DFS Health Iten Section: $($_.Exception.Message)"
                             }
                         }
 
@@ -78,7 +78,7 @@ function Get-AbrADDFSHealth {
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DFS Health Table)"
+                Write-PscriboMessage -IsWarning "DFS Health Table Section: $($_.Exception.Message)"
             }
             try {
                 Write-PscriboMessage "Discovered AD Domain Sysvol Health information from $Domain."
@@ -107,7 +107,7 @@ function Get-AbrADDFSHealth {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Sysvol Health Item)"
+                                Write-PscriboMessage -IsWarning "Sysvol Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }
                         }
 
@@ -133,7 +133,7 @@ function Get-AbrADDFSHealth {
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Sysvol Health Table)"
+                Write-PscriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
             }
             try {
                 Write-PscriboMessage "Discovered AD Domain Netlogon Health information from $Domain."
@@ -162,7 +162,7 @@ function Get-AbrADDFSHealth {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Netlogon Health Item)"
+                                Write-PscriboMessage -IsWarning "Netlogon Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }
                         }
 
@@ -188,7 +188,7 @@ function Get-AbrADDFSHealth {
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Sysvol Health Table)"
+                Write-PscriboMessage -IsWarning "Sysvol Health Section: $($_.Exception.Message)"
             }
         }
     }

@@ -5,7 +5,7 @@ function Get-AbrADCAAIA {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.9
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -58,12 +58,12 @@ function Get-AbrADCAAIA {
                             $OutObj | Table @TableParams
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Authority Information Access Item)"
+                            Write-PscriboMessage -IsWarning "Authority Information Access Item $($URI.RegURI) Section: $($_.Exception.Message)"
                         }
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Authority Information Access Table)"
+                    Write-PscriboMessage -IsWarning "Authority Information Access Section: $($_.Exception.Message)"
                 }
             }
         }

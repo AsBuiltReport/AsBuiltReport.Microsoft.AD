@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -48,7 +48,7 @@ function Get-AbrADDCRoleFeature {
                             $OutObj += [pscustomobject]$inobj
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Roles Item)"
+                            Write-PscriboMessage -IsWarning "Roles $($Feature.DisplayName) Section: $($_.Exception.Message)"
                         }
                     }
 
@@ -69,7 +69,7 @@ function Get-AbrADDCRoleFeature {
             }
         }
         catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Role Section)"
+            Write-PscriboMessage -IsWarning "Roles Section: $($_.Exception.Message)"
         }
     }
 
