@@ -34,10 +34,10 @@ function Get-AbrADDomainObject {
                     Write-PscriboMessage "Collecting the Active Directory Object Count of domain $Domain."
                     try {
                         $script:DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                        $Computers =  Invoke-Command -Session $TempPssSession {(Get-ADComputer -Server $using:DC -Filter * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
-                        $Servers = Invoke-Command -Session $TempPssSession {(Get-ADComputer -Server $using:DC -Filter { OperatingSystem -like "Windows Ser*"} -Property OperatingSystem -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
-                        $script:Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties SmartcardLogonRequired,Name,Enabled,LastLogonDate,lastlogontimestamp,SIDHistory,CannotChangePassword,passwordNeverExpires,PasswordNotRequired,PasswordLastSet,PwdLastSet,LockedOut -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName }
-                        $PrivilegedUsers =  Invoke-Command -Session $TempPssSession {(Get-ADUser -Server $using:DC -filter {AdminCount -eq "1"} -Properties AdminCount -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
+                        $script:Computers =  Invoke-Command -Session $TempPssSession {(Get-ADComputer -Server $using:DC -Filter * -Properties Enabled,OperatingSystem,lastlogontimestamp,PasswordLastSet,SIDHistory -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName)}
+                        $Servers = $Computers | Where-Object { $_.OperatingSystem -like "Windows Ser*" } | Measure-Object
+                        $script:Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties AdminCount,SmartcardLogonRequired,Name,Enabled,LastLogonDate,lastlogontimestamp,SIDHistory,CannotChangePassword,passwordNeverExpires,PasswordNotRequired,PasswordLastSet,PwdLastSet,LockedOut -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName }
+                        $PrivilegedUsers =  $Users | Where-Object {$_.AdminCount -eq 1} | Measure-Object
                         $Group =  Invoke-Command -Session $TempPssSession {(Get-ADGroup -Server $using:DC -filter * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
                         $DomainController = Invoke-Command -Session $TempPssSession {(Get-ADDomainController -Server $using:DC -filter *) | Select-Object name | Measure-Object}
                         $GC = Invoke-Command -Session $TempPssSession {(Get-ADDomainController -Server $using:DC -filter {IsGlobalCatalog -eq "True"}) | Select-Object name | Measure-Object}
@@ -546,7 +546,7 @@ function Get-AbrADDomainObject {
         }
         try {
             $OutObj = @()
-            $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties Enabled}
+            $Computers = $Computers.Enabled
             if ($Computers) {
                 $Categories = @('Enabled','Disabled')
                 Write-PscriboMessage "Collecting Computer Accounts in Domain."
@@ -641,10 +641,9 @@ function Get-AbrADDomainObject {
             $DaysInactive = 90
             $dormanttime = (Get-Date).Adddays(-90)
             $passwordtime = (Get-Date).Adddays(-30)
-            $Computers = Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter * -Properties Enabled,lastlogontimestamp,PasswordLastSet,SIDHistory}
             $Dormant = $Computers | Where-Object {[datetime]::FromFileTime($_.lastlogontimestamp) -lt $dormanttime}
             $PasswordAge = $Computers | Where-Object {$_.PasswordLastSet -le $passwordtime}
-            $SidHistory = $Computers | Select-Object -ExpandProperty SIDHistory
+            $SidHistory = $Computers.SIDHistory
             $Categories = @('Dormant (> 90 days)','Password Age (> 30 days)','SidHistory')
             if ($Categories) {
                 Write-PscriboMessage "Collecting Status of Computer Accounts."
@@ -758,12 +757,12 @@ function Get-AbrADDomainObject {
                 if ($Domain) {
                     Write-PscriboMessage "Collecting Operating Systems in Active Directory."
                     try {
-                        $OSObjects =  Invoke-Command -Session $TempPssSession {Get-ADComputer -Server $using:DC -Filter "name -like '*'" -Properties operatingSystem | Group-Object -Property operatingSystem | Select-Object Name,Count}
+                        $OSObjects =  $Computers | Where-Object {$_.name -like '*' } | Group-Object -Property operatingSystem | Select-Object Name,Count
                         if ($OSObjects) {
                             foreach ($OSObject in $OSObjects) {
                                 $inObj = [ordered] @{
                                     'Operating System' = Switch ([string]::IsNullOrEmpty($OSObject.Name)) {
-                                        $True {'Unknown'}
+                                        $True {'No OS Specified'}
                                         default {$OSObject.Name}
                                     }
                                     'Count' = $OSObject.Count
@@ -845,7 +844,7 @@ function Get-AbrADDomainObject {
                 foreach ($Item in $Domain) {
                     Write-PscriboMessage "Collecting the Active Directory Fined Grained Password Policies of domain $Item."
                     $DCPDC =  Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator}
-                    $PasswordPolicy =  Invoke-Command -Session $TempPssSession {Get-ADFineGrainedPasswordPolicy -Server $using:DCPDC -Filter {Name -like "*"} -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName} | Sort-Object -Property Name
+                    $PasswordPolicy = Invoke-Command -Session $TempPssSession {Get-ADFineGrainedPasswordPolicy -Server $using:DCPDC -Filter {Name -like "*"} -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName} | Sort-Object -Property Name
                     if ($PasswordPolicy) {
                         Section -Style Heading4 'Fined Grained Password Policies' {
                             $FGPPInfo = @()
