@@ -127,7 +127,7 @@ function Get-AbrADDFSHealth {
                         $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
                         if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico')}) {
                             Paragraph "Health Check:" -Italic -Bold -Underline
-                            Paragraph "Corrective Actions: Make sure Sysvol content has no malicious extensions or unnecessary content." -Italic -Bold
+                            Paragraph "Corrective Actions: Make sure Sysvol folder has no malicious extensions or unnecessary content." -Italic -Bold
                         }
                     }
                 }
@@ -182,7 +182,7 @@ function Get-AbrADDFSHealth {
                         $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
                         if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico')}) {
                             Paragraph "Health Check:" -Italic -Bold -Underline
-                            Paragraph "Corrective Actions: Make sure Netlogon content has no malicious extensions or unnecessary content." -Italic -Bold
+                            Paragraph "Corrective Actions: Make sure Netlogon folder has no malicious extensions or unnecessary content." -Italic -Bold
                         }
                     }
                 }

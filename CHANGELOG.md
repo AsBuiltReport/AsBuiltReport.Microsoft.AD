@@ -1,6 +1,6 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
-## [0.7.13] - 2023-05-29
+## [0.7.13] - 2023-06-03
 
 ### Fixed
 

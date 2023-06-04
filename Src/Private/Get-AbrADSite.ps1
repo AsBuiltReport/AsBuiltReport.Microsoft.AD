@@ -74,7 +74,7 @@ function Get-AbrADSite {
                             Paragraph "Corrective Actions: Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
                         }
                         if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
-                            Paragraph "Best Practices: Ensure Sites have a defined description." -Italic -Bold
+                            Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
                         }
                     }
                     try {
@@ -114,7 +114,7 @@ function Get-AbrADSite {
                                 $OutObj | Sort-Object -Property 'Subnet' | Table @TableParams
                                 if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Description' -eq '--'})) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
-                                    Paragraph "Best Practices: Ensure that subnets has a defined description." -Italic -Bold
+                                    Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
                                 }
                             }
                         }
