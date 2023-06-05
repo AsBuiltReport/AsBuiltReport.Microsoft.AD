@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.8
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -75,8 +75,10 @@ function Get-AbrADInfrastructureService {
                             Paragraph "Corrective Actions: Disable Print Spooler service on DCs and all servers that do not perform Print services." -Italic -Bold
                         }
                     }
-                    Remove-PSSession -Session $DCPssSession
                 }
+            }
+            if ($DCPssSession) {
+                Remove-PSSession -Session $DCPssSession
             }
         }
         catch {

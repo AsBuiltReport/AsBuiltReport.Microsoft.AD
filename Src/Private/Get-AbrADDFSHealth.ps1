@@ -131,6 +131,9 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 }
+                if ($DCPssSession) {
+                    Remove-PSSession -Session $DCPssSession
+                }
             }
             catch {
                 Write-PscriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
@@ -185,6 +188,9 @@ function Get-AbrADDFSHealth {
                             Paragraph "Corrective Actions: Make sure Netlogon folder has no malicious extensions or unnecessary content." -Italic -Bold
                         }
                     }
+                }
+                if ($DCPssSession) {
+                    Remove-PSSession -Session $DCPssSession
                 }
             }
             catch {

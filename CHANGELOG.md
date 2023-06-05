@@ -1,11 +1,17 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
-## [0.7.13] - 2023-06-03
+## [0.7.13] - 2023-06-04
+
+### Changed
+
+- Minor improvements to health check recommendations
 
 ### Fixed
 
 - Fix HealthCheck sections not working after v0.7.12
 - Fix [#98](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/98)
+- Fix Node.js 12 actions are deprecated warning message
+- Fix the code to ensure that PSRemoting sessions are removed when they are no longer needed.
 
 ## [0.7.12] - 2023-05-23
 

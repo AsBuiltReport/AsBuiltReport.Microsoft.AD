@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.11
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -159,6 +159,9 @@ function Get-AbrADSiteReplication {
                             BlankLine
                         }
                     }
+                }
+                if ($DCPssSession) {
+                    Remove-PSSession -Session $DCPssSession
                 }
             }
         }

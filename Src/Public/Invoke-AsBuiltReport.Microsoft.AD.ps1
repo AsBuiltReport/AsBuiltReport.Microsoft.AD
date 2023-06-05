@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.12
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -274,6 +274,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
                                                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                                                 Get-AbrADDNSZone -Domain $Domain -DC $DC
+                                            }
+                                            if ($DCPssSession) {
+                                                Remove-PSSession -Session $DCPssSession
                                             }
                                         }
                                     }
