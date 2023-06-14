@@ -30,6 +30,8 @@ function Get-AbrADForest {
             $DomainDN = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName}
             $TombstoneLifetime = Invoke-Command -Session $TempPssSession {Get-ADObject "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$using:DomainDN" -Properties tombstoneLifetime | Select-Object -ExpandProperty tombstoneLifetime}
             $ADVersion = Invoke-Command -Session $TempPssSession {Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion}
+            $ValuedsHeuristics = Invoke-Command -Session $TempPssSession {Get-ADObject -Identity "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$(($using:DomainDN))" -Properties dsHeuristics -ErrorAction SilentlyContinue}
+
             If ($ADVersion -eq '88') {$server = 'Windows Server 2019'}
             ElseIf ($ADVersion -eq '87') {$server = 'Windows Server 2016'}
             ElseIf ($ADVersion -eq '69') {$server = 'Windows Server 2012 R2'}
@@ -56,13 +58,24 @@ function Get-AbrADForest {
                             'Application Partitions' = $Item.ApplicationPartitions
                             'PartitionsContainer' = [string]$Item.PartitionsContainer
                             'SPN Suffixes' = ConvertTo-EmptyToFiller $Item.SPNSuffixes
-                            'UPN Suffixes' = ConvertTo-EmptyToFiller $Item.UPNSuffixes
+                            'UPN Suffixes' = ConvertTo-EmptyToFiller ($Item.UPNSuffixes -join ', ')
+                            'Anonymous Access (dsHeuristics)' = &{
+                                if (($ValuedsHeuristics.dsHeuristics -eq "") -or ($ValuedsHeuristics.dsHeuristics.Length -lt 7)) {
+                                    "Disabled"
+                                } elseif (($ValuedsHeuristics.dsHeuristics.Length -ge 7) -and ($ValuedsHeuristics.dsHeuristics[6] -eq "2")) {
+                                    "Enabled"
+                                }
+                            }
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
                     catch {
                         Write-PscriboMessage -IsWarning $_.Exception.Message
                     }
+                }
+
+                if ($HealthCheck.Domain.Security) {
+                    $OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Disabled'} | Set-Style -Style Warning -Property 'Anonymous Access (dsHeuristics)'
                 }
 
                 $TableParams = @{
@@ -74,6 +87,12 @@ function Get-AbrADForest {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Table @TableParams
+                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Disabled'}) ) {
+                    Paragraph "Health Check:" -Italic -Bold -Underline
+                    Paragraph "Best Practice: Anonymous Access to Active Directory forest data above the rootDSE level must be disabled." -Italic -Bold
+                    Paragraph "Reference:" -Italic -Bold -Underline
+                    Paragraph "https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555" -Bold
+                }
             }
         }
         catch {
