@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.8
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,11 +30,9 @@ function Get-AbrADSecurityAssessment {
     process {
         if ($HealthCheck.Domain.Security) {
             try {
-                $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                 $LastLoggedOnDate = $(Get-Date) - $(New-TimeSpan -days 180)
                 $PasswordStaleDate = $(Get-Date) - $(New-TimeSpan -days 180)
-                $ADLimitedProperties = @("Name","Enabled","SAMAccountname","DisplayName","Enabled","LastLogonDate","PasswordLastSet","PasswordNeverExpires","PasswordNotRequired","PasswordExpired","SmartcardLogonRequired","AccountExpirationDate","AdminCount","Created","Modified","LastBadPasswordAttempt","badpwdcount","mail","CanonicalName","DistinguishedName","ServicePrincipalName","SIDHistory","PrimaryGroupID","UserAccountControl")
-                $DomainUsers = Invoke-Command -Session $TempPssSession {Get-ADUser -Filter * -Property $using:ADLimitedProperties -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain)}
+                $DomainUsers = $Users
                 $DomainEnabledUsers = $DomainUsers | Where-Object {$_.Enabled -eq $True } | Measure-Object
                 $DomainDisabledUsers = $DomainUsers | Where-Object {$_.Enabled -eq $false } | Measure-Object
                 $DomainEnabledInactiveUsers = $DomainEnabledUsers | Where-Object { ($_.LastLogonDate -le $LastLoggedOnDate) -AND ($_.PasswordLastSet -le $PasswordStaleDate) } | Measure-Object
@@ -150,8 +148,6 @@ function Get-AbrADSecurityAssessment {
             }
             if ($InfoLevel.Domain -ge 2) {
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                    $PrivilegedUsers = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:Domain -filter {AdminCount -eq 1} -Properties Name,Created,PasswordLastSet,LastLogonDate}
                     Write-PscriboMessage "Discovered Privileged Users information from $Domain."
                     if ($PrivilegedUsers) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Privileged Users Assessment' {
@@ -202,8 +198,7 @@ function Get-AbrADSecurityAssessment {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
                 }
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                    $UserSPNs = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:Domain -filter {ServicePrincipalName -like '*'} -Properties PasswordLastSet,LastLogonDate,ServicePrincipalName,TrustedForDelegation,TrustedtoAuthForDelegation}
+                    $UserSPNs = $Users | Where-Object {$_.ServicePrincipalName -like '*'}
                     Write-PscriboMessage "Discovered Service Accounts information from $Domain."
                     if ($UserSPNs) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Service Accounts Assessment' {

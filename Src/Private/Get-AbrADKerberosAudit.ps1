@@ -71,8 +71,7 @@ function Get-AbrADKerberosAudit {
                     }
                 }
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                    $KRBTGT = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.Name  -eq 'krbtgt'}}
+                    $KRBTGT = $Users | Where-Object {$_.Name  -eq 'krbtgt'}
                     Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($KRBTGT) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'KRBTGT Account Audit' {
@@ -116,9 +115,8 @@ function Get-AbrADKerberosAudit {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                     $SID = Invoke-Command -Session $TempPssSession { ((Get-ADDomain -Identity $using:Domain).domainsid).ToString() + "-500" }
-                    $ADMIN = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet,LastLogonDate -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.SID  -eq $using:SID}}
+                    $ADMIN = $Users | Where-Object {$_.SID  -eq $SID}
                     Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($ADMIN) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Administrator Account Audit' {

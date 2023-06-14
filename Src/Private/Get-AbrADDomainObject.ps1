@@ -33,11 +33,12 @@ function Get-AbrADDomainObject {
                 if ($Domain) {
                     Write-PscriboMessage "Collecting the Active Directory Object Count of domain $Domain."
                     try {
+                        $ADLimitedProperties = @("Name","Enabled","SAMAccountname","DisplayName","Enabled","LastLogonDate","PasswordLastSet","PasswordNeverExpires","PasswordNotRequired","PasswordExpired","SmartcardLogonRequired","AccountExpirationDate","AdminCount","Created","Modified","LastBadPasswordAttempt","badpwdcount","mail","CanonicalName","DistinguishedName","ServicePrincipalName","SIDHistory","PrimaryGroupID","UserAccountControl","lastlogontimestamp","CannotChangePassword","PwdLastSet","LockedOut","TrustedForDelegation","TrustedtoAuthForDelegation","msds-keyversionnumber","SID")
                         $script:DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                         $script:Computers =  Invoke-Command -Session $TempPssSession {(Get-ADComputer -Server $using:DC -Filter * -Properties Enabled,OperatingSystem,lastlogontimestamp,PasswordLastSet,SIDHistory -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName)}
                         $Servers = $Computers | Where-Object { $_.OperatingSystem -like "Windows Ser*" } | Measure-Object
-                        $script:Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Properties AdminCount,SmartcardLogonRequired,Name,Enabled,LastLogonDate,lastlogontimestamp,SIDHistory,CannotChangePassword,passwordNeverExpires,PasswordNotRequired,PasswordLastSet,PwdLastSet,LockedOut -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName }
-                        $PrivilegedUsers =  $Users | Where-Object {$_.AdminCount -eq 1} | Measure-Object
+                        $script:Users = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:DC -Filter * -Property $using:ADLimitedProperties -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName }
+                        $script:PrivilegedUsers =  $Users | Where-Object {$_.AdminCount -eq 1}
                         $Group =  Invoke-Command -Session $TempPssSession {(Get-ADGroup -Server $using:DC -filter * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName) | Measure-Object}
                         $DomainController = Invoke-Command -Session $TempPssSession {(Get-ADDomainController -Server $using:DC -filter *) | Select-Object name | Measure-Object}
                         $GC = Invoke-Command -Session $TempPssSession {(Get-ADDomainController -Server $using:DC -filter {IsGlobalCatalog -eq "True"}) | Select-Object name | Measure-Object}
@@ -188,7 +189,7 @@ function Get-AbrADDomainObject {
                             $OutObj = @()
                             $inObj = [ordered] @{
                                 'Users' = ($Users | Measure-Object).Count
-                                'Privileged Users' = $PrivilegedUsers.Count
+                                'Privileged Users' = ($PrivilegedUsers | Measure-Object).Count
                                 'Groups' = $Group.Count
                             }
                             $OutObj += [pscustomobject]$inobj
