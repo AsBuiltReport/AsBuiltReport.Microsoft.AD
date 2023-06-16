@@ -198,7 +198,8 @@ function Get-AbrADSecurityAssessment {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
                 }
                 try {
-                    $UserSPNs = $Users | Where-Object {$_.ServicePrincipalName -like '*'}
+                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                    $UserSPNs = Invoke-Command -Session $TempPssSession {Get-ADUser -ResultPageSize 1000 -Server $using:Domain -filter {ServicePrincipalName -like '*'} -Properties PasswordLastSet,LastLogonDate,ServicePrincipalName,TrustedForDelegation,TrustedtoAuthForDelegation}
                     Write-PscriboMessage "Discovered Service Accounts information from $Domain."
                     if ($UserSPNs) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Service Accounts Assessment' {

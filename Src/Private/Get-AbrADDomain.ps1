@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.2
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -59,8 +59,7 @@ function Get-AbrADDomain {
                         'Users Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.UsersContainer -Domain $Domain
                         'ReadOnly Replica Directory Servers' = ConvertTo-EmptyToFiller $DomainInfo.ReadOnlyReplicaDirectoryServers
                         'ms-DS-MachineAccountQuota' = Invoke-Command -Session $TempPssSession {(Get-ADObject -Server $using:DC -Identity (($using:DomainInfo).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota'}
-                        'RID Issued' = $RIDsIssued
-                        'RID Available' = $RIDsRemaining
+                        'RID Issued/Available' = "$($RIDsIssued) / $($RIDsRemaining)"
                     }
                     $OutObj += [pscustomobject]$inobj
 

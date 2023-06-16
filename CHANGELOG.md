@@ -2,6 +2,12 @@
 
 ## [0.7.13] - 2023-06-04
 
+### Added
+
+- Added Option "Include.Domains" to allow only a list of Active Directory Domain to document
+  - Include Domains in AD Services
+  - Include Domains in DNS Services
+
 ### Changed
 
 - Minor improvements to health check recommendations
@@ -10,9 +16,9 @@
 
 - Fix HealthCheck sections not working after v0.7.12
 - Fix [#98](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/98)
+- Fix [#99](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/99)
 - Fix Node.js 12 actions are deprecated warning message
 - Fix the code to ensure that PSRemoting sessions are removed when they are no longer needed.
-
 ## [0.7.12] - 2023-05-23
 
 ### Changed

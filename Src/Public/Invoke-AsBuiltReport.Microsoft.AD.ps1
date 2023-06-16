@@ -149,8 +149,15 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
                     foreach ($Domain in $OrderedDomains.split(" ")) {
                         if ($Domain) {
+                            # Define Filter option for Domain variable
+                            if ($Options.Include.Domains) {
+                                $DomainFilterOption = $Domain -in $Options.Include.Domains
+
+                            } else {
+                                $DomainFilterOption = $Domain -notin $Options.Exclude.Domains
+                            }
                             try {
-                                if (($Domain -notin $Options.Exclude.Domains ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain})) {
+                                if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain})) {
                                     Section -Style Heading3 "$($Domain.ToString().ToUpper())" {
                                         Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                         BlankLine
@@ -193,7 +200,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                             if ($DCStatus -eq $false) {
                                                                 Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
                                                             }
-                                                            if ($DC -notin $Options.Exclude.DCs -and $DCStatus) {
+                                                            if (($DC -notin $Options.Exclude.DCs) -and $DCStatus) {
                                                                 Get-AbrADDCRoleFeature -DC $DC
                                                             }
                                                         }
@@ -205,7 +212,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                             Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
                                                             BlankLine
                                                             foreach ($DC in $DCs){
-                                                                if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                                if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
                                                                     Get-AbrADDCDiag -Domain $Domain -DC $DC
                                                                 }
                                                             }
@@ -221,7 +228,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                     Section -Style Heading5 "Infrastructure Services Status" {
                                                         Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                                                         foreach ($DC in $DCs){
-                                                            if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                            if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
                                                                 Get-AbrADInfrastructureService -DC $DC
                                                             }
                                                         }
@@ -238,6 +245,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Get-AbrADOU -Domain $Domain
                                         }
                                     }
+                                } else {
+                                    Write-PScriboMessage "$($Domain) disabled in Exclude.Domain variable"
                                 }
                             }
                             catch {
@@ -264,7 +273,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     foreach ($Domain in $OrderedDomains.split(" ")) {
                         if ($Domain) {
                             try {
-                                if (($Domain -notin $Options.Exclude.Domains) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
+                                # Define Filter option for Domain variable
+                                if ($Options.Include.Domains) {
+                                    $DomainFilterOption = $Domain -in $Options.Include.Domains
+
+                                } else {
+                                    $DomainFilterOption = $Domain -notin $Options.Exclude.Domains
+                                }
+                                if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
                                     Section -Style Heading3 "$($Domain.ToString().ToUpper())" {
                                         Paragraph "The following section provides a configuration summary of the DNS service."
                                         BlankLine
@@ -280,6 +296,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             }
                                         }
                                     }
+                                } else {
+                                    Write-PScriboMessage "$($Domain) disabled in Exclude.Domain variable"
                                 }
                             }
                             catch {

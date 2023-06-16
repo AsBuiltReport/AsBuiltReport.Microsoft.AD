@@ -75,7 +75,7 @@ function Get-AbrADForest {
                 }
 
                 if ($HealthCheck.Domain.Security) {
-                    $OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Disabled'} | Set-Style -Style Warning -Property 'Anonymous Access (dsHeuristics)'
+                    $OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled'} | Set-Style -Style Warning -Property 'Anonymous Access (dsHeuristics)'
                 }
 
                 $TableParams = @{
@@ -87,7 +87,7 @@ function Get-AbrADForest {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Table @TableParams
-                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Disabled'}) ) {
+                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled'}) ) {
                     Paragraph "Health Check:" -Italic -Bold -Underline
                     Paragraph "Best Practice: Anonymous Access to Active Directory forest data above the rootDSE level must be disabled." -Italic -Bold
                     Paragraph "Reference:" -Italic -Bold -Underline
