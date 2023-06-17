@@ -138,6 +138,7 @@ function Get-AbrADSecurityAssessment {
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Corrective Actions: Ensure there aren't any account with weak security posture." -Italic -Bold
                         }
                     }
@@ -190,7 +191,65 @@ function Get-AbrADSecurityAssessment {
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Corrective Actions: Ensure there aren't any account with weak security posture." -Italic -Bold
+                        }
+                    }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
+                }
+                try {
+                    Write-PscriboMessage "Discovered Inactive Privileged Accounts information from $Domain."
+                    $InactivePrivilegedUsers =  $PrivilegedUsers | Where-Object {($_.LastLogonDate -le (Get-Date).AddDays(-30)) -AND ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
+                    if ($InactivePrivilegedUsers) {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Inactive Privileged Accounts' {
+                            Paragraph "The following section details Inactive Privileged Accounts on Domain $($Domain.ToString().ToUpper())"
+                            BlankLine
+                            $OutObj = @()
+                            Write-PscriboMessage "Collecting Inactive Privileged Accounts information from $($Domain)."
+                            foreach ($InactivePrivilegedUser in $InactivePrivilegedUsers) {
+                                try {
+                                    $inObj = [ordered] @{
+                                        'Username' = $InactivePrivilegedUser.SamAccountName
+                                        'Created' = Switch ($InactivePrivilegedUser.Created) {
+                                            $Null {'--'}
+                                            default {$InactivePrivilegedUser.Created.ToShortDateString()}
+                                        }
+                                        'Password Last Set' = Switch ($InactivePrivilegedUser.PasswordLastSet) {
+                                            $Null {'--'}
+                                            default {$InactivePrivilegedUser.PasswordLastSet.ToShortDateString()}
+                                        }
+                                        'Last Logon Date' = Switch ($InactivePrivilegedUser.LastLogonDate) {
+                                            $Null {'--'}
+                                            default {$InactivePrivilegedUser.LastLogonDate.ToShortDateString()}
+                                        }
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Inactive Privileged Accounts Item)"
+                                }
+                            }
+
+                            if ($HealthCheck.Domain.Security) {
+                                $OutObj | Set-Style -Style Warning
+                            }
+
+                            $TableParams = @{
+                                Name = "Inactive Privileged Accounts - $($Domain.ToString().ToUpper())"
+                                List = $false
+                                ColumnWidths = 40, 20, 20, 20
+                            }
+
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
+                            Paragraph "Corrective Actions: Unused or underutilized accounts in highly privileged groups, outside of any break-glass emergency
+                            accounts like the default Administrator account, should have their AD Admin privileges removed." -Italic -Bold
                         }
                     }
                 }
@@ -240,6 +299,7 @@ function Get-AbrADSecurityAssessment {
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Corrective Actions: Service accounts are that gray area between regular user accounts and admin accounts that are often highly privileged. They are almost always over-privileged due to documented vendor requirements or because of operational challenges. Ensure there aren't any account with weak security posture." -Italic -Bold
                         }
                     }
