@@ -70,6 +70,7 @@ function Get-AbrADSite {
                     $OutObj | Sort-Object -Property 'Site Name' | Table @TableParams
                     if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Subnets' -eq '--'}) -or ($OutObj | Where-Object { $_.'Description' -eq '--'}))) {
                         Paragraph "Health Check:" -Italic -Bold -Underline
+                        BlankLine
                         if ($OutObj | Where-Object { $_.'Subnets' -eq '--'}) {
                             Paragraph "Corrective Actions: Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
                         }
@@ -114,6 +115,7 @@ function Get-AbrADSite {
                                 $OutObj | Sort-Object -Property 'Subnet' | Table @TableParams
                                 if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Description' -eq '--'})) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
+                                    BlankLine
                                     Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
                                 }
                             }
@@ -142,24 +144,62 @@ function Get-AbrADSite {
                                             'Cost' = $Item.Cost
                                             'Replication Frequency' = "$($Item.ReplicationFrequencyInMinutes) min"
                                             'Transport Protocol' = $Item.InterSiteTransportProtocol
-                                            'Sites' = $SiteArray
+                                            'Options' = Switch ($Item.Options) {
+                                                $null {'Change Notification is Disabled'}
+                                                '0' {'Change Notification is Disabled'}
+                                                '1' {'Change Notification is Enabled with Compression'}
+                                                '2' {'Force sync in opposite direction at end of sync'}
+                                                '3' {'Change Notification is Enabled with Compression and Force sync in opposite direction at end of sync'}
+                                                '4' {'Disable compression of Change Notification messages'}
+                                                '5' {'Change Notification is Enabled without Compression'}
+                                                '6' {'Force sync in opposite direction at end of sync and Disable compression of Change Notification messages'}
+                                                '7' {'Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync'}
+                                                Default {"Unknown siteLink option: $($Item.Options)"}
+                                            }
+                                            'Sites' = $SiteArray -join "; "
+                                            'Protected From Accidental Deletion' = ConvertTo-TextYN $Item.ProtectedFromAccidentalDeletion
+                                            'Description' = ConvertTo-EmptyToFiller $Item.Description
                                         }
-                                        $OutObj += [pscustomobject]$inobj
+                                        $OutObj = [pscustomobject]$inobj
+
+                                        if ($HealthCheck.Site.BestPractice) {
+                                            $OutObj | Where-Object { $_.'Description' -eq '--'} | Set-Style -Style Warning -Property 'Description'
+                                            $OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' } | Set-Style -Style Warning -Property 'Options'
+                                            $OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No'} | Set-Style -Style Warning -Property 'Protected From Accidental Deletion'
+                                        }
+
+                                        $TableParams = @{
+                                            Name = "Site Links - $($Item.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Sort-Object -Property 'Site Link Name' | Table @TableParams
+                                        if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No'}) -or (($OutObj | Where-Object { $_.'Description' -eq '--'}) -or ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' }))) {
+                                            Paragraph "Health Check:" -Italic -Bold -Underline
+                                            BlankLine
+                                            if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
+                                                Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
+                                                BlankLine
+                                            }
+                                            if ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' }) {
+                                                Paragraph "Best Practice: Enabling change notification treats an INTER-site replication connection like an INTRA-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an Option number value of 5 (Change Notification is Enabled without Compression)." -Italic -Bold
+                                                BlankLine
+                                            }
+                                            if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No'}) {
+                                                Paragraph "Best Practice: If Site Links in your Actie Directory domain are not protected from accidental deletion your enviroment can experience disruptions that maight be cause by accidental bulk deletion of object." -Italic -Bold
+                                                BlankLine
+                                            }
+                                            BlankLine
+                                        }
+
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Links)"
                                     }
                                 }
-
-                                $TableParams = @{
-                                    Name = "Site Links - $($ForestInfo)"
-                                    List = $false
-                                    ColumnWidths = 30, 15, 15, 15, 25
-                                }
-                                if ($Report.ShowTableCaptions) {
-                                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                                }
-                                $OutObj | Sort-Object -Property 'Site Link Name' | Table @TableParams
                             }
                         }
                     }
