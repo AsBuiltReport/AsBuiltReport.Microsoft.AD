@@ -158,7 +158,8 @@ function Get-AbrADDNSZone {
                                     }
                                     $OutObj | Table @TableParams
                                     if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them."})) {
-                                        Paragraph "Health Check:" -Italic -Bold -Underline
+                                        Paragraph "Health Check:" -Italic -Bold
+                                        BlankLine
                                         Paragraph "Best Practices: Configure all DNS zones only to allow zone transfers from Trusted IP addresses." -Italic -Bold
                                     }
                                 }

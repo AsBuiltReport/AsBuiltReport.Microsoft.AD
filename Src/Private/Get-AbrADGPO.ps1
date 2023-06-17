@@ -69,6 +69,7 @@ function Get-AbrADGPO {
                             $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                             if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
                                 Paragraph "Health Check:" -Italic -Bold -Underline
+                                BlankLine
                                 Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
                             }
                         }
@@ -109,6 +110,7 @@ function Get-AbrADGPO {
                                         $OutObj | Table @TableParams
                                         if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
                                             Paragraph "Health Check:" -Italic -Bold -Underline
+                                            BlankLine
                                             Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
                                         }
                                     }
@@ -153,6 +155,7 @@ function Get-AbrADGPO {
                                 $OutObj | Table @TableParams
                                 if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'Configured' -eq 'No'})) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
+                                    BlankLine
                                     Paragraph "Best Practices: Ensure Central Store is deployed to centralized GPO repository." -Italic -Bold
                                 }
                             }
@@ -311,6 +314,7 @@ function Get-AbrADGPO {
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                                 Paragraph "Health Check:" -Italic -Bold -Underline
+                                BlankLine
                                 Paragraph "Corrective Actions: Remove Unused GPO from Active Directory." -Italic -Bold
                             }
                         }
@@ -358,6 +362,7 @@ function Get-AbrADGPO {
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                                 Paragraph "Health Check:" -Italic -Bold -Underline
+                                BlankLine
                                 Paragraph "Corrective Actions: No User and Computer parameters are set: Remove Unused GPO in Active Directory." -Italic -Bold
                             }
                         }
@@ -410,6 +415,7 @@ function Get-AbrADGPO {
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                                 Paragraph "Health Check:" -Italic -Bold -Underline
+                                BlankLine
                                 Paragraph "Corrective Actions: Review use of enforcement and blocked policy inheritance in Active Directory." -Italic -Bold
 
                             }

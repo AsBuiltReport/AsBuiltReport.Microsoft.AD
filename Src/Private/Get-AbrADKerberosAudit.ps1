@@ -67,6 +67,7 @@ function Get-AbrADKerberosAudit {
                         }
                         $OutObj | Table @TableParams
                         Paragraph "Health Check:" -Italic -Bold -Underline
+                        BlankLine
                         Paragraph "Corrective Actions: Ensure there aren't any unconstrained kerberos delegation in Active Directory." -Italic -Bold
                     }
                 }
@@ -107,6 +108,7 @@ function Get-AbrADKerberosAudit {
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Best Practice: Microsoft advises changing the krbtgt account password at regular intervals to keep the environment more secure." -Italic -Bold
                         }
                     }
@@ -153,6 +155,7 @@ function Get-AbrADKerberosAudit {
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Best Practice: Microsoft advises changing the administrator account password at regular intervals to keep the environment more secure." -Italic -Bold
                         }
                     }

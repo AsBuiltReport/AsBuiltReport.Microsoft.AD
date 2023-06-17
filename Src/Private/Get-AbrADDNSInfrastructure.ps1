@@ -119,6 +119,7 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                                 if ($HealthCheck.DNS.DP -and ($OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"})) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
+                                    BlankLine
                                     Paragraph "Best Practices: DNS configuration on network adapter should include the loopback address, but not as the first entry." -Italic -Bold
                                 }
                             }
@@ -282,6 +283,7 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                                 if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Scavenging State' -eq 'Disabled'})) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
+                                    BlankLine
                                     Paragraph "Best Practices: Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs." -Italic -Bold
                                 }
                             }

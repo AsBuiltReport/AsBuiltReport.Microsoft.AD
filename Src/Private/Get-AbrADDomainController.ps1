@@ -137,6 +137,7 @@ function Get-AbrADDomainController {
                             if ($HealthCheck.DomainController.Diagnostic) {
                                 if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(?!.*\d+)").value) -lt 8) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
+                                    BlankLine
                                     Paragraph "Best Practice: Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on." -Italic -Bold
                                  }
                             }
@@ -156,6 +157,7 @@ function Get-AbrADDomainController {
                     if ($HealthCheck.DomainController.Diagnostic) {
                         if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(?!.*\d+)").value) -lt 8) {
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Best Practice: Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on." -Italic -Bold
                          }
                     }
@@ -371,6 +373,7 @@ function Get-AbrADDomainController {
                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                     if ( $OutObj | Where-Object { $_.'KDC SRV' -eq 'Fail' -or  $_.'PDC SRV' -eq 'Fail' -or  $_.'GC SRV' -eq 'Fail' -or  $_.'DC SRV' -eq 'Fail' }) {
                         Paragraph "Health Check:" -Italic -Bold -Underline
+                        BlankLine
                         Paragraph "Best Practice: The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory." -Italic -Bold
                     }
                 }
@@ -432,6 +435,7 @@ function Get-AbrADDomainController {
                                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     if ($HealthCheck.DomainController.Software) {
                                         Paragraph "Health Check:" -Italic -Bold -Underline
+                                        BlankLine
                                         Paragraph "Best Practices: Do not run other software or services on a Domain Controller." -Italic -Bold
                                     }
                                 }
@@ -495,6 +499,7 @@ function Get-AbrADDomainController {
                                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     if ($HealthCheck.DomainController.Software) {
                                         Paragraph "Health Check:" -Italic -Bold -Underline
+                                        BlankLine
                                         Paragraph "Security Best Practices: It is critical to install security updates to protect your systems from malicious attacks. In the long run, it is also important to install software updates, not only to access new features, but also to be on the safe side in terms of security loop holes being discovered in outdated programs. And it is in your own best interest to install all other updates, which may potentially cause your system to become vulnerable to attack." -Italic -Bold
                                     }
                                 }
