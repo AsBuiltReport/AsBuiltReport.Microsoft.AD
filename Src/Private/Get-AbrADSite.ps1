@@ -75,6 +75,7 @@ function Get-AbrADSite {
                             Paragraph "Corrective Actions: Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
                         }
                         if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
+                            BlankLine
                             Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
                         }
                     }
@@ -146,14 +147,14 @@ function Get-AbrADSite {
                                             'Transport Protocol' = $Item.InterSiteTransportProtocol
                                             'Options' = Switch ($Item.Options) {
                                                 $null {'Change Notification is Disabled'}
-                                                '0' {'Change Notification is Disabled'}
-                                                '1' {'Change Notification is Enabled with Compression'}
-                                                '2' {'Force sync in opposite direction at end of sync'}
-                                                '3' {'Change Notification is Enabled with Compression and Force sync in opposite direction at end of sync'}
-                                                '4' {'Disable compression of Change Notification messages'}
-                                                '5' {'Change Notification is Enabled without Compression'}
-                                                '6' {'Force sync in opposite direction at end of sync and Disable compression of Change Notification messages'}
-                                                '7' {'Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync'}
+                                                '0' {'(0)Change Notification is Disabled'}
+                                                '1' {'(1)Change Notification is Enabled with Compression'}
+                                                '2' {'(2)Force sync in opposite direction at end of sync'}
+                                                '3' {'(3)Change Notification is Enabled with Compression and Force sync in opposite direction at end of sync'}
+                                                '4' {'(4)Disable compression of Change Notification messages'}
+                                                '5' {'(5)Change Notification is Enabled without Compression'}
+                                                '6' {'(6)Force sync in opposite direction at end of sync and Disable compression of Change Notification messages'}
+                                                '7' {'(7)Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync'}
                                                 Default {"Unknown siteLink option: $($Item.Options)"}
                                             }
                                             'Sites' = $SiteArray -join "; "
@@ -189,7 +190,7 @@ function Get-AbrADSite {
                                                 BlankLine
                                             }
                                             if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No'}) {
-                                                Paragraph "Best Practice: If Site Links in your Actie Directory domain are not protected from accidental deletion your enviroment can experience disruptions that maight be cause by accidental bulk deletion of object." -Italic -Bold
+                                                Paragraph "Best Practice: If the Site Links in you Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects." -Italic -Bold
                                                 BlankLine
                                             }
                                             BlankLine
