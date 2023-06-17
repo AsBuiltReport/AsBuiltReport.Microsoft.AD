@@ -190,7 +190,7 @@ function Get-AbrADSite {
                                                 BlankLine
                                             }
                                             if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No'}) {
-                                                Paragraph "Best Practice: If the Site Links in you Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects." -Italic -Bold
+                                                Paragraph "Best Practice: If the Site Links in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects." -Italic -Bold
                                                 BlankLine
                                             }
                                             BlankLine
