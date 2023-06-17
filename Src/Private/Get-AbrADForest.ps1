@@ -89,6 +89,7 @@ function Get-AbrADForest {
                 $OutObj | Table @TableParams
                 if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled'}) ) {
                     Paragraph "Health Check:" -Italic -Bold -Underline
+                    BlankLine
                     Paragraph "Best Practice: Anonymous Access to Active Directory forest data above the rootDSE level must be disabled." -Italic -Bold
                     Paragraph "Reference:" -Italic -Bold -Underline
                     Paragraph "https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555" -Bold
@@ -123,6 +124,10 @@ function Get-AbrADForest {
                         }
                     }
 
+                    if ($HealthCheck.Forest.BestPractice) {
+                        $OutObj | Where-Object { $_.'Name' -eq 'Recycle Bin Feature' -and $_.'Enabled' -eq 'No'} | Set-Style -Style Warning -Property 'Enabled'
+                    }
+
                     $TableParams = @{
                         Name = "Optional Features - $($ForestInfo)"
                         List = $false
@@ -132,6 +137,15 @@ function Get-AbrADForest {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                    if ($HealthCheck.Forest.BestPractice -and ($OutObj | Where-Object { $_.'Name' -eq 'Recycle Bin Feature' -and $_.'Enabled' -eq 'No'}) ) {
+                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        BlankLine
+                        Paragraph "Best Practice: Accidental deletion of Active Directory objects is common for Active Directory Domain Services (AD DS) users. With the Recycle Bin Feature, one could recover accidentally deleted objects in Active Directory. Enable the Recycle Bin feature for the forest." -Italic -Bold
+                        BlankLine
+                        Paragraph "Reference:" -Italic -Bold -Underline
+                        BlankLine
+                        Paragraph "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944" -Bold
+                    }
                 }
             }
         }
