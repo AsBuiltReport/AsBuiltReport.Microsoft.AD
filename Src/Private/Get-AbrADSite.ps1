@@ -42,16 +42,27 @@ function Get-AbrADSite {
                                 'Site Name' = $Item.Name
                                 'Description' = ConvertTo-EmptyToFiller $Item.Description
                                 'Subnets' = Switch (($SubnetArray).count) {
-                                    0 {"--"}
+                                    0 {"No subnet assigned"}
                                     default {$SubnetArray}
                                 }
-                                'Creation Date' = $Item.createTimeStamp.ToShortDateString()
+                                'Domain Controllers' = &{
+                                    $ServerArray = @()
+                                    $Servers = try {Get-ADObjectSearch -DN "CN=Servers,$($Item.DistinguishedName)" -Filter { objectClass -eq "Server" } -Properties "DNSHostName" -SelectPrty 'DNSHostName','Name' -Session $TempPssSession} catch {'Unknown'}
+                                    foreach ($Object in $Servers) {
+                                        $ServerArray += $Object.Name
+                                    }
+
+                                    if ($ServerArray) {
+                                        return $ServerArray
+                                    } else {'No DC assigned'}
+                                }
                             }
                             $OutObj += [pscustomobject]$inobj
 
                             if ($HealthCheck.Site.BestPractice) {
-                                $OutObj | Where-Object { $_.'Subnets' -eq '--'} | Set-Style -Style Warning -Property 'Subnets'
+                                $OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned'} | Set-Style -Style Warning -Property 'Subnets'
                                 $OutObj | Where-Object { $_.'Description' -eq '--'} | Set-Style -Style Warning -Property 'Description'
+                                $OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned'} | Set-Style -Style Warning -Property 'Domain Controllers'
                             }
                         }
                         catch {
@@ -62,7 +73,7 @@ function Get-AbrADSite {
                     $TableParams = @{
                         Name = "Sites - $($ForestInfo)"
                         List = $false
-                        ColumnWidths = 25, 30, 25, 20
+                        ColumnWidths = 25, 30, 20, 25
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -71,7 +82,7 @@ function Get-AbrADSite {
                     if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Subnets' -eq '--'}) -or ($OutObj | Where-Object { $_.'Description' -eq '--'}))) {
                         Paragraph "Health Check:" -Italic -Bold -Underline
                         BlankLine
-                        if ($OutObj | Where-Object { $_.'Subnets' -eq '--'}) {
+                        if ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned'}) {
                             Paragraph "Corrective Actions: Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
                         }
                         if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
@@ -91,13 +102,17 @@ function Get-AbrADSite {
                                         $inObj = [ordered] @{
                                             'Subnet' = $Item.Name
                                             'Description' = ConvertTo-EmptyToFiller $Item.Description
-                                            'Sites' = Get-ADObject $Item.Site | Select-Object -ExpandProperty Name
-                                            'Creation Date' = $Item.Created.ToShortDateString()
+                                            'Sites' = &{
+                                                try {
+                                                    $Item.Site.Split(",")[0].SubString($Item.Site.Split(",")[0].IndexOf("=")+1)
+                                                } catch {"No site assigned"}
+                                            }
                                         }
                                         $OutObj += [pscustomobject]$inObj
 
                                         if ($HealthCheck.Site.BestPractice) {
                                             $OutObj | Where-Object { $_.'Description' -eq '--'} | Set-Style -Style Warning -Property 'Description'
+                                            $OutObj | Where-Object { $_.'Sites' -eq 'No site assigned'} | Set-Style -Style Warning -Property 'Sites'
                                         }
                                     }
                                     catch {
@@ -108,16 +123,22 @@ function Get-AbrADSite {
                                 $TableParams = @{
                                     Name = "Site Subnets - $($ForestInfo)"
                                     List = $false
-                                    ColumnWidths = 20, 30, 35, 15
+                                    ColumnWidths = 20, 40, 40
                                 }
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'Subnet' | Table @TableParams
-                                if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Description' -eq '--'})) {
+                                if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Description' -eq '--'}) -or ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned'}))) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
                                     BlankLine
-                                    Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
+                                    if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
+                                        Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
+                                        BlankLine
+                                    }
+                                    if ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned'}) {
+                                        Paragraph "Corrective Actions: Ensure Subnet have an associated site. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
+                                    }
                                 }
                             }
                         }
@@ -172,7 +193,7 @@ function Get-AbrADSite {
                                         $TableParams = @{
                                             Name = "Site Links - $($Item.Name)"
                                             List = $true
-                                            ColumnWidths = 40, 60
+                                            ColumnWidths = 50, 50
                                         }
                                         if ($Report.ShowTableCaptions) {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
