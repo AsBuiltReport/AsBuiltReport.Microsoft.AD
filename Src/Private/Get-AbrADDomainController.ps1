@@ -70,7 +70,7 @@ function Get-AbrADDomainController {
         try {
             Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
             Section -Style Heading5 'Hardware Inventory' {
-                Paragraph "The following section provides detailed Domain Controller Hardware information for domain $($Domain.ToString().ToUpper())."
+                Paragraph "The following section provides detailed Domain Controller hardware information for domain $($Domain.ToString().ToUpper())."
                 BlankLine
                 Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 $DCHWInfo = @()
@@ -108,12 +108,13 @@ function Get-AbrADDomainController {
                                     'Number of Processors' = ($HWCPU | Measure-Object).Count
                                     'Number of CPU Cores' = $HWCPU[0].NumberOfCores
                                     'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
-                                    'Physical Memory' = ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                                    'Physical Memory' = &{
+                                        try {
+                                            ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                                        } catch {'0.00 GB'}
+                                    }
                                 }
                                 $DCHWInfo += [pscustomobject]$inobj
-                                if ($HealthCheck.DomainController.Diagnostic) {
-                                    if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(?!.*\d+)").value) -lt 8) { $DCHWInfo | Set-Style -Style Warning -Property 'Physical Memory' }
-                                }
                             }
                         }
                         catch {
@@ -125,17 +126,22 @@ function Get-AbrADDomainController {
                 if ($InfoLevel.Domain -ge 2) {
                     foreach ($DCHW in $DCHWInfo) {
                         Section -ExcludeFromTOC -Style NOTOCHeading6 $($DCHW.Name.ToString().ToUpper()) {
+                            if ($HealthCheck.DomainController.Diagnostic) {
+                                if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
+                                    $DCHW | Set-Style -Style Warning -Property 'Physical Memory'
+                                }
+                            }
                             $TableParams = @{
                                 Name = "Hardware Inventory - $($DCHW.Name.ToString().ToUpper())"
                                 List = $true
-                                ColumnWidths = 40, 60
+                                ColumnWidths = 50, 50
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $DCHW | Table @TableParams
                             if ($HealthCheck.DomainController.Diagnostic) {
-                                if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(?!.*\d+)").value) -lt 8) {
+                                if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
                                     BlankLine
                                     Paragraph "Best Practice: Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on." -Italic -Bold
@@ -144,6 +150,11 @@ function Get-AbrADDomainController {
                         }
                     }
                 } else {
+                    if ($HealthCheck.DomainController.Diagnostic) {
+                        if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
+                            $DCHWInfo | Set-Style -Style Warning -Property 'Physical Memory'
+                        }
+                    }
                     $TableParams = @{
                         Name = "Hardware Inventory - $($Domain.ToString().ToUpper())"
                         List = $false
@@ -155,7 +166,7 @@ function Get-AbrADDomainController {
                     }
                     $DCHWInfo | Table @TableParams
                     if ($HealthCheck.DomainController.Diagnostic) {
-                        if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(?!.*\d+)").value) -lt 8) {
+                        if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
                             Paragraph "Health Check:" -Italic -Bold -Underline
                             BlankLine
                             Paragraph "Best Practice: Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on." -Italic -Bold
@@ -491,7 +502,7 @@ function Get-AbrADDomainController {
                                     $TableParams = @{
                                         Name = "Missing Windows Updates - $($DC.ToString().ToUpper().Split(".")[0])"
                                         List = $false
-                                        ColumnWidths = 40, 60
+                                        ColumnWidths = 50, 50
                                     }
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
