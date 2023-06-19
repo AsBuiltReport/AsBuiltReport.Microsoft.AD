@@ -78,57 +78,58 @@ function Get-AbrADSecurityAssessment {
                     $TableParams = @{
                         Name = "Account Security Assessment - $($Domain.ToString().ToUpper())"
                         List = $true
-                        ColumnWidths = 40, 60
+                        ColumnWidths = 50, 50
                     }
 
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    try {
-                        $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}}
-                        $exampleChart = New-Chart -Name AccountSecurityAssessment -Width 600 -Height 400
+                    if ($Options.EnableCharts) {
+                        try {
+                            $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}}
+                            $exampleChart = New-Chart -Name AccountSecurityAssessment -Width 600 -Height 400
 
-                        $addChartAreaParams = @{
-                            Chart                 = $exampleChart
-                            Name                  = 'Account Security Assessment'
-                            AxisXTitle            = 'Categories'
-                            AxisYTitle            = 'Number of Users'
-                            NoAxisXMajorGridLines = $true
-                            NoAxisYMajorGridLines = $true
+                            $addChartAreaParams = @{
+                                Chart                 = $exampleChart
+                                Name                  = 'Account Security Assessment'
+                                AxisXTitle            = 'Categories'
+                                AxisYTitle            = 'Number of Users'
+                                NoAxisXMajorGridLines = $true
+                                NoAxisYMajorGridLines = $true
+                            }
+                            $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+
+                            $addChartSeriesParams = @{
+                                Chart             = $exampleChart
+                                ChartArea         = $exampleChartArea
+                                Name              = 'exampleChartSeries'
+                                XField            = 'Category'
+                                YField            = 'Value'
+                                Palette           = 'Blue'
+                                ColorPerDataPoint = $true
+                            }
+                            $sampleData | Add-ColumnChartSeries @addChartSeriesParams
+
+                            $addChartTitleParams = @{
+                                Chart     = $exampleChart
+                                ChartArea = $exampleChartArea
+                                Name      = 'AccountSecurityAssessment'
+                                Text      = 'Assessment'
+                                Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+                            }
+                            Add-ChartTitle @addChartTitleParams
+
+                            $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+
+                            if ($PassThru)
+                            {
+                                Write-Output -InputObject $chartFileItem
+                            }
                         }
-                        $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
-
-                        $addChartSeriesParams = @{
-                            Chart             = $exampleChart
-                            ChartArea         = $exampleChartArea
-                            Name              = 'exampleChartSeries'
-                            XField            = 'Category'
-                            YField            = 'Value'
-                            Palette           = 'Blue'
-                            ColorPerDataPoint = $true
-                        }
-                        $sampleData | Add-ColumnChartSeries @addChartSeriesParams
-
-                        $addChartTitleParams = @{
-                            Chart     = $exampleChart
-                            ChartArea = $exampleChartArea
-                            Name      = 'AccountSecurityAssessment'
-                            Text      = 'Assessment'
-                            Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                        }
-                        Add-ChartTitle @addChartTitleParams
-
-                        $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
-
-                        if ($PassThru)
-                        {
-                            Write-Output -InputObject $chartFileItem
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
                         }
                     }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
-                    }
-
                     if ($OutObj) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Account Security Assessment' {
                             Paragraph "The following section provide a summary of the Account Security Assessment on Domain $($Domain.ToString().ToUpper())."
@@ -204,7 +205,7 @@ function Get-AbrADSecurityAssessment {
                     $InactivePrivilegedUsers =  $PrivilegedUsers | Where-Object {($_.LastLogonDate -le (Get-Date).AddDays(-30)) -AND ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
                     if ($InactivePrivilegedUsers) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Inactive Privileged Accounts' {
-                            Paragraph "The following section details Inactive Privileged Accounts on Domain $($Domain.ToString().ToUpper())"
+                            Paragraph "The following section details privileged accounts with the following filter (LastLogonDate >=30 days and PasswordLastSet >= 365 days) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
                             Write-PscriboMessage "Collecting Inactive Privileged Accounts information from $($Domain)."
@@ -248,8 +249,7 @@ function Get-AbrADSecurityAssessment {
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: Unused or underutilized accounts in highly privileged groups, outside of any break-glass emergency
-                            accounts like the default Administrator account, should have their AD Admin privileges removed." -Italic -Bold
+                            Paragraph "Corrective Actions: Unused or underutilized accounts in highly privileged groups, outside of any break-glass emergency accounts like the default Administrator account, should have their AD Admin privileges removed." -Italic -Bold
                         }
                     }
                 }
