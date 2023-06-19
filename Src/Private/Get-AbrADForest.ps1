@@ -81,7 +81,7 @@ function Get-AbrADForest {
                 $TableParams = @{
                     Name = "Forest Summary - $($ForestInfo)"
                     List = $true
-                    ColumnWidths = 40, 60
+                    ColumnWidths = 50, 50
                 }
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -100,7 +100,87 @@ function Get-AbrADForest {
             Write-PscriboMessage -IsWarning $_.Exception.Message
         }
         try {
-            Section -Style Heading5 'Optional Features' {
+            Section -Style Heading3 'Certificate Authority' {
+                Write-PscriboMessage "Discovering certificate authority information on forest $ForestInfo."
+                $ConfigNCDN = $Data.PartitionsContainer.Split(',') | Select-Object -Skip 1
+                $rootCA = Get-ADObjectSearch -DN "CN=Certification Authorities,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq "certificationAuthority" } -Properties "Name" -SelectPrty 'DistinguishedName','Name' -Session $TempPssSession
+                if ($rootCA) {
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Certification Authority Root(s)' {
+                        $OutObj = @()
+                        Write-PscriboMessage "Discovered Certificate Authority Information on forest $ForestInfo."
+                        foreach ($Item in $rootCA) {
+                            try {
+                                Write-PscriboMessage "Collecting Certificate Authority Information '$($Item.Name)'"
+                                $inObj = [ordered] @{
+                                    'Name' = $Item.Name
+                                    'Distinguished Name' = $Item.DistinguishedName
+                                }
+                                $OutObj += [pscustomobject]$inobj
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                            }
+                        }
+
+                        if ($HealthCheck.Forest.BestPractice) {
+                            ($OutObj | Measure-Object).Count -gt 1 | Set-Style -Style Warning
+                        }
+
+                        $TableParams = @{
+                            Name = "Certificate Authority Root(s) - $($ForestInfo)"
+                            List = $false
+                            ColumnWidths = 50, 50
+                        }
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                        if ($HealthCheck.Forest.BestPractice -and (($OutObj | Measure-Object).Count -gt 1 ) ) {
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
+                            Paragraph "Best Practice: In most PKI implementations, it is not typical to have multiple Root CAs. Its recommended a detailed review of the current PKI infrastructure and Root CA requirements." -Italic -Bold
+                        }
+                    }
+                }
+                Write-PscriboMessage "Discovering certificate authority issuers on forest $ForestInfo."
+                $ConfigNCDN = $Data.PartitionsContainer.Split(',') | Select-Object -Skip 1
+                $subordinateCA = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq "pKIEnrollmentService" } -Properties "*" -SelectPrty 'dNSHostName','Name' -Session $TempPssSession
+                $OutObj = @()
+                if ($subordinateCA) {
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Certification Authority Issuer(s)' {
+                        Write-PscriboMessage "Discovered Certificate Authority issuers on forest $ForestInfo."
+                        foreach ($Item in $subordinateCA) {
+                            try {
+                                Write-PscriboMessage "Collecting Certificate Authority issuers '$($Item.Name)'"
+                                $inObj = [ordered] @{
+                                    'Name' = $Item.Name
+                                    'DNS Name' = $Item.dNSHostName
+                                }
+                                $OutObj += [pscustomobject]$inobj
+                            }
+                            catch {
+                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                            }
+                        }
+
+                        $TableParams = @{
+                            Name = "Certificate Authority Issuer(s) - $($ForestInfo)"
+                            List = $false
+                            ColumnWidths = 50, 50
+                        }
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                    }
+                }
+            }
+        }
+        catch {
+            Write-PscriboMessage -IsWarning $_.Exception.Message
+        }
+        try {
+            Section -Style Heading3 'Optional Features' {
                 Write-PscriboMessage "Discovering Optional Features enabled on forest $ForestInfo."
                 $Data = Invoke-Command -Session $TempPssSession {Get-ADOptionalFeature -Filter *}
                 $OutObj = @()
