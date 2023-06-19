@@ -145,9 +145,9 @@ function Get-AbrADForest {
                 Write-PscriboMessage "Discovering certificate authority issuers on forest $ForestInfo."
                 $ConfigNCDN = $Data.PartitionsContainer.Split(',') | Select-Object -Skip 1
                 $subordinateCA = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq "pKIEnrollmentService" } -Properties "*" -SelectPrty 'dNSHostName','Name' -Session $TempPssSession
-                $OutObj = @()
                 if ($subordinateCA) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Certification Authority Issuer(s)' {
+                        $OutObj = @()
                         Write-PscriboMessage "Discovered Certificate Authority issuers on forest $ForestInfo."
                         foreach ($Item in $subordinateCA) {
                             try {
