@@ -52,7 +52,7 @@ function Get-AbrADCAKeyRecoveryAgent {
                     $TableParams = @{
                         Name = "Key Recovery Agent Certificate - $($Item.'CA Name')"
                         List = $true
-                        ColumnWidths = 40, 60
+                        ColumnWidths = 50, 50
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"

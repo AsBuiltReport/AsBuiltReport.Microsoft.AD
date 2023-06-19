@@ -66,7 +66,7 @@ function Get-AbrADTrust {
                                         $TableParams = @{
                                             Name = "Trusts - $($Trust.Name)"
                                             List = $true
-                                            ColumnWidths = 40, 60
+                                            ColumnWidths = 50, 50
                                         }
                                         if ($Report.ShowTableCaptions) {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"

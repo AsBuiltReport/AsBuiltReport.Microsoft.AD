@@ -59,7 +59,7 @@ function Get-AbrADKerberosAudit {
                         $TableParams = @{
                             Name = "Unconstrained Kerberos Delegation - $($Domain.ToString().ToUpper())"
                             List = $false
-                            ColumnWidths = 40, 60
+                            ColumnWidths = 50, 50
                         }
 
                         if ($Report.ShowTableCaptions) {
@@ -100,7 +100,7 @@ function Get-AbrADKerberosAudit {
                             $TableParams = @{
                                 Name = "KRBTGT Account Audit - $($Domain.ToString().ToUpper())"
                                 List = $true
-                                ColumnWidths = 40, 60
+                                ColumnWidths = 50, 50
                             }
 
                             if ($Report.ShowTableCaptions) {
@@ -147,7 +147,7 @@ function Get-AbrADKerberosAudit {
                             $TableParams = @{
                                 Name = "Administrator Account Audit - $($Domain.ToString().ToUpper())"
                                 List = $true
-                                ColumnWidths = 40, 60
+                                ColumnWidths = 50, 50
                             }
 
                             if ($Report.ShowTableCaptions) {

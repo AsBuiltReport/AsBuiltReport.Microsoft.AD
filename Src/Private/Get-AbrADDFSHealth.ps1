@@ -93,7 +93,7 @@ function Get-AbrADDFSHealth {
                         'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
                         } } | Sort-Object -Descending -Property 'Totalsize'}
                 if ($SYSVOLFolder) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Sysvol Folder Status' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Sysvol Content Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) sysvol health status."
                         BlankLine
                         $OutObj = @()
@@ -117,7 +117,7 @@ function Get-AbrADDFSHealth {
                         }
 
                         $TableParams = @{
-                            Name = "Sysvol Folder Status - $($Domain.ToString().ToUpper())"
+                            Name = "Sysvol Content Status - $($Domain.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 33, 33, 34
                         }
@@ -152,7 +152,7 @@ function Get-AbrADDFSHealth {
                         'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
                         } } | Sort-Object -Descending -Property 'Totalsize'}
                 if ($NetlogonFolder) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Netlogon Folder Status' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Netlogon Content Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) netlogon health status."
                         BlankLine
                         $OutObj = @()
@@ -176,7 +176,7 @@ function Get-AbrADDFSHealth {
                         }
 
                         $TableParams = @{
-                            Name = "Netlogon Folder Status - $($Domain.ToString().ToUpper())"
+                            Name = "Netlogon Content Status - $($Domain.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 33, 33, 34
                         }

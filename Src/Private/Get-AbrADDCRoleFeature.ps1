@@ -43,13 +43,19 @@ function Get-AbrADDCRoleFeature {
                             $inObj = [ordered] @{
                                 'Name' = $Feature.DisplayName
                                 'Parent' = $Feature.FeatureType
-                                'InstallState' = $Feature.Description
+                                'Description' = $Feature.Description
                             }
                             $OutObj += [pscustomobject]$inobj
                         }
                         catch {
                             Write-PscriboMessage -IsWarning "Roles $($Feature.DisplayName) Section: $($_.Exception.Message)"
                         }
+                    }
+
+                    if ($HealthCheck.DomainController.BestPractice) {
+
+                        $OutObj | Where-Object {$_.'Name' -notin @('Active Directory Domain Services','DNS Server','File and Storage Services')} | Set-Style -Style Warning
+
                     }
 
                     $TableParams = @{
@@ -61,7 +67,7 @@ function Get-AbrADDCRoleFeature {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Table @TableParams
-                    if ($HealthCheck.DomainController.Software) {
+                    if ($HealthCheck.DomainController.Software -and ($OutObj | Where-Object {$_.'Name' -notin @('Active Directory Domain Services','DNS Server','File and Storage Services')})) {
                         Paragraph "Health Check:" -Italic -Bold -Underline
                         BlankLine
                         Paragraph "Best Practices: Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation." -Italic -Bold
