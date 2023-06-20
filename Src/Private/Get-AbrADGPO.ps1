@@ -44,7 +44,14 @@ function Get-AbrADGPO {
                                     $inObj = [ordered] @{
                                         'GPO Name' = $GPO.DisplayName
                                         'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
-                                        'Owner' = $GPO.Owner
+                                        'Security Filtering' =  &{
+                                            $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock {(Get-GPO -Domain $using:Domain -Guid ($using:GPO).ID | Get-GPPermission -All | Where-Object {$_.Permission -eq 'GpoApply'}).Trustee.Name}
+                                            if ($GPOSECFILTER) {
+
+                                                return $GPOSECFILTER
+
+                                            } else {'No Security Filtering'}
+                                        }
                                     }
                                     $OutObj += [pscustomobject]$inobj
                                 }
@@ -55,6 +62,7 @@ function Get-AbrADGPO {
 
                             if ($HealthCheck.Domain.GPO) {
                                 $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
+                                $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'} | Set-Style -Style Warning -Property 'Security Filtering'
                             }
 
                             $TableParams = @{
@@ -67,10 +75,16 @@ function Get-AbrADGPO {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                            if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
+                            if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}))) {
                                 Paragraph "Health Check:" -Italic -Bold -Underline
                                 BlankLine
-                                Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
+                                if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
+                                    Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
+                                    BlankLine
+                                }
+                                if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'})) {
+                                    Paragraph "Corrective Actions: Determine which 'No Security Filtering' Group Policies should be deleted and delete them." -Italic -Bold
+                                }
                             }
                         }
                         catch {
@@ -85,10 +99,21 @@ function Get-AbrADGPO {
                                         Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
                                         $inObj = [ordered] @{
                                             'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                                            'GUID' = $GPO.Id
                                             'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
                                             'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
-                                            'Description' = $GPO.Description
-                                            'Owner' =  $GPO.Owner
+                                            'Description' = ConvertTo-EmptyToFiller $GPO.Description
+                                            'Owner' = $GPO.Owner
+                                            # Todo: Find a way to extract wmifilter Name
+                                            # 'WMI Filter' = ($GPO.WmiFilter).Name
+                                            'Security Filtering' =  &{
+                                                $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock {(Get-GPO -Domain $using:Domain -Guid ($using:GPO).ID | Get-GPPermission -All | Where-Object {$_.Permission -eq 'GpoApply'}).Trustee.Name}
+                                                if ($GPOSECFILTER) {
+
+                                                    return $GPOSECFILTER
+
+                                                } else {'No Security Filtering'}
+                                            }
                                         }
 
                                         $OutObj = [pscustomobject]$inobj
@@ -96,6 +121,7 @@ function Get-AbrADGPO {
                                         if ($HealthCheck.Domain.GPO) {
                                             $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                             $OutObj | Where-Object {$Null -eq $_.'Owner'} | Set-Style -Style Warning -Property 'Owner'
+                                            $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'} | Set-Style -Style Warning -Property 'Security Filtering'
                                         }
 
                                         $TableParams = @{
@@ -108,10 +134,16 @@ function Get-AbrADGPO {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $OutObj | Table @TableParams
-                                        if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
+                                        if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}))) {
                                             Paragraph "Health Check:" -Italic -Bold -Underline
                                             BlankLine
-                                            Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
+                                            if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
+                                                Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
+                                                BlankLine
+                                            }
+                                            if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'})) {
+                                                Paragraph "Corrective Actions: Determine which 'No Security Filtering' Group Policies should be deleted and delete them." -Italic -Bold
+                                            }
                                         }
                                     }
                                     catch {
