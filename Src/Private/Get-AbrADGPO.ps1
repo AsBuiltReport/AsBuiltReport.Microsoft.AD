@@ -40,12 +40,12 @@ function Get-AbrADGPO {
                         try {
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
+                                    Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'."
                                     $inObj = [ordered] @{
                                         'GPO Name' = $GPO.DisplayName
                                         'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
                                         'Security Filtering' =  &{
-                                            $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock {(Get-GPO -Domain $using:Domain -Guid ($using:GPO).ID | Get-GPPermission -All | Where-Object {$_.Permission -eq 'GpoApply'}).Trustee.Name}
+                                            $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock {(Get-GPPermission -DomainName $using:Domain -All -Guid ($using:GPO).ID | Where-Object {$_.Permission -eq 'GpoApply'}).Trustee.Name}
                                             if ($GPOSECFILTER) {
 
                                                 return $GPOSECFILTER
@@ -105,9 +105,14 @@ function Get-AbrADGPO {
                                             'Description' = ConvertTo-EmptyToFiller $GPO.Description
                                             'Owner' = $GPO.Owner
                                             # Todo: Find a way to extract wmifilter Name
-                                            # 'WMI Filter' = ($GPO.WmiFilter).Name
+                                            'WMI Filter' = &{
+                                                $WMIFilter = Invoke-Command -Session $TempPssSession -ScriptBlock {((Get-Gpo -DomainName $using:Domain  -Name $using:GPO.DisplayName).WMifilter.Name)}
+                                                if ($WMIFilter) {
+                                                    $WMIFilter
+                                                } else {'--'}
+                                            }
                                             'Security Filtering' =  &{
-                                                $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock {(Get-GPO -Domain $using:Domain -Guid ($using:GPO).ID | Get-GPPermission -All | Where-Object {$_.Permission -eq 'GpoApply'}).Trustee.Name}
+                                                $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock {(Get-GPPermission -DomainName $using:Domain -All -Guid ($using:GPO).ID | Where-Object {$_.Permission -eq 'GpoApply'}).Trustee.Name}
                                                 if ($GPOSECFILTER) {
 
                                                     return $GPOSECFILTER
@@ -127,7 +132,7 @@ function Get-AbrADGPO {
                                         $TableParams = @{
                                             Name = "GPO - $($GPO.DisplayName)"
                                             List = $true
-                                            ColumnWidths = 50, 50
+                                            ColumnWidths = 40, 60
                                         }
 
                                         if ($Report.ShowTableCaptions) {
@@ -156,7 +161,6 @@ function Get-AbrADGPO {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
                         }
                     }
-
                     try {
                         $PATH = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
                         $CentralStore = Invoke-Command -Session $TempPssSession -ScriptBlock {Test-Path $using:PATH}
@@ -455,6 +459,99 @@ function Get-AbrADGPO {
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Enforced Group Policy Objects Table)"
+                    }
+                    # Code taken from Jeremy Saunders
+                    # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
+                    try {
+                        $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                        $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
+                        $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
+                        $OrphanGPOs = @()
+                        $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
+                        if ($DCPssSession) {
+                            Remove-PSSession -Session $DCPssSession
+                        }
+                        $GPOPoliciesSYSVOL = (Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object}).Name.Trim("{}")
+                        $SYSVOLGPOList = @()
+                        ForEach ($GPOinSYSVOL in $GPOPoliciesSYSVOL) {
+                            If ($GPOinSYSVOL -ne "PolicyDefinitions") {
+                                $SYSVOLGPOList += $GPOinSYSVOL
+                            }
+                        }
+                        $MissingADGPOs = Compare-Object $SYSVOLGPOList $GPOPoliciesADSI -passThru | Where-Object { $_.SideIndicator -eq '<=' }
+                        $MissingSYSVOLGPOs = Compare-Object $GPOPoliciesADSI $SYSVOLGPOList -passThru | Where-Object { $_.SideIndicator -eq '<=' }
+                        $OrphanGPOs += $MissingADGPOs
+                        $OrphanGPOs += $MissingSYSVOLGPOs
+                        if ($OrphanGPOs) {
+                            Section -Style Heading6 "Orphaned GPO" {
+                                Paragraph "The following table summarizes the group policy objects that are orphaned or missing in the AD database or in the SYSVOL directory."
+                                BlankLine
+                                $OutObj = @()
+                                Write-PscriboMessage "Discovered orphaned gpo information on $Domain. (Orphaned GPO)"
+                                foreach ($OrphanGPO in $OrphanGPOs) {
+                                    $inObj = [ordered] @{
+                                        'Name' = Switch (($GPOs | Where-Object {$_.id -eq $OrphanGPO}).DisplayName) {
+                                            $Null {'Unknown'}
+                                            default {($GPOs | Where-Object {$_.id -eq $OrphanGPO}).DisplayName}
+                                        }
+                                        'Guid' = $OrphanGPO
+                                        'AD DN Database' = &{
+                                            if ($OrphanGPO -in $MissingADGPOs) {
+                                                return "Missing"
+                                            } else {'Valid'}
+                                        }
+                                        'AD DN Path' = &{
+                                            if ($OrphanGPO -in $MissingADGPOs) {
+                                                return "CN={$($OrphanGPO)},CN=Policies,CN=System,$($DomainInfo.DistinguishedName) (Missing)"
+                                            } else {"CN={$($OrphanGPO)},CN=Policies,CN=System,$($DomainInfo.DistinguishedName) (Valid)"}
+                                        }
+                                        'SYSVOL Guid Directory' = &{
+                                            if ($OrphanGPO -in $MissingSYSVOLGPOs) {
+                                                return "Missing"
+                                            } else {'Valid'}
+                                        }
+                                        'SYSVOL Guid Path' = &{
+                                            if ($OrphanGPO -in $MissingSYSVOLGPOs) {
+                                                return "\\$Domain\SYSVOL\$Domain\Policies\{$($OrphanGPO)} (Missing)"
+                                            } else {"\\$Domain\SYSVOL\$Domain\Policies\{$($OrphanGPO)} (Valid)"}
+                                        }
+                                    }
+                                    $OutObj = [pscustomobject]$inobj
+
+                                    if ($HealthCheck.Domain.GPO) {
+                                        $OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing'} | Set-Style -Style Warning -Property 'AD DN Database','AD DN Path'
+                                        $OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing'} | Set-Style -Style Warning -Property 'SYSVOL Guid Directory','SYSVOL Guid Path'
+                                    }
+
+                                    $TableParams = @{
+                                        Name = "Orphaned GPO - $($Domain.ToString().ToUpper())"
+                                        List = $true
+                                        ColumnWidths = 40, 60
+                                    }
+
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Table @TableParams
+                                    if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing'}) -or ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing'}))) {
+                                        Paragraph "Health Check:" -Italic -Bold -Underline
+                                        BlankLine
+                                        if ($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing'}) {
+                                            Paragraph "Corrective Actions: Evaluate orphaned group policies objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and bandwidth during replication." -Italic -Bold
+                                            BlankLine
+                                        }
+                                        if ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing'}) {
+                                            Paragraph "Corrective Actions: Evaluate orphaned group policies folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and bandwidth during replication." -Italic -Bold
+                                            BlankLine
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Orphaned GPO)"
                     }
                 }
             }
