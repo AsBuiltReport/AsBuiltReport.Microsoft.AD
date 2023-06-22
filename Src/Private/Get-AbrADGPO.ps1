@@ -104,7 +104,6 @@ function Get-AbrADGPO {
                                             'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
                                             'Description' = ConvertTo-EmptyToFiller $GPO.Description
                                             'Owner' = $GPO.Owner
-                                            # Todo: Find a way to extract wmifilter Name
                                             'WMI Filter' = &{
                                                 $WMIFilter = Invoke-Command -Session $TempPssSession -ScriptBlock {((Get-Gpo -DomainName $using:Domain  -Name $using:GPO.DisplayName).WMifilter.Name)}
                                                 if ($WMIFilter) {
@@ -161,47 +160,49 @@ function Get-AbrADGPO {
                             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (WMI Filters)"
                         }
                     }
-                    try {
-                        $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                        $DCPssSession = New-PSSession -ComputerName $DC -Name "WmiFilters" -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                        $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
-                        $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
-                        if ($DCPssSession) {
-                            Remove-PSSession -Session $DCPssSession
-                        }
-                        if ($WmiFilters) {
-                            Section -Style Heading6 "WMI Filters" {
-                                $OutObj = @()
-                                foreach ($WmiFilter in $WmiFilters) {
-                                    Write-PscriboMessage "Discovered wmi filter information on $Domain. (WMI Filters)"
-                                    $inObj = [ordered] @{
-                                        'Name' = $WmiFilter.'msWMI-Name'
-                                        'Author' = $WmiFilter.'msWMI-Author'
-                                        'Query' = $WmiFilter.'msWMI-Parm2'
-                                        'Description' = ConvertTo-EmptyToFiller $WmiFilter.'msWMI-Parm1'
-                                    }
-                                    $OutObj = [pscustomobject]$inobj
+                    if ($InfoLevel.Domain -ge 2) {
+                        try {
+                            $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                            $DCPssSession = New-PSSession -ComputerName $DC -Name "WmiFilters" -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                            $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
+                            $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
+                            if ($DCPssSession) {
+                                Remove-PSSession -Session $DCPssSession
+                            }
+                            if ($WmiFilters) {
+                                Section -Style Heading6 "WMI Filters" {
+                                    $OutObj = @()
+                                    foreach ($WmiFilter in $WmiFilters) {
+                                        Write-PscriboMessage "Discovered wmi filter information on $Domain. (WMI Filters)"
+                                        $inObj = [ordered] @{
+                                            'Name' = $WmiFilter.'msWMI-Name'
+                                            'Author' = $WmiFilter.'msWMI-Author'
+                                            'Query' = $WmiFilter.'msWMI-Parm2'
+                                            'Description' = ConvertTo-EmptyToFiller $WmiFilter.'msWMI-Parm1'
+                                        }
+                                        $OutObj = [pscustomobject]$inobj
 
-                                    if ($HealthCheck.Domain.GPO) {
-                                        $OutObj | Where-Object { $_.'Description' -eq "--"} | Set-Style -Style Warning -Property 'Description'
-                                    }
+                                        if ($HealthCheck.Domain.GPO) {
+                                            $OutObj | Where-Object { $_.'Description' -eq "--"} | Set-Style -Style Warning -Property 'Description'
+                                        }
 
-                                    $TableParams = @{
-                                        Name = "WMI Filter - $($WmiFilter.'msWMI-Name')"
-                                        List = $true
-                                        ColumnWidths = 40, 60
-                                    }
+                                        $TableParams = @{
+                                            Name = "WMI Filter - $($WmiFilter.'msWMI-Name')"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
 
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
                                     }
-                                    $OutObj | Table @TableParams
                                 }
                             }
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (WMI Filters)"
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (WMI Filters)"
+                        }
                     }
                     try {
                         $PATH = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
