@@ -134,7 +134,7 @@ function Get-AbrADDomainController {
                             $TableParams = @{
                                 Name = "Hardware Inventory - $($DCHW.Name.ToString().ToUpper())"
                                 List = $true
-                                ColumnWidths = 50, 50
+                                ColumnWidths = 40, 60
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -502,7 +502,7 @@ function Get-AbrADDomainController {
                                     $TableParams = @{
                                         Name = "Missing Windows Updates - $($DC.ToString().ToUpper().Split(".")[0])"
                                         List = $false
-                                        ColumnWidths = 50, 50
+                                        ColumnWidths = 40, 60
                                     }
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"

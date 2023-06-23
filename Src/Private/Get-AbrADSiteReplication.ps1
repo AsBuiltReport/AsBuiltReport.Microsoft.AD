@@ -89,7 +89,7 @@ function Get-AbrADSiteReplication {
                                     $TableParams = @{
                                         Name = "Site Replication - $($Repl.'To Server')"
                                         List = $true
-                                        ColumnWidths = 50, 50
+                                        ColumnWidths = 40, 60
                                     }
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"

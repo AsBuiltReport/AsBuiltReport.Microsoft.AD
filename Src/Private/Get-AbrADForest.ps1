@@ -81,7 +81,7 @@ function Get-AbrADForest {
                 $TableParams = @{
                     Name = "Forest Summary - $($ForestInfo)"
                     List = $true
-                    ColumnWidths = 50, 50
+                    ColumnWidths = 40, 60
                 }
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -137,7 +137,7 @@ function Get-AbrADForest {
                         $TableParams = @{
                             Name = "Certificate Authority Root(s) - $($ForestInfo)"
                             List = $false
-                            ColumnWidths = 50, 50
+                            ColumnWidths = 40, 60
                         }
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -174,7 +174,7 @@ function Get-AbrADForest {
                         $TableParams = @{
                             Name = "Certificate Authority Issuer(s) - $($ForestInfo)"
                             List = $false
-                            ColumnWidths = 50, 50
+                            ColumnWidths = 40, 60
                         }
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"

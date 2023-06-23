@@ -54,7 +54,7 @@ function Get-AbrADDomainObject {
                             $TableParams = @{
                                 Name = "Computers - $($Domain.ToString().ToUpper())"
                                 List = $true
-                                ColumnWidths = 50, 50
+                                ColumnWidths = 40, 60
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -127,7 +127,7 @@ function Get-AbrADDomainObject {
                             $TableParams = @{
                                 Name = "Domain Controller - $($Domain.ToString().ToUpper())"
                                 List = $true
-                                ColumnWidths = 50, 50
+                                ColumnWidths = 40, 60
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -201,7 +201,7 @@ function Get-AbrADDomainObject {
                             $TableParams = @{
                                 Name = "User - $($Domain.ToString().ToUpper())"
                                 List = $true
-                                ColumnWidths = 50, 50
+                                ColumnWidths = 40, 60
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -678,7 +678,7 @@ function Get-AbrADDomainObject {
                             $TableParams = @{
                                 Name = "Default Domain Password Policy - $($Domain.ToString().ToUpper())"
                                 List = $true
-                                ColumnWidths = 50, 50
+                                ColumnWidths = 40, 60
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -739,7 +739,7 @@ function Get-AbrADDomainObject {
                                         $TableParams = @{
                                             Name = "Fined Grained Password Policies - $($FGPP.Name)"
                                             List = $true
-                                            ColumnWidths = 50, 50
+                                            ColumnWidths = 40, 60
                                         }
                                         if ($Report.ShowTableCaptions) {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -804,7 +804,7 @@ function Get-AbrADDomainObject {
                                 $TableParams = @{
                                     Name = "Local Administrator Password Solution - $($Domain.ToString().ToUpper())"
                                     List = $true
-                                    ColumnWidths = 50, 50
+                                    ColumnWidths = 40, 60
                                 }
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
@@ -880,7 +880,7 @@ function Get-AbrADDomainObject {
                                         $TableParams = @{
                                             Name = "gMSA - $($Account.Name)"
                                             List = $true
-                                            ColumnWidths = 50, 50
+                                            ColumnWidths = 40, 60
                                         }
                                         if ($Report.ShowTableCaptions) {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"

@@ -50,7 +50,7 @@ function Get-AbrADCAAIA {
                             $TableParams = @{
                                 Name = "Authority Information Access - $($CA.Name)"
                                 List = $true
-                                ColumnWidths = 50, 50
+                                ColumnWidths = 40, 60
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"

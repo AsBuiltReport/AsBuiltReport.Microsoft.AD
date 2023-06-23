@@ -366,7 +366,7 @@ function Get-AbrADDNSInfrastructure {
                                             $TableParams = @{
                                                 Name = "Root Hints - $($Domain.ToString().ToUpper())"
                                                 List = $false
-                                                ColumnWidths = 50, 50
+                                                ColumnWidths = 40, 60
                                             }
                                             if ($Report.ShowTableCaptions) {
                                                 $TableParams['Caption'] = "- $($TableParams.Name)"

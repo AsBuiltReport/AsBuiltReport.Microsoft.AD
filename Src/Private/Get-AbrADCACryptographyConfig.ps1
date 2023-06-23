@@ -50,7 +50,7 @@ function Get-AbrADCACryptographyConfig {
                         $TableParams = @{
                             Name = "Cryptography Configuration - $($ForestInfo.ToString().ToUpper())"
                             List = $true
-                            ColumnWidths = 50, 50
+                            ColumnWidths = 40, 60
                         }
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"

@@ -52,7 +52,7 @@ function Get-AbrADCARoot {
                     $TableParams = @{
                         Name = "Enterprise Root CA - $($ForestInfo.ToString().ToUpper())"
                         List = $true
-                        ColumnWidths = 50, 50
+                        ColumnWidths = 40, 60
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
