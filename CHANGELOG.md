@@ -5,8 +5,8 @@
 ### Added
 
 - Added Option "Include.Domains" to allow only a list of Active Directory Domain to document
-  - Include Domains in AD Services
-  - Include Domains in DNS Services
+  - Include Domains in AD services
+  - Include Domains in DNS services
 - Added Site Connection Objects section
 
 ### Changed

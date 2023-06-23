@@ -205,7 +205,7 @@ function Get-AbrADSite {
                                                     $Path = "\\$DC\admin`$\debug\netlogon.log"
                                                     if ((Invoke-Command -Session $DCPssSession {Test-Path -Path $using:path}) -and (Invoke-Command -Session $DCPssSession {(Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0})) {
                                                         Write-PscriboMessage "Collecting Missing Subnet in AD information from $($Domain)."
-                                                        $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path) }
+                                                        $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path)[-200..-1] }
                                                         foreach ($Line in $NetLogonContents) {
                                                             if ($Line -match "NO_CLIENT_SITE") {
                                                                 $inObj = [ordered] @{
