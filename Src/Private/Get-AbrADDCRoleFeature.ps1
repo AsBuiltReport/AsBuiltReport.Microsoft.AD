@@ -54,7 +54,7 @@ function Get-AbrADDCRoleFeature {
 
                     if ($HealthCheck.DomainController.BestPractice) {
 
-                        $OutObj | Where-Object {$_.'Name' -notin @('Active Directory Domain Services','DNS Server','File and Storage Services')} | Set-Style -Style Warning
+                        $OutObj | Where-Object {$_.'Name' -notin @('Active Directory Domain Services','DNS Server','File and Storage Services','DHCP Server')} | Set-Style -Style Warning
 
                     }
 

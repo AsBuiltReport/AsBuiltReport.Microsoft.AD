@@ -85,7 +85,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
             $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
             $script:TempCIMSession = New-CIMSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
-            $ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
+            $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
         } Catch {
             throw "Unable to connect to the Domain Controller: $System"
         }
@@ -194,7 +194,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
                                                 if ($InfoLevel.Domain -ge 2) {
                                                     Section -Style Heading5 "Roles" {
-                                                        Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
+                                                        Paragraph "The following section provides a summary of installed role & features on $Domain DCs."
                                                         foreach ($DC in $DCs){
                                                             $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 1
                                                             if ($DCStatus -eq $false) {

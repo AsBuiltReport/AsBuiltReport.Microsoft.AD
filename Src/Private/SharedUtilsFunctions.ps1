@@ -232,15 +232,14 @@ function Get-ADObjectSearch {
         [ValidateNotNullOrEmpty()]
         $DN,
         $Session,
-        $DC,
         $Filter,
-        $Properties,
+        $Properties="*",
         $SelectPrty
 
     )
     $ADObject = @()
     foreach ($Object in $DN) {
-        $ADObject += Invoke-Command -Session $Session {Get-ADObject -SearchBase $using:DN -SearchScope OneLevel -Filter $using:Filter -Properties $using:Properties -Server server-dc-01v -EA 0 | Select-Object $using:SelectPrty }
+        $ADObject += Invoke-Command -Session $Session {Get-ADObject -SearchBase $using:DN -SearchScope OneLevel -Filter $using:Filter -Properties $using:Properties -EA 0 | Select-Object $using:SelectPrty }
     }
     return $ADObject;
 }# end
