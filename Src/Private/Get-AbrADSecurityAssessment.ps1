@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.8
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,11 +30,9 @@ function Get-AbrADSecurityAssessment {
     process {
         if ($HealthCheck.Domain.Security) {
             try {
-                $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                 $LastLoggedOnDate = $(Get-Date) - $(New-TimeSpan -days 180)
                 $PasswordStaleDate = $(Get-Date) - $(New-TimeSpan -days 180)
-                $ADLimitedProperties = @("Name","Enabled","SAMAccountname","DisplayName","Enabled","LastLogonDate","PasswordLastSet","PasswordNeverExpires","PasswordNotRequired","PasswordExpired","SmartcardLogonRequired","AccountExpirationDate","AdminCount","Created","Modified","LastBadPasswordAttempt","badpwdcount","mail","CanonicalName","DistinguishedName","ServicePrincipalName","SIDHistory","PrimaryGroupID","UserAccountControl")
-                $DomainUsers = Invoke-Command -Session $TempPssSession {Get-ADUser -Filter * -Property $using:ADLimitedProperties -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain)}
+                $DomainUsers = $Users
                 $DomainEnabledUsers = $DomainUsers | Where-Object {$_.Enabled -eq $True } | Measure-Object
                 $DomainDisabledUsers = $DomainUsers | Where-Object {$_.Enabled -eq $false } | Measure-Object
                 $DomainEnabledInactiveUsers = $DomainEnabledUsers | Where-Object { ($_.LastLogonDate -le $LastLoggedOnDate) -AND ($_.PasswordLastSet -le $PasswordStaleDate) } | Measure-Object
@@ -86,51 +84,52 @@ function Get-AbrADSecurityAssessment {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    try {
-                        $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}}
-                        $exampleChart = New-Chart -Name AccountSecurityAssessment -Width 600 -Height 400
+                    if ($Options.EnableCharts) {
+                        try {
+                            $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}}
+                            $exampleChart = New-Chart -Name AccountSecurityAssessment -Width 600 -Height 400
 
-                        $addChartAreaParams = @{
-                            Chart                 = $exampleChart
-                            Name                  = 'Account Security Assessment'
-                            AxisXTitle            = 'Categories'
-                            AxisYTitle            = 'Number of Users'
-                            NoAxisXMajorGridLines = $true
-                            NoAxisYMajorGridLines = $true
+                            $addChartAreaParams = @{
+                                Chart                 = $exampleChart
+                                Name                  = 'Account Security Assessment'
+                                AxisXTitle            = 'Categories'
+                                AxisYTitle            = 'Number of Users'
+                                NoAxisXMajorGridLines = $true
+                                NoAxisYMajorGridLines = $true
+                            }
+                            $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+
+                            $addChartSeriesParams = @{
+                                Chart             = $exampleChart
+                                ChartArea         = $exampleChartArea
+                                Name              = 'exampleChartSeries'
+                                XField            = 'Category'
+                                YField            = 'Value'
+                                Palette           = 'Blue'
+                                ColorPerDataPoint = $true
+                            }
+                            $sampleData | Add-ColumnChartSeries @addChartSeriesParams
+
+                            $addChartTitleParams = @{
+                                Chart     = $exampleChart
+                                ChartArea = $exampleChartArea
+                                Name      = 'AccountSecurityAssessment'
+                                Text      = 'Assessment'
+                                Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+                            }
+                            Add-ChartTitle @addChartTitleParams
+
+                            $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+
+                            if ($PassThru)
+                            {
+                                Write-Output -InputObject $chartFileItem
+                            }
                         }
-                        $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
-
-                        $addChartSeriesParams = @{
-                            Chart             = $exampleChart
-                            ChartArea         = $exampleChartArea
-                            Name              = 'exampleChartSeries'
-                            XField            = 'Category'
-                            YField            = 'Value'
-                            Palette           = 'Blue'
-                            ColorPerDataPoint = $true
-                        }
-                        $sampleData | Add-ColumnChartSeries @addChartSeriesParams
-
-                        $addChartTitleParams = @{
-                            Chart     = $exampleChart
-                            ChartArea = $exampleChartArea
-                            Name      = 'AccountSecurityAssessment'
-                            Text      = 'Assessment'
-                            Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                        }
-                        Add-ChartTitle @addChartTitleParams
-
-                        $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
-
-                        if ($PassThru)
-                        {
-                            Write-Output -InputObject $chartFileItem
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
                         }
                     }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
-                    }
-
                     if ($OutObj) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Account Security Assessment' {
                             Paragraph "The following section provide a summary of the Account Security Assessment on Domain $($Domain.ToString().ToUpper())."
@@ -140,6 +139,7 @@ function Get-AbrADSecurityAssessment {
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Corrective Actions: Ensure there aren't any account with weak security posture." -Italic -Bold
                         }
                     }
@@ -150,8 +150,6 @@ function Get-AbrADSecurityAssessment {
             }
             if ($InfoLevel.Domain -ge 2) {
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                    $PrivilegedUsers = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:Domain -filter {AdminCount -eq 1} -Properties Name,Created,PasswordLastSet,LastLogonDate}
                     Write-PscriboMessage "Discovered Privileged Users information from $Domain."
                     if ($PrivilegedUsers) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Privileged Users Assessment' {
@@ -164,15 +162,15 @@ function Get-AbrADSecurityAssessment {
                                     $inObj = [ordered] @{
                                         'Username' = $PrivilegedUser.SamAccountName
                                         'Created' = Switch ($PrivilegedUser.Created) {
-                                            $Null {'-'}
+                                            $Null {'--'}
                                             default {$PrivilegedUser.Created.ToShortDateString()}
                                         }
                                         'Password Last Set' = Switch ($PrivilegedUser.PasswordLastSet) {
-                                            $Null {'-'}
+                                            $Null {'--'}
                                             default {$PrivilegedUser.PasswordLastSet.ToShortDateString()}
                                         }
                                         'Last Logon Date' = Switch ($PrivilegedUser.LastLogonDate) {
-                                            $Null {'-'}
+                                            $Null {'--'}
                                             default {$PrivilegedUser.LastLogonDate.ToShortDateString()}
                                         }
                                     }
@@ -194,6 +192,7 @@ function Get-AbrADSecurityAssessment {
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Corrective Actions: Ensure there aren't any account with weak security posture." -Italic -Bold
                         }
                     }
@@ -202,8 +201,64 @@ function Get-AbrADSecurityAssessment {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
                 }
                 try {
+                    Write-PscriboMessage "Discovered Inactive Privileged Accounts information from $Domain."
+                    $InactivePrivilegedUsers =  $PrivilegedUsers | Where-Object {($_.LastLogonDate -le (Get-Date).AddDays(-30)) -AND ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
+                    if ($InactivePrivilegedUsers) {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Inactive Privileged Accounts' {
+                            Paragraph "The following section details privileged accounts with the following filter (LastLogonDate >=30 days and PasswordLastSet >= 365 days) on Domain $($Domain.ToString().ToUpper())"
+                            BlankLine
+                            $OutObj = @()
+                            Write-PscriboMessage "Collecting Inactive Privileged Accounts information from $($Domain)."
+                            foreach ($InactivePrivilegedUser in $InactivePrivilegedUsers) {
+                                try {
+                                    $inObj = [ordered] @{
+                                        'Username' = $InactivePrivilegedUser.SamAccountName
+                                        'Created' = Switch ($InactivePrivilegedUser.Created) {
+                                            $Null {'--'}
+                                            default {$InactivePrivilegedUser.Created.ToShortDateString()}
+                                        }
+                                        'Password Last Set' = Switch ($InactivePrivilegedUser.PasswordLastSet) {
+                                            $Null {'--'}
+                                            default {$InactivePrivilegedUser.PasswordLastSet.ToShortDateString()}
+                                        }
+                                        'Last Logon Date' = Switch ($InactivePrivilegedUser.LastLogonDate) {
+                                            $Null {'--'}
+                                            default {$InactivePrivilegedUser.LastLogonDate.ToShortDateString()}
+                                        }
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Inactive Privileged Accounts Item)"
+                                }
+                            }
+
+                            if ($HealthCheck.Domain.Security) {
+                                $OutObj | Set-Style -Style Warning
+                            }
+
+                            $TableParams = @{
+                                Name = "Inactive Privileged Accounts - $($Domain.ToString().ToUpper())"
+                                List = $false
+                                ColumnWidths = 40, 20, 20, 20
+                            }
+
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
+                            Paragraph "Corrective Actions: Unused or underutilized accounts in highly privileged groups, outside of any break-glass emergency accounts like the default Administrator account, should have their AD Admin privileges removed." -Italic -Bold
+                        }
+                    }
+                }
+                catch {
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
+                }
+                try {
                     $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                    $UserSPNs = Invoke-Command -Session $TempPssSession {Get-ADUser -Server $using:Domain -filter {ServicePrincipalName -like '*'} -Properties PasswordLastSet,LastLogonDate,ServicePrincipalName,TrustedForDelegation,TrustedtoAuthForDelegation}
+                    $UserSPNs = Invoke-Command -Session $TempPssSession {Get-ADUser -ResultPageSize 1000 -Server $using:Domain -filter {ServicePrincipalName -like '*'} -Properties PasswordLastSet,LastLogonDate,ServicePrincipalName,TrustedForDelegation,TrustedtoAuthForDelegation}
                     Write-PscriboMessage "Discovered Service Accounts information from $Domain."
                     if ($UserSPNs) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Service Accounts Assessment' {
@@ -217,11 +272,11 @@ function Get-AbrADSecurityAssessment {
                                         'Username' = $UserSPN.SamAccountName
                                         'Enabled' = ConvertTo-TextYN $UserSPN.Enabled
                                         'Password Last Set' = Switch ($UserSPN.PasswordLastSet) {
-                                            $Null {'-'}
+                                            $Null {'--'}
                                             default {$UserSPN.PasswordLastSet.ToShortDateString()}
                                         }
                                         'Last Logon Date' = Switch ($UserSPN.LastLogonDate) {
-                                            $Null {'-'}
+                                            $Null {'--'}
                                             default {$UserSPN.LastLogonDate.ToShortDateString()}
                                         }
                                         'Service Principal Name' = $UserSPN.ServicePrincipalName
@@ -244,6 +299,7 @@ function Get-AbrADSecurityAssessment {
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Corrective Actions: Service accounts are that gray area between regular user accounts and admin accounts that are often highly privileged. They are almost always over-privileged due to documented vendor requirements or because of operational challenges. Ensure there aren't any account with weak security posture." -Italic -Bold
                         }
                     }

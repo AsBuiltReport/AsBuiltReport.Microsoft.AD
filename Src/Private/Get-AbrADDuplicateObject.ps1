@@ -68,6 +68,7 @@ function Get-AbrADDuplicateObject {
                         }
                         $OutObj | Table @TableParams
                         Paragraph "Health Check:" -Italic -Bold -Underline
+                        BlankLine
                         Paragraph "Corrective Actions: Ensure there aren't any duplicate object." -Italic -Bold
                     }
                 }

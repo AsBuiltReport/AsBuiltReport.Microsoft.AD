@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.0
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -26,7 +26,7 @@ function Get-AbrADSite {
         try {
             $Site =  Invoke-Command -Session $TempPssSession {Get-ADReplicationSite -Filter * -Properties *}
             if ($Site) {
-                Section -Style Heading3 'Domain Sites' {
+                Section -Style Heading3 'Sites' {
                     $OutObj = @()
                     Write-PscriboMessage "Discovered Active Directory Sites information of forest $ForestInfo"
                     foreach ($Item in $Site) {
@@ -42,16 +42,27 @@ function Get-AbrADSite {
                                 'Site Name' = $Item.Name
                                 'Description' = ConvertTo-EmptyToFiller $Item.Description
                                 'Subnets' = Switch (($SubnetArray).count) {
-                                    0 {"--"}
+                                    0 {"No subnet assigned"}
                                     default {$SubnetArray}
                                 }
-                                'Creation Date' = $Item.createTimeStamp.ToShortDateString()
+                                'Domain Controllers' = &{
+                                    $ServerArray = @()
+                                    $Servers = try {Get-ADObjectSearch -DN "CN=Servers,$($Item.DistinguishedName)" -Filter { objectClass -eq "Server" } -Properties "DNSHostName" -SelectPrty 'DNSHostName','Name' -Session $TempPssSession} catch {'Unknown'}
+                                    foreach ($Object in $Servers) {
+                                        $ServerArray += $Object.Name
+                                    }
+
+                                    if ($ServerArray) {
+                                        return $ServerArray
+                                    } else {'No DC assigned'}
+                                }
                             }
                             $OutObj += [pscustomobject]$inobj
 
                             if ($HealthCheck.Site.BestPractice) {
-                                $OutObj | Where-Object { $_.'Subnets' -eq '-'} | Set-Style -Style Warning -Property 'Subnets'
-                                $OutObj | Where-Object { $_.'Description' -eq '-'} | Set-Style -Style Warning -Property 'Description'
+                                $OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned'} | Set-Style -Style Warning -Property 'Subnets'
+                                $OutObj | Where-Object { $_.'Description' -eq '--'} | Set-Style -Style Warning -Property 'Description'
+                                $OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned'} | Set-Style -Style Warning -Property 'Domain Controllers'
                             }
                         }
                         catch {
@@ -62,20 +73,75 @@ function Get-AbrADSite {
                     $TableParams = @{
                         Name = "Sites - $($ForestInfo)"
                         List = $false
-                        ColumnWidths = 25, 30, 25, 20
+                        ColumnWidths = 25, 30, 20, 25
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Sort-Object -Property 'Site Name' | Table @TableParams
-                    if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Subnets' -eq '-'}) -or ($OutObj | Where-Object { $_.'Description' -eq '-'}))) {
+                    if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Subnets' -eq '--'}) -or ($OutObj | Where-Object { $_.'Description' -eq '--'}))) {
                         Paragraph "Health Check:" -Italic -Bold -Underline
-                        if ($OutObj | Where-Object { $_.'Subnets' -eq '-'}) {
+                        BlankLine
+                        if ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned'}) {
                             Paragraph "Corrective Actions: Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
                         }
-                        if ($OutObj | Where-Object { $_.'Description' -eq '-'}) {
-                            Paragraph "Best Practices: Ensure Sites have a defined description." -Italic -Bold
+                        if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
+                            BlankLine
+                            Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
                         }
+                    }
+                    try {
+                        $Replications = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADReplicationConnection -Properties * -Filter *}
+                        if ($Replications) {
+                            Section -Style Heading4 'Connection Objects' {
+                                $OutObj = @()
+                                Write-PscriboMessage "Discovered Connection Objects information of forest $ForestInfo"
+                                foreach ($Repl in $Replications) {
+                                    try {
+                                        $inObj = [ordered] @{
+                                            'Name' = &{
+                                                if ($Repl.AutoGenerated) {
+                                                    "<automatically generated>"
+                                                } else {
+                                                    $Repl.Name
+                                                }
+                                            }
+                                            'From Server' = $Repl.ReplicateFromDirectoryServer.Split(",")[1].SubString($Repl.ReplicateFromDirectoryServer.Split(",")[1].IndexOf("=")+1)
+                                            'To Server' = $Repl.ReplicateToDirectoryServer.Split(",")[0].SubString($Repl.ReplicateToDirectoryServer.Split(",")[0].IndexOf("=")+1)
+                                            'From Site' = $Repl.fromserver.Split(",")[3].SubString($Repl.fromserver.Split(",")[3].IndexOf("=")+1)
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+
+                                        if ($HealthCheck.Site.Replication) {
+                                            $OutObj | Where-Object { $_.'Name' -ne '<automatically generated>'} | Set-Style -Style Warning -Property 'Name'
+                                        }
+                                    }
+                                    catch {
+                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Connection Item)"
+                                    }
+                                }
+
+                                $TableParams = @{
+                                    Name = "Connection Objects - $($ForestInfo)"
+                                    List = $false
+                                    ColumnWidths = 25, 25, 25, 25
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $OutObj | Sort-Object -Property 'From Site' | Table @TableParams
+                                if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Name' -ne '<automatically generated>'})) {
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    BlankLine
+                                    if ($OutObj | Where-Object { $_.'Name' -ne '<automatically generated>'}) {
+                                        Paragraph "Best Practice: By default, the replication topology is managed automatically and optimizes existing connections. However, manual connections created by an administrator are not modified or optimized. Verify that all topology information is entered for Site Links and delete all manual connection objects." -Italic -Bold
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Connection Objects)"
                     }
                     try {
                         $Subnet = Invoke-Command -Session $TempPssSession {Get-ADReplicationSubnet -Filter * -Properties *}
@@ -89,13 +155,17 @@ function Get-AbrADSite {
                                         $inObj = [ordered] @{
                                             'Subnet' = $Item.Name
                                             'Description' = ConvertTo-EmptyToFiller $Item.Description
-                                            'Sites' = Get-ADObject $Item.Site | Select-Object -ExpandProperty Name
-                                            'Creation Date' = $Item.Created.ToShortDateString()
+                                            'Sites' = &{
+                                                try {
+                                                    $Item.Site.Split(",")[0].SubString($Item.Site.Split(",")[0].IndexOf("=")+1)
+                                                } catch {"No site assigned"}
+                                            }
                                         }
                                         $OutObj += [pscustomobject]$inObj
 
                                         if ($HealthCheck.Site.BestPractice) {
-                                            $OutObj | Where-Object { $_.'Description' -eq '-'} | Set-Style -Style Warning -Property 'Description'
+                                            $OutObj | Where-Object { $_.'Description' -eq '--'} | Set-Style -Style Warning -Property 'Description'
+                                            $OutObj | Where-Object { $_.'Sites' -eq 'No site assigned'} | Set-Style -Style Warning -Property 'Sites'
                                         }
                                     }
                                     catch {
@@ -106,15 +176,89 @@ function Get-AbrADSite {
                                 $TableParams = @{
                                     Name = "Site Subnets - $($ForestInfo)"
                                     List = $false
-                                    ColumnWidths = 20, 30, 35, 15
+                                    ColumnWidths = 20, 40, 40
                                 }
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'Subnet' | Table @TableParams
-                                if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Description' -eq '-'})) {
+                                if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Description' -eq '--'}) -or ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned'}))) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
-                                    Paragraph "Best Practices: Ensure that subnets has a defined description." -Italic -Bold
+                                    BlankLine
+                                    if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
+                                        Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
+                                        BlankLine
+                                    }
+                                    if ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned'}) {
+                                        Paragraph "Corrective Actions: Ensure Subnet have an associated site. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
+                                    }
+                                }
+                                if ($HealthCheck.Site.BestPractice) {
+                                    try {
+                                        $OutObj = @()
+                                        foreach ($Domain in $ADSystem.Domains | Where-Object {$_ -notin $Options.Exclude.Domains}) {
+                                            Write-PscriboMessage "Discovered Missing Subnet in AD information from $Domain."
+                                            $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
+                                            foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object {$_ -notin $Options.Exclude.DCs})) {
+                                                try {
+                                                    $DCPssSession = New-PsSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                                    $Path = "\\$DC\admin`$\debug\netlogon.log"
+                                                    if ((Invoke-Command -Session $DCPssSession {Test-Path -Path $using:path}) -and (Invoke-Command -Session $DCPssSession {(Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0})) {
+                                                        Write-PscriboMessage "Collecting Missing Subnet in AD information from $($Domain)."
+                                                        $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path)[-200..-1] }
+                                                        foreach ($Line in $NetLogonContents) {
+                                                            if ($Line -match "NO_CLIENT_SITE") {
+                                                                $inObj = [ordered] @{
+                                                                    'DC' = $DC
+                                                                    'IP' = $Line.Split(":")[4].trim(" ").Split(" ")[1]
+                                                                }
+
+                                                                $OutObj += [pscustomobject]$inobj
+                                                            }
+
+                                                            if ($HealthCheck.Site.BestPractice) {
+                                                                $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Write-PScriboMessage "Unable to read $Path on $DC"
+                                                    }
+                                                    if ($DCPssSession) {
+                                                        Remove-PsSession -Session $DCPssSession
+                                                    }
+                                                }
+                                                catch {
+                                                    Write-PscriboMessage -IsWarning "Missing Subnet in AD Item Section: $($_.Exception.Message)"
+                                                }
+                                            }
+                                        }
+                                        if ($OutObj) {
+                                            Section -Style Heading4 'Missing Subnets in AD' {
+                                                Paragraph "The following table list the NO_CLIENT_SITE entries found in the netlogon.log file at each DC in the forest."
+                                                Blankline
+                                                $TableParams = @{
+                                                    Name = "Missing Subnets - $($ForestInfo)"
+                                                    List = $false
+                                                    ColumnWidths = 40, 60
+                                                }
+
+                                                if ($Report.ShowTableCaptions) {
+                                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                                }
+
+                                                $OutObj | Sort-Object -Property 'DC','IP' | Get-Unique -AsString | Table @TableParams
+                                                if ($HealthCheck.Site.BestPractice) {
+                                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                                    BlankLine
+                                                    Paragraph "Corrective Actions: Make sure that all the subnets at each Site are properly defined. Missing subnets can cause clients to not use the site's local DCs." -Italic -Bold
+                                                    BlankLine
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch {
+                                        Write-PscriboMessage -IsWarning "Sysvol Replication Table Section: $($_.Exception.Message)"
+                                    }
                                 }
                             }
                         }
@@ -142,29 +286,145 @@ function Get-AbrADSite {
                                             'Cost' = $Item.Cost
                                             'Replication Frequency' = "$($Item.ReplicationFrequencyInMinutes) min"
                                             'Transport Protocol' = $Item.InterSiteTransportProtocol
-                                            'Sites' = $SiteArray
+                                            'Options' = Switch ($Item.Options) {
+                                                $null {'Change Notification is Disabled'}
+                                                '0' {'(0)Change Notification is Disabled'}
+                                                '1' {'(1)Change Notification is Enabled with Compression'}
+                                                '2' {'(2)Force sync in opposite direction at end of sync'}
+                                                '3' {'(3)Change Notification is Enabled with Compression and Force sync in opposite direction at end of sync'}
+                                                '4' {'(4)Disable compression of Change Notification messages'}
+                                                '5' {'(5)Change Notification is Enabled without Compression'}
+                                                '6' {'(6)Force sync in opposite direction at end of sync and Disable compression of Change Notification messages'}
+                                                '7' {'(7)Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync'}
+                                                Default {"Unknown siteLink option: $($Item.Options)"}
+                                            }
+                                            'Sites' = $SiteArray -join "; "
+                                            'Protected From Accidental Deletion' = ConvertTo-TextYN $Item.ProtectedFromAccidentalDeletion
+                                            'Description' = ConvertTo-EmptyToFiller $Item.Description
                                         }
-                                        $OutObj += [pscustomobject]$inobj
+                                        $OutObj = [pscustomobject]$inobj
+
+                                        if ($HealthCheck.Site.BestPractice) {
+                                            $OutObj | Where-Object { $_.'Description' -eq '--'} | Set-Style -Style Warning -Property 'Description'
+                                            $OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' } | Set-Style -Style Warning -Property 'Options'
+                                            $OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No'} | Set-Style -Style Warning -Property 'Protected From Accidental Deletion'
+                                        }
+
+                                        $TableParams = @{
+                                            Name = "Site Links - $($Item.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Sort-Object -Property 'Site Link Name' | Table @TableParams
+                                        if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No'}) -or (($OutObj | Where-Object { $_.'Description' -eq '--'}) -or ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' })))) {
+                                            Paragraph "Health Check:" -Italic -Bold -Underline
+                                            BlankLine
+                                            if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
+                                                Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
+                                                BlankLine
+                                            }
+                                            if ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' }) {
+                                                Paragraph "Best Practice: Enabling change notification treats an INTER-site replication connection like an INTRA-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an Option number value of 5 (Change Notification is Enabled without Compression)." -Italic -Bold
+                                                BlankLine
+                                            }
+                                            if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No'}) {
+                                                Paragraph "Best Practice: If the Site Links in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects." -Italic -Bold
+                                                BlankLine
+                                            }
+                                            BlankLine
+                                        }
+
                                     }
                                     catch {
                                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Links)"
                                     }
                                 }
-
-                                $TableParams = @{
-                                    Name = "Site Links - $($ForestInfo)"
-                                    List = $false
-                                    ColumnWidths = 30, 15, 15, 15, 25
-                                }
-                                if ($Report.ShowTableCaptions) {
-                                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                                }
-                                $OutObj | Sort-Object -Property 'Site Link Name' | Table @TableParams
                             }
                         }
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
+                    }
+                    try {
+                        $OutObj = @()
+                        foreach ($Domain in $ADSystem.Domains | Where-Object {$_ -notin $Options.Exclude.Domains}) {
+                            Write-PscriboMessage "Discovered AD Domain Sysvol Replication information from $Domain."
+                            $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
+                            foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object {$_ -notin $Options.Exclude.DCs})) {
+                                $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                $Replication = Get-CIMInstance -CIMSession $DCCIMSession -Namespace "root/microsoftdfs" -Class "dfsrreplicatedfolderinfo" -Filter "ReplicatedFolderName = 'SYSVOL Share'" -EA 0 -Verbose:$False | Select-Object State
+                                if ($DCCIMSession) {
+                                    Remove-CimSession -CimSession $DCCIMSession
+                                }
+
+                                try {
+                                    Write-PscriboMessage "Collecting Sysvol Replication information from $($Domain)."
+                                    $inObj = [ordered] @{
+                                        'DC Name' = $DC.split(".", 2)[0]
+                                        'Replication Status' = Switch ($Replication.State) {
+                                            0  {'Uninitialized'}
+                                            1  {'Initialized'}
+                                            2  {'Initial synchronization'}
+                                            3  {'Auto recovery'}
+                                            4  {'Normal'}
+                                            5  {'In error state'}
+                                            6  {'Disabled'}
+                                            7  {'Unknown'}
+                                        }
+                                        'Domain' = $Domain
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning "Sysvol Replication Item Section: $($_.Exception.Message)"
+                                }
+
+                                if ($HealthCheck.Site.BestPractice) {
+                                    $ReplicationStatusError = @(
+                                        'Uninitialized',
+                                        'Auto recovery',
+                                        'In error state',
+                                        'Disabled',
+                                        'Unknown'
+                                    )
+                                    $ReplicationStatusWarn = @(
+                                        'Initialized',
+                                        'Initial synchronization'
+                                    )
+                                    $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
+                                    $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError } | Set-Style -Style Critical -Property 'Replication Status'
+                                    $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property 'Replication Status'
+                                }
+
+                            }
+                        }
+                        if ($OutObj) {
+                            Section -Style Heading4 'Sysvol Replication' {
+                                $TableParams = @{
+                                    Name = "Sysvol Replication - $($Domain.ToString().ToUpper())"
+                                    List = $false
+                                    ColumnWidths = 33, 33, 34
+                                }
+
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+
+                                $OutObj | Sort-Object -Property 'Domain' | Table @TableParams
+                                if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Identical Count' -like 'No' }) -or ($OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError }))) {
+                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    BlankLine
+                                    Paragraph "Corrective Actions: SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains." -Italic -Bold
+                                    BlankLine
+                                }
+                            }
+                        }
+                    }
+                    catch {
+                        Write-PscriboMessage -IsWarning "Sysvol Replication Table Section: $($_.Exception.Message)"
                     }
                 }
             }

@@ -5,7 +5,7 @@ function Get-AbrADCACRLSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.9
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -48,12 +48,12 @@ function Get-AbrADCACRLSetting {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                Write-PscriboMessage -IsWarning "CRL Validity Period $($VP.Name) Section: $($_.Exception.Message)"
                             }
                         }
                     }
                     catch {
-                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                        Write-PscriboMessage -IsWarning "CRL Validity Period Section: $($_.Exception.Message)"
                     }
 
                     $TableParams = @{
@@ -82,12 +82,12 @@ function Get-AbrADCACRLSetting {
                                     $OutObj += [pscustomobject]$inobj
                                 }
                                 catch {
-                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                    Write-PscriboMessage -IsWarning "CRL Validity Period $($Flag.Name) Section: $($_.Exception.Message)"
                                 }
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                            Write-PscriboMessage -IsWarning "CRL Validity Period Table Section: $($_.Exception.Message)"
                         }
 
                         $TableParams = @{
@@ -102,7 +102,7 @@ function Get-AbrADCACRLSetting {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                    Write-PscriboMessage -IsWarning "CRL Validity Period Section: $($_.Exception.Message)"
                 }
                 try {
                     Section -Style Heading5 "CRL Distribution Point" {

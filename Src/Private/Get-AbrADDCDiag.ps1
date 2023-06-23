@@ -74,7 +74,7 @@ function Get-AbrADDCDiag {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                Write-PscriboMessage -IsWarning "Active Directory DCDiag $($Result.TestName) Section: $($_.Exception.Message)"
                             }
                         }
                         if ($HealthCheck.DomainController.Diagnostic) {
@@ -93,7 +93,7 @@ function Get-AbrADDCDiag {
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning $_.Exception.Message
+                Write-PscriboMessage -IsWarning "Active Directory DCDiag Section: $($_.Exception.Message)"
             }
         }
     }

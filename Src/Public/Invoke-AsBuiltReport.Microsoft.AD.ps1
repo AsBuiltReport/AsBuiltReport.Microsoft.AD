@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.12
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -85,7 +85,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
             $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
             $script:TempCIMSession = New-CIMSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
-            $ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
+            $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
         } Catch {
             throw "Unable to connect to the Domain Controller: $System"
         }
@@ -149,8 +149,15 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
                     foreach ($Domain in $OrderedDomains.split(" ")) {
                         if ($Domain) {
+                            # Define Filter option for Domain variable
+                            if ($Options.Include.Domains) {
+                                $DomainFilterOption = $Domain -in $Options.Include.Domains
+
+                            } else {
+                                $DomainFilterOption = $Domain -notin $Options.Exclude.Domains
+                            }
                             try {
-                                if (($Domain -notin $Options.Exclude.Domains ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain})) {
+                                if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain})) {
                                     Section -Style Heading3 "$($Domain.ToString().ToUpper())" {
                                         Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                         BlankLine
@@ -187,13 +194,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
                                                 if ($InfoLevel.Domain -ge 2) {
                                                     Section -Style Heading5 "Roles" {
-                                                        Paragraph "The following section provides a summary of the Domain Controller Role & Features information."
+                                                        Paragraph "The following section provides a summary of installed role & features on $Domain DCs."
                                                         foreach ($DC in $DCs){
                                                             $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 1
                                                             if ($DCStatus -eq $false) {
                                                                 Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
                                                             }
-                                                            if ($DC -notin $Options.Exclude.DCs -and $DCStatus) {
+                                                            if (($DC -notin $Options.Exclude.DCs) -and $DCStatus) {
                                                                 Get-AbrADDCRoleFeature -DC $DC
                                                             }
                                                         }
@@ -205,7 +212,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                             Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
                                                             BlankLine
                                                             foreach ($DC in $DCs){
-                                                                if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                                if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
                                                                     Get-AbrADDCDiag -Domain $Domain -DC $DC
                                                                 }
                                                             }
@@ -221,7 +228,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                     Section -Style Heading5 "Infrastructure Services Status" {
                                                         Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                                                         foreach ($DC in $DCs){
-                                                            if ($DC -notin $Options.Exclude.DCs -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                            if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
                                                                 Get-AbrADInfrastructureService -DC $DC
                                                             }
                                                         }
@@ -238,6 +245,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                             Get-AbrADOU -Domain $Domain
                                         }
                                     }
+                                } else {
+                                    Write-PScriboMessage "$($Domain) disabled in Exclude.Domain variable"
                                 }
                             }
                             catch {
@@ -264,7 +273,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     foreach ($Domain in $OrderedDomains.split(" ")) {
                         if ($Domain) {
                             try {
-                                if (($Domain -notin $Options.Exclude.Domains) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
+                                # Define Filter option for Domain variable
+                                if ($Options.Include.Domains) {
+                                    $DomainFilterOption = $Domain -in $Options.Include.Domains
+
+                                } else {
+                                    $DomainFilterOption = $Domain -notin $Options.Exclude.Domains
+                                }
+                                if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
                                     Section -Style Heading3 "$($Domain.ToString().ToUpper())" {
                                         Paragraph "The following section provides a configuration summary of the DNS service."
                                         BlankLine
@@ -275,8 +291,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                                                 Get-AbrADDNSZone -Domain $Domain -DC $DC
                                             }
+                                            if ($DCPssSession) {
+                                                Remove-PSSession -Session $DCPssSession
+                                            }
                                         }
                                     }
+                                } else {
+                                    Write-PScriboMessage "$($Domain) disabled in Exclude.Domain variable"
                                 }
                             }
                             catch {
