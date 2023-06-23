@@ -11,9 +11,13 @@
     "Options": {
         "ShowDefinitionInfo": false,
         "PSDefaultAuthentication": "Negotiate",
+        "EnableCharts": false,
         "Exclude": {
             "Domains": [],
             "DCs": []
+        },
+        "Include": {
+            "Domains": []
         }
     },
     "InfoLevel": {
@@ -31,12 +35,14 @@
             "DFS": true,
             "SPN": true,
             "DuplicateObject": true,
-            "Security": true
+            "Security": true,
+            "BestPractice": true
         },
         "DomainController": {
             "Diagnostic": true,
             "Services": true,
-            "Software": true
+            "Software": true,
+            "BestPractice": true
         },
         "Site": {
             "Replication": true,
@@ -45,11 +51,14 @@
         "DNS": {
             "Aging": true,
             "DP": true,
-            "Zones": true
+            "Zones": true,
+            "BestPractice": true
+
         },
         "CA": {
             "Status": true,
-            "Statistics": true
+            "Statistics": true,
+            "BestPractice": true
         }
     }
 }

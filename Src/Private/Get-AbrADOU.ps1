@@ -118,6 +118,7 @@ function Get-AbrADOU {
                                     }
                                     $OutObj | Sort-Object -Property 'OU Name' | Table @TableParams
                                     Paragraph "Health Check:" -Italic -Bold -Underline
+                                    BlankLine
                                     Paragraph "Corrective Actions: Review use of enforcement and blocked policy inheritance in Active Directory." -Italic -Bold
                                 }
                             }

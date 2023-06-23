@@ -68,6 +68,7 @@ function Get-AbrADDuplicateSPN {
                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                         if ($HealthCheck.Domain.SPN) {
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Corrective Actions: Ensure there aren't any duplicate SPNs (other than krbtgt)." -Italic -Bold
                         }
                     }

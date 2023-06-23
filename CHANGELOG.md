@@ -1,5 +1,38 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.13] - 2023-06-22
+
+### Added
+
+- Added Option "Include.Domains" to allow only a list of Active Directory Domain to document
+  - Include Domains in AD services
+  - Include Domains in DNS services
+- Added Site Connection Objects section
+
+### Changed
+
+- Major improvements to health check recommendations
+
+### Fixed
+
+- Fix HealthCheck sections not working after v0.7.12
+- Fix [#84](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/84)
+- Fix [#98](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/98)
+- Fix [#99](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/99)
+- Fix [#100](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/100)
+- Fix [#101](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/101)
+- Fix [#102](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/102)
+- Fix [#103](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/103)
+- Fix [#104](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/104)
+- Fix [#105](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/105)
+- Fix [#106](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/106)
+- Fix [#107](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/107)
+- Fix [#108](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/108)
+- Fix [#109](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/109)
+- Fix [#110](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/110)
+- Fix Node.js 12 actions are deprecated warning message
+- Fix the code to ensure that PSRemoting sessions are removed when they are no longer needed.
+
 ## [0.7.12] - 2023-05-23
 
 ### Changed

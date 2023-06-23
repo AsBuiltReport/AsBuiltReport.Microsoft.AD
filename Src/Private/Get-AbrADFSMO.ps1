@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -37,11 +37,11 @@ function Get-AbrADFSMO {
                     try {
                         Write-PscriboMessage "Discovered Active Directory FSMO information of domain $Domain."
                         $inObj = [ordered] @{
-                            'Infrastructure Master Server' = $DomainData.InfrastructureMaster
-                            'RID Master Server' = $DomainData.RIDMaster
+                            'Infrastructure Master' = $DomainData.InfrastructureMaster
+                            'RID Master' = $DomainData.RIDMaster
                             'PDC Emulator Name' = $DomainData.PDCEmulator
-                            'Domain Naming Master Server' = $ForestData.DomainNamingMaster
-                            'Schema Master Server' = $ForestData.SchemaMaster
+                            'Domain Naming Master' = $ForestData.DomainNamingMaster
+                            'Schema Master' = $ForestData.SchemaMaster
                         }
                         $OutObj += [pscustomobject]$inobj
                     }

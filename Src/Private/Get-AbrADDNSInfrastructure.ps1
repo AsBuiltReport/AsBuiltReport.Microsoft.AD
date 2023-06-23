@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -51,7 +51,7 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning " $($_.Exception.Message) (Infrastructure Summary)"
+                                Write-PscriboMessage -IsWarning "DNS Infrastructure Summary Section: $($_.Exception.Message)"
                             }
                         }
                     }
@@ -91,12 +91,12 @@ function Get-AbrADDNSInfrastructure {
                                                     $OutObj += [pscustomobject]$inobj
                                                 }
                                                 catch {
-                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                    Write-PscriboMessage -IsWarning "$($DC.ToString().ToUpper().Split(".")[0]) DNS IP Configuration Section: $($_.Exception.Message)"
                                                 }
                                             }
                                         }
                                         catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
+                                            Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Table Section: $($_.Exception.Message)"
                                         }
                                     }
                                 }
@@ -119,12 +119,13 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                                 if ($HealthCheck.DNS.DP -and ($OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"})) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
+                                    BlankLine
                                     Paragraph "Best Practices: DNS configuration on network adapter should include the loopback address, but not as the first entry." -Italic -Bold
                                 }
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Table)"
+                            Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Section: $($_.Exception.Message)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -147,7 +148,7 @@ function Get-AbrADDNSInfrastructure {
                                                         $inObj = [ordered] @{
                                                             'Name' = $Partition.DirectoryPartitionName
                                                             'State' = Switch ($Partition.State) {
-                                                                $Null {'-'}
+                                                                $Null {'--'}
                                                                 0 {'DNS_DP_OKAY'}
                                                                 1 {'DNS_DP_STATE_REPL_INCOMING'}
                                                                 2 {'DNS_DP_STATE_REPL_OUTGOING'}
@@ -160,12 +161,12 @@ function Get-AbrADDNSInfrastructure {
                                                         $OutObj += [pscustomobject]$inobj
                                                     }
                                                     catch {
-                                                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                        Write-PscriboMessage -IsWarning "Directory Partitions Item Section: $($_.Exception.Message)"
                                                     }
                                                 }
                                             }
                                             catch {
-                                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Directory Partitions Item)"
+                                                Write-PscriboMessage -IsWarning "Directory Partitions Table Section: $($_.Exception.Message)"
                                             }
 
                                             $TableParams = @{
@@ -183,7 +184,7 @@ function Get-AbrADDNSInfrastructure {
                             }
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Directory Partitions Table)"
+                            Write-PscriboMessage -IsWarning "Directory Partitions Section: $($_.Exception.Message)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -282,6 +283,7 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                                 if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Scavenging State' -eq 'Disabled'})) {
                                     Paragraph "Health Check:" -Italic -Bold -Underline
+                                    BlankLine
                                     Paragraph "Best Practices: Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs." -Italic -Bold
                                 }
                             }
@@ -364,7 +366,7 @@ function Get-AbrADDNSInfrastructure {
                                             $TableParams = @{
                                                 Name = "Root Hints - $($Domain.ToString().ToUpper())"
                                                 List = $false
-                                                ColumnWidths = 50, 50
+                                                ColumnWidths = 40, 60
                                             }
                                             if ($Report.ShowTableCaptions) {
                                                 $TableParams['Caption'] = "- $($TableParams.Name)"

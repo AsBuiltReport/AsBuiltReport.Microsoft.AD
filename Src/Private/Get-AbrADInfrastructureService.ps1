@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.8
+        Version:        0.7.13
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -72,11 +72,14 @@ function Get-AbrADInfrastructureService {
                         $OutObj | Sort-Object -Property 'Display Name' | Table @TableParams
                         if ($HealthCheck.DomainController.Services -and ($OutObj | Where-Object { $_.'Short Name' -eq 'Spooler' -and $_.'Status' -like 'Running' })) {
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Corrective Actions: Disable Print Spooler service on DCs and all servers that do not perform Print services." -Italic -Bold
                         }
                     }
-                    Remove-PSSession -Session $DCPssSession
                 }
+            }
+            if ($DCPssSession) {
+                Remove-PSSession -Session $DCPssSession
             }
         }
         catch {

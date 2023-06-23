@@ -67,12 +67,12 @@ function Get-AbrADKerberosAudit {
                         }
                         $OutObj | Table @TableParams
                         Paragraph "Health Check:" -Italic -Bold -Underline
+                        BlankLine
                         Paragraph "Corrective Actions: Ensure there aren't any unconstrained kerberos delegation in Active Directory." -Italic -Bold
                     }
                 }
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                    $KRBTGT = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.Name  -eq 'krbtgt'}}
+                    $KRBTGT = $Users | Where-Object {$_.Name  -eq 'krbtgt'}
                     Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($KRBTGT) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'KRBTGT Account Audit' {
@@ -108,6 +108,7 @@ function Get-AbrADKerberosAudit {
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Best Practice: Microsoft advises changing the krbtgt account password at regular intervals to keep the environment more secure." -Italic -Bold
                         }
                     }
@@ -116,9 +117,8 @@ function Get-AbrADKerberosAudit {
                     Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                     $SID = Invoke-Command -Session $TempPssSession { ((Get-ADDomain -Identity $using:Domain).domainsid).ToString() + "-500" }
-                    $ADMIN = Invoke-Command -Session $TempPssSession { Get-ADUser -Properties 'msds-keyversionnumber',Created,PasswordLastSet,LastLogonDate -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * | Where-Object {$_.SID  -eq $using:SID}}
+                    $ADMIN = $Users | Where-Object {$_.SID  -eq $SID}
                     Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($ADMIN) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Administrator Account Audit' {
@@ -155,6 +155,7 @@ function Get-AbrADKerberosAudit {
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
                             Paragraph "Best Practice: Microsoft advises changing the administrator account password at regular intervals to keep the environment more secure." -Italic -Bold
                         }
                     }
