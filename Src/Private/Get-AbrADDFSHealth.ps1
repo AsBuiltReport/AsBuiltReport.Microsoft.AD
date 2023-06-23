@@ -28,15 +28,15 @@ function Get-AbrADDFSHealth {
     }
 
     process {
-        if ($Domain -and $HealthCheck.Domain.DFS) {
+        if ($HealthCheck.Domain.DFS) {
             try {
                 if ($Options.Exclude.DCs) {
-                    $DFS = Get-WinADDFSHealth -SkipAutodetection -Domain $Domain -Credential $Credential | Where-Object {$_.DomainController -notin ($Options.Exclude.DCs).split(".", 2)[0]}
-                } Else {$DFS = Get-WinADDFSHealth -SkipAutodetection -Domain $Domain -Credential $Credential}
+                    $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential | Where-Object {$_.DomainController -notin ($Options.Exclude.DCs).split(".", 2)[0]}
+                } Else {$DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential}
                 Write-PscriboMessage "Discovered AD Domain DFS Health information from $Domain."
                 if ($DFS) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'DFS Health' {
-                        Paragraph "The following section details Distributed File System health status for Domain $($Domain.ToString().ToUpper())."
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Sysvol Replication Status' {
+                        Paragraph "The following section details the sysvol folder replication status for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
                         foreach ($DCStatus in $DFS) {
@@ -44,7 +44,7 @@ function Get-AbrADDFSHealth {
                                 Write-PscriboMessage "Collecting DFS information from $($Domain)."
                                 $inObj = [ordered] @{
                                     'DC Name' = $DCStatus.DomainController
-                                    'Replication State' = $DCStatus.ReplicationState
+                                    'Replication Status' = $DCStatus.ReplicationState
                                     'GPO Count' = $DCStatus.GroupPolicyCount
                                     'Sysvol Count' = $DCStatus.SysvolCount
                                     'Identical Count' = ConvertTo-TextYN $DCStatus.IdenticalCount
@@ -54,16 +54,30 @@ function Get-AbrADDFSHealth {
                                 $OutObj += [pscustomobject]$inobj
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "DFS Health Iten Section: $($_.Exception.Message)"
+                                Write-PscriboMessage -IsWarning "Sysvol Replication Status Iten Section: $($_.Exception.Message)"
                             }
                         }
 
                         if ($HealthCheck.Domain.DFS) {
+                            $ReplicationStatusError = @(
+                                'Uninitialized',
+                                'Auto recovery',
+                                'In error state',
+                                'Disabled',
+                                'Unknown'
+                            )
+                            $ReplicationStatusWarn = @(
+                                'Initialized',
+                                'Initial synchronization'
+                            )
                             $OutObj | Where-Object { $_.'Identical Count' -like 'No' } | Set-Style -Style Warning -Property 'Identical Count'
+                            $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
+                            $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError } | Set-Style -Style Critical -Property 'Replication Status'
+                            $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property 'Replication Status'
                         }
 
                         $TableParams = @{
-                            Name = "Domain Last Backup - $($Domain.ToString().ToUpper())"
+                            Name = "Sysvol Replication Status - $($Domain.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 20, 16, 16, 16, 16, 16
                         }
@@ -71,15 +85,18 @@ function Get-AbrADDFSHealth {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Sort-Object -Property 'Naming Context' | Table @TableParams
-                        Paragraph "Health Check:" -Italic -Bold -Underline
-                        BlankLine
-                        Paragraph "Corrective Actions: Ensure an identical GPO/SYSVOL content for the domain controller in all Active Directory domains." -Italic -Bold
+                        $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                        if ($HealthCheck.Domain.DFS -and (($OutObj | Where-Object { $_.'Identical Count' -like 'No' }) -or ($OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError }))) {
+                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            BlankLine
+                            Paragraph "Corrective Actions: SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains." -Italic -Bold
+                            BlankLine
+                        }
                     }
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "DFS Health Table Section: $($_.Exception.Message)"
+                Write-PscriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
             }
             try {
                 Write-PscriboMessage "Discovered AD Domain Sysvol Health information from $Domain."
