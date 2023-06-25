@@ -76,6 +76,7 @@ function Get-AbrADForest {
 
                 if ($HealthCheck.Domain.Security) {
                     $OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled'} | Set-Style -Style Warning -Property 'Anonymous Access (dsHeuristics)'
+                    $OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 } | Set-Style -Style Warning -Property 'Tombstone Lifetime (days)'
                 }
 
                 $TableParams = @{
@@ -90,9 +91,15 @@ function Get-AbrADForest {
                 if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled'}) ) {
                     Paragraph "Health Check:" -Italic -Bold -Underline
                     BlankLine
-                    Paragraph "Best Practice: Anonymous Access to Active Directory forest data above the rootDSE level must be disabled." -Italic -Bold
-                    Paragraph "Reference:" -Italic -Bold -Underline
-                    Paragraph "https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555" -Bold
+                    if ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled'}) {
+                        Paragraph "Best Practice: Anonymous Access to Active Directory forest data above the rootDSE level must be disabled." -Italic -Bold
+                        Paragraph "Reference:" -Italic -Bold -Underline
+                        Paragraph "https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555" -Bold
+                        BlankLine
+                    }
+                    if ($OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 }) {
+                        Paragraph "Best Practice: Change the Tombstone Lifetime to 180 days, at a minimum." -Italic -Bold
+                    }
                 }
             }
         }

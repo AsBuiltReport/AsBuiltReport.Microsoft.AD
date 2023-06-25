@@ -827,7 +827,7 @@ function Get-AbrADDomainObject {
                         if ($HealthCheck.Domain.Security -and ($LAPSInfo | Where-Object { $_.'Enabled' -eq 'No'  })) {
                             Paragraph "Health Check:" -Italic -Bold -Underline
                             BlankLine
-                            Paragraph "Security Best Practice: LAPS simplifies password management while helping customers implement additional recommended defenses against cyberattacks. In particular, the solution mitigates the risk of lateral escalation that results when customers use the same administrative local account and password combination on their computers." -Italic -Bold
+                            Paragraph "Security Best Practice: LAPS simplifies password management while helping customers implement additional recommended defenses against cyberattacks. In particular, the solution mitigates the risk of lateral escalation that results when customers use the same administrative local account and password combination on their computers. Download, install, and configure Microsoft LAPS or a third-party solution." -Italic -Bold
                         }
                     }
                 }
