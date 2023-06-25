@@ -178,7 +178,67 @@ function Get-AbrADDomainController {
         catch {
             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Table)"
         }
+        #---------------------------------------------------------------------------------------------#
+        #                                 DNS IP Section                                              #
+        #---------------------------------------------------------------------------------------------#
+        try {
+            Section -Style Heading5 "DNS IP Configuration" {
+                $OutObj = @()
+                foreach ($DC in $DCs) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                        Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
+                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                        try {
+                            $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4 }
+                            foreach ($DNSSetting in $DNSSettings) {
+                                try {
+                                    $inObj = [ordered] @{
+                                        'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                        'Interface' = $DNSSetting.InterfaceAlias
+                                        'Prefered DNS' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[0]
+                                        'Alternate NS' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[1]
+                                        'DNS 3' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[2]
+                                        'DNS 4' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[3]
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning "$($DC.ToString().ToUpper().Split(".")[0]) DNS IP Configuration Section: $($_.Exception.Message)"
+                                }
+                            }
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Table Section: $($_.Exception.Message)"
+                        }
+                    }
+                }
+                if ($DCPssSession) {
+                    Remove-PSSession -Session $DCPssSession
+                }
 
+                if ($HealthCheck.DomainController.BestPractice) {
+                    $OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"} | Set-Style -Style Warning -Property 'DNS IP 1'
+                }
+
+                $TableParams = @{
+                    Name = "DNS IP Configuration - $($Domain.ToString().ToUpper())"
+                    List = $false
+                    ColumnWidths = 20, 20, 15, 15, 15, 15
+                }
+                if ($Report.ShowTableCaptions) {
+                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                }
+                $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"})) {
+                    Paragraph "Health Check:" -Italic -Bold -Underline
+                    BlankLine
+                    Paragraph "Best Practices: DNS configuration on network adapter should include the loopback address, but not as the first entry." -Italic -Bold
+                }
+            }
+        }
+        catch {
+            Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Section: $($_.Exception.Message)"
+        }
         try {
             Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
             Section -Style Heading5 'NTDS Information' {
