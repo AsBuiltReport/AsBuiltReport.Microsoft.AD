@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.11
+        Version:        0.7.14
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -142,10 +142,13 @@ function Get-AbrADDomainController {
                             $DCHW | Table @TableParams
                             if ($HealthCheck.DomainController.Diagnostic) {
                                 if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
-                                    Paragraph "Best Practice: Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on." -Italic -Bold
-                                 }
+                                    Paragraph {
+                                        Text "Best Practice:" -Bold
+                                        Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
+                                    }
+                                }
                             }
                         }
                     }
@@ -167,9 +170,12 @@ function Get-AbrADDomainController {
                     $DCHWInfo | Table @TableParams
                     if ($HealthCheck.DomainController.Diagnostic) {
                         if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Best Practice: Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on." -Italic -Bold
+                            Paragraph {
+                                Text "Best Practice:" -Bold
+                                Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
+                            }
                          }
                     }
                 }
@@ -178,7 +184,70 @@ function Get-AbrADDomainController {
         catch {
             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Table)"
         }
+        #---------------------------------------------------------------------------------------------#
+        #                                 DNS IP Section                                              #
+        #---------------------------------------------------------------------------------------------#
+        try {
+            Section -Style Heading5 "DNS IP Configuration" {
+                $OutObj = @()
+                foreach ($DC in $DCs) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                        Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
+                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                        try {
+                            $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4 }
+                            foreach ($DNSSetting in $DNSSettings) {
+                                try {
+                                    $inObj = [ordered] @{
+                                        'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                        'Interface' = $DNSSetting.InterfaceAlias
+                                        'Prefered DNS' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[0]
+                                        'Alternate NS' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[1]
+                                        'DNS 3' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[2]
+                                        'DNS 4' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[3]
+                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
+                                catch {
+                                    Write-PscriboMessage -IsWarning "$($DC.ToString().ToUpper().Split(".")[0]) DNS IP Configuration Section: $($_.Exception.Message)"
+                                }
+                            }
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Table Section: $($_.Exception.Message)"
+                        }
+                    }
+                }
+                if ($DCPssSession) {
+                    Remove-PSSession -Session $DCPssSession
+                }
 
+                if ($HealthCheck.DomainController.BestPractice) {
+                    $OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"} | Set-Style -Style Warning -Property 'DNS IP 1'
+                }
+
+                $TableParams = @{
+                    Name = "DNS IP Configuration - $($Domain.ToString().ToUpper())"
+                    List = $false
+                    ColumnWidths = 20, 20, 15, 15, 15, 15
+                }
+                if ($Report.ShowTableCaptions) {
+                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                }
+                $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"})) {
+                    Paragraph "Health Check:" -Bold -Underline
+                    BlankLine
+                    Paragraph {
+                        Text "Best Practices:" -Bold
+                        Text "DNS configuration on network adapter should include the loopback address, but not as the first entry."
+                    }
+                }
+            }
+        }
+        catch {
+            Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Section: $($_.Exception.Message)"
+        }
         try {
             Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
             Section -Style Heading5 'NTDS Information' {
@@ -383,9 +452,12 @@ function Get-AbrADDomainController {
                     }
                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                     if ( $OutObj | Where-Object { $_.'KDC SRV' -eq 'Fail' -or  $_.'PDC SRV' -eq 'Fail' -or  $_.'GC SRV' -eq 'Fail' -or  $_.'DC SRV' -eq 'Fail' }) {
-                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Health Check:" -Bold -Underline
                         BlankLine
-                        Paragraph "Best Practice: The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory." -Italic -Bold
+                        Paragraph {
+                            Text "Best Practice:" -Bold
+                            Text "The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory."
+                        }
                     }
                 }
             }
@@ -445,9 +517,12 @@ function Get-AbrADDomainController {
                                     }
                                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     if ($HealthCheck.DomainController.Software) {
-                                        Paragraph "Health Check:" -Italic -Bold -Underline
+                                        Paragraph "Health Check:" -Bold -Underline
                                         BlankLine
-                                        Paragraph "Best Practices: Do not run other software or services on a Domain Controller." -Italic -Bold
+                                        Paragraph {
+                                            Text "Best Practices:" -Bold
+                                            Text "Do not run other software or services on a Domain Controller."
+                                        }
                                     }
                                 }
                             }
@@ -509,9 +584,12 @@ function Get-AbrADDomainController {
                                     }
                                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     if ($HealthCheck.DomainController.Software) {
-                                        Paragraph "Health Check:" -Italic -Bold -Underline
+                                        Paragraph "Health Check:" -Bold -Underline
                                         BlankLine
-                                        Paragraph "Security Best Practices: It is critical to install security updates to protect your systems from malicious attacks. In the long run, it is also important to install software updates, not only to access new features, but also to be on the safe side in terms of security loop holes being discovered in outdated programs. And it is in your own best interest to install all other updates, which may potentially cause your system to become vulnerable to attack." -Italic -Bold
+                                        Paragraph  {
+                                            Text "Security Best Practices:" -Bold
+                                            Text "It is critical to install security updates to protect your systems from malicious attacks. In the long run, it is also important to install software updates, not only to access new features, but also to be on the safe side in terms of security loop holes being discovered in outdated programs. And it is in your own best interest to install all other updates, which may potentially cause your system to become vulnerable to attack."
+                                        }
                                     }
                                 }
                             }

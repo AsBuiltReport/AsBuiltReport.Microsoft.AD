@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.13
+        Version:        0.7.14
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -76,6 +76,7 @@ function Get-AbrADForest {
 
                 if ($HealthCheck.Domain.Security) {
                     $OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled'} | Set-Style -Style Warning -Property 'Anonymous Access (dsHeuristics)'
+                    $OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 } | Set-Style -Style Warning -Property 'Tombstone Lifetime (days)'
                 }
 
                 $TableParams = @{
@@ -88,11 +89,24 @@ function Get-AbrADForest {
                 }
                 $OutObj | Table @TableParams
                 if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled'}) ) {
-                    Paragraph "Health Check:" -Italic -Bold -Underline
+                    Paragraph "Health Check:" -Bold -Underline
                     BlankLine
-                    Paragraph "Best Practice: Anonymous Access to Active Directory forest data above the rootDSE level must be disabled." -Italic -Bold
-                    Paragraph "Reference:" -Italic -Bold -Underline
-                    Paragraph "https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555" -Bold
+                    if ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled'}) {
+                        Paragraph {
+                            Text "Best Practice:" -Bold
+                            Text "Anonymous Access to Active Directory forest data above the rootDSE level must be disabled."
+                        }
+                        Paragraph "Reference:" -Bold
+                        Blankline
+                        Paragraph "https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555" -Color blue
+                        BlankLine
+                    }
+                    if ($OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 }) {
+                        Paragraph {
+                            Text "Best Practice:" -Bold
+                            Text "Change the Tombstone Lifetime to 180 days, at a minimum."
+                        }
+                    }
                 }
             }
         }
@@ -144,9 +158,12 @@ function Get-AbrADForest {
                         }
                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                         if ($HealthCheck.Forest.BestPractice -and (($OutObj | Measure-Object).Count -gt 1 ) ) {
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Best Practice: In most PKI implementations, it is not typical to have multiple Root CAs. Its recommended a detailed review of the current PKI infrastructure and Root CA requirements." -Italic -Bold
+                            Paragraph {
+                                Text "Best Practice:" -Bold
+                                Text "In most PKI implementations, it is not typical to have multiple Root CAs. Its recommended a detailed review of the current PKI infrastructure and Root CA requirements."
+                            }
                         }
                     }
                 }
@@ -226,13 +243,19 @@ function Get-AbrADForest {
                     }
                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                     if ($HealthCheck.Forest.BestPractice -and ($OutObj | Where-Object { $_.'Name' -eq 'Recycle Bin Feature' -and $_.'Enabled' -eq 'No'}) ) {
-                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Health Check:" -Bold -Underline
                         BlankLine
-                        Paragraph "Best Practice: Accidental deletion of Active Directory objects is common for Active Directory Domain Services (AD DS) users. With the Recycle Bin Feature, one could recover accidentally deleted objects in Active Directory. Enable the Recycle Bin feature for the forest." -Italic -Bold
+                        Paragraph {
+                            Text "Best Practice:" -Bold
+                            Text "Accidental deletion of Active Directory objects is common for Active Directory Domain Services (AD DS) users. With the Recycle Bin Feature, one could recover accidentally deleted objects in Active Directory. Enable the Recycle Bin feature for the forest."
+                        }
                         BlankLine
-                        Paragraph "Reference:" -Italic -Bold -Underline
-                        BlankLine
-                        Paragraph "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944" -Bold
+                        Paragraph {
+                            Text "Reference:" -Bold
+                            BlankLine
+                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944"
+
+                        }
                     }
                 }
             }

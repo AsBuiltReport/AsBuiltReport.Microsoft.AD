@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.13
+        Version:        0.7.14
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -87,9 +87,12 @@ function Get-AbrADDFSHealth {
                         }
                         $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                         if ($HealthCheck.Domain.DFS -and (($OutObj | Where-Object { $_.'Identical Count' -like 'No' }) -or ($OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError }))) {
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains." -Italic -Bold
+                            Paragraph {
+                                Text "Corrective Actions:" -Bold
+                                Text "SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains."
+                            }
                             BlankLine
                         }
                     }
@@ -144,9 +147,12 @@ function Get-AbrADDFSHealth {
                         }
                         $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
                         if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico')}) {
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: Make sure Sysvol folder has no malicious extensions or unnecessary content." -Italic -Bold
+                            Paragraph {
+                                Text "Corrective Actions:" -Bold
+                                Text "Make sure Sysvol folder has no malicious extensions or unnecessary content."
+                            }
                         }
                     }
                 }
@@ -203,9 +209,12 @@ function Get-AbrADDFSHealth {
                         }
                         $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
                         if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico')}) {
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: Make sure Netlogon folder has no malicious extensions or unnecessary content." -Italic -Bold
+                            Paragraph {
+                                Text "Corrective Actions:" -Bold
+                                Text "Make sure Netlogon folder has no malicious extensions or unnecessary content."
+                            }
                         }
                     }
                 }

@@ -5,7 +5,7 @@ function Get-AbrADDomainLastBackup {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.9
+        Version:        0.7.14
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -70,9 +70,12 @@ function Get-AbrADDomainLastBackup {
                         }
                         $OutObj | Sort-Object -Property 'Naming Context' | Table @TableParams
                         if ($OutObj | Where-Object { $_.'Last Backup in Days' -gt 180 }) {
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: Ensure there is a recent (<180 days) Active Directory backup." -Italic -Bold
+                            Paragraph {
+                                Text "Corrective Actions:" -Bold
+                                Text "Ensure there is a recent (<180 days) Active Directory backup."
+                            }
                         }
                     }
                 }

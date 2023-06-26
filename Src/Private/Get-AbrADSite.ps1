@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.13
+        Version:        0.7.14
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -80,20 +80,25 @@ function Get-AbrADSite {
                     }
                     $OutObj | Sort-Object -Property 'Site Name' | Table @TableParams
                     if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Subnets' -eq '--'}) -or ($OutObj | Where-Object { $_.'Description' -eq '--'}))) {
-                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Health Check:" -Bold -Underline
                         BlankLine
                         if ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned'}) {
-                            Paragraph "Corrective Actions: Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
+                            Paragraph {
+                                Text -Bold "Corrective Actions:"
+                                Text "Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller."}
                         }
                         if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
                             BlankLine
-                            Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
+                            Paragraph {
+                                Text "Best Practice:" -Bold
+                                Text "It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment."
+                            }
                         }
                     }
                     try {
                         $Replications = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADReplicationConnection -Properties * -Filter *}
                         if ($Replications) {
-                            Section -Style Heading4 'Connection Objects' {
+                            Section -ExcludeFromTOC -Style NOTOCHeading4 'Connection Objects' {
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Connection Objects information of forest $ForestInfo"
                                 foreach ($Repl in $Replications) {
@@ -131,10 +136,13 @@ function Get-AbrADSite {
                                 }
                                 $OutObj | Sort-Object -Property 'From Site' | Table @TableParams
                                 if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Name' -ne '<automatically generated>'})) {
-                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
                                     if ($OutObj | Where-Object { $_.'Name' -ne '<automatically generated>'}) {
-                                        Paragraph "Best Practice: By default, the replication topology is managed automatically and optimizes existing connections. However, manual connections created by an administrator are not modified or optimized. Verify that all topology information is entered for Site Links and delete all manual connection objects." -Italic -Bold
+                                        Paragraph {
+                                            Text "Best Practice:" -Bold
+                                            Text "By default, the replication topology is managed automatically and optimizes existing connections. However, manual connections created by an administrator are not modified or optimized. Verify that all topology information is entered for Site Links and delete all manual connection objects."
+                                        }
                                     }
                                 }
                             }
@@ -183,14 +191,20 @@ function Get-AbrADSite {
                                 }
                                 $OutObj | Sort-Object -Property 'Subnet' | Table @TableParams
                                 if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Description' -eq '--'}) -or ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned'}))) {
-                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
                                     if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
-                                        Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
+                                        Paragraph {
+                                            Text "Best Practice:" -Bold
+                                            Text "It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment."
+                                        }
                                         BlankLine
                                     }
                                     if ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned'}) {
-                                        Paragraph "Corrective Actions: Ensure Subnet have an associated site. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." -Italic -Bold
+                                        Paragraph {
+                                            Text "Corrective Actions:" -Bold
+                                            Text "Ensure Subnet have an associated site. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller."
+                                        }
                                     }
                                 }
                                 if ($HealthCheck.Site.BestPractice) {
@@ -233,7 +247,7 @@ function Get-AbrADSite {
                                             }
                                         }
                                         if ($OutObj) {
-                                            Section -Style Heading4 'Missing Subnets in AD' {
+                                            Section -ExcludeFromTOC -Style NOTOCHeading4 'Missing Subnets in AD' {
                                                 Paragraph "The following table list the NO_CLIENT_SITE entries found in the netlogon.log file at each DC in the forest."
                                                 Blankline
                                                 $TableParams = @{
@@ -248,9 +262,12 @@ function Get-AbrADSite {
 
                                                 $OutObj | Sort-Object -Property 'DC','IP' | Get-Unique -AsString | Table @TableParams
                                                 if ($HealthCheck.Site.BestPractice) {
-                                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                                    Paragraph "Health Check:" -Bold -Underline
                                                     BlankLine
-                                                    Paragraph "Corrective Actions: Make sure that all the subnets at each Site are properly defined. Missing subnets can cause clients to not use the site's local DCs." -Italic -Bold
+                                                    Paragraph {
+                                                        Text "Corrective Actions:" -Bold
+                                                        Text "Make sure that all the subnets at each Site are properly defined. Missing subnets can cause clients to not use the site's local DCs."
+                                                    }
                                                     BlankLine
                                                 }
                                             }
@@ -320,21 +337,29 @@ function Get-AbrADSite {
                                         }
                                         $OutObj | Sort-Object -Property 'Site Link Name' | Table @TableParams
                                         if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No'}) -or (($OutObj | Where-Object { $_.'Description' -eq '--'}) -or ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' })))) {
-                                            Paragraph "Health Check:" -Italic -Bold -Underline
+                                            Paragraph "Health Check:" -Bold -Underline
                                             BlankLine
                                             if ($OutObj | Where-Object { $_.'Description' -eq '--'}) {
-                                                Paragraph "Best Practice: It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment." -Italic -Bold
+                                                Paragraph {
+                                                    Text "Best Practice:" -Bold
+                                                    Text "It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment."
+                                                }
                                                 BlankLine
                                             }
                                             if ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' }) {
-                                                Paragraph "Best Practice: Enabling change notification treats an INTER-site replication connection like an INTRA-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an Option number value of 5 (Change Notification is Enabled without Compression)." -Italic -Bold
+                                                Paragraph {
+                                                    Text "Best Practice:" -Bold
+                                                    Text "Enabling change notification treats an INTER-site replication connection like an INTRA-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an Option number value of 5 (Change Notification is Enabled without Compression)."
+                                                }
                                                 BlankLine
                                             }
                                             if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No'}) {
-                                                Paragraph "Best Practice: If the Site Links in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects." -Italic -Bold
+                                                Paragraph {
+                                                    Text "Best Practice:" -Bold
+                                                    Text "If the Site Links in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects."
+                                                }
                                                 BlankLine
                                             }
-                                            BlankLine
                                         }
 
                                     }
@@ -415,9 +440,12 @@ function Get-AbrADSite {
 
                                 $OutObj | Sort-Object -Property 'Domain' | Table @TableParams
                                 if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Identical Count' -like 'No' }) -or ($OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError }))) {
-                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
-                                    Paragraph "Corrective Actions: SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains." -Italic -Bold
+                                    Paragraph {
+                                        Text "Corrective Actions:" -Bold
+                                        Text "SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains."
+                                    }
                                     BlankLine
                                 }
                             }
