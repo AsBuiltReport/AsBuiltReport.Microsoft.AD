@@ -68,9 +68,12 @@ function Get-AbrADDCRoleFeature {
                     }
                     $OutObj | Table @TableParams
                     if ($HealthCheck.DomainController.Software -and ($OutObj | Where-Object {$_.'Name' -notin @('Active Directory Domain Services','DNS Server','File and Storage Services')})) {
-                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Health Check:" -Bold -Underline
                         BlankLine
-                        Paragraph "Best Practices: Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation." -Italic -Bold
+                        Paragraph {
+                            Text "Best Practices:" -Bold
+                            Text "Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation."
+                        }
                     }
                 }
             }

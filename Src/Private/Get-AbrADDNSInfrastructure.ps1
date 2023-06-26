@@ -219,9 +219,12 @@ function Get-AbrADDNSInfrastructure {
                                 }
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                                 if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Scavenging State' -eq 'Disabled'})) {
-                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
-                                    Paragraph "Best Practices: Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs." -Italic -Bold
+                                    Paragraph {
+                                        Text "Best Practices:" -Bold
+                                        Text "Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs."
+                                    }
                                 }
                             }
                         }

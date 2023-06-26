@@ -71,9 +71,12 @@ function Get-AbrADInfrastructureService {
                         }
                         $OutObj | Sort-Object -Property 'Display Name' | Table @TableParams
                         if ($HealthCheck.DomainController.Services -and ($OutObj | Where-Object { $_.'Short Name' -eq 'Spooler' -and $_.'Status' -like 'Running' })) {
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: Disable Print Spooler service on DCs and all servers that do not perform Print services." -Italic -Bold
+                            Paragraph {
+                                Text "Corrective Actions:" -Bold
+                                Text "Disable Print Spooler service on DCs and all servers that do not perform Print services."
+                            }
                         }
                     }
                 }

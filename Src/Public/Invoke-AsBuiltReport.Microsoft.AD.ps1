@@ -225,7 +225,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                     }
                                                 }
                                                 try {
-                                                    Section -Style Heading5 "Infrastructure Services Status" {
+                                                    Section -Style Heading5 "Infrastructure Services" {
                                                         Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                                                         foreach ($DC in $DCs){
                                                             if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {

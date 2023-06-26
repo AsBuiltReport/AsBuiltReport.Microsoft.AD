@@ -160,7 +160,10 @@ function Get-AbrADDNSZone {
                                     if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them."})) {
                                         Paragraph "Health Check:" -Italic -Bold
                                         BlankLine
-                                        Paragraph "Best Practices: Configure all DNS zones only to allow zone transfers from Trusted IP addresses." -Italic -Bold
+                                        Paragraph {
+                                            Text "Best Practices:" -Bold
+                                            Text "Configure all DNS zones only to allow zone transfers from Trusted IP addresses."
+                                        }
                                     }
                                 }
                             }
@@ -290,8 +293,11 @@ function Get-AbrADDNSZone {
                                     }
                                     $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                                     if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Aging Enabled' -ne 'Yes'})) {
-                                        Paragraph "Health Check:" -Italic -Bold -Underline
-                                        Paragraph "Best Practices: Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs." -Italic -Bold
+                                        Paragraph "Health Check:" -Bold -Underline
+                                        Paragraph {
+                                            Text "Best Practices:" -Bold
+                                            Text "Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs."
+                                        }
                                     }
                                 }
                             }

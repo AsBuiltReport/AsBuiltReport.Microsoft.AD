@@ -102,7 +102,7 @@ function Get-AbrADOU {
                                 }
                             }
                             if ($OutObj) {
-                                Section -Style Heading4 "GPO Blocked Inheritance" {
+                                Section -ExcludeFromTOC -Style NOTOCHeading4 "GPO Blocked Inheritance" {
                                     if ($HealthCheck.Domain.GPO) {
                                         $OutObj | Set-Style -Style Warning
                                     }
@@ -117,9 +117,12 @@ function Get-AbrADOU {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Sort-Object -Property 'OU Name' | Table @TableParams
-                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
-                                    Paragraph "Corrective Actions: Review use of enforcement and blocked policy inheritance in Active Directory." -Italic -Bold
+                                    Paragraph {
+                                        Text "Corrective Actions:" -Bold
+                                        Text "Review use of enforcement and blocked policy inheritance in Active Directory."
+                                    }
                                 }
                             }
 

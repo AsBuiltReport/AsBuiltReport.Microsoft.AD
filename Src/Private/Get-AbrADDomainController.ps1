@@ -142,10 +142,13 @@ function Get-AbrADDomainController {
                             $DCHW | Table @TableParams
                             if ($HealthCheck.DomainController.Diagnostic) {
                                 if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
-                                    Paragraph "Best Practice: Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on." -Italic -Bold
-                                 }
+                                    Paragraph {
+                                        Text "Best Practice:" -Bold
+                                        Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
+                                    }
+                                }
                             }
                         }
                     }
@@ -167,9 +170,12 @@ function Get-AbrADDomainController {
                     $DCHWInfo | Table @TableParams
                     if ($HealthCheck.DomainController.Diagnostic) {
                         if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Best Practice: Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on." -Italic -Bold
+                            Paragraph {
+                                Text "Best Practice:" -Bold
+                                Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
+                            }
                          }
                     }
                 }
@@ -230,9 +236,12 @@ function Get-AbrADDomainController {
                 }
                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                 if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"})) {
-                    Paragraph "Health Check:" -Italic -Bold -Underline
+                    Paragraph "Health Check:" -Bold -Underline
                     BlankLine
-                    Paragraph "Best Practices: DNS configuration on network adapter should include the loopback address, but not as the first entry." -Italic -Bold
+                    Paragraph {
+                        Text "Best Practices:" -Bold
+                        Text "DNS configuration on network adapter should include the loopback address, but not as the first entry."
+                    }
                 }
             }
         }
@@ -443,9 +452,12 @@ function Get-AbrADDomainController {
                     }
                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                     if ( $OutObj | Where-Object { $_.'KDC SRV' -eq 'Fail' -or  $_.'PDC SRV' -eq 'Fail' -or  $_.'GC SRV' -eq 'Fail' -or  $_.'DC SRV' -eq 'Fail' }) {
-                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Health Check:" -Bold -Underline
                         BlankLine
-                        Paragraph "Best Practice: The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory." -Italic -Bold
+                        Paragraph {
+                            Text "Best Practice:" -Bold
+                            Text "The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory."
+                        }
                     }
                 }
             }
@@ -505,9 +517,12 @@ function Get-AbrADDomainController {
                                     }
                                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     if ($HealthCheck.DomainController.Software) {
-                                        Paragraph "Health Check:" -Italic -Bold -Underline
+                                        Paragraph "Health Check:" -Bold -Underline
                                         BlankLine
-                                        Paragraph "Best Practices: Do not run other software or services on a Domain Controller." -Italic -Bold
+                                        Paragraph {
+                                            Text "Best Practices:" -Bold
+                                            Text "Do not run other software or services on a Domain Controller."
+                                        }
                                     }
                                 }
                             }
@@ -569,9 +584,12 @@ function Get-AbrADDomainController {
                                     }
                                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                     if ($HealthCheck.DomainController.Software) {
-                                        Paragraph "Health Check:" -Italic -Bold -Underline
+                                        Paragraph "Health Check:" -Bold -Underline
                                         BlankLine
-                                        Paragraph "Security Best Practices: It is critical to install security updates to protect your systems from malicious attacks. In the long run, it is also important to install software updates, not only to access new features, but also to be on the safe side in terms of security loop holes being discovered in outdated programs. And it is in your own best interest to install all other updates, which may potentially cause your system to become vulnerable to attack." -Italic -Bold
+                                        Paragraph  {
+                                            Text "Security Best Practices:" -Bold
+                                            Text "It is critical to install security updates to protect your systems from malicious attacks. In the long run, it is also important to install software updates, not only to access new features, but also to be on the safe side in terms of security loop holes being discovered in outdated programs. And it is in your own best interest to install all other updates, which may potentially cause your system to become vulnerable to attack."
+                                        }
                                     }
                                 }
                             }

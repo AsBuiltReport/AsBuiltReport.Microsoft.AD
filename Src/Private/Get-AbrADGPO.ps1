@@ -76,14 +76,20 @@ function Get-AbrADGPO {
                             }
                             $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                             if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}))) {
-                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Health Check:" -Bold -Underline
                                 BlankLine
                                 if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
-                                    Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
+                                    Paragraph {
+                                        Text "Best Practices:" -Bold
+                                        Text "Ensure 'All Settings Disabled' GPO are removed from Active Directory."
+                                    }
                                     BlankLine
                                 }
                                 if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'})) {
-                                    Paragraph "Corrective Actions: Determine which 'No Security Filtering' Group Policies should be deleted and delete them." -Italic -Bold
+                                    Paragraph {
+                                        Text "Corrective Actions:" -Bold
+                                        Text "Determine which 'No Security Filtering' Group Policies should be deleted and delete them."
+                                    }
                                 }
                             }
                         }
@@ -139,14 +145,20 @@ function Get-AbrADGPO {
                                         }
                                         $OutObj | Table @TableParams
                                         if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}))) {
-                                            Paragraph "Health Check:" -Italic -Bold -Underline
+                                            Paragraph "Health Check:" -Bold -Underline
                                             BlankLine
                                             if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
-                                                Paragraph "Best Practices: Ensure 'All Settings Disabled' GPO are removed from Active Directory." -Italic -Bold
+                                                Paragraph {
+                                                    Text "Best Practices:" -Bold
+                                                    Text "Ensure 'All Settings Disabled' GPO are removed from Active Directory."
+                                                }
                                                 BlankLine
                                             }
                                             if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'})) {
-                                                Paragraph "Corrective Actions: Determine which 'No Security Filtering' Group Policies should be deleted and delete them." -Italic -Bold
+                                                Paragraph {
+                                                    Text "Corrective Actions:" -Bold
+                                                    Text "Determine which 'No Security Filtering' Group Policies should be deleted and delete them."
+                                                }
                                             }
                                         }
                                     }
@@ -233,9 +245,12 @@ function Get-AbrADGPO {
                                 }
                                 $OutObj | Table @TableParams
                                 if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'Configured' -eq 'No'})) {
-                                    Paragraph "Health Check:" -Italic -Bold -Underline
+                                    Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
-                                    Paragraph "Best Practices: Ensure Central Store is deployed to centralized GPO repository." -Italic -Bold
+                                    Paragraph {
+                                        Text "Best Practices:" -Bold
+                                        Text "Ensure Central Store is deployed to centralized GPO repository."
+                                    }
                                 }
                             }
                         }
@@ -392,9 +407,12 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Health Check:" -Bold -Underline
                                 BlankLine
-                                Paragraph "Corrective Actions: Remove Unused GPO from Active Directory." -Italic -Bold
+                                Paragraph {
+                                    Text "Corrective Actions:" -Bold
+                                    Text "Remove Unused GPO from Active Directory."
+                                }
                             }
                         }
                     }
@@ -440,9 +458,12 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Health Check:" -Bold -Underline
                                 BlankLine
-                                Paragraph "Corrective Actions: No User and Computer parameters are set: Remove Unused GPO in Active Directory." -Italic -Bold
+                                Paragraph {
+                                    Text "Corrective Actions:" -Bold
+                                    Text "No User and Computer parameters are set: Remove Unused GPO in Active Directory."
+                                }
                             }
                         }
                     }
@@ -493,9 +514,12 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                                Paragraph "Health Check:" -Italic -Bold -Underline
+                                Paragraph "Health Check:" -Bold -Underline
                                 BlankLine
-                                Paragraph "Corrective Actions: Review use of enforcement and blocked policy inheritance in Active Directory." -Italic -Bold
+                                Paragraph {
+                                    Text "Corrective Actions:" -Bold
+                                    Text "Review use of enforcement and blocked policy inheritance in Active Directory."
+                                }
 
                             }
                         }
@@ -578,14 +602,20 @@ function Get-AbrADGPO {
                                     }
                                     $OutObj | Table @TableParams
                                     if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing'}) -or ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing'}))) {
-                                        Paragraph "Health Check:" -Italic -Bold -Underline
+                                        Paragraph "Health Check:" -Bold -Underline
                                         BlankLine
                                         if ($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing'}) {
-                                            Paragraph "Corrective Actions: Evaluate orphaned group policies objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and bandwidth during replication." -Italic -Bold
+                                            Paragraph {
+                                                Text "Corrective Actions:" -Bold
+                                                Text "Evaluate orphaned group policies objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and bandwidth during replication."
+                                            }
                                             BlankLine
                                         }
                                         if ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing'}) {
-                                            Paragraph "Corrective Actions: Evaluate orphaned group policies folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and bandwidth during replication." -Italic -Bold
+                                            Paragraph {
+                                                Text "Corrective Actions:" -Bold
+                                                Text "Evaluate orphaned group policies folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and bandwidth during replication."
+                                            }
                                             BlankLine
                                         }
                                     }

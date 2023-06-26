@@ -138,9 +138,11 @@ function Get-AbrADSecurityAssessment {
                                 Image -Text 'Account Security Assessment - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                             }
                             $OutObj | Table @TableParams
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: Ensure there aren't any account with weak security posture." -Italic -Bold
+                            Paragraph {
+                                Text "Corrective Actions:" -Bold
+                                Text "Ensure there aren't any account with weak security posture."}
                         }
                     }
                 }
@@ -191,9 +193,12 @@ function Get-AbrADSecurityAssessment {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: Ensure there aren't any account with weak security posture." -Italic -Bold
+                            Paragraph {
+                                Text "Corrective Actions:" -Bold
+                                Text "Ensure there aren't any account with weak security posture."
+                            }
                         }
                     }
                 }
@@ -247,9 +252,12 @@ function Get-AbrADSecurityAssessment {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: Unused or underutilized accounts in highly privileged groups, outside of any break-glass emergency accounts like the default Administrator account, should have their AD Admin privileges removed." -Italic -Bold
+                            Paragraph {
+                                Text "Corrective Actions:" -Bold
+                                Text  "Unused or underutilized accounts in highly privileged groups, outside of any break-glass emergency accounts like the default Administrator account, should have their AD Admin privileges removed."
+                            }
                         }
                     }
                 }
@@ -298,9 +306,12 @@ function Get-AbrADSecurityAssessment {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: Service accounts are that gray area between regular user accounts and admin accounts that are often highly privileged. They are almost always over-privileged due to documented vendor requirements or because of operational challenges. Ensure there aren't any account with weak security posture." -Italic -Bold
+                            Paragraph {
+                                Text "Corrective Actions:" -Bold
+                                Text "Service accounts are that gray area between regular user accounts and admin accounts that are often highly privileged. They are almost always over-privileged due to documented vendor requirements or because of operational challenges. Ensure there aren't any account with weak security posture."
+                            }
                         }
                     }
                 }
