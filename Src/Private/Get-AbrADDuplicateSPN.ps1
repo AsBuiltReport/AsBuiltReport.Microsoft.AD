@@ -5,7 +5,7 @@ function Get-AbrADDuplicateSPN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.9
+        Version:        0.7.14
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -67,9 +67,12 @@ function Get-AbrADDuplicateSPN {
                         }
                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                         if ($HealthCheck.Domain.SPN) {
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Corrective Actions: Ensure there aren't any duplicate SPNs (other than krbtgt)." -Italic -Bold
+                            Paragraph {
+                                Text "Corrective Actions:" -Bold
+                                Text "Ensure there aren't any duplicate SPNs (other than krbtgt)."
+                            }
                         }
                     }
                 }

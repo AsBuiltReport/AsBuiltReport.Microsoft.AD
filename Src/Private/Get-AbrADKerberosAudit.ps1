@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.6
+        Version:        0.7.14
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -66,9 +66,12 @@ function Get-AbrADKerberosAudit {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Table @TableParams
-                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Health Check:" -Bold -Underline
                         BlankLine
-                        Paragraph "Corrective Actions: Ensure there aren't any unconstrained kerberos delegation in Active Directory." -Italic -Bold
+                        Paragraph {
+                            Text "Corrective Actions:" -Bold
+                            Text "Ensure there aren't any unconstrained kerberos delegation in Active Directory."
+                        }
                     }
                 }
                 try {
@@ -107,9 +110,12 @@ function Get-AbrADKerberosAudit {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Best Practice: Microsoft advises changing the krbtgt account password at regular intervals to keep the environment more secure." -Italic -Bold
+                            Paragraph {
+                                Text "Best Practice:" -Bold
+                                Text "Microsoft advises changing the krbtgt account password at regular intervals to keep the environment more secure."
+                            }
                         }
                     }
                 }
@@ -154,9 +160,12 @@ function Get-AbrADKerberosAudit {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Best Practice: Microsoft advises changing the administrator account password at regular intervals to keep the environment more secure." -Italic -Bold
+                            Paragraph {
+                                Text "Best Practice:" -Bold
+                                Text "Microsoft advises changing the administrator account password at regular intervals to keep the environment more secure."
+                            }
                         }
                     }
                 }

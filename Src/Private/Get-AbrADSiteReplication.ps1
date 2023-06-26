@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.13
+        Version:        0.7.14
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -81,13 +81,13 @@ function Get-AbrADSiteReplication {
                 }
                 if ($ReplInfo) {
                     if ($InfoLevel.Domain -ge 2) {
-                        Section -Style Heading5 'Sites Replication Connection' {
-                            Paragraph "The following section provides detailed information about Site Replication Connection."
+                        Section -Style Heading5 'Replication Connection' {
+                            Paragraph "The following section provides detailed information about Replication Connection."
                             BlankLine
                             foreach ($Repl in ($ReplInfo | Sort-Object -Property 'Replicate From Directory Server')) {
                                 Section -Style NOTOCHeading5 -ExcludeFromTOC "Site: $($Repl.'From Site'): From: $($Repl.'From Server') To: $($Repl.'To Server')" {
                                     $TableParams = @{
-                                        Name = "Site Replication - $($Repl.'To Server')"
+                                        Name = "Replication Connection - $($Repl.'To Server')"
                                         List = $true
                                         ColumnWidths = 40, 60
                                     }
@@ -99,11 +99,11 @@ function Get-AbrADSiteReplication {
                             }
                         }
                     } else {
-                        Section -Style Heading5 'Sites Replication Connection' {
+                        Section -Style Heading5 'Replication Connection' {
                             Paragraph "The following section provide connection objects to source server ."
                             BlankLine
                             $TableParams = @{
-                                Name = "Site Replication - $($Domain.ToString().ToUpper())"
+                                Name = "Replication Connection - $($Domain.ToString().ToUpper())"
                                 List = $false
                                 Columns = 'Name', 'From Server', 'From Site'
                                 ColumnWidths = 33, 33, 34
@@ -117,20 +117,20 @@ function Get-AbrADSiteReplication {
                 }
             }
             catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Connection)"
+                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Replication Connection)"
             }
         }
         try {
             if ($HealthCheck.Site.Replication) {
-                Write-PscriboMessage "Discovering Active Directory Sites Replication Status on $Domain. (Sites Replication Status)"
+                Write-PscriboMessage "Discovering Active Directory Replication Status on $Domain. (Replication Status)"
                 $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                Write-PscriboMessage "Discovered Active Directory Sites Replication Status on $Domain. (Sites Replication Status)"
+                Write-PscriboMessage "Discovered Active Directory Replication Status on $Domain. (Replication Status)"
                 $RepStatus =  Invoke-Command -Session $DCPssSession -ScriptBlock {repadmin /showrepl /repsto /csv | ConvertFrom-Csv}
                 if ($RepStatus) {
-                    Section -Style Heading5 'Sites Replication Status' {
+                    Section -Style Heading5 'Replication Status' {
                         $OutObj = @()
-                        Write-PscriboMessage "Collecting Active Directory Sites Replication Status from $($Domain). (Sites Replication Status)"
+                        Write-PscriboMessage "Collecting Active Directory Replication Status from $($Domain). (Replication Status)"
                         foreach ($Status in $RepStatus) {
                             try {
                                 $inObj = [ordered] @{
@@ -146,7 +146,7 @@ function Get-AbrADSiteReplication {
 
                             }
                             catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Status)"
+                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Replication Status)"
                             }
                         }
                         if ($HealthCheck.Site.Replication) {
@@ -154,7 +154,7 @@ function Get-AbrADSiteReplication {
                         }
 
                         $TableParams = @{
-                            Name = "Site Replication Status - $($Domain.ToUpper())"
+                            Name = "Replication Status - $($Domain.ToUpper())"
                             List = $false
                             ColumnWidths = 14, 14, 14, 15, 14, 15 ,14
                         }
@@ -163,9 +163,12 @@ function Get-AbrADSiteReplication {
                         }
                         $OutObj| Sort-Object -Property 'Source DSA' | Table @TableParams
                         if ($HealthCheck.Site.Replication -and ($OutObj | Where-Object {$_.'Last Failure Status' -gt 0})) {
-                            Paragraph "Health Check:" -Italic -Bold -Underline
+                            Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph "Best Practices: Replication failure can lead to object inconsistencies and major problems in Active Directory." -Italic -Bold
+                            Paragraph {
+                                Text "Best Practices:" -Bold
+                                Text "Replication failure can lead to object inconsistencies and major problems in Active Directory."
+                            }
                             BlankLine
                         }
                     }

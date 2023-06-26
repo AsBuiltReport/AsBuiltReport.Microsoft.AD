@@ -5,7 +5,7 @@ function Get-AbrADDuplicateObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.9
+        Version:        0.7.14
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -67,9 +67,12 @@ function Get-AbrADDuplicateObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Table @TableParams
-                        Paragraph "Health Check:" -Italic -Bold -Underline
+                        Paragraph "Health Check:" -Bold -Underline
                         BlankLine
-                        Paragraph "Corrective Actions: Ensure there aren't any duplicate object." -Italic -Bold
+                        Paragraph {
+                            Text "Corrective Actions:" -Bold
+                            Text "Ensure there aren't any duplicate object."
+                        }
                     }
                 }
             }
