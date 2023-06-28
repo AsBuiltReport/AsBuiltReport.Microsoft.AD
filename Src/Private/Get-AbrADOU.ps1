@@ -31,7 +31,7 @@ function Get-AbrADOU {
         try {
             $DC = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName}
             Write-PscriboMessage "Discovered Active Directory Organizational Unit information on DC $DC. (Organizational Unit)"
-            $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter *}
+            $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter *}
             if ($OUs) {
                 Section -Style Heading4 "Organizational Units" {
                     Paragraph "The following section provides a summary of Active Directory Organizational Unit information."
@@ -53,9 +53,9 @@ function Get-AbrADOU {
                                 }
                             }
                             $inObj = [ordered] @{
-                                'Name' = $OU.Name
-                                'Path' = ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Domain $Domain -DC $DC
+                                'Name' = ((ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Domain $Domain -DC $DC).split('/') | Select-Object -Skip 1) -join "/"
                                 'Linked GPO' = ConvertTo-EmptyToFiller ($GPOArray -join ", ")
+                                'Protected' = ConvertTo-TextYN $OU.ProtectedFromAccidentalDeletion
                             }
                             $OutObj += [pscustomobject]$inobj
                         }
@@ -64,15 +64,27 @@ function Get-AbrADOU {
                         }
                     }
 
+                    if ($HealthCheck.Domain.BestPractice) {
+                        $OutObj | Where-Object { $_.'Protected' -eq 'No' } | Set-Style -Style Warning -Property 'Protected'
+                    }
+
                     $TableParams = @{
                         Name = "Organizational Unit - $($Domain.ToString().ToUpper())"
                         List = $false
-                        ColumnWidths = 25, 40, 35
+                        ColumnWidths = 45, 45, 10
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Sort-Object -Property 'Path' | Table @TableParams
+                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                    if ($HealthCheck.Domain.BestPractice -and ($OutObj | Where-Object { $_.'Protected' -eq 'No' })) {
+                        Paragraph "Health Check:" -Bold -Underline
+                        BlankLine
+                        Paragraph {
+                            Text "Best Practice:" -Bold
+                            Text "If the Organizational Units in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion"
+                        }
+                    }
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
