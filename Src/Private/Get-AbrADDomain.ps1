@@ -59,9 +59,15 @@ function Get-AbrADDomain {
                         'Users Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.UsersContainer -Domain $Domain
                         'ReadOnly Replica Directory Servers' = ConvertTo-EmptyToFiller $DomainInfo.ReadOnlyReplicaDirectoryServers
                         'ms-DS-MachineAccountQuota' = Invoke-Command -Session $TempPssSession {(Get-ADObject -Server $using:DC -Identity (($using:DomainInfo).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota'}
-                        'RID Issued/Available' = "$($RIDsIssued) / $($RIDsRemaining)"
+                        'RID Issued/Available' = try {"$($RIDsIssued) / $($RIDsRemaining) ($([math]::Truncate($CompleteSIDS / $RIDsRemaining))% Issued)"} catch {"$($RIDsIssued)/$($RIDsRemaining)"}
                     }
                     $OutObj += [pscustomobject]$inobj
+
+                    if ($HealthCheck.Domain.BestPractice) {
+                        if ([math]::Truncate($CompleteSIDS / $RIDsRemaining) -gt 80) {
+                            $OutObj | Set-Style -Style Warning -Property 'RID Issued/Available'
+                        }
+                    }
 
                     $TableParams = @{
                         Name = "Domain Summary - $($Domain.ToString().ToUpper())"
@@ -72,6 +78,19 @@ function Get-AbrADDomain {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Table @TableParams
+                    if ($HealthCheck.Domain.BestPractice -and ([math]::Truncate($CompleteSIDS / $RIDsRemaining) -gt 80)) {
+                        Paragraph "Health Check:" -Bold -Underline
+                        BlankLine
+                        Paragraph {
+                            Text "Best Practice:" -Bold
+                            Text "The RID Issued is greater than 80%, a thorough evaluation of their utilization is recommended to prevent RIDs from being exhausted."
+                        }
+                        BlankLine
+                        Paragraph {
+                            Text "Reference:" -Bold
+                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736"
+                        }
+                    }
                 }
             }
             catch {
