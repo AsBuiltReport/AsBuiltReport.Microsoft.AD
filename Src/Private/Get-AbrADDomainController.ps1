@@ -33,7 +33,7 @@ function Get-AbrADDomainController {
             $OutObj = @()
             Write-PscriboMessage "Discovering Active Directory Domain Controller information from $Domain."
             foreach ($DC in $DCs) {
-                if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                     try {
                         Write-PscriboMessage "Collecting AD Domain Controllers information of $DC."
                         $DCInfo = Invoke-Command -Session $TempPssSession {Get-ADDomainController -Identity $using:DC -Server $using:DC}
@@ -53,6 +53,10 @@ function Get-AbrADDomainController {
                 }
             }
 
+            if ($HealthCheck.DomainController.BestPractice) {
+                $OutObj.Count -eq 1 | Set-Style -Style Warning
+            }
+
             $TableParams = @{
                 Name = "Domain Controllers - $($Domain.ToString().ToUpper())"
                 List = $false
@@ -62,6 +66,14 @@ function Get-AbrADDomainController {
                 $TableParams['Caption'] = "- $($TableParams.Name)"
             }
             $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+            if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
+                Paragraph "Health Check:" -Bold -Underline
+                BlankLine
+                Paragraph {
+                    Text "Best Practice:" -Bold
+                    Text "All domains should have at least two functioning domain controllers for redundancy.In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
+                }
+            }
         }
         catch {
             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
@@ -75,7 +87,7 @@ function Get-AbrADDomainController {
                 Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 $DCHWInfo = @()
                 foreach ($DC in $DCs) {
-                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
                             $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
@@ -90,9 +102,7 @@ function Get-AbrADDomainController {
                                 $inObj = [ordered] @{
                                     'Name' = $HW.CsName
                                     'Windows Product Name' = $HW.WindowsProductName
-                                    'Windows Current Version' = $HW.WindowsCurrentVersion
                                     'Windows Build Number' = $HW.OsVersion
-                                    'Windows Install Type' = $HW.WindowsInstallationType
                                     'AD Domain' = $HW.CsDomain
                                     'Windows Installation Date' = $HW.OsInstallDate
                                     'Time Zone' = $HW.TimeZone
@@ -100,10 +110,6 @@ function Get-AbrADDomainController {
                                     'Partial Product Key' = $License.PartialProductKey
                                     'Manufacturer' = $HW.CsManufacturer
                                     'Model' = $HW.CsModel
-                                    'Serial Number' = $HostBIOS.SerialNumber
-                                    'Bios Type' = $HW.BiosFirmwareType
-                                    'BIOS Version' = $HostBIOS.Version
-                                    'Processor Manufacturer' = $HWCPU[0].Manufacturer
                                     'Processor Model' = $HWCPU[0].Name
                                     'Number of Processors' = ($HWCPU | Measure-Object).Count
                                     'Number of CPU Cores' = $HWCPU[0].NumberOfCores
@@ -154,9 +160,7 @@ function Get-AbrADDomainController {
                     }
                 } else {
                     if ($HealthCheck.DomainController.Diagnostic) {
-                        if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                            $DCHWInfo | Set-Style -Style Warning -Property 'Physical Memory'
-                        }
+                        $DCHWInfo | Where-Object {[int]([regex]::Matches($_.'Physical Memory', "\d+(\.*\d+)").value) -lt 8} | Set-Style -Style Warning -Property 'Physical Memory'
                     }
                     $TableParams = @{
                         Name = "Hardware Inventory - $($Domain.ToString().ToUpper())"
@@ -169,7 +173,7 @@ function Get-AbrADDomainController {
                     }
                     $DCHWInfo | Table @TableParams
                     if ($HealthCheck.DomainController.Diagnostic) {
-                        if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
+                        if ($DCHWInfo | Where-Object {[int]([regex]::Matches($_.'Physical Memory', "\d+(\.*\d+)").value) -lt 8}) {
                             Paragraph "Health Check:" -Bold -Underline
                             BlankLine
                             Paragraph {
@@ -191,10 +195,11 @@ function Get-AbrADDomainController {
             Section -Style Heading5 "DNS IP Configuration" {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
-                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
                         $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                         try {
+                            $DCIPAddress = Invoke-Command -Session $DCPssSession {[System.Net.Dns]::GetHostAddresses($using:DC).IPAddressToString}
                             $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4 }
                             foreach ($DNSSetting in $DNSSettings) {
                                 try {
@@ -202,7 +207,7 @@ function Get-AbrADDomainController {
                                         'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
                                         'Interface' = $DNSSetting.InterfaceAlias
                                         'Prefered DNS' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[0]
-                                        'Alternate NS' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[1]
+                                        'Alternate DNS' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[1]
                                         'DNS 3' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[2]
                                         'DNS 4' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[3]
                                     }
@@ -223,7 +228,9 @@ function Get-AbrADDomainController {
                 }
 
                 if ($HealthCheck.DomainController.BestPractice) {
-                    $OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"} | Set-Style -Style Warning -Property 'DNS IP 1'
+                    $OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1"} | Set-Style -Style Warning -Property 'Prefered DNS'
+                    $OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress } | Set-Style -Style Warning -Property 'Prefered DNS'
+                    $OutObj | Where-Object { $_.'Alternate DNS' -eq "--"} | Set-Style -Style Warning -Property 'Alternate DNS'
                 }
 
                 $TableParams = @{
@@ -235,12 +242,28 @@ function Get-AbrADDomainController {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-                if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'DNS IP 1' -eq "127.0.0.1"})) {
+                if ($HealthCheck.DomainController.BestPractice -and (($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1"}) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) -or ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--"}))) {
                     Paragraph "Health Check:" -Bold -Underline
                     BlankLine
-                    Paragraph {
-                        Text "Best Practices:" -Bold
-                        Text "DNS configuration on network adapter should include the loopback address, but not as the first entry."
+                    if ($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1"}) {
+                        Paragraph {
+                            Text "Best Practices:" -Bold
+                            Text "DNS configuration on network adapter should include the loopback address, but not as the first entry."
+                        }
+                    }
+                    if ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) {
+                        BlankLine
+                        Paragraph {
+                            Text "Best Practices:" -Bold
+                            Text "DNS configuration on network adapter shouldn't include the Domain Controller own IP address as the first entry."
+                        }
+                    }
+                    if ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--"}) {
+                        BlankLine
+                        Paragraph {
+                            Text "Best Practices:" -Bold
+                            Text "For redundancy reasons, the DNS configuration on the network adapter should include an Alternate DNS address."
+                        }
                     }
                 }
             }
@@ -254,7 +277,7 @@ function Get-AbrADDomainController {
                 $OutObj = @()
                 Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 foreach ($DC in $DCs) {
-                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller NTDS information for $DC."
                             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
@@ -300,7 +323,7 @@ function Get-AbrADDomainController {
                 $OutObj = @()
                 Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 foreach ($DC in $DCs) {
-                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller Time Source information for $DC."
                             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
@@ -357,7 +380,7 @@ function Get-AbrADDomainController {
                     $OutObj = @()
                     Write-PscriboMessage "Discovering Active Directory Domain Controller SRV Records Status in $Domain."
                     foreach ($DC in $DCs) {
-                        if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                        if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                             try {
                                 Write-PscriboMessage "Collecting AD Domain Controller SRV Records Status for $DC."
                                 $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
@@ -471,7 +494,7 @@ function Get-AbrADDomainController {
                 Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
-                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
                             $Software = @()
                             Write-PscriboMessage "Collecting AD Domain Controller installed software information for $DC."
@@ -546,7 +569,7 @@ function Get-AbrADDomainController {
             try {
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
-                    if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         Write-PscriboMessage "Collecting pending/missing patch information from Domain Controller $($DC)."
                         try {
                             $Software = @()
