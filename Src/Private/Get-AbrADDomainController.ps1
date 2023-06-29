@@ -54,7 +54,9 @@ function Get-AbrADDomainController {
             }
 
             if ($HealthCheck.DomainController.BestPractice) {
-                $OutObj.Count -eq 1 | Set-Style -Style Warning
+                if ($OutObj.Count -eq 1) {
+                    $OutObj | Set-Style -Style Warning
+                }
             }
 
             $TableParams = @{
@@ -71,7 +73,7 @@ function Get-AbrADDomainController {
                 BlankLine
                 Paragraph {
                     Text "Best Practice:" -Bold
-                    Text "All domains should have at least two functioning domain controllers for redundancy.In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
+                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
                 }
             }
         }
