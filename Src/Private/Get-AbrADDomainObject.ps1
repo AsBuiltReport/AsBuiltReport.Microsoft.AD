@@ -34,7 +34,7 @@ function Get-AbrADDomainObject {
                     Write-PscriboMessage "Collecting the Active Directory Object Count of domain $Domain."
                     try {
                         $ADLimitedProperties = @("Name","Enabled","SAMAccountname","DisplayName","Enabled","LastLogonDate","PasswordLastSet","PasswordNeverExpires","PasswordNotRequired","PasswordExpired","SmartcardLogonRequired","AccountExpirationDate","AdminCount","Created","Modified","LastBadPasswordAttempt","badpwdcount","mail","CanonicalName","DistinguishedName","ServicePrincipalName","SIDHistory","PrimaryGroupID","UserAccountControl","CannotChangePassword","PwdLastSet","LockedOut","TrustedForDelegation","TrustedtoAuthForDelegation","msds-keyversionnumber","SID")
-                        $script:DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                        $script:DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
                         $script:Computers =  Invoke-Command -Session $TempPssSession {(Get-ADComputer -ResultPageSize 1000 -Server $using:DC -Filter * -Properties Enabled,OperatingSystem,lastlogontimestamp,PasswordLastSet,SIDHistory -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName)}
                         $Servers = $Computers | Where-Object { $_.OperatingSystem -like "Windows Ser*" } | Measure-Object
                         $script:Users = Invoke-Command -Session $TempPssSession {Get-ADUser -ResultPageSize 1000 -Server $using:DC -Filter * -Property $using:ADLimitedProperties -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName }
@@ -426,7 +426,7 @@ function Get-AbrADDomainObject {
             Write-PscriboMessage -IsWarning $($_.Exception.Message)
         }
         try {
-            Section -Style Heading4 'Privileged Group Stats' {
+            Section -Style Heading4 'Privileged Group Summary' {
                 $OutObj = @()
                 if ($Domain) {
                     Write-PscriboMessage "Collecting Privileged Group in Active Directory."

@@ -282,13 +282,14 @@ function Get-AbrADDNSInfrastructure {
                                         Text "Best Practices:" -Bold
                                         Text "Configure the servers to use no more than two external DNS servers as Forwarders."
                                     }
+                                    BlankLine
                                     Paragraph {
                                         Text "Reference:" -Bold
                                         Text "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/forwarders-resolution-timeouts"
                                     }
+                                    BlankLine
                                 }
                                 if ($OutObj | Where-Object { $_.'IP Address'.Count -lt 2 }) {
-
                                     Paragraph {
                                         Text "Best Practices:" -Bold
                                         Text "For redundancy reason, more than one forwarding server should be configured"
