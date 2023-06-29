@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.13
+        Version:        0.7.14
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,10 @@ function Get-AbrADFSMO {
             $DomainData = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator}
             $ForestData = Invoke-Command -Session $TempPssSession {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
             if ($DomainData -and $ForestData) {
+                $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
+                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                 Section -Style Heading4 'FSMO Roles' {
+                    $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession {Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster}).IsGlobalCatalog
                     $OutObj = @()
                     try {
                         Write-PscriboMessage "Discovered Active Directory FSMO information of domain $Domain."
@@ -49,6 +52,12 @@ function Get-AbrADFSMO {
                         Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
                     }
 
+                    if ($HealthCheck.Domain.BestPractice) {
+                        if ($IsInfraMasterGC) {
+                            $OutObj | Set-Style -Style Warning -Property 'Infrastructure Master'
+                        }
+                    }
+
                     $TableParams = @{
                         Name = "FSMO Roles - $($Domain)"
                         List = $true
@@ -58,6 +67,22 @@ function Get-AbrADFSMO {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Table @TableParams
+                    if ($HealthCheck.DomainController.BestPractice -and ($IsInfraMasterGC)) {
+                        Paragraph "Health Check:" -Bold -Underline
+                        BlankLine
+                        Paragraph {
+                            Text "Best Practice:" -Bold
+                            Text "The infrastructure master role in the domain $($Domain.ToString().ToUpper()) should be held by a domain controller that is not a global catalog server. This issue does not affect forests that have a single domain."
+                        }
+                        BlankLine
+                        Paragraph {
+                            Text "Reference:" -Bold
+                            Text "http://go.microsoft.com/fwlink/?LinkId=168841"
+                        }
+                    }
+                }
+                if ($DCPssSession) {
+                    Remove-PSSession -Session $DCPssSession
                 }
             }
         }
