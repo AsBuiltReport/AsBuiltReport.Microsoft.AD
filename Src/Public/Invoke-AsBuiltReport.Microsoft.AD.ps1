@@ -87,8 +87,11 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
             $script:TempCIMSession = New-CIMSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
             $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
+            # Try to connect to the session and exit if successful
+
         } Catch {
-            throw "Unable to connect to the Domain Controller: $System"
+            throw "Unable to connect to the Domain Controller - $System - Error: $($_.Exception.Message)"
+
         }
 
         $script:ForestInfo =  $ADSystem.RootDomain.toUpper()
