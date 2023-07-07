@@ -81,6 +81,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     #---------------------------------------------------------------------------------------------#
     foreach ($System in $Target) {
 
+        # Improve error handling here
         Try {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
             $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
