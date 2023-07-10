@@ -67,6 +67,7 @@ This report is compatible with the following PowerShell versions;
 <!-- ********** Update system requirements ********** -->
 PowerShell 5.1, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
+- [AsBuiltReport.Core Module](https://github.com/AsBuiltReport/AsBuiltReport.Core)
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
 - [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
