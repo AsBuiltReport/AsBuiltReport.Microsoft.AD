@@ -40,6 +40,7 @@ function Get-AbrADGPO {
                         try {
                             foreach ($GPO in $GPOs) {
                                 try {
+                                    [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -ReportType XML}
                                     Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'."
                                     $inObj = [ordered] @{
                                         'GPO Name' = $GPO.DisplayName
@@ -52,6 +53,7 @@ function Get-AbrADGPO {
 
                                             } else {'No Security Filtering'}
                                         }
+                                        'Links Count' = $Links.GPO.LinksTo.SOMPath.Count
                                     }
                                     $OutObj += [pscustomobject]$inobj
                                 }
@@ -63,33 +65,42 @@ function Get-AbrADGPO {
                             if ($HealthCheck.Domain.GPO) {
                                 $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                 $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'} | Set-Style -Style Warning -Property 'Security Filtering'
+                                $OutObj | Where-Object { $_.'Links Count' -eq 0 } | Set-Style -Style Warning -Property 'Links Count'
                             }
 
                             $TableParams = @{
                                 Name = "GPO - $($Domain.ToString().ToUpper())"
                                 List = $false
-                                ColumnWidths = 45, 25, 30
+                                ColumnWidths = 40, 25, 25, 10
                             }
 
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                            if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}))) {
+                            if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}) -or ($OutObj | Where-Object { $_.'Links Count' -eq 0 }))) {
                                 Paragraph "Health Check:" -Bold -Underline
                                 BlankLine
                                 if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
                                     Paragraph {
                                         Text "Best Practices:" -Bold
-                                        Text "Ensure 'All Settings Disabled' GPO are removed from Active Directory."
+                                        Text "Ensure 'All Settings Disabled' GPOs are removed from Active Directory."
                                     }
                                     BlankLine
                                 }
                                 if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'})) {
                                     Paragraph {
                                         Text "Corrective Actions:" -Bold
-                                        Text "Determine which 'No Security Filtering' Group Policies should be deleted and delete them."
+                                        Text "Determine which 'No Security Filtering' GPOs should be deleted and delete them."
                                     }
+                                    BlankLine
+                                }
+                                if ($OutObj | Where-Object { $_.'Links Count' -eq '0' }) {
+                                    Paragraph {
+                                        Text "Corrective Actions:" -Bold
+                                        Text "Ensure unused or unlinked GPOs are removed from Active Directory."
+                                    }
+                                    BlankLine
                                 }
                             }
                         }
@@ -102,6 +113,7 @@ function Get-AbrADGPO {
                             foreach ($GPO in $GPOs) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading6 "$($GPO.DisplayName)" {
                                     try {
+                                        [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -ReportType XML}
                                         Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
                                         $inObj = [ordered] @{
                                             'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
@@ -124,6 +136,11 @@ function Get-AbrADGPO {
 
                                                 } else {'No Security Filtering'}
                                             }
+                                            'Linked Target' = Switch ([string]::IsNullOrEmpty($Links.GPO.LinksTo.SOMPath)) {
+                                                'True' {'--'}
+                                                'False' {$Links.GPO.LinksTo.SOMPath}
+                                                default {'Unknown'}
+                                            }
                                         }
 
                                         $OutObj = [pscustomobject]$inobj
@@ -132,6 +149,7 @@ function Get-AbrADGPO {
                                             $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                             $OutObj | Where-Object {$Null -eq $_.'Owner'} | Set-Style -Style Warning -Property 'Owner'
                                             $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'} | Set-Style -Style Warning -Property 'Security Filtering'
+                                            $OutObj | Where-Object { $_.'Linked Target' -eq '--'} | Set-Style -Style Warning -Property 'Linked Target'
                                         }
 
                                         $TableParams = @{
@@ -144,7 +162,7 @@ function Get-AbrADGPO {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $OutObj | Table @TableParams
-                                        if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}))) {
+                                        if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}) -or ($OutObj | Where-Object { $_.'Linked Target' -eq '--'}))) {
                                             Paragraph "Health Check:" -Bold -Underline
                                             BlankLine
                                             if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
@@ -159,6 +177,14 @@ function Get-AbrADGPO {
                                                     Text "Corrective Actions:" -Bold
                                                     Text "Determine which 'No Security Filtering' Group Policies should be deleted and delete them."
                                                 }
+                                                BlankLine
+                                            }
+                                            if ($OutObj | Where-Object { $_.'Linked Target' -eq '--'}) {
+                                                Paragraph {
+                                                    Text "Corrective Actions:" -Bold
+                                                    Text "Ensure unused or unlinked GPOs are removed from Active Directory."
+                                                }
+                                                BlankLine
                                             }
                                         }
                                     }
