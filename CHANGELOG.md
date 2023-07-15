@@ -13,6 +13,7 @@
 ### Fixed
 
 - Fix [#128](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/128)
+- Fix [#124](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/124)
 
 ## [0.7.13] - 2023-06-22
 

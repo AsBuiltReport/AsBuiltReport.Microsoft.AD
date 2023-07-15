@@ -863,10 +863,10 @@ function Get-AbrADDomainObject {
                                         'Created' = $Account.Created
                                         'Enabled' = ConvertTo-TextYN $Account.Enabled
                                         'DNS Host Name' = $Account.DNSHostName
-                                        'Host Computers' = (ConvertTo-ADObjectName -DN $Account.HostComputers -Session $TempPssSession -DC $DC) -join ", "
-                                        'Retrieve Managed Password' = (ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $TempPssSession -DC $DC) -join ", "
+                                        'Host Computers' = ConvertTo-EmptyToFiller ((ConvertTo-ADObjectName -DN $Account.HostComputers -Session $TempPssSession -DC $DC) -join ", ")
+                                        'Retrieve Managed Password' = ConvertTo-EmptyToFiller ((ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $TempPssSession -DC $DC) -join ", ")
                                         'Primary Group' = (ConvertTo-ADObjectName $Account.PrimaryGroup -Session $TempPssSession -DC $DC) -join ", "
-                                        'Last Logon Date' = $Account.LastLogonDate
+                                        'Last Logon Date' = ConvertTo-EmptyToFiller $Account.LastLogonDate
                                         'Locked Out' = ConvertTo-TextYN $Account.LockedOut
                                         'Logon Count' = $Account.logonCount
                                         'Password Expired' = ConvertTo-TextYN $Account.PasswordExpired
@@ -875,7 +875,14 @@ function Get-AbrADDomainObject {
                                     $GMSAInfo += [pscustomobject]$inobj
 
                                     if ($HealthCheck.Domain.GMSA) {
-                                        $GMSAInfo | Where-Object { $_.'Enabled' -notlike 'Yes'} | Set-Style -Style Warning -Property 'Enabled'
+                                        $GMSAInfo | Where-Object { $_.'Enabled' -ne 'Yes' } | Set-Style -Style Warning -Property 'Enabled'
+                                        $GMSAInfo | Where-Object {$_.'Password Last Set' -lt (Get-Date).adddays(-60)} | Set-Style -Style Warning -Property 'Password Last Set'
+                                        $GMSAInfo | Where-Object {$_.'Last Logon Date' -lt (Get-Date).adddays(-60) -or $_.'Last Logon Date' -eq '--'} | Set-Style -Style Warning -Property 'Last Logon Date'
+                                        $GMSAInfo | Where-Object { $_.'Locked Out' -eq 'Yes'} | Set-Style -Style Warning -Property 'Locked Out'
+                                        $GMSAInfo | Where-Object { $_.'Logon Count' -eq 0 } | Set-Style -Style Warning -Property 'Logon Count'
+                                        $GMSAInfo | Where-Object { $_.'Password Expired' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Expired'
+                                        $GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' } | Set-Style -Style Warning -Property 'Host Computers'
+                                        $GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' } | Set-Style -Style Warning -Property 'Retrieve Managed Password'
                                     }
                                 }
                                 catch {
@@ -901,8 +908,8 @@ function Get-AbrADDomainObject {
                                 $TableParams = @{
                                     Name = "gMSA - $($Domain.ToString().ToUpper())"
                                     List = $false
-                                    Columns = 'Name', 'SamAccountName', 'DNS Host Name', 'Host Computers', 'Retrieve Managed Password', 'Primary Group', 'Enabled'
-                                    ColumnWidths = 16, 14, 16, 14, 14, 14, 12
+                                    Columns = 'Name', 'Logon Count', 'Locked Out', 'Last Logon Date', 'Password Last Set', 'Enabled'
+                                    ColumnWidths = 25, 15, 15, 15, 15, 15
                                 }
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
