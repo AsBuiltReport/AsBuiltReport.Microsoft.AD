@@ -120,8 +120,9 @@ function Get-AbrADGPO {
                                             'GUID' = $GPO.Id
                                             'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
                                             'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
-                                            'Description' = ConvertTo-EmptyToFiller $GPO.Description
                                             'Owner' = $GPO.Owner
+                                            'Computer Version' = "$($Links.GPO.Computer.VersionDirectory) (AD), $($Links.GPO.Computer.VersionSysvol) (SYSVOL)"
+                                            'User Version' = "$($Links.GPO.User.VersionDirectory) (AD), $($Links.GPO.User.VersionSysvol) (SYSVOL)"
                                             'WMI Filter' = &{
                                                 $WMIFilter = Invoke-Command -Session $TempPssSession -ScriptBlock {((Get-Gpo -DomainName $using:Domain  -Name $using:GPO.DisplayName).WMifilter.Name)}
                                                 if ($WMIFilter) {
@@ -141,6 +142,7 @@ function Get-AbrADGPO {
                                                 'False' {$Links.GPO.LinksTo.SOMPath}
                                                 default {'Unknown'}
                                             }
+                                            'Description' = ConvertTo-EmptyToFiller $GPO.Description
                                         }
 
                                         $OutObj = [pscustomobject]$inobj
