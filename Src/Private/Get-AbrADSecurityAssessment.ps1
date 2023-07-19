@@ -266,7 +266,7 @@ function Get-AbrADSecurityAssessment {
                 }
                 try {
                     $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
-                    $UserSPNs = Invoke-Command -Session $TempPssSession {Get-ADUser -ResultPageSize 1000 -Server $using:Domain -filter {ServicePrincipalName -like '*'} -Properties PasswordLastSet,LastLogonDate,ServicePrincipalName,TrustedForDelegation,TrustedtoAuthForDelegation}
+                    $UserSPNs = Invoke-Command -Session $TempPssSession {Get-ADUser -ResultPageSize 1000 -Server $using:Domain -filter {ServicePrincipalName -like '*'} -Properties AdminCount,PasswordLastSet,LastLogonDate,ServicePrincipalName,TrustedForDelegation,TrustedtoAuthForDelegation}
                     Write-PscriboMessage "Discovered Service Accounts information from $Domain."
                     if ($UserSPNs) {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 'Service Accounts Assessment' {
@@ -274,6 +274,7 @@ function Get-AbrADSecurityAssessment {
                             BlankLine
                             $OutObj = @()
                             Write-PscriboMessage "Collecting Service Accounts information from $($Domain)."
+                            $AdminCount = ($UserSPNs | Where-Object {$_.AdminCount -eq 1 -and $_.SamAccountName -ne 'krbtgt' }).Name
                             foreach ($UserSPN in $UserSPNs) {
                                 try {
                                     $inObj = [ordered] @{
@@ -296,6 +297,12 @@ function Get-AbrADSecurityAssessment {
                                 }
                             }
 
+                            if ($HealthCheck.Domain.Security) {
+                                foreach ( $OBJ in ($OutObj | Where-Object {$_.'Username' -in $AdminCount})) {
+                                    $OBJ.Username = "** $($OBJ.Username)"
+                                }
+                            }
+
                             $TableParams = @{
                                 Name = "Service Accounts Assessment - $($Domain.ToString().ToUpper())"
                                 List = $false
@@ -308,9 +315,12 @@ function Get-AbrADSecurityAssessment {
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Bold -Underline
                             BlankLine
-                            Paragraph {
-                                Text "Corrective Actions:" -Bold
-                                Text "Service accounts are that gray area between regular user accounts and admin accounts that are often highly privileged. They are almost always over-privileged due to documented vendor requirements or because of operational challenges. Ensure there aren't any account with weak security posture."
+                            if ($OutObj | Where-Object {$_.'Username' -match '\*'}) {
+                                Paragraph {
+                                    Text "Security Best Practice:" -Bold
+
+                                    Text "**Attackers are most interested in Service Accounts that are members of highly privileged groups like Domain Admins. A quick way to check for this is to enumerate all user accounts with the attribute AdminCount equal to 1. This means an attacker may just ask AD for all user accounts with a SPN and with AdminCount=1. Ensure that there are no privileged accounts that have SPNs assigned to them. "
+                                }
                             }
                         }
                     }
