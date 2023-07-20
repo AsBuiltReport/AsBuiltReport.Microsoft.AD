@@ -93,7 +93,7 @@ function Get-AbrADDomainController {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
                             $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware'
                             $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
                             $License =  Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
                             $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
@@ -199,10 +199,18 @@ function Get-AbrADDomainController {
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
-                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DNSIPConfiguration'
                         try {
                             $DCIPAddress = Invoke-Command -Session $DCPssSession {[System.Net.Dns]::GetHostAddresses($using:DC).IPAddressToString}
                             $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4 }
+                            $PrimaryDNSSoA = Invoke-Command -Session $DCPssSession { (Get-DnsServerResourceRecord -RRType Soa -ZoneName $using:Domain).RecordData.PrimaryServer }
+                            $UnresolverDNS = @()
+                            foreach ($DNSServer in $DNSSettings.ServerAddresses) {
+                                $Unresolver = Invoke-Command -Session $DCPssSession { Resolve-DnsName -Server $using:DNSServer -Name $using:PrimaryDNSSoA -DnsOnly -ErrorAction SilentlyContinue }
+                                if ([string]::IsNullOrEmpty($Unresolver)) {
+                                    $UnresolverDNS += $DNSServer
+                                }
+                            }
                             foreach ($DNSSetting in $DNSSettings) {
                                 try {
                                     $inObj = [ordered] @{
@@ -223,16 +231,20 @@ function Get-AbrADDomainController {
                         catch {
                             Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Table Section: $($_.Exception.Message)"
                         }
+
+                        if ($DCPssSession) {
+                            Remove-PSSession -Session $DCPssSession
+                        }
                     }
-                }
-                if ($DCPssSession) {
-                    Remove-PSSession -Session $DCPssSession
                 }
 
                 if ($HealthCheck.DomainController.BestPractice) {
-                    $OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1"} | Set-Style -Style Warning -Property 'Prefered DNS'
-                    $OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress } | Set-Style -Style Warning -Property 'Prefered DNS'
-                    $OutObj | Where-Object { $_.'Alternate DNS' -eq "--"} | Set-Style -Style Warning -Property 'Alternate DNS'
+                    $OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1" -or $_.'Prefered DNS' -in $DCIPAddress } | Set-Style -Style Warning -Property 'Prefered DNS'
+                    $OutObj | Where-Object { $_.'Alternate DNS' -eq "--" } | Set-Style -Style Warning -Property 'Alternate DNS'
+                    $OutObj | Where-Object { $_.'Prefered DNS'-in $UnresolverDNS } | Set-Style -Style Critical -Property 'Prefered DNS'
+                    $OutObj | Where-Object { $_.'Alternate DNS'-in $UnresolverDNS } | Set-Style -Style Critical -Property 'Alternate DNS'
+                    $OutObj | Where-Object { $_.'DNS 3'-in $UnresolverDNS } | Set-Style -Style Critical -Property 'DNS 3'
+                    $OutObj | Where-Object { $_.'DNS 4' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'DNS 4'
                 }
 
                 $TableParams = @{
@@ -244,7 +256,7 @@ function Get-AbrADDomainController {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-                if ($HealthCheck.DomainController.BestPractice -and (($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1"}) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) -or ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--"}))) {
+                if ($HealthCheck.DomainController.BestPractice -and (($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1"}) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) -or ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--"}) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS -or $_.'Alternate DNS' -in $UnresolverDNS -or $_.'DNS 3' -in $UnresolverDNS -or $_.'DNS 4' -in $UnresolverDNS }))) {
                     Paragraph "Health Check:" -Bold -Underline
                     BlankLine
                     if ($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1"}) {
@@ -267,12 +279,85 @@ function Get-AbrADDomainController {
                             Text "For redundancy reasons, the DNS configuration on the network adapter should include an Alternate DNS address."
                         }
                     }
+                    if ($OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS -or $_.'Alternate DNS' -in $UnresolverDNS -or $_.'DNS 3' -in $UnresolverDNS -or $_.'DNS 4' -in $UnresolverDNS }) {
+                        BlankLine
+                        Paragraph {
+                            Text "Corrective Actions:" -Bold
+                            Text "Network interfaces must be configured with DNS servers that can resolve names in the forest root domain. The following DNS server did not respond to the query for the forest root domain $($Domain.ToString().toUpper()): $(($UnresolverDNS -join ", "))"
+                        }
+                    }
                 }
             }
         }
         catch {
             Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Section: $($_.Exception.Message)"
         }
+
+        try {
+            if ($HealthCheck.DomainController.BestPractice) {
+                Write-PscriboMessage "Discovering Active Directory File Shares information from $Domain."
+                $OutObj = foreach ($DC in $DCs) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                        try {
+                            Write-PscriboMessage "Collecting AD Domain Controllers file shares information of $DC."
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllersFileShares'
+                            $Shares = Invoke-Command -Session $DCPssSession { Get-SmbShare | Where-Object { $_.Description -ne 'Default share' -and $_.Description -notmatch 'Remote' -and $_.Name -ne 'NETLOGON' -and $_.Name -ne 'SYSVOL' } }
+                            if ($Shares) {
+                                Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                    $FSObj = @()
+                                    foreach ($Share in $Shares) {
+                                        $inObj = [ordered] @{
+                                            'Name' = $Share.Name
+                                            'Path' = $Share.Path
+                                            'Description' = ConvertTo-EmptyToFiller $Share.Description
+                                        }
+                                        $FSObj += [pscustomobject]$inobj
+                                    }
+
+                                    if ($HealthCheck.DomainController.BestPractice) {
+                                        $FSObj | Set-Style -Style Warning
+                                    }
+
+                                    $TableParams = @{
+                                        Name = "File Shares - $($DC.ToString().ToUpper().Split(".")[0])"
+                                        List = $false
+                                        ColumnWidths = 34, 33, 33
+                                    }
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+
+                                    $FSObj | Sort-Object -Property 'Name' | Table @TableParams
+                                }
+                            }
+                            if ($DCPssSession) {
+                                Remove-PSSession -Session $DCPssSession
+                            }
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (File Shares Item)"
+                        }
+                    }
+                }
+
+                if ($OutObj) {
+                    Section -Style Heading5 "File Shares" {
+                        Paragraph "The following domain controllers have non-default file shares."
+                        $OutObj
+                        Paragraph "Health Check:" -Bold -Underline
+                        BlankLine
+                        Paragraph {
+                            Text "Best Practice:" -Bold
+                            Text "Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non default file shares should be moved to another server, preferably a dedicated file server. "
+                        }
+                    }
+                }
+            }
+        }
+        catch {
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (File Shares Table)"
+        }
+
         try {
             Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
             Section -Style Heading5 'NTDS Information' {
@@ -282,7 +367,7 @@ function Get-AbrADDomainController {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller NTDS information for $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NTDS'
                             $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
                             $size = Invoke-Command -Session $DCPssSession -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
                             $LogFiles = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'Database log files path'}
@@ -328,7 +413,7 @@ function Get-AbrADDomainController {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
                             Write-PscriboMessage "Collecting AD Domain Controller Time Source information for $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'TimeSource'
                             $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
                             $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
                             Remove-PSSession -Session $DCPssSession
@@ -500,7 +585,7 @@ function Get-AbrADDomainController {
                         try {
                             $Software = @()
                             Write-PscriboMessage "Collecting AD Domain Controller installed software information for $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerInstalledSoftware'
                             $SoftwareX64 = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
                             $SoftwareX86 = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
                             Remove-PSSession -Session $DCPssSession
@@ -575,8 +660,8 @@ function Get-AbrADDomainController {
                         Write-PscriboMessage "Collecting pending/missing patch information from Domain Controller $($DC)."
                         try {
                             $Software = @()
-                            Write-PscriboMessage "Collecting AD Domain Controller installed software information for $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                            Write-PscriboMessage "Collecting AD Domain Controller pending/missing patch information for $DC."
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerPendingMissingPatch'
                             $Updates = Invoke-Command -Session $DCPssSession -ScriptBlock {(New-Object -ComObject Microsoft.Update.Session).CreateupdateSearcher().Search("IsHidden=0 and IsInstalled=0").Updates | Select-Object Title,KBArticleIDs}
                             Remove-PSSession -Session $DCPssSession
 
