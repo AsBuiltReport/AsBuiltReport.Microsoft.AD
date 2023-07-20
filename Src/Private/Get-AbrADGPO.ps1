@@ -40,7 +40,7 @@ function Get-AbrADGPO {
                         try {
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -ReportType XML}
+                                    [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML}
                                     Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'."
                                     $inObj = [ordered] @{
                                         'GPO Name' = $GPO.DisplayName
@@ -113,7 +113,7 @@ function Get-AbrADGPO {
                             foreach ($GPO in $GPOs) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading6 "$($GPO.DisplayName)" {
                                     try {
-                                        [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -ReportType XML}
+                                        [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML}
                                         Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
                                         $inObj = [ordered] @{
                                             'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
@@ -559,7 +559,7 @@ function Get-AbrADGPO {
                     # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
                     try {
                         $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
-                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO'
                         $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
                         $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
                         $OrphanGPOs = @()
