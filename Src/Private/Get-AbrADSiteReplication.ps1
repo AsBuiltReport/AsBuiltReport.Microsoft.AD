@@ -124,7 +124,7 @@ function Get-AbrADSiteReplication {
             if ($HealthCheck.Site.Replication) {
                 Write-PscriboMessage "Discovering Active Directory Replication Status on $Domain. (Replication Status)"
                 $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
-                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ActiveDirectoryReplicationStatus'
                 Write-PscriboMessage "Discovered Active Directory Replication Status on $Domain. (Replication Status)"
                 $RepStatus =  Invoke-Command -Session $DCPssSession -ScriptBlock {repadmin /showrepl /repsto /csv | ConvertFrom-Csv}
                 if ($RepStatus) {

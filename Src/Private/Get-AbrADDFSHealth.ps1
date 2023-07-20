@@ -104,7 +104,7 @@ function Get-AbrADDFSHealth {
             try {
                 Write-PscriboMessage "Discovered AD Domain Sysvol Health information from $Domain."
                 $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
-                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth'
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                 $SYSVOLFolder = Invoke-Command -Session $DCPssSession {Get-ChildItem -path $('\\'+$using:Domain+'\SYSVOL\'+$using:Domain) -Recurse | Where-Object -FilterScript {$_.PSIsContainer -eq $false} | Group-Object -Property Extension | ForEach-Object -Process {
                     New-Object -TypeName PSObject -Property @{
@@ -166,7 +166,7 @@ function Get-AbrADDFSHealth {
             try {
                 Write-PscriboMessage "Discovered AD Domain Netlogon Health information from $Domain."
                 $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
-                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth'
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                 $NetlogonFolder = Invoke-Command -Session $DCPssSession {Get-ChildItem -path $('\\'+$using:Domain+'\NETLOGON\') -Recurse | Where-Object -FilterScript {$_.PSIsContainer -eq $false} | Group-Object -Property Extension | ForEach-Object -Process {
                     New-Object -TypeName PSObject -Property @{

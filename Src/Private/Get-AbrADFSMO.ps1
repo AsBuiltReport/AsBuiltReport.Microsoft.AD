@@ -33,7 +33,7 @@ function Get-AbrADFSMO {
             $ForestData = Invoke-Command -Session $TempPssSession {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
             if ($DomainData -and $ForestData) {
                 $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
-                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'FSMORoles'
                 Section -Style Heading4 'FSMO Roles' {
                     $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession {Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster}).IsGlobalCatalog
                     $OutObj = @()
