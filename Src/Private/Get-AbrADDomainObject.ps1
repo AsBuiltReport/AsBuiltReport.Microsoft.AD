@@ -417,6 +417,7 @@ function Get-AbrADDomainObject {
                         }
                         if ($GroupsSID) {
                             if ($InfoLevel.Domain -eq 1) {
+                                Paragraph "The following session summarizes the counts of users within the privileged groups."
                                 foreach ($GroupSID in $GroupsSID) {
                                     try {
                                         $Group = Invoke-Command -Session $TempPssSession { Get-ADGroup -Server $using:DC -Filter * | Where-Object { $_.SID -like $using:GroupSID } }
@@ -435,7 +436,18 @@ function Get-AbrADDomainObject {
                                 }
 
                                 if ($HealthCheck.Domain.Security) {
-                                    $OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
+                                    foreach ( $OBJ in ($OutObj | Where-Object {$_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1})) {
+                                        $OBJ.'Group Name' = "*" + $OBJ.'Group Name'
+                                    }
+                                    foreach ( $OBJ in ($OutObj | Where-Object {$_.'Group Name' -eq 'Enterprise Admins' -and $_.Count -gt 1})) {
+                                        $OBJ.'Group Name' = "**" + $OBJ.'Group Name'
+                                    }
+                                    foreach ( $OBJ in ($OutObj | Where-Object {$_.'Group Name' -eq 'Domain Admins' -and $_.Count -gt 5})) {
+                                        $OBJ.'Group Name' = "***" + $OBJ.'Group Name'
+                                    }
+                                    $OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
+                                    $OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
+                                    $OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 } | Set-Style -Style Warning
                                 }
 
                                 $TableParams = @{
@@ -447,28 +459,47 @@ function Get-AbrADDomainObject {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
-                                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 })) {
+                                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 })) {
                                     Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
-                                    Paragraph {
-                                        Text "Security Best Practice:" -Bold
-                                        Text "The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed."
+                                    Paragraph "Security Best Practice:" -Bold
+                                    if ($OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 }) {
+                                        BlankLine
+                                        Paragraph {
+                                            Text "*The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed."
+                                        }
+                                    }
+                                    if ($OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 }) {
+                                        BlankLine
+                                        Paragraph {
+                                            Text "**Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically."
+                                        }
+                                    }
+                                    if ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 }) {
+                                        BlankLine
+                                        Paragraph {
+                                            Text "***Microsoft recommends that Domain Admins contain no more than five members."
+                                        }
                                     }
                                 }
                             } else {
+                                Paragraph "The following session details the members users within the privilege groups."
                                 foreach ($GroupSID in $GroupsSID) {
                                     try {
                                         $Group = Invoke-Command -Session $TempPssSession { Get-ADGroup -Server $using:DC -Filter * | Where-Object { $_.SID -like $using:GroupSID } }
                                         if ($Group) {
                                             Write-PScriboMessage "Collecting Privileged Group $($Group.Name) with SID $($Group.SID)"
-                                            $GroupObjects = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:DC  -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue | ForEach-Object {Get-ADUser -Filter 'SamAccountName -eq $_.SamAccountName' -Server $using:DC -Property SamAccountName,objectClass,PasswordLastSet,passwordNeverExpires,Enabled -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }}
+                                            $GroupObjects = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:DC  -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue | ForEach-Object {Get-ADUser -Filter 'SamAccountName -eq $_.SamAccountName' -Server $using:DC -Property SamAccountName,objectClass,LastLogonDate,passwordNeverExpires,Enabled -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }}
                                             if ($GroupObjects) {
                                                 Section -ExcludeFromTOC -Style NOTOCHeading5 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) Members)" {
                                                     $OutObj = @()
                                                     foreach ($GroupObject in $GroupObjects) {
                                                         $inObj = [ordered] @{
                                                             'Name' = $GroupObject.SamAccountName
-                                                            'Password Last Changed' = $GroupObject.PasswordLastSet
+                                                            'Last Logon Date' = switch ($GroupObject.LastLogonDate) {
+                                                                $null {"--"}
+                                                                default {$GroupObject.LastLogonDate.ToShortDateString()}
+                                                            }
                                                             'Password Never Expires' = ConvertTo-TextYN $GroupObject.passwordNeverExpires
                                                             'Account Enabled' = ConvertTo-TextYN $GroupObject.Enabled
                                                         }
@@ -477,8 +508,14 @@ function Get-AbrADDomainObject {
 
                                                     if ($HealthCheck.Domain.Security) {
                                                         $OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Never Expires'
+                                                        foreach ( $OBJ in ($OutObj | Where-Object {$_.'Password Never Expires' -eq 'Yes'})) {
+                                                            $OBJ.'Password Never Expires' = "**Yes"
+                                                        }
                                                         $OutObj | Where-Object { $_.'Account Enabled' -eq 'No' } | Set-Style -Style Warning -Property 'Account Enabled'
-                                                        $OutObj | Where-Object { $_.'Password Last Changed' -le (Get-Date).AddDays(-90) } | Set-Style -Style Warning -Property 'Password Last Changed'
+                                                        $OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) } | Set-Style -Style Warning -Property 'Last Logon Date'
+                                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) })) {
+                                                            $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
+                                                        }
                                                     }
 
                                                     $TableParams = @{
@@ -490,12 +527,40 @@ function Get-AbrADDomainObject {
                                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                                     }
                                                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                                                    if ($HealthCheck.Domain.Security -and ($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
+                                                    if ($HealthCheck.Domain.Security -and ((($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or ($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) -or ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) -or ($OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and $_.'Last Logon Date' -match "\*" })) {
                                                         Paragraph "Health Check:" -Bold -Underline
                                                         BlankLine
-                                                        Paragraph {
-                                                            Text "Security Best Practice:" -Bold
-                                                            Text "The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed."
+                                                        Paragraph "Security Best Practice:" -Bold
+
+                                                        if (($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
+                                                            BlankLine
+                                                            Paragraph {
+                                                                Text "The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed."
+                                                            }
+                                                        }
+                                                        if (($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
+                                                            BlankLine
+                                                            Paragraph {
+                                                                Text "Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically."
+                                                            }
+                                                        }
+                                                        if (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) {
+                                                            BlankLine
+                                                            Paragraph {
+                                                                Text "Microsoft recommends that the Domain Admins group contain no more than five members."
+                                                            }
+                                                        }
+                                                        if ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) {
+                                                            BlankLine
+                                                            Paragraph {
+                                                                Text "**Ensure there aren't any account with weak security posture."
+                                                            }
+                                                        }
+                                                        if ($OutObj | Where-Object { $_.'Last Logon Date' -match "\*" }) {
+                                                            BlankLine
+                                                            Paragraph {
+                                                                Text "*Regularly check for and remove inactive privileged user accounts in Active Directory."
+                                                            }
                                                         }
                                                     }
                                                 }
