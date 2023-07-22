@@ -294,71 +294,6 @@ function Get-AbrADDomainController {
         }
 
         try {
-            if ($HealthCheck.DomainController.BestPractice) {
-                Write-PscriboMessage "Discovering Active Directory File Shares information from $Domain."
-                $OutObj = foreach ($DC in $DCs) {
-                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                        try {
-                            Write-PscriboMessage "Collecting AD Domain Controllers file shares information of $DC."
-                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllersFileShares'
-                            $Shares = Invoke-Command -Session $DCPssSession { Get-SmbShare | Where-Object { $_.Description -ne 'Default share' -and $_.Description -notmatch 'Remote' -and $_.Name -ne 'NETLOGON' -and $_.Name -ne 'SYSVOL' } }
-                            if ($Shares) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
-                                    $FSObj = @()
-                                    foreach ($Share in $Shares) {
-                                        $inObj = [ordered] @{
-                                            'Name' = $Share.Name
-                                            'Path' = $Share.Path
-                                            'Description' = ConvertTo-EmptyToFiller $Share.Description
-                                        }
-                                        $FSObj += [pscustomobject]$inobj
-                                    }
-
-                                    if ($HealthCheck.DomainController.BestPractice) {
-                                        $FSObj | Set-Style -Style Warning
-                                    }
-
-                                    $TableParams = @{
-                                        Name = "File Shares - $($DC.ToString().ToUpper().Split(".")[0])"
-                                        List = $false
-                                        ColumnWidths = 34, 33, 33
-                                    }
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                    }
-
-                                    $FSObj | Sort-Object -Property 'Name' | Table @TableParams
-                                }
-                            }
-                            if ($DCPssSession) {
-                                Remove-PSSession -Session $DCPssSession
-                            }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (File Shares Item)"
-                        }
-                    }
-                }
-
-                if ($OutObj) {
-                    Section -Style Heading5 "File Shares" {
-                        Paragraph "The following domain controllers have non-default file shares."
-                        $OutObj
-                        Paragraph "Health Check:" -Bold -Underline
-                        BlankLine
-                        Paragraph {
-                            Text "Best Practice:" -Bold
-                            Text "Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non default file shares should be moved to another server, preferably a dedicated file server. "
-                        }
-                    }
-                }
-            }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (File Shares Table)"
-        }
-
-        try {
             Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
             Section -Style Heading5 'NTDS Information' {
                 $OutObj = @()
@@ -574,6 +509,70 @@ function Get-AbrADDomainController {
             catch {
                 Write-PscriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status)"
             }
+        }
+        try {
+            if ($HealthCheck.DomainController.BestPractice) {
+                Write-PscriboMessage "Discovering Active Directory File Shares information from $Domain."
+                $OutObj = foreach ($DC in $DCs) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                        try {
+                            Write-PscriboMessage "Collecting AD Domain Controllers file shares information of $DC."
+                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllersFileShares'
+                            $Shares = Invoke-Command -Session $DCPssSession { Get-SmbShare | Where-Object { $_.Description -ne 'Default share' -and $_.Description -notmatch 'Remote' -and $_.Name -ne 'NETLOGON' -and $_.Name -ne 'SYSVOL' } }
+                            if ($Shares) {
+                                Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                    $FSObj = @()
+                                    foreach ($Share in $Shares) {
+                                        $inObj = [ordered] @{
+                                            'Name' = $Share.Name
+                                            'Path' = $Share.Path
+                                            'Description' = ConvertTo-EmptyToFiller $Share.Description
+                                        }
+                                        $FSObj += [pscustomobject]$inobj
+                                    }
+
+                                    if ($HealthCheck.DomainController.BestPractice) {
+                                        $FSObj | Set-Style -Style Warning
+                                    }
+
+                                    $TableParams = @{
+                                        Name = "File Shares - $($DC.ToString().ToUpper().Split(".")[0])"
+                                        List = $false
+                                        ColumnWidths = 34, 33, 33
+                                    }
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+
+                                    $FSObj | Sort-Object -Property 'Name' | Table @TableParams
+                                }
+                            }
+                            if ($DCPssSession) {
+                                Remove-PSSession -Session $DCPssSession
+                            }
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (File Shares Item)"
+                        }
+                    }
+                }
+
+                if ($OutObj) {
+                    Section -Style Heading5 "File Shares" {
+                        Paragraph "The following domain controllers have non-default file shares."
+                        $OutObj
+                        Paragraph "Health Check:" -Bold -Underline
+                        BlankLine
+                        Paragraph {
+                            Text "Best Practice:" -Bold
+                            Text "Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non default file shares should be moved to another server, preferably a dedicated file server. "
+                        }
+                    }
+                }
+            }
+        }
+        catch {
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (File Shares Table)"
         }
         if ($HealthCheck.DomainController.Software) {
             try {
