@@ -937,32 +937,56 @@ function Get-AbrADDomainObject {
                                     $inObj = [ordered] @{
                                         'Name' = $Account.Name
                                         'SamAccountName' = $Account.SamAccountName
-                                        'Created' = $Account.Created
+                                        'Created' = Switch ($Account.Created) {
+                                            $null {'--'}
+                                            default {$Account.Created.ToShortDateString()}
+                                        }
                                         'Enabled' = ConvertTo-TextYN $Account.Enabled
                                         'DNS Host Name' = $Account.DNSHostName
                                         'Host Computers' = ConvertTo-EmptyToFiller ((ConvertTo-ADObjectName -DN $Account.HostComputers -Session $TempPssSession -DC $DC) -join ", ")
                                         'Retrieve Managed Password' = ConvertTo-EmptyToFiller ((ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $TempPssSession -DC $DC) -join ", ")
                                         'Primary Group' = (ConvertTo-ADObjectName $Account.PrimaryGroup -Session $TempPssSession -DC $DC) -join ", "
-                                        'Last Logon Date' = ConvertTo-EmptyToFiller $Account.LastLogonDate
+                                        'Last Logon Date' = Switch ($Account.LastLogonDate) {
+                                            $null {'--'}
+                                            default {$Account.LastLogonDate.ToShortDateString()}
+                                        }
                                         'Locked Out' = ConvertTo-TextYN $Account.LockedOut
                                         'Logon Count' = $Account.logonCount
                                         'Password Expired' = ConvertTo-TextYN $Account.PasswordExpired
-                                        'Password Last Set' = $Account.PasswordLastSet
+                                        'Password Last Set' = Switch ($Account.PasswordLastSet) {
+                                            $null {'--'}
+                                            default {$Account.PasswordLastSet.ToShortDateString()}
+                                        }
                                     }
                                     $GMSAInfo += [pscustomobject]$inobj
 
-                                    if ($HealthCheck.Domain.GMSA) {
-                                        $GMSAInfo | Where-Object { $_.'Enabled' -ne 'Yes' } | Set-Style -Style Warning -Property 'Enabled'
-                                        $GMSAInfo | Where-Object { $_.'Password Last Set' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Password Last Set'
-                                        $GMSAInfo | Where-Object { $_.'Last Logon Date' -lt (Get-Date).adddays(-60) -or $_.'Last Logon Date' -eq '--' } | Set-Style -Style Warning -Property 'Last Logon Date'
-                                        $GMSAInfo | Where-Object { $_.'Locked Out' -eq 'Yes' } | Set-Style -Style Warning -Property 'Locked Out'
-                                        $GMSAInfo | Where-Object { $_.'Logon Count' -eq 0 } | Set-Style -Style Warning -Property 'Logon Count'
-                                        $GMSAInfo | Where-Object { $_.'Password Expired' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Expired'
-                                        $GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' } | Set-Style -Style Warning -Property 'Host Computers'
-                                        $GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' } | Set-Style -Style Warning -Property 'Retrieve Managed Password'
-                                    }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts)"
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts Item)"
+                                }
+                            }
+
+                            if ($HealthCheck.Domain.GMSA) {
+                                $GMSAInfo | Where-Object { $_.'Enabled' -ne 'Yes' } | Set-Style -Style Warning -Property 'Enabled'
+                                $GMSAInfo | Where-Object { $_.'Password Last Set' -ne '--' -and [datetime]$_.'Password Last Set' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Password Last Set'
+                                $GMSAInfo | Where-Object { $_.'Password Last Set' -eq '--' } | Set-Style -Style Warning -Property 'Password Last Set'
+                                $GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '--'  -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Last Logon Date'
+                                $GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' } | Set-Style -Style Warning -Property 'Last Logon Date'
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' })) {
+                                    $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
+                                }
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '*--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) })) {
+                                    $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
+                                }
+                                $GMSAInfo | Where-Object { $_.'Locked Out' -eq 'Yes' } | Set-Style -Style Warning -Property 'Locked Out'
+                                $GMSAInfo | Where-Object { $_.'Logon Count' -eq 0 } | Set-Style -Style Warning -Property 'Logon Count'
+                                $GMSAInfo | Where-Object { $_.'Password Expired' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Expired'
+                                $GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' } | Set-Style -Style Warning -Property 'Host Computers'
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' })) {
+                                    $OBJ.'Host Computers' = "**" + $OBJ.'Host Computers'
+                                }
+                                $GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' } | Set-Style -Style Warning -Property 'Retrieve Managed Password'
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' })) {
+                                    $OBJ.'Retrieve Managed Password' = "***" + $OBJ.'Retrieve Managed Password'
                                 }
                             }
 
@@ -978,6 +1002,29 @@ function Get-AbrADDomainObject {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $Account | Table @TableParams
+                                        if (($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq  '--')}) -or ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) -or ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '**--' })) {
+                                            Paragraph "Health Check:" -Bold -Underline
+                                            BlankLine
+                                            Paragraph "Security Best Practice:" -Bold
+                                            if ($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq  '*--') }) {
+                                                BlankLine
+                                                Paragraph {
+                                                    Text "*Regularly check for and remove inactive group managed service accounts from Active Directory."
+                                                }
+                                            }
+                                            if ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) {
+                                                BlankLine
+                                                Paragraph {
+                                                    Text "**No 'Host Computers' has been defined, please validate that the gMSA is currently in use. If not, it is recommended to remove these unused resources from Active Directory."
+                                                }
+                                            }
+                                            if ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '***--' }) {
+                                                BlankLine
+                                                Paragraph {
+                                                    Text "***No 'Retrieve Managed Password' has been defined, please validate that the gMSA is currently in use. If not, it is recommended to remove these unused resources from Active Directory."
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             } else {
@@ -991,11 +1038,21 @@ function Get-AbrADDomainObject {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $GMSAInfo | Table @TableParams
+                                if (($GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq  '--')})) {
+                                    Paragraph "Health Check:" -Bold -Underline
+                                    BlankLine
+                                    if ($GMSAInfo | Where-Object { $_.'Last Logon Date' -match "\*" }) {
+                                        Paragraph {
+                                            Text "Security Best Practice:" -Bold
+                                            Text "*Regularly check for and remove inactive group managed service accounts from Active Directory."
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts)"
+                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts Section)"
                 }
             }
         } catch {
