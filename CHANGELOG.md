@@ -1,19 +1,21 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
-## [0.7.14] - 2023-07-22
-
-### Added
-
--
-
-### Changed
-
--
+## [0.7.14] - 2023-07-25
 
 ### Fixed
 
-- Fix [#128](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/128)
-- Fix [#124](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/124)
+- Resolve [#113](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/113)
+- Resolve [#116](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/116)
+- Resolve [#117](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/117)
+- Resolve [#118](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/118)
+- Resolve [#119](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/119)
+- Resolve [#120](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/120)
+- Resolve [#121](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/121)
+- Resolve [#123](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/123)
+- Resolve [#124](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/124)
+- Resolve [#125](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/125)
+- Resolve [#126](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/126)
+- Resolve [#128](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/128)
 
 ## [0.7.13] - 2023-06-22
 
