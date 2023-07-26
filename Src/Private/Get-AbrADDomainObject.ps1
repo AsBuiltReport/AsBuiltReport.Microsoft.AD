@@ -1038,10 +1038,10 @@ function Get-AbrADDomainObject {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $GMSAInfo | Table @TableParams
-                                if (($GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq  '--')})) {
+                                if (($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq  '--')})) {
                                     Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
-                                    if ($GMSAInfo | Where-Object { $_.'Last Logon Date' -match "\*" }) {
+                                    if ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq "*--" }) {
                                         Paragraph {
                                             Text "Security Best Practice:" -Bold
                                             Text "*Regularly check for and remove inactive group managed service accounts from Active Directory."
