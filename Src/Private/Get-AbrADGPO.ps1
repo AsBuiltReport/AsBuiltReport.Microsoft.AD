@@ -40,6 +40,7 @@ function Get-AbrADGPO {
                         try {
                             foreach ($GPO in $GPOs) {
                                 try {
+                                    [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML}
                                     Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'."
                                     $inObj = [ordered] @{
                                         'GPO Name' = $GPO.DisplayName
@@ -52,6 +53,7 @@ function Get-AbrADGPO {
 
                                             } else {'No Security Filtering'}
                                         }
+                                        'Links Count' = $Links.GPO.LinksTo.SOMPath.Count
                                     }
                                     $OutObj += [pscustomobject]$inobj
                                 }
@@ -63,33 +65,42 @@ function Get-AbrADGPO {
                             if ($HealthCheck.Domain.GPO) {
                                 $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                 $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'} | Set-Style -Style Warning -Property 'Security Filtering'
+                                $OutObj | Where-Object { $_.'Links Count' -eq 0 } | Set-Style -Style Warning -Property 'Links Count'
                             }
 
                             $TableParams = @{
                                 Name = "GPO - $($Domain.ToString().ToUpper())"
                                 List = $false
-                                ColumnWidths = 45, 25, 30
+                                ColumnWidths = 40, 25, 25, 10
                             }
 
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                            if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}))) {
+                            if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}) -or ($OutObj | Where-Object { $_.'Links Count' -eq 0 }))) {
                                 Paragraph "Health Check:" -Bold -Underline
                                 BlankLine
                                 if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
                                     Paragraph {
                                         Text "Best Practices:" -Bold
-                                        Text "Ensure 'All Settings Disabled' GPO are removed from Active Directory."
+                                        Text "Ensure 'All Settings Disabled' GPOs are removed from Active Directory."
                                     }
                                     BlankLine
                                 }
                                 if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'})) {
                                     Paragraph {
                                         Text "Corrective Actions:" -Bold
-                                        Text "Determine which 'No Security Filtering' Group Policies should be deleted and delete them."
+                                        Text "Determine which 'No Security Filtering' GPOs should be deleted and delete them."
                                     }
+                                    BlankLine
+                                }
+                                if ($OutObj | Where-Object { $_.'Links Count' -eq '0' }) {
+                                    Paragraph {
+                                        Text "Corrective Actions:" -Bold
+                                        Text "Ensure unused or unlinked GPOs are removed from Active Directory."
+                                    }
+                                    BlankLine
                                 }
                             }
                         }
@@ -102,14 +113,16 @@ function Get-AbrADGPO {
                             foreach ($GPO in $GPOs) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading6 "$($GPO.DisplayName)" {
                                     try {
+                                        [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML}
                                         Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
                                         $inObj = [ordered] @{
                                             'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
                                             'GUID' = $GPO.Id
                                             'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
                                             'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
-                                            'Description' = ConvertTo-EmptyToFiller $GPO.Description
                                             'Owner' = $GPO.Owner
+                                            'Computer Version' = "$($Links.GPO.Computer.VersionDirectory) (AD), $($Links.GPO.Computer.VersionSysvol) (SYSVOL)"
+                                            'User Version' = "$($Links.GPO.User.VersionDirectory) (AD), $($Links.GPO.User.VersionSysvol) (SYSVOL)"
                                             'WMI Filter' = &{
                                                 $WMIFilter = Invoke-Command -Session $TempPssSession -ScriptBlock {((Get-Gpo -DomainName $using:Domain  -Name $using:GPO.DisplayName).WMifilter.Name)}
                                                 if ($WMIFilter) {
@@ -124,6 +137,12 @@ function Get-AbrADGPO {
 
                                                 } else {'No Security Filtering'}
                                             }
+                                            'Linked Target' = Switch ([string]::IsNullOrEmpty($Links.GPO.LinksTo.SOMPath)) {
+                                                'True' {'--'}
+                                                'False' {$Links.GPO.LinksTo.SOMPath}
+                                                default {'Unknown'}
+                                            }
+                                            'Description' = ConvertTo-EmptyToFiller $GPO.Description
                                         }
 
                                         $OutObj = [pscustomobject]$inobj
@@ -132,6 +151,7 @@ function Get-AbrADGPO {
                                             $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                             $OutObj | Where-Object {$Null -eq $_.'Owner'} | Set-Style -Style Warning -Property 'Owner'
                                             $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'} | Set-Style -Style Warning -Property 'Security Filtering'
+                                            $OutObj | Where-Object { $_.'Linked Target' -eq '--'} | Set-Style -Style Warning -Property 'Linked Target'
                                         }
 
                                         $TableParams = @{
@@ -144,7 +164,7 @@ function Get-AbrADGPO {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $OutObj | Table @TableParams
-                                        if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}))) {
+                                        if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}) -or ($OutObj | Where-Object { $_.'Linked Target' -eq '--'}))) {
                                             Paragraph "Health Check:" -Bold -Underline
                                             BlankLine
                                             if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
@@ -159,6 +179,14 @@ function Get-AbrADGPO {
                                                     Text "Corrective Actions:" -Bold
                                                     Text "Determine which 'No Security Filtering' Group Policies should be deleted and delete them."
                                                 }
+                                                BlankLine
+                                            }
+                                            if ($OutObj | Where-Object { $_.'Linked Target' -eq '--'}) {
+                                                Paragraph {
+                                                    Text "Corrective Actions:" -Bold
+                                                    Text "Ensure unused or unlinked GPOs are removed from Active Directory."
+                                                }
+                                                BlankLine
                                             }
                                         }
                                     }
@@ -174,7 +202,7 @@ function Get-AbrADGPO {
                     }
                     if ($InfoLevel.Domain -ge 2) {
                         try {
-                            $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                            $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
                             $DCPssSession = New-PSSession -ComputerName $DC -Name "WmiFilters" -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                             $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
                             $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
@@ -249,7 +277,7 @@ function Get-AbrADGPO {
                                     BlankLine
                                     Paragraph {
                                         Text "Best Practices:" -Bold
-                                        Text "Ensure Central Store is deployed to centralized GPO repository."
+                                        Text "The group policy central store is a central location to store all the group policy template files. This eliminates the need for admins to load and open group policy template files on systems used to manage group policy. Ensure Central Store is deployed to centralized GPO repository."
                                     }
                                 }
                             }
@@ -473,7 +501,7 @@ function Get-AbrADGPO {
                     try {
                         $OutObj = @()
                         Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
-                        $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                        $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
                         Write-PscriboMessage "Discovered Active Directory Domain Controller $DC in $Domain. (Group Policy Objects)"
                         $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName}
                         if ($OUs) {
@@ -530,8 +558,8 @@ function Get-AbrADGPO {
                     # Code taken from Jeremy Saunders
                     # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
                     try {
-                        $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
-                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                        $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
+                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO'
                         $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
                         $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
                         $OrphanGPOs = @()

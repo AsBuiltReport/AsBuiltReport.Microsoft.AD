@@ -30,7 +30,7 @@ function Get-AbrADKerberosAudit {
     process {
         if ($HealthCheck.Domain.Security) {
             try {
-                $DC = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1}
+                $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
                 $Unconstrained = Invoke-Command -Session $TempPssSession {Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
                 Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                 if ($Unconstrained) {
