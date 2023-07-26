@@ -186,7 +186,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                 Paragraph "The following section provides a summary of the Active Directory Domain Controllers."
                                                 BlankLine
                                             }
-                                            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}}
+                                            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}} | Sort-Object
 
                                             if ($DCs) {
 
@@ -196,7 +196,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                     Section -Style Heading5 "Roles" {
                                                         Paragraph "The following section provides a summary of installed role & features on $Domain DCs."
                                                         foreach ($DC in $DCs){
-                                                            $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 1
+                                                            $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 2
                                                             if ($DCStatus -eq $false) {
                                                                 Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
                                                             }
@@ -212,7 +212,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                             Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
                                                             BlankLine
                                                             foreach ($DC in $DCs){
-                                                                if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                                if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 2)) {
                                                                     Get-AbrADDCDiag -Domain $Domain -DC $DC
                                                                 }
                                                             }
@@ -228,7 +228,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                                     Section -Style Heading5 "Infrastructure Services" {
                                                         Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                                                         foreach ($DC in $DCs){
-                                                            if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 1)) {
+                                                            if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 2)) {
                                                                 Get-AbrADInfrastructureService -DC $DC
                                                             }
                                                         }
@@ -287,8 +287,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                                         Get-AbrADDNSInfrastructure -Domain $Domain
                                         $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}}
                                         foreach ($DC in $DCs){
-                                            if (Test-Connection -ComputerName $DC -Quiet -Count 1) {
-                                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                            if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DDNSInfrastructure'
                                                 Get-AbrADDNSZone -Domain $Domain -DC $DC
                                             }
                                             if ($DCPssSession) {

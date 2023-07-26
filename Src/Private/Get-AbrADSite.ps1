@@ -214,35 +214,37 @@ function Get-AbrADSite {
                                             Write-PscriboMessage "Discovered Missing Subnet in AD information from $Domain."
                                             $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
                                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object {$_ -notin $Options.Exclude.DCs})) {
-                                                try {
-                                                    $DCPssSession = New-PsSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                                                    $Path = "\\$DC\admin`$\debug\netlogon.log"
-                                                    if ((Invoke-Command -Session $DCPssSession {Test-Path -Path $using:path}) -and (Invoke-Command -Session $DCPssSession {(Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0})) {
-                                                        Write-PscriboMessage "Collecting Missing Subnet in AD information from $($Domain)."
-                                                        $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path)[-200..-1] }
-                                                        foreach ($Line in $NetLogonContents) {
-                                                            if ($Line -match "NO_CLIENT_SITE") {
-                                                                $inObj = [ordered] @{
-                                                                    'DC' = $DC
-                                                                    'IP' = $Line.Split(":")[4].trim(" ").Split(" ")[1]
+                                                if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                                    try {
+                                                        $DCPssSession = New-PsSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'MissingSubnetinAD'
+                                                        $Path = "\\$DC\admin`$\debug\netlogon.log"
+                                                        if ((Invoke-Command -Session $DCPssSession {Test-Path -Path $using:path}) -and (Invoke-Command -Session $DCPssSession {(Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0})) {
+                                                            Write-PscriboMessage "Collecting Missing Subnet in AD information from $($Domain)."
+                                                            $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path)[-200..-1] }
+                                                            foreach ($Line in $NetLogonContents) {
+                                                                if ($Line -match "NO_CLIENT_SITE") {
+                                                                    $inObj = [ordered] @{
+                                                                        'DC' = $DC
+                                                                        'IP' = $Line.Split(":")[4].trim(" ").Split(" ")[1]
+                                                                    }
+
+                                                                    $OutObj += [pscustomobject]$inobj
                                                                 }
 
-                                                                $OutObj += [pscustomobject]$inobj
+                                                                if ($HealthCheck.Site.BestPractice) {
+                                                                    $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
+                                                                }
                                                             }
-
-                                                            if ($HealthCheck.Site.BestPractice) {
-                                                                $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
-                                                            }
+                                                        } else {
+                                                            Write-PScriboMessage "Unable to read $Path on $DC"
                                                         }
-                                                    } else {
-                                                        Write-PScriboMessage "Unable to read $Path on $DC"
+                                                        if ($DCPssSession) {
+                                                            Remove-PsSession -Session $DCPssSession
+                                                        }
                                                     }
-                                                    if ($DCPssSession) {
-                                                        Remove-PsSession -Session $DCPssSession
+                                                    catch {
+                                                        Write-PscriboMessage -IsWarning "Missing Subnet in AD Item Section: $($_.Exception.Message)"
                                                     }
-                                                }
-                                                catch {
-                                                    Write-PscriboMessage -IsWarning "Missing Subnet in AD Item Section: $($_.Exception.Message)"
                                                 }
                                             }
                                         }
@@ -379,51 +381,52 @@ function Get-AbrADSite {
                             Write-PscriboMessage "Discovered AD Domain Sysvol Replication information from $Domain."
                             $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object {$_ -notin $Options.Exclude.DCs})) {
-                                $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                                $Replication = Get-CIMInstance -CIMSession $DCCIMSession -Namespace "root/microsoftdfs" -Class "dfsrreplicatedfolderinfo" -Filter "ReplicatedFolderName = 'SYSVOL Share'" -EA 0 -Verbose:$False | Select-Object State
-                                if ($DCCIMSession) {
-                                    Remove-CimSession -CimSession $DCCIMSession
-                                }
-
-                                try {
-                                    Write-PscriboMessage "Collecting Sysvol Replication information from $($Domain)."
-                                    $inObj = [ordered] @{
-                                        'DC Name' = $DC.split(".", 2)[0]
-                                        'Replication Status' = Switch ($Replication.State) {
-                                            0  {'Uninitialized'}
-                                            1  {'Initialized'}
-                                            2  {'Initial synchronization'}
-                                            3  {'Auto recovery'}
-                                            4  {'Normal'}
-                                            5  {'In error state'}
-                                            6  {'Disabled'}
-                                            7  {'Unknown'}
-                                        }
-                                        'Domain' = $Domain
+                                if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                    $DCCIMSession = New-CIMSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                    $Replication = Get-CIMInstance -CIMSession $DCCIMSession -Namespace "root/microsoftdfs" -Class "dfsrreplicatedfolderinfo" -Filter "ReplicatedFolderName = 'SYSVOL Share'" -EA 0 -Verbose:$False | Select-Object State
+                                    if ($DCCIMSession) {
+                                        Remove-CimSession -CimSession $DCCIMSession
                                     }
-                                    $OutObj += [pscustomobject]$inobj
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "Sysvol Replication Item Section: $($_.Exception.Message)"
-                                }
 
-                                if ($HealthCheck.Site.BestPractice) {
-                                    $ReplicationStatusError = @(
-                                        'Uninitialized',
-                                        'Auto recovery',
-                                        'In error state',
-                                        'Disabled',
-                                        'Unknown'
-                                    )
-                                    $ReplicationStatusWarn = @(
-                                        'Initialized',
-                                        'Initial synchronization'
-                                    )
-                                    $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
-                                    $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError } | Set-Style -Style Critical -Property 'Replication Status'
-                                    $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property 'Replication Status'
-                                }
+                                    try {
+                                        Write-PscriboMessage "Collecting Sysvol Replication information from $($Domain)."
+                                        $inObj = [ordered] @{
+                                            'DC Name' = $DC.split(".", 2)[0]
+                                            'Replication Status' = Switch ($Replication.State) {
+                                                0  {'Uninitialized'}
+                                                1  {'Initialized'}
+                                                2  {'Initial synchronization'}
+                                                3  {'Auto recovery'}
+                                                4  {'Normal'}
+                                                5  {'In error state'}
+                                                6  {'Disabled'}
+                                                7  {'Unknown'}
+                                            }
+                                            'Domain' = $Domain
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
+                                    catch {
+                                        Write-PscriboMessage -IsWarning "Sysvol Replication Item Section: $($_.Exception.Message)"
+                                    }
 
+                                    if ($HealthCheck.Site.BestPractice) {
+                                        $ReplicationStatusError = @(
+                                            'Uninitialized',
+                                            'Auto recovery',
+                                            'In error state',
+                                            'Disabled',
+                                            'Unknown'
+                                        )
+                                        $ReplicationStatusWarn = @(
+                                            'Initialized',
+                                            'Initial synchronization'
+                                        )
+                                        $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
+                                        $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError } | Set-Style -Style Critical -Property 'Replication Status'
+                                        $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property 'Replication Status'
+                                    }
+                                }
                             }
                         }
                         if ($OutObj) {

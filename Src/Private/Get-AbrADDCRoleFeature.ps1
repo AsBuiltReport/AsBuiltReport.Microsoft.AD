@@ -30,7 +30,7 @@ function Get-AbrADDCRoleFeature {
     process {
         Write-PscriboMessage "Collecting AD Domain Controller Role & Features information for domain $Domain"
         try {
-            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ADDCRoleFeature'
             if ($DCPssSession) {
                 Write-PscriboMessage "Discovered Active Directory DC Role & Features information of $DC."
                 Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
