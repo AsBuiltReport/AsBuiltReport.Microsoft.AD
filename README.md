@@ -222,7 +222,7 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 
 - Issues with WinRM when using the IP address instead of the "Fully Qualified Domain Name".
 - This project relies heavily on the remote connection function through WinRM. For this reason the use of a Windows 10 client is specifically used as a jumpbox.
-- The report provides the ability to extract the configuration of the DHCP/DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DNS-Server & RSAT-AD-PowerShell).
+- The report provides the ability to extract the configuration of the DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DNS-Server & RSAT-AD-PowerShell).
 - This report assumes that the DNS Server service is running on the same server where Domain Controller is running (Cohost).
 - In some cases when trying to update the report, an error similar to this is generated:
   - "PackageManagement\Install-Package : Authenticode issuer 'CN="xyz, INC.", O="xyz, INC.", L=San Jose, S=California on the previusly-installed module 'PSPKI'. If you still want to install or update, use -SkipPublisherCheck parameter."
