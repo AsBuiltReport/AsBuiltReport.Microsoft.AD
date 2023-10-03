@@ -5,7 +5,7 @@ function Get-AbrADCARoot {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.9
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,7 +27,7 @@ function Get-AbrADCARoot {
             Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
             Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
             if ($CAs | Where-Object {$_.IsRoot -like 'True'}) {
-                Section -Style Heading3 "Enterprise Root Certificate Authority" {
+                Section -Style Heading2 "Enterprise Root Certificate Authority" {
                     Paragraph "The following section provides the Enterprise Root CA information."
                     BlankLine
                     $OutObj = @()
@@ -40,6 +40,9 @@ function Get-AbrADCARoot {
                             'Config String' = $CA.ConfigString
                             'Operating System' = $CA.OperatingSystem
                             'Certificate' = $CA.Certificate
+                            'Auditing' = &{
+                                (Find-AuditingIssue -ADCSObjects (Get-ADCSObject $ForestInfo) | Where-Object {$_.Name -eq $CA.DisplayName}).Issue
+                            }
                             'Status' = $CA.ServiceStatus
                         }
                         $OutObj += [pscustomobject]$inobj
@@ -47,6 +50,7 @@ function Get-AbrADCARoot {
 
                     if ($HealthCheck.CA.Status) {
                         $OutObj | Where-Object { $_.'Service Status' -notlike 'Running'} | Set-Style -Style Critical -Property 'Service Status'
+                        $OutObj | Where-Object { $_.'Auditing' -notlike 'Running'} | Set-Style -Style Critical -Property 'Auditing'
                     }
 
                     $TableParams = @{

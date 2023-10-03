@@ -5,7 +5,7 @@ function Get-AbrADCATemplate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.9
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,7 +30,7 @@ function Get-AbrADCATemplate {
         $Templates = Get-CATemplate -CertificationAuthority $CA.ComputerName | Select-Object -ExpandProperty Templates
         if ($Templates) {
             try {
-                Section -Style Heading4 "Certificate Template Summary" {
+                Section -Style Heading3 "Certificate Template Summary" {
                     Paragraph "The following section provides the certificate templates that are assigned to a specified Certification Authority (CA). CA server can issue certificates only based on assigned templates."
                     BlankLine
                     $OutObj = @()
@@ -61,14 +61,14 @@ function Get-AbrADCATemplate {
                     $OutObj | Sort-Object -Property 'Template Name' | Table @TableParams
                     if ($InfoLevel.CA -ge 3) {
                         try {
-                            Section -Style Heading5 "Issued Certificate Template ACLs" {
+                            Section -Style Heading4 "Issued Certificate Template ACLs" {
                                 Paragraph "The following section provides the certificate templates Access Control List that are assigned to a specified Certification Authority (CA)."
                                 BlankLine
                                 foreach ($Template in $Templates) {
                                     try {
                                         $Rights = Get-CertificateTemplateAcl -Template $Template.Name | Select-Object -ExpandProperty Access
                                         if ($Rights) {
-                                            Section -ExcludeFromTOC -Style NOTOCHeading6 "$($Template.DisplayName)" {
+                                            Section -ExcludeFromTOC -Style NOTOCHeading5 "$($Template.DisplayName)" {
                                                 $OutObj = @()
                                                 foreach ($Right in $Rights) {
                                                     try {
@@ -110,7 +110,7 @@ function Get-AbrADCATemplate {
                         try {
                             $Templates =  Get-CertificateTemplate
                             if ($Templates) {
-                                Section -Style Heading5 "Certificate Template In Active Directory" {
+                                Section -Style Heading4 "Certificate Template In Active Directory" {
                                     Paragraph "The following section provides registered certificate templates from Active Directory."
                                     BlankLine
                                     $OutObj = @()
