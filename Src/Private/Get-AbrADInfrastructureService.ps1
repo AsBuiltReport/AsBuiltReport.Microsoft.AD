@@ -80,7 +80,7 @@ function Get-AbrADInfrastructureService {
                     }
                 }
             } else {
-                Write-PscriboMessage -IsWarning "No Infrastructure Services Status information found, disabling section."
+                Write-PscriboMessage -IsWarning "No Infrastructure Services Status information found in $DC, disabling the section."
             }
             if ($DCPssSession) {
                 Remove-PSSession -Session $DCPssSession

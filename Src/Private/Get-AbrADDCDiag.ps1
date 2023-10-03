@@ -90,7 +90,7 @@ function Get-AbrADDCDiag {
                         $OutObj | Sort-Object -Property 'Entity' | Table @TableParams
                     }
                 } else {
-                    Write-PscriboMessage -IsWarning "No DCDiag information found, disabling section."
+                    Write-PscriboMessage -IsWarning "No DCDiag information found in $DC, disabling the section."
                 }
             }
             catch {

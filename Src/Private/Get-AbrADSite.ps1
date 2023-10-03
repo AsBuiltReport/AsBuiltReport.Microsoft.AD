@@ -147,7 +147,7 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No Connection Objects information found, disabling section."
+                            Write-PscriboMessage -IsWarning "No Connection Objects information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -276,7 +276,7 @@ function Get-AbrADSite {
                                                 }
                                             }
                                         } else {
-                                            Write-PscriboMessage -IsWarning "No Missing Subnets in AD information found, disabling section."
+                                            Write-PscriboMessage -IsWarning "No Missing Subnets in AD information found in $Domain, disabling the section."
                                         }
                                     }
                                     catch {
@@ -285,7 +285,7 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No Site Subnets information found, disabling section."
+                            Write-PscriboMessage -IsWarning "No Site Subnets information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -377,7 +377,7 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No Site Links information found, disabling section."
+                            Write-PscriboMessage -IsWarning "No Site Links information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -461,7 +461,7 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No Sysvol Replication information found, disabling section."
+                            Write-PscriboMessage -IsWarning "No Sysvol Replication information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -469,7 +469,7 @@ function Get-AbrADSite {
                     }
                 }
             } else {
-                Write-PscriboMessage -IsWarning "No Sites information found, disabling section."
+                Write-PscriboMessage -IsWarning "No Sites information found in $Domain, disabling the section."
             }
         }
         catch {
