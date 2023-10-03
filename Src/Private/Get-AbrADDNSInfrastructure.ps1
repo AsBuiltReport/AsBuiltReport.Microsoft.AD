@@ -396,7 +396,7 @@ function Get-AbrADDNSInfrastructure {
                                                 if (($OutObj | Where-Object { $_.'IPv4 Address'.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'IPv6 Address'.Count -gt 1 })) {
                                                     Paragraph {
                                                         Text "Corrective Actions:" -Bold
-                                                        Text "Duplicate IP Address found in the talbe of the DNS root hints servers. The DNS console does not show the duplicate Root Hint servers; you can only see them using the DNS PowerShell cmdlets. While there is a dnscmd utility to replace the Root Hints file, Using PowerShell is the best way to remediate this issue."
+                                                        Text "Duplicate IP Address found in the table of the DNS root hints servers. The DNS console does not show the duplicate Root Hint servers; you can only see them using the DNS PowerShell cmdlets. While there is a dnscmd utility to replace the Root Hints file, Using PowerShell is the best way to remediate this issue."
                                                     }
                                                 }
                                             }

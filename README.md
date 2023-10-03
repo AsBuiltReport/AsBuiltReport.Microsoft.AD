@@ -1,7 +1,7 @@
 <!-- ********** DO NOT EDIT THESE LINKS ********** -->
 <p align="center">
     <a href="https://www.asbuiltreport.com/" alt="AsBuiltReport"></a>
-            <img src='https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport/master/AsBuiltReport.png' width="8%" height="8%" /></a>
+            <img src='https://avatars.githubusercontent.com/u/42958564' width="8%" height="8%" /></a>
 </p>
 <p align="center">
     <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/" alt="PowerShell Gallery Version">
