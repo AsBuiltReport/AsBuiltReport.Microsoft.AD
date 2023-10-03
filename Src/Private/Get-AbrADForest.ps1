@@ -167,7 +167,7 @@ function Get-AbrADForest {
                         }
                     }
                 } else {
-                    Write-PscriboMessage "No Certificate Authority Root information found, disabling section"
+                    Write-PscriboMessage -IsWarning "No Certificate Authority Root information found, disabling section."
                 }
                 Write-PscriboMessage "Discovering certificate authority issuers on forest $ForestInfo."
                 $ConfigNCDN = $Data.PartitionsContainer.Split(',') | Select-Object -Skip 1
@@ -201,7 +201,7 @@ function Get-AbrADForest {
                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                     }
                 } else {
-                    Write-PscriboMessage "No Certificate Authority Issuer information found, disabling section"
+                    Write-PscriboMessage -IsWarning "No Certificate Authority Issuer information found, disabling section."
                 }
             }
         }
@@ -262,7 +262,7 @@ function Get-AbrADForest {
                         }
                     }
                 } else {
-                    Write-PscriboMessage "No Optional Feature information found, disabling section"
+                    Write-PscriboMessage -IsWarning "No Optional Feature information found, disabling section."
                 }
             }
         }

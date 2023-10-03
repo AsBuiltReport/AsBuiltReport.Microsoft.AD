@@ -87,7 +87,7 @@ function Get-AbrADTrust {
                             }
                         }
                     } else {
-                        Write-PscriboMessage "No Domain Trust information found, disabling section"
+                        Write-PscriboMessage -IsWarning "No Domain Trust information found, disabling section."
                     }
                 }
                 catch {

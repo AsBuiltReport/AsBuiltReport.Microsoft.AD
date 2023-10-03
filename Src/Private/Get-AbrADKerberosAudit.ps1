@@ -74,7 +74,7 @@ function Get-AbrADKerberosAudit {
                         }
                     }
                 } else {
-                    Write-PscriboMessage "No Unconstrained Kerberos Delegation information found, disabling section"
+                    Write-PscriboMessage -IsWarning "No Unconstrained Kerberos Delegation information found, disabling section."
                 }
                 try {
                     $KRBTGT = $Users | Where-Object {$_.Name  -eq 'krbtgt'}
@@ -120,7 +120,7 @@ function Get-AbrADKerberosAudit {
                             }
                         }
                     } else {
-                        Write-PscriboMessage "No KRBTGT Account Audit information found, disabling section"
+                        Write-PscriboMessage -IsWarning "No KRBTGT Account Audit information found, disabling section."
                     }
                 }
                 catch {
@@ -172,7 +172,7 @@ function Get-AbrADKerberosAudit {
                             }
                         }
                     } else {
-                        Write-PscriboMessage "No Administrator Account Audit information found, disabling section"
+                        Write-PscriboMessage -IsWarning "No Administrator Account Audit information found, disabling section."
                     }
                 }
                 catch {
