@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,7 +34,7 @@ function Get-AbrADFSMO {
             if ($DomainData -and $ForestData) {
                 $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'FSMORoles'
-                Section -Style Heading4 'FSMO Roles' {
+                Section -Style Heading3 'FSMO Roles' {
                     $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession {Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster}).IsGlobalCatalog
                     $OutObj = @()
                     try {

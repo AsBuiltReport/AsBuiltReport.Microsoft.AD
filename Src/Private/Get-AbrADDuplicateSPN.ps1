@@ -5,7 +5,7 @@ function Get-AbrADDuplicateSPN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrADDuplicateSPN {
                 $SPNs = Get-WinADDuplicateSPN -Domain $Domain -Credential $Credential
                 Write-PscriboMessage "Discovered AD Duplicate SPN information from $Domain."
                 if ($SPNs) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Duplicate SPN' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate SPN' {
                         Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
@@ -75,6 +75,8 @@ function Get-AbrADDuplicateSPN {
                             }
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No Duplicate SPN information found, disabling section"
                 }
             }
             catch {

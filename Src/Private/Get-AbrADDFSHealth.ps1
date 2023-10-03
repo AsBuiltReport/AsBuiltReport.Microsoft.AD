@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,13 +35,12 @@ function Get-AbrADDFSHealth {
                 } Else {$DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential}
                 Write-PscriboMessage "Discovered AD Domain DFS Health information from $Domain."
                 if ($DFS) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Sysvol Replication Status' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Replication Status' {
                         Paragraph "The following section details the sysvol folder replication status for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
                         foreach ($DCStatus in $DFS) {
                             try {
-                                Write-PscriboMessage "Collecting DFS information from $($Domain)."
                                 $inObj = [ordered] @{
                                     'DC Name' = $DCStatus.DomainController
                                     'Replication Status' = $DCStatus.ReplicationState
@@ -96,6 +95,8 @@ function Get-AbrADDFSHealth {
                             BlankLine
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No DFS information found, disabling section"
                 }
             }
             catch {
@@ -113,7 +114,7 @@ function Get-AbrADDFSHealth {
                         'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
                         } } | Sort-Object -Descending -Property 'Totalsize'}
                 if ($SYSVOLFolder) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Sysvol Content Status' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Content Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) sysvol health status."
                         BlankLine
                         $OutObj = @()
@@ -155,6 +156,8 @@ function Get-AbrADDFSHealth {
                             }
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No SYSVOL folder information found, disabling section"
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession
@@ -175,7 +178,7 @@ function Get-AbrADDFSHealth {
                         'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
                         } } | Sort-Object -Descending -Property 'Totalsize'}
                 if ($NetlogonFolder) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Netlogon Content Status' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Netlogon Content Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) netlogon health status."
                         BlankLine
                         $OutObj = @()
@@ -217,6 +220,8 @@ function Get-AbrADDFSHealth {
                             }
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No NETLOGON folder information found, disabling section"
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession

@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADDomainObject {
 
     process {
         try {
-            Section -Style Heading4 'Domain Object Stats' {
+            Section -Style Heading3 'Domain Object Stats' {
                 if ($Domain) {
                     Write-PScriboMessage "Collecting the Active Directory Object Count of domain $Domain."
                     try {
@@ -104,7 +104,7 @@ function Get-AbrADDomainObject {
                                 }
                             }
                             if ($OutObj) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers' {
+                                Section -ExcludeFromTOC -Style NOTOCHeading3 'Computers' {
                                     if ($chartFileItem) {
                                         Image -Text 'Computers Object - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                                     }
@@ -175,7 +175,7 @@ function Get-AbrADDomainObject {
                                 }
                             }
                             if ($OutObj) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading5 'Domain Controller' {
+                                Section -ExcludeFromTOC -Style NOTOCHeading3 'Domain Controller' {
                                     if ($chartFileItem) {
                                         Image -Text 'Domain Controller Object - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                                     }
@@ -247,7 +247,7 @@ function Get-AbrADDomainObject {
                                 }
                             }
                             if ($OutObj) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading5 'Users' {
+                                Section -ExcludeFromTOC -Style NOTOCHeading3 'Users' {
                                     if ($chartFileItem) {
                                         Image -Text 'Users Object  - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                                     }
@@ -393,7 +393,7 @@ function Get-AbrADDomainObject {
                 }
             }
             if ($OutObj) {
-                Section -Style Heading4 'Status of Users Accounts' {
+                Section -Style Heading3 'Status of Users Accounts' {
                     if ($chartFileItem) {
                         Image -Text 'Status of Users Accounts - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                     }
@@ -404,7 +404,7 @@ function Get-AbrADDomainObject {
             Write-PScriboMessage -IsWarning $($_.Exception.Message)
         }
         try {
-            Section -Style Heading4 'Privileged Groups' {
+            Section -Style Heading3 'Privileged Groups' {
                 $OutObj = @()
                 if ($Domain) {
                     Write-PScriboMessage "Collecting Privileged Group in Active Directory."
@@ -491,7 +491,7 @@ function Get-AbrADDomainObject {
                                             Write-PScriboMessage "Collecting Privileged Group $($Group.Name) with SID $($Group.SID)"
                                             $GroupObjects = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:DC  -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue | ForEach-Object {Get-ADUser -Filter 'SamAccountName -eq $_.SamAccountName' -Server $using:DC -Property SamAccountName,objectClass,LastLogonDate,passwordNeverExpires,Enabled -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }}
                                             if ($GroupObjects) {
-                                                Section -ExcludeFromTOC -Style NOTOCHeading5 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) Members)" {
+                                                Section -ExcludeFromTOC -Style NOTOCHeading4 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) Members)" {
                                                     $OutObj = @()
                                                     foreach ($GroupObject in $GroupObjects) {
                                                         $inObj = [ordered] @{
@@ -683,7 +683,7 @@ function Get-AbrADDomainObject {
                     }
                 }
                 if ($OutObj) {
-                    Section -Style Heading4 'Status of Computer Accounts' {
+                    Section -Style Heading3 'Status of Computer Accounts' {
                         if ($chartFileItem -and ($OutObj.'Total' | Measure-Object -Sum).Sum -ne 0) {
                             Image -Text 'Status of Computer Accounts - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
                         }
@@ -695,7 +695,7 @@ function Get-AbrADDomainObject {
             Write-PScriboMessage -IsWarning $($_.Exception.Message)
         }
         try {
-            Section -Style Heading4 'Operating Systems Count' {
+            Section -Style Heading3 'Operating Systems Count' {
                 $OutObj = @()
                 if ($Domain) {
                     Write-PScriboMessage "Collecting Operating Systems in Active Directory."
@@ -743,7 +743,7 @@ function Get-AbrADDomainObject {
             Write-PScriboMessage -IsWarning $($_.Exception.Message)
         }
         try {
-            Section -Style Heading4 'Default Domain Password Policy' {
+            Section -Style Heading3 'Default Domain Password Policy' {
                 $OutObj = @()
                 if ($Domain) {
                     Write-PScriboMessage "Collecting the Active Directory Default Domain Password Policy of domain $Item."
@@ -789,7 +789,7 @@ function Get-AbrADDomainObject {
                     $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
                     $PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADFineGrainedPasswordPolicy -Server $using:DCPDC -Filter { Name -like "*" } -Properties * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName } | Sort-Object -Property Name
                     if ($PasswordPolicy) {
-                        Section -Style Heading4 'Fined Grained Password Policies' {
+                        Section -Style Heading3 'Fined Grained Password Policies' {
                             $FGPPInfo = @()
                             foreach ($FGPP in $PasswordPolicy) {
                                 try {
@@ -821,7 +821,7 @@ function Get-AbrADDomainObject {
 
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($FGPP in $FGPPInfo) {
-                                    Section -Style NOTOCHeading5 -ExcludeFromTOC "$($FGPP.Name)" {
+                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($FGPP.Name)" {
                                         $TableParams = @{
                                             Name = "Fined Grained Password Policies - $($FGPP.Name)"
                                             List = $true
@@ -860,7 +860,7 @@ function Get-AbrADDomainObject {
                     $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                     $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
                     $LAPS = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:DCPDC "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:DomainInfo).DistinguishedName)" } | Sort-Object -Property Name
-                    Section -Style Heading4 'Local Administrator Password Solution' {
+                    Section -Style Heading3 'Windows LAPS ' {
                         $LAPSInfo = @()
                         try {
                             $inObj = [ordered] @{
@@ -886,7 +886,7 @@ function Get-AbrADDomainObject {
                         if ($InfoLevel.Domain -ge 2) {
                             foreach ($LAP in $LAPSInfo) {
                                 $TableParams = @{
-                                    Name = "Local Administrator Password Solution - $($Domain.ToString().ToUpper())"
+                                    Name = "Windows LAPS - $($Domain.ToString().ToUpper())"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }
@@ -897,7 +897,7 @@ function Get-AbrADDomainObject {
                             }
                         } else {
                             $TableParams = @{
-                                Name = "Local Administrator Password Solution -  $($Domain.ToString().ToUpper())"
+                                Name = "Windows LAPS -  $($Domain.ToString().ToUpper())"
                                 List = $false
                                 Columns = 'Name', 'Domain Name', 'Enabled'
                                 ColumnWidths = 34, 33, 33
@@ -920,7 +920,7 @@ function Get-AbrADDomainObject {
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Local Administrator Password Solution)"
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Windows LAPS)"
         }
 
         try {
@@ -930,7 +930,7 @@ function Get-AbrADDomainObject {
                     Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts from DC $DC."
                     $GMSA = Invoke-Command -Session $TempPssSession { Get-ADServiceAccount -Server $using:DC -Filter * -Properties * }
                     if ($GMSA) {
-                        Section -Style Heading4 'gMSA identities' {
+                        Section -Style Heading3 'gMSA Identities' {
                             $GMSAInfo = @()
                             foreach ($Account in $GMSA) {
                                 try {
@@ -992,7 +992,7 @@ function Get-AbrADDomainObject {
 
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($Account in $GMSAInfo) {
-                                    Section -Style NOTOCHeading5 -ExcludeFromTOC "$($Account.Name)" {
+                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($Account.Name)" {
                                         $TableParams = @{
                                             Name = "gMSA - $($Account.Name)"
                                             List = $true

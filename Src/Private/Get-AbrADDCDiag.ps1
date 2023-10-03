@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.7
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,10 +32,9 @@ function Get-AbrADDCDiag {
     process {
         if ($DC) {
             try {
-                Write-PscriboMessage "Discovering Active Directory DCDiag information for DC $DC."
                 $DCDIAG = Invoke-DcDiag -DomainController $DC
                 if ($DCDIAG) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().split('.')[0].ToUpper()) {
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 $($DC.ToString().split('.')[0].ToUpper()) {
                         $OutObj = @()
                         $Description = @{
                             "Advertising" = "Validates this Domain Controller can be correctly located through the KDC service. It does not validate the Kerberos tickets answer or the communication through the TCP and UDP port 88.", 'High'
@@ -90,6 +89,8 @@ function Get-AbrADDCDiag {
                         }
                         $OutObj | Sort-Object -Property 'Entity' | Table @TableParams
                     }
+                } else {
+                    Write-PscriboMessage "No DCDiag information found, disabling section"
                 }
             }
             catch {
