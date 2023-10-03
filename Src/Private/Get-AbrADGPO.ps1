@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADGPO {
 
     process {
         try {
-            Section -Style Heading5 "Group Policy Objects" {
+            Section -Style Heading4 "Group Policy Objects" {
                 Paragraph "The following section provides a summary of the Group Policy Objects for domain $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
@@ -111,7 +111,7 @@ function Get-AbrADGPO {
                     if ($InfoLevel.Domain -ge 2) {
                         try {
                             foreach ($GPO in $GPOs) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading6 "$($GPO.DisplayName)" {
+                                Section -ExcludeFromTOC -Style NOTOCHeading5 "$($GPO.DisplayName)" {
                                     try {
                                         [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML}
                                         Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
@@ -210,7 +210,7 @@ function Get-AbrADGPO {
                                 Remove-PSSession -Session $DCPssSession
                             }
                             if ($WmiFilters) {
-                                Section -Style Heading6 "WMI Filters" {
+                                Section -Style Heading5 "WMI Filters" {
                                     $OutObj = @()
                                     foreach ($WmiFilter in $WmiFilters) {
                                         Write-PscriboMessage "Discovered wmi filter information on $Domain. (WMI Filters)"
@@ -248,7 +248,7 @@ function Get-AbrADGPO {
                         $PATH = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
                         $CentralStore = Invoke-Command -Session $TempPssSession -ScriptBlock {Test-Path $using:PATH}
                         if ($PATH) {
-                            Section -Style Heading6 "Central Store Repository" {
+                            Section -Style Heading5 "Central Store Repository" {
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Active Directory Central Store information on $Domain. (Central Store)"
                                 $inObj = [ordered] @{
@@ -318,7 +318,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading6 "User Logon/Logoff Script" {
+                            Section -Style Heading5 "Logon/Logoff Script" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                 }
@@ -371,7 +371,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading6 "Computer Startup/Shutdown Script" {
+                            Section -Style Heading5 "Startup/Shutdown Script" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
                                 }
@@ -420,7 +420,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading6 "Unlinked GPO" {
+                            Section -Style Heading5 "Unlinked GPO" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -471,7 +471,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading6 "Empty GPOs" {
+                            Section -Style Heading5 "Empty GPOs" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -527,7 +527,7 @@ function Get-AbrADGPO {
                         }
 
                         if ($OutObj) {
-                            Section -Style Heading6 "Enforced GPO" {
+                            Section -Style Heading5 "Enforced GPO" {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -579,7 +579,7 @@ function Get-AbrADGPO {
                         $OrphanGPOs += $MissingADGPOs
                         $OrphanGPOs += $MissingSYSVOLGPOs
                         if ($OrphanGPOs) {
-                            Section -Style Heading6 "Orphaned GPO" {
+                            Section -Style Heading5 "Orphaned GPO" {
                                 Paragraph "The following table summarizes the group policy objects that are orphaned or missing in the AD database or in the SYSVOL directory."
                                 BlankLine
                                 $OutObj = @()

@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -81,11 +81,11 @@ function Get-AbrADSiteReplication {
                 }
                 if ($ReplInfo) {
                     if ($InfoLevel.Domain -ge 2) {
-                        Section -Style Heading5 'Replication Connection' {
+                        Section -Style Heading4 'Replication Connection' {
                             Paragraph "The following section provides detailed information about Replication Connection."
                             BlankLine
                             foreach ($Repl in ($ReplInfo | Sort-Object -Property 'Replicate From Directory Server')) {
-                                Section -Style NOTOCHeading5 -ExcludeFromTOC "Site: $($Repl.'From Site'): From: $($Repl.'From Server') To: $($Repl.'To Server')" {
+                                Section -Style NOTOCHeading4 -ExcludeFromTOC "Site: $($Repl.'From Site'): From: $($Repl.'From Server') To: $($Repl.'To Server')" {
                                     $TableParams = @{
                                         Name = "Replication Connection - $($Repl.'To Server')"
                                         List = $true
@@ -99,7 +99,7 @@ function Get-AbrADSiteReplication {
                             }
                         }
                     } else {
-                        Section -Style Heading5 'Replication Connection' {
+                        Section -Style Heading4 'Replication Connection' {
                             Paragraph "The following section provide connection objects to source server ."
                             BlankLine
                             $TableParams = @{
@@ -128,7 +128,7 @@ function Get-AbrADSiteReplication {
                 Write-PscriboMessage "Discovered Active Directory Replication Status on $Domain. (Replication Status)"
                 $RepStatus =  Invoke-Command -Session $DCPssSession -ScriptBlock {repadmin /showrepl /repsto /csv | ConvertFrom-Csv}
                 if ($RepStatus) {
-                    Section -Style Heading5 'Replication Status' {
+                    Section -Style Heading4 'Replication Status' {
                         $OutObj = @()
                         Write-PscriboMessage "Collecting Active Directory Replication Status from $($Domain). (Replication Status)"
                         foreach ($Status in $RepStatus) {

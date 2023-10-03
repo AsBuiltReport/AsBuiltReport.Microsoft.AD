@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrADOU {
             Write-PscriboMessage "Discovered Active Directory Organizational Unit information on DC $DC. (Organizational Unit)"
             $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter *}
             if ($OUs) {
-                Section -Style Heading4 "Organizational Units" {
+                Section -Style Heading3 "Organizational Units" {
                     Paragraph "The following section provides a summary of Active Directory Organizational Unit information."
                     BlankLine
                     $OutObj = @()
@@ -114,7 +114,7 @@ function Get-AbrADOU {
                                 }
                             }
                             if ($OutObj) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading4 "GPO Blocked Inheritance" {
+                                Section -ExcludeFromTOC -Style NOTOCHeading3 "GPO Blocked Inheritance" {
                                     if ($HealthCheck.Domain.GPO) {
                                         $OutObj | Set-Style -Style Warning
                                     }

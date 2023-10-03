@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -131,7 +131,7 @@ function Get-AbrADSecurityAssessment {
                         }
                     }
                     if ($OutObj) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Account Security Assessment' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Account Security Assessment' {
                             Paragraph "The following section provide a summary of the Account Security Assessment on Domain $($Domain.ToString().ToUpper())."
                             BlankLine
                             if ($chartFileItem) {
@@ -154,7 +154,7 @@ function Get-AbrADSecurityAssessment {
                 try {
                     Write-PscriboMessage "Discovered Privileged Users information from $Domain."
                     if ($PrivilegedUsers) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Privileged Users Assessment' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Privileged Users Assessment' {
                             Paragraph "The following section details probable AD Admin accounts (user accounts with AdminCount set to 1) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
@@ -209,7 +209,7 @@ function Get-AbrADSecurityAssessment {
                     Write-PscriboMessage "Discovered Inactive Privileged Accounts information from $Domain."
                     $InactivePrivilegedUsers =  $PrivilegedUsers | Where-Object {($_.LastLogonDate -le (Get-Date).AddDays(-30)) -AND ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
                     if ($InactivePrivilegedUsers) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Inactive Privileged Accounts' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Inactive Privileged Accounts' {
                             Paragraph "The following section details privileged accounts with the following filter (LastLogonDate >=30 days and PasswordLastSet >= 365 days) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
@@ -269,7 +269,7 @@ function Get-AbrADSecurityAssessment {
                     $UserSPNs = Invoke-Command -Session $TempPssSession {Get-ADUser -ResultPageSize 1000 -Server $using:Domain -filter {ServicePrincipalName -like '*'} -Properties AdminCount,PasswordLastSet,LastLogonDate,ServicePrincipalName,TrustedForDelegation,TrustedtoAuthForDelegation}
                     Write-PscriboMessage "Discovered Service Accounts information from $Domain."
                     if ($UserSPNs) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Service Accounts Assessment' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Service Accounts Assessment' {
                             Paragraph "The following section details probable AD Service Accounts (user accounts with SPNs) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
@@ -331,7 +331,5 @@ function Get-AbrADSecurityAssessment {
             }
         }
     }
-
     end {}
-
 }

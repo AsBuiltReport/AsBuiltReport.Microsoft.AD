@@ -5,7 +5,7 @@ function Get-AbrADDNSZone {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrADDNSZone {
         try {
             $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder"}
             if ($DNSSetting) {
-                Section -Style Heading4 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zones" {
+                Section -Style Heading3 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zones" {
                     $OutObj = @()
                     Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                     foreach ($Zones in $DNSSetting) {
@@ -97,7 +97,7 @@ function Get-AbrADDNSZone {
                             }
 
                             if ($OutObj) {
-                                Section -Style Heading5 "Zone Delegation" {
+                                Section -Style Heading4 "Zone Delegation" {
 
                                     $TableParams = @{
                                         Name = "Zone Delegations - $($Domain.ToString().ToUpper())"
@@ -120,7 +120,7 @@ function Get-AbrADDNSZone {
                         try {
                             $DNSSetting = Invoke-Command -Session $DCPssSession {Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object {$_ -match 'SecondaryServers'}}
                             if ($DNSSetting) {
-                                Section -Style Heading5 "Zone Transfers" {
+                                Section -Style Heading4 "Zone Transfers" {
                                     $OutObj = @()
                                     foreach ($Zone in $DNSSetting) {
                                         try {
@@ -175,7 +175,7 @@ function Get-AbrADDNSZone {
                     try {
                         $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "True"}
                         if ($DNSSetting) {
-                            Section -Style Heading5 "Reverse Lookup Zone" {
+                            Section -Style Heading4 "Reverse Lookup Zone" {
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC (Domain Name System Zone)"
                                 foreach ($Zones in $DNSSetting) {
@@ -215,7 +215,7 @@ function Get-AbrADDNSZone {
                     try {
                         $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -like "Forwarder"}
                         if ($DNSSetting) {
-                            Section -Style Heading5 "Conditional Forwarder" {
+                            Section -Style Heading4 "Conditional Forwarder" {
                                 $OutObj = @()
                                 Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Conditional Forwarder)"
                                 foreach ($Zones in $DNSSetting) {
@@ -256,7 +256,7 @@ function Get-AbrADDNSZone {
                             $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -eq "Primary"} | Select-Object -ExpandProperty ZoneName
                             $Zones = Get-DnsServerZoneAging -CimSession $TempCIMSession -Name $DNSSetting -ComputerName $DC
                             if ($Zones) {
-                                Section -Style Heading5 "Zone Scope Aging" {
+                                Section -Style Heading4 "Zone Scope Aging" {
                                     $OutObj = @()
                                     foreach ($Settings in $Zones) {
                                         try {
