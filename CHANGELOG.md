@@ -1,5 +1,12 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
+## [0.7.15] - 2023-10-03
+
+### Changed
+
+- Improved verbose logging
+- Improved PKI Section
+
 ## [0.7.14] - 2023-07-25
 
 ### Fixed
