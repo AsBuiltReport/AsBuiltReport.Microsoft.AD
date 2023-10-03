@@ -146,7 +146,7 @@ function Get-AbrADSecurityAssessment {
                         }
                     }
                 } else {
-                    Write-PscriboMessage "No Domain users information found, disabling section"
+                    Write-PscriboMessage -IsWarning "No Domain users information found in $Domain, disabling the section."
                 }
             }
             catch {
@@ -203,7 +203,7 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PscriboMessage "No Privileged User Assessment information found, disabling section"
+                        Write-PscriboMessage -IsWarning "No Privileged User Assessment information found in $Domain, disabling the section."
                     }
                 }
                 catch {
@@ -264,7 +264,7 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PscriboMessage "No Inactive Privileged Accounts information found, disabling section"
+                        Write-PscriboMessage -IsWarning "No Inactive Privileged Accounts information found in $Domain, disabling the section."
                     }
                 }
                 catch {
@@ -330,7 +330,7 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PscriboMessage "No Service Accounts Assessment information found, disabling section"
+                        Write-PscriboMessage -IsWarning "No Service Accounts Assessment information found in $Domain, disabling the section."
                     }
                 }
                 catch {

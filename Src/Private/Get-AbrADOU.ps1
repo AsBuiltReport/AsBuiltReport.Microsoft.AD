@@ -143,7 +143,7 @@ function Get-AbrADOU {
                     }
                 }
             } else {
-                Write-PscriboMessage "No Organizational Units information found, disabling section"
+                Write-PscriboMessage -IsWarning "No Organizational Units information found in $Domain, disabling the section."
             }
         }
         catch {

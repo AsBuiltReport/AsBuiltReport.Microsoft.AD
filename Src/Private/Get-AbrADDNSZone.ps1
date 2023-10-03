@@ -89,7 +89,7 @@ function Get-AbrADDNSZone {
                                                 }
                                             }
                                         } else {
-                                            Write-PscriboMessage "No Zone Delegation information found, disabling section"
+                                            Write-PscriboMessage -IsWarning "No Zone Delegation information found, disabling the section."
                                         }
                                     }
                                     catch {
@@ -97,7 +97,7 @@ function Get-AbrADDNSZone {
                                     }
                                 }
                             } else {
-                                Write-PscriboMessage "No Zone Delegation information found, disabling section"
+                                Write-PscriboMessage -IsWarning "No Zone Delegation information found in $DC, disabling the section."
                             }
 
                             if ($OutObj) {
@@ -171,7 +171,7 @@ function Get-AbrADDNSZone {
                                     }
                                 }
                             } else {
-                                Write-PscriboMessage "No Zone Transfer information found, disabling section"
+                                Write-PscriboMessage -IsWarning "No Zone Transfer information found in $DC, disabling the section."
                             }
                         }
                         catch {
@@ -214,7 +214,7 @@ function Get-AbrADDNSZone {
                                 $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                             }
                         } else {
-                            Write-PscriboMessage "No Reverse lookup zone information found, disabling section"
+                            Write-PscriboMessage -IsWarning "No Reverse lookup zone information found in $DC, disabling the section."
                         }
                     }
                     catch {
@@ -254,7 +254,7 @@ function Get-AbrADDNSZone {
                                 $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                             }
                         } else {
-                            Write-PscriboMessage "No Conditional forwarder zone information found, disabling section"
+                            Write-PscriboMessage -IsWarning "No Conditional forwarder zone information found in $DC, disabling the section."
                         }
                     }
                     catch {
@@ -311,7 +311,7 @@ function Get-AbrADDNSZone {
                                     }
                                 }
                             } else {
-                                Write-PscriboMessage "No Zone Aging property information found, disabling section"
+                                Write-PscriboMessage -IsWarning "No Zone Aging property information found in $DC, disabling the section."
                             }
                         }
                         catch {

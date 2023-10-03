@@ -76,7 +76,7 @@ function Get-AbrADDuplicateSPN {
                         }
                     }
                 } else {
-                    Write-PscriboMessage "No Duplicate SPN information found, disabling section"
+                    Write-PscriboMessage -IsWarning "No Duplicate SPN information found in $Domain, disabling the section."
                 }
             }
             catch {

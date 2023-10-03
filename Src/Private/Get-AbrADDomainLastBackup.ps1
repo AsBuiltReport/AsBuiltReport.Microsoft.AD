@@ -79,7 +79,7 @@ function Get-AbrADDomainLastBackup {
                         }
                     }
                 } else {
-                    Write-PscriboMessage "No Naming context last backup information found, disabling section"
+                    Write-PscriboMessage -IsWarning "No Naming context last backup information found in $Domain, disabling the section."
                 }
             }
             catch {

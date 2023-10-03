@@ -75,7 +75,7 @@ function Get-AbrADDuplicateObject {
                         }
                     }
                 } else {
-                    Write-PscriboMessage "No Duplicate object information found, disabling section"
+                    Write-PscriboMessage -IsWarning "No Duplicate object information found in $Domain, disabling the section."
                 }
             }
             catch {

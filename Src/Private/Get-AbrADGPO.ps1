@@ -239,7 +239,7 @@ function Get-AbrADGPO {
                                     }
                                 }
                             } else {
-                                Write-PscriboMessage "No WMI Filter information found, disabling section"
+                                Write-PscriboMessage -IsWarning "No WMI Filter information found in $Domain, disabling the section."
                             }
                         }
                         catch {
@@ -284,7 +284,7 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage "No GPO Central Store information found, disabling section"
+                            Write-PscriboMessage -IsWarning "No GPO Central Store information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -339,7 +339,7 @@ function Get-AbrADGPO {
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                             }
                         } else {
-                            Write-PscriboMessage "No GPO Logon/Logoff script information found, disabling section"
+                            Write-PscriboMessage -IsWarning "No GPO Logon/Logoff script information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -395,7 +395,7 @@ function Get-AbrADGPO {
                             }
 
                         } else {
-                            Write-PscriboMessage "No GPO Computer Startup/Shutdown script information found, disabling section"
+                            Write-PscriboMessage -IsWarning "No GPO Computer Startup/Shutdown script information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -451,7 +451,7 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage "No Unlinked Group Policy Objects information found, disabling section"
+                            Write-PscriboMessage -IsWarning "No Unlinked Group Policy Objects information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -504,7 +504,7 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage "No Empty GPO information found, disabling section"
+                            Write-PscriboMessage -IsWarning "No Empty GPO information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -563,7 +563,7 @@ function Get-AbrADGPO {
 
                             }
                         } else {
-                            Write-PscriboMessage "No Enforced GPO information found, disabling section"
+                            Write-PscriboMessage -IsWarning "No Enforced GPO information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -664,7 +664,7 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage "No Orphaned GPO information found, disabling section"
+                            Write-PscriboMessage -IsWarning "No Orphaned GPO information found in $Domain, disabling the section."
                         }
                     }
                     catch {

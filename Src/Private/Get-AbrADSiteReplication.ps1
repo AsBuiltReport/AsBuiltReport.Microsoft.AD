@@ -113,7 +113,7 @@ function Get-AbrADSiteReplication {
                         }
                     }
                 } else {
-                    Write-PscriboMessage "No Replication Connection information found, disabling section"
+                    Write-PscriboMessage -IsWarning "No Replication Connection information found in $Domain, disabling the section."
                 }
             }
             catch {
@@ -173,7 +173,7 @@ function Get-AbrADSiteReplication {
                         }
                     }
                 } else {
-                    Write-PscriboMessage "No Replication Status information found, disabling section"
+                    Write-PscriboMessage -IsWarning "No Replication Status information found in $Domain, disabling the section."
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession
