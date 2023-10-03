@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,12 +28,10 @@ function Get-AbrADDCRoleFeature {
     }
 
     process {
-        Write-PscriboMessage "Collecting AD Domain Controller Role & Features information for domain $Domain"
         try {
             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ADDCRoleFeature'
             if ($DCPssSession) {
-                Write-PscriboMessage "Discovered Active Directory DC Role & Features information of $DC."
-                Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
+                Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                     $OutObj = @()
                     $Features = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-WindowsFeature | Where-Object {$_.installed -eq "True" -and $_.FeatureType -eq 'Role'}}
                     Remove-PSSession -Session $DCPssSession
@@ -53,9 +51,7 @@ function Get-AbrADDCRoleFeature {
                     }
 
                     if ($HealthCheck.DomainController.BestPractice) {
-
                         $OutObj | Where-Object {$_.'Name' -notin @('Active Directory Domain Services','DNS Server','File and Storage Services','DHCP Server')} | Set-Style -Style Warning
-
                     }
 
                     $TableParams = @{

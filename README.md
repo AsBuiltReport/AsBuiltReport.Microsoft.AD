@@ -1,7 +1,7 @@
 <!-- ********** DO NOT EDIT THESE LINKS ********** -->
 <p align="center">
     <a href="https://www.asbuiltreport.com/" alt="AsBuiltReport"></a>
-            <img src='https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport/master/AsBuiltReport.png' width="8%" height="8%" /></a>
+            <img src='https://avatars.githubusercontent.com/u/42958564' width="8%" height="8%" /></a>
 </p>
 <p align="center">
     <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/" alt="PowerShell Gallery Version">
@@ -85,7 +85,7 @@ This report does not support Linux or Mac due to the fact that the ActiveDirecto
 
 A Microsoft AD As Built Report can be generated with Active Directory Enterprise Forest level privileges. Since this report relies extensively on the WinRM component, you should make sure that it is enabled and configured. [Reference](https://docs.microsoft.com/en-us/windows/win32/winrm/installation-and-configuration-for-windows-remote-management)
 
-Due to a limitation of the WinRM component, a domain-joined machine is needed, also it is required to use the FQDN of the DC instead of its IP address.
+Due to a limitation of the WinRM component, a domain-joined machine is needed, also it is required to use the FQDN of the DC instead of it's IP address.
 [Reference](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_troubleshooting?view=powershell-7.1#how-to-use-an-ip-address-in-a-remote-command)
 
 ## :package: Module Installation
@@ -222,7 +222,7 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 
 - Issues with WinRM when using the IP address instead of the "Fully Qualified Domain Name".
 - This project relies heavily on the remote connection function through WinRM. For this reason the use of a Windows 10 client is specifically used as a jumpbox.
-- The report provides the ability to extract the configuration of the DHCP/DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DNS-Server & RSAT-AD-PowerShell).
+- The report provides the ability to extract the configuration of the DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DNS-Server & RSAT-AD-PowerShell).
 - This report assumes that the DNS Server service is running on the same server where Domain Controller is running (Cohost).
 - In some cases when trying to update the report, an error similar to this is generated:
   - "PackageManagement\Install-Package : Authenticode issuer 'CN="xyz, INC.", O="xyz, INC.", L=San Jose, S=California on the previusly-installed module 'PSPKI'. If you still want to install or update, use -SkipPublisherCheck parameter."

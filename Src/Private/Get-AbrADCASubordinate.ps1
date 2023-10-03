@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.9
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,10 +24,10 @@ function Get-AbrADCASubordinate {
 
     process {
         try {
-            Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
+            Write-PscriboMessage "Discovering Active Directory CA Enterprise Subordinate information in $($ForestInfo.toUpper())."
             if ($CAs | Where-Object {$_.IsRoot -like 'False'}) {
                 Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
-                Section -Style Heading3 "Enterprise Subordinate Certificate Authority" {
+                Section -Style Heading2 "Enterprise Subordinate Certificate Authority" {
                     Paragraph "The following section provides the Enterprise Subordinate CA information."
                     BlankLine
                     $OutObj = @()
@@ -41,12 +41,16 @@ function Get-AbrADCASubordinate {
                                 'Config String' = $CA.ConfigString
                                 'Operating System' = $CA.OperatingSystem
                                 'Certificate' = $CA.Certificate
+                                'Auditing' = &{
+                                    (Find-AuditingIssue -ADCSObjects (Get-ADCSObject $ForestInfo) | Where-Object {$_.Name -eq $CA.DisplayName}).Issue
+                                }
                                 'Status' = $CA.ServiceStatus
                             }
                             $OutObj = [pscustomobject]$inobj
 
                             if ($HealthCheck.CA.Status) {
                                 $OutObj | Where-Object { $_.'Service Status' -notlike 'Running'} | Set-Style -Style Critical -Property 'Service Status'
+                                $OutObj | Where-Object { $_.'Auditing' -notlike 'Running'} | Set-Style -Style Critical -Property 'Auditing'
                             }
 
                             $TableParams = @{

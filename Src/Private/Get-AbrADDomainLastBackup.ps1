@@ -5,7 +5,7 @@ function Get-AbrADDomainLastBackup {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrADDomainLastBackup {
                 $LastBackups =  Get-WinADLastBackup -Domain $Domain -Credential $Credential
                 Write-PscriboMessage "Discovered last taken backup information of domain $Domain."
                 if ($LastBackups) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Naming Context Last Backup' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Naming Context Last Backup' {
                         Paragraph "The following section details naming context last backup time for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
@@ -78,6 +78,8 @@ function Get-AbrADDomainLastBackup {
                             }
                         }
                     }
+                } else {
+                    Write-PscriboMessage -IsWarning "No Naming context last backup information found in $Domain, disabling the section."
                 }
             }
             catch {

@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -83,10 +83,9 @@ function Get-AbrADDomainController {
 
         try {
             Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
-            Section -Style Heading5 'Hardware Inventory' {
+            Section -Style Heading4 'Hardware Inventory' {
                 Paragraph "The following section provides detailed Domain Controller hardware information for domain $($Domain.ToString().ToUpper())."
                 BlankLine
-                Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 $DCHWInfo = @()
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
@@ -133,7 +132,7 @@ function Get-AbrADDomainController {
 
                 if ($InfoLevel.Domain -ge 2) {
                     foreach ($DCHW in $DCHWInfo) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading6 $($DCHW.Name.ToString().ToUpper()) {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 $($DCHW.Name.ToString().ToUpper()) {
                             if ($HealthCheck.DomainController.Diagnostic) {
                                 if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
                                     $DCHW | Set-Style -Style Warning -Property 'Physical Memory'
@@ -182,7 +181,7 @@ function Get-AbrADDomainController {
                                 Text "Best Practice:" -Bold
                                 Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
                             }
-                         }
+                        }
                     }
                 }
             }
@@ -194,7 +193,7 @@ function Get-AbrADDomainController {
         #                                 DNS IP Section                                              #
         #---------------------------------------------------------------------------------------------#
         try {
-            Section -Style Heading5 "DNS IP Configuration" {
+            Section -Style Heading4 "DNS IP Configuration" {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
@@ -295,9 +294,8 @@ function Get-AbrADDomainController {
 
         try {
             Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
-            Section -Style Heading5 'NTDS Information' {
+            Section -Style Heading4 'NTDS Information' {
                 $OutObj = @()
-                Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
@@ -341,9 +339,8 @@ function Get-AbrADDomainController {
         }
         try {
             Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
-            Section -Style Heading5 'Time Source Information' {
+            Section -Style Heading4 'Time Source Information' {
                 $OutObj = @()
-                Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
@@ -398,7 +395,7 @@ function Get-AbrADDomainController {
         if ($HealthCheck.DomainController.Diagnostic) {
             try {
                 Write-PscriboMessage "Collecting AD Domain Controller SRV Records Status."
-                Section -Style Heading5 'SRV Records Status' {
+                Section -Style Heading4 'SRV Records Status' {
                     $OutObj = @()
                     Write-PscriboMessage "Discovering Active Directory Domain Controller SRV Records Status in $Domain."
                     foreach ($DC in $DCs) {
@@ -520,7 +517,7 @@ function Get-AbrADDomainController {
                             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllersFileShares'
                             $Shares = Invoke-Command -Session $DCPssSession { Get-SmbShare | Where-Object { $_.Description -ne 'Default share' -and $_.Description -notmatch 'Remote' -and $_.Name -ne 'NETLOGON' -and $_.Name -ne 'SYSVOL' } }
                             if ($Shares) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                                     $FSObj = @()
                                     foreach ($Share in $Shares) {
                                         $inObj = [ordered] @{
@@ -558,7 +555,7 @@ function Get-AbrADDomainController {
                 }
 
                 if ($OutObj) {
-                    Section -Style Heading5 "File Shares" {
+                    Section -Style Heading4 "File Shares" {
                         Paragraph "The following domain controllers have non-default file shares."
                         $OutObj
                         Paragraph "Health Check:" -Bold -Underline
@@ -577,7 +574,6 @@ function Get-AbrADDomainController {
         if ($HealthCheck.DomainController.Software) {
             try {
                 Write-PscriboMessage "Collecting additional software running on the Domain Controller."
-                Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
@@ -597,7 +593,7 @@ function Get-AbrADDomainController {
                             }
 
                             if ( $Software ) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                                     $OutObj = @()
                                     foreach ($APP in $Software) {
                                         try {
@@ -642,7 +638,7 @@ function Get-AbrADDomainController {
                     }
                 }
                 if ($DCObj) {
-                    Section -Style Heading5 'Installed Software' {
+                    Section -Style Heading4 'Installed Software' {
                         Paragraph "The following section provides a summary of additional software running on Domain Controllers from domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $DCObj
@@ -665,7 +661,7 @@ function Get-AbrADDomainController {
                             Remove-PSSession -Session $DCPssSession
 
                             if ( $Updates ) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading6 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                                     $OutObj = @()
                                     foreach ($Update in $Updates) {
                                         try {
@@ -709,7 +705,7 @@ function Get-AbrADDomainController {
                     }
                 }
                 if ($DCObj) {
-                    Section -Style Heading5 'Missing Windows Updates' {
+                    Section -Style Heading4 'Missing Windows Updates' {
                         Paragraph "The following section provides a summary of pending/missing windows updates on Domain Controllers from domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $DCObj

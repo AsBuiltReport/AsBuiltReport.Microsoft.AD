@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,7 +34,7 @@ function Get-AbrADKerberosAudit {
                 $Unconstrained = Invoke-Command -Session $TempPssSession {Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
                 Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                 if ($Unconstrained) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Unconstrained Kerberos Delegation' {
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Unconstrained Kerberos Delegation' {
                         Paragraph "The following section provide a summary of unconstrained kerberos delegation on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
@@ -73,12 +73,14 @@ function Get-AbrADKerberosAudit {
                             Text "Ensure there aren't any unconstrained kerberos delegation in Active Directory."
                         }
                     }
+                } else {
+                    Write-PscriboMessage -IsWarning "No Unconstrained Kerberos Delegation information found in $Domain, disabling the section."
                 }
                 try {
                     $KRBTGT = $Users | Where-Object {$_.Name  -eq 'krbtgt'}
                     Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($KRBTGT) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading5 'KRBTGT Account Audit' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 'KRBTGT Account Audit' {
                             Paragraph "The following section provide a summary of KRBTGT account on Domain $($Domain.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()
@@ -117,6 +119,8 @@ function Get-AbrADKerberosAudit {
                                 Text "Microsoft advises changing the krbtgt account password at regular intervals to keep the environment more secure."
                             }
                         }
+                    } else {
+                        Write-PscriboMessage -IsWarning "No KRBTGT Account Audit information found in $Domain, disabling the section."
                     }
                 }
                 catch {
@@ -127,7 +131,7 @@ function Get-AbrADKerberosAudit {
                     $ADMIN = $Users | Where-Object {$_.SID  -eq $SID}
                     Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($ADMIN) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Administrator Account Audit' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Administrator Account Audit' {
                             Paragraph "The following section provide a summary of Administrator account on Domain $($Domain.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()
@@ -167,6 +171,8 @@ function Get-AbrADKerberosAudit {
                                 Text "Microsoft advises changing the administrator account password at regular intervals to keep the environment more secure."
                             }
                         }
+                    } else {
+                        Write-PscriboMessage -IsWarning "No Administrator Account Audit information found in $Domain, disabling the section."
                     }
                 }
                 catch {

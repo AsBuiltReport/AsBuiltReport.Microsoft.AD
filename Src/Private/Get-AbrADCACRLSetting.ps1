@@ -5,7 +5,7 @@ function Get-AbrADCACRLSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.13
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,10 +28,10 @@ function Get-AbrADCACRLSetting {
 
     process {
         try {
-            Section -Style Heading4 "Certificate Revocation List (CRL)" {
+            Section -Style Heading3 "Certificate Revocation List (CRL)" {
                 Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
                 BlankLine
-                Section -Style Heading5 "CRL Validity Period" {
+                Section -Style Heading4 "CRL Validity Period" {
                     $OutObj = @()
                     try {
                         Write-PscriboMessage "Collecting AD CA CRL Validity Period information on $($CA.Name)."
@@ -67,7 +67,7 @@ function Get-AbrADCACRLSetting {
                     $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
                 }
                 try {
-                    Section -Style Heading5 "CRL Flags Settings" {
+                    Section -Style Heading4 "CRL Flags Settings" {
                         $OutObj = @()
                         try {
                             Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $($CA.Name)."
@@ -105,7 +105,7 @@ function Get-AbrADCACRLSetting {
                     Write-PscriboMessage -IsWarning "CRL Validity Period Section: $($_.Exception.Message)"
                 }
                 try {
-                    Section -Style Heading5 "CRL Distribution Point" {
+                    Section -Style Heading4 "CRL Distribution Point" {
                         Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
                         BlankLine
                         try {
@@ -157,7 +157,7 @@ function Get-AbrADCACRLSetting {
             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (CRL Distribution Point)"
         }
         try {
-            Section -Style Heading4 "AIA and CDP Health Status" {
+            Section -Style Heading3 "AIA and CDP Health Status" {
                 Paragraph "The following section is intended to perform Certification Authority health status checking by CA certificate chain status and validating all CRL Distribution Point (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain."
                 BlankLine
                 $OutObj = @()

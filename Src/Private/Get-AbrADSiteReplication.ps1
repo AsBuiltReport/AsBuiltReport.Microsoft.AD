@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,11 +24,9 @@ function Get-AbrADSiteReplication {
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Domain Sites Replication information."
     }
 
     process {
-        Write-PscriboMessage "Collecting AD Domain Sites Replication Summary. (Sites Replication Connection)"
         $DCs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
         if ($DCs) {
             Write-PscriboMessage "Discovering Active Directory Sites Replication information on $Domain. (Sites Replication)"
@@ -81,11 +79,11 @@ function Get-AbrADSiteReplication {
                 }
                 if ($ReplInfo) {
                     if ($InfoLevel.Domain -ge 2) {
-                        Section -Style Heading5 'Replication Connection' {
+                        Section -Style Heading4 'Replication Connection' {
                             Paragraph "The following section provides detailed information about Replication Connection."
                             BlankLine
                             foreach ($Repl in ($ReplInfo | Sort-Object -Property 'Replicate From Directory Server')) {
-                                Section -Style NOTOCHeading5 -ExcludeFromTOC "Site: $($Repl.'From Site'): From: $($Repl.'From Server') To: $($Repl.'To Server')" {
+                                Section -Style NOTOCHeading4 -ExcludeFromTOC "Site: $($Repl.'From Site'): From: $($Repl.'From Server') To: $($Repl.'To Server')" {
                                     $TableParams = @{
                                         Name = "Replication Connection - $($Repl.'To Server')"
                                         List = $true
@@ -99,7 +97,7 @@ function Get-AbrADSiteReplication {
                             }
                         }
                     } else {
-                        Section -Style Heading5 'Replication Connection' {
+                        Section -Style Heading4 'Replication Connection' {
                             Paragraph "The following section provide connection objects to source server ."
                             BlankLine
                             $TableParams = @{
@@ -114,6 +112,8 @@ function Get-AbrADSiteReplication {
                             $ReplInfo | Sort-Object -Property 'Replicate From Directory Server' | Table @TableParams
                         }
                     }
+                } else {
+                    Write-PscriboMessage -IsWarning "No Replication Connection information found in $Domain, disabling the section."
                 }
             }
             catch {
@@ -128,7 +128,7 @@ function Get-AbrADSiteReplication {
                 Write-PscriboMessage "Discovered Active Directory Replication Status on $Domain. (Replication Status)"
                 $RepStatus =  Invoke-Command -Session $DCPssSession -ScriptBlock {repadmin /showrepl /repsto /csv | ConvertFrom-Csv}
                 if ($RepStatus) {
-                    Section -Style Heading5 'Replication Status' {
+                    Section -Style Heading4 'Replication Status' {
                         $OutObj = @()
                         Write-PscriboMessage "Collecting Active Directory Replication Status from $($Domain). (Replication Status)"
                         foreach ($Status in $RepStatus) {
@@ -172,6 +172,8 @@ function Get-AbrADSiteReplication {
                             BlankLine
                         }
                     }
+                } else {
+                    Write-PscriboMessage -IsWarning "No Replication Status information found in $Domain, disabling the section."
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession

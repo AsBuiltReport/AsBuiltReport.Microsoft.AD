@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.11
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,9 +34,8 @@ function Get-AbrADTrust {
                     $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
                     $Trusts = Invoke-Command -Session $TempPssSession {Get-ADTrust -Filter * -Server $using:DC}
                     if ($Trusts) {
-                        Section -Style Heading4 'Domain and Trusts' {
+                        Section -Style Heading3 'Domain and Trusts' {
                             $TrustInfo = @()
-                            Write-PScriboMessage "Discovered created trusts in domain $Domain"
                             foreach ($Trust in $Trusts) {
                                 try {
                                     Write-PscriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
@@ -62,7 +61,7 @@ function Get-AbrADTrust {
 
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($Trust in $TrustInfo) {
-                                    Section -Style NOTOCHeading5 -ExcludeFromTOC "$($Trust.Name)" {
+                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($Trust.Name)" {
                                         $TableParams = @{
                                             Name = "Trusts - $($Trust.Name)"
                                             List = $true
@@ -87,6 +86,8 @@ function Get-AbrADTrust {
                                 $TrustInfo | Table @TableParams
                             }
                         }
+                    } else {
+                        Write-PscriboMessage -IsWarning "No Domain Trust information found in $Domain, disabling the section."
                     }
                 }
                 catch {

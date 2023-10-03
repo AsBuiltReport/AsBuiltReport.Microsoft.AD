@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.7.15
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,7 +28,6 @@ function Get-AbrADSite {
             if ($Site) {
                 Section -Style Heading3 'Sites' {
                     $OutObj = @()
-                    Write-PscriboMessage "Discovered Active Directory Sites information of forest $ForestInfo"
                     foreach ($Item in $Site) {
                         try {
                             Write-PscriboMessage "Collecting '$($Item.Name)' Site"
@@ -84,6 +83,7 @@ function Get-AbrADSite {
                         BlankLine
                         if ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned'}) {
                             Paragraph {
+                                Write-PscriboMessage "Discovered Active Directory Sites information of forest $ForestInfo"
                                 Text -Bold "Corrective Actions:"
                                 Text "Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller."}
                         }
@@ -146,6 +146,8 @@ function Get-AbrADSite {
                                     }
                                 }
                             }
+                        } else {
+                            Write-PscriboMessage -IsWarning "No Connection Objects information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -273,6 +275,8 @@ function Get-AbrADSite {
                                                     BlankLine
                                                 }
                                             }
+                                        } else {
+                                            Write-PscriboMessage -IsWarning "No Missing Subnets in AD information found in $Domain, disabling the section."
                                         }
                                     }
                                     catch {
@@ -280,6 +284,8 @@ function Get-AbrADSite {
                                     }
                                 }
                             }
+                        } else {
+                            Write-PscriboMessage -IsWarning "No Site Subnets information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -370,6 +376,8 @@ function Get-AbrADSite {
                                     }
                                 }
                             }
+                        } else {
+                            Write-PscriboMessage -IsWarning "No Site Links information found in $Domain, disabling the section."
                         }
                     }
                     catch {
@@ -452,12 +460,16 @@ function Get-AbrADSite {
                                     BlankLine
                                 }
                             }
+                        } else {
+                            Write-PscriboMessage -IsWarning "No Sysvol Replication information found in $Domain, disabling the section."
                         }
                     }
                     catch {
                         Write-PscriboMessage -IsWarning "Sysvol Replication Table Section: $($_.Exception.Message)"
                     }
                 }
+            } else {
+                Write-PscriboMessage -IsWarning "No Sites information found in $Domain, disabling the section."
             }
         }
         catch {
