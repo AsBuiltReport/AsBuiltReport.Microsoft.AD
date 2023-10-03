@@ -28,7 +28,6 @@ function Get-AbrADInfrastructureService {
     }
 
     process {
-        Write-PscriboMessage "Discovering AD Domain Controller Infrastructure Services information for $DC."
         try {
             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerInfrastructureServices'
             $Available = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service "W32Time" | Select-Object DisplayName, Name, Status}

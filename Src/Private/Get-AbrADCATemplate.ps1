@@ -114,7 +114,6 @@ function Get-AbrADCATemplate {
                                     Paragraph "The following section provides registered certificate templates from Active Directory."
                                     BlankLine
                                     $OutObj = @()
-                                    Write-PscriboMessage "Discovered '$(($Templates | Measure-Object).Count)' Certification Authority Template in domain $ForestInfo."
                                     foreach ($Template in $Templates) {
                                         try {
                                             Write-PscriboMessage "Collecting $($Template.DisplayName) Certificate Template In Active Directory."

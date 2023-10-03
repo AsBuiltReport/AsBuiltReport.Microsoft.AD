@@ -31,7 +31,6 @@ function Get-AbrADCAKeyRecoveryAgent {
         try {
             $KRA = Get-CAKRACertificate -CertificationAuthority $CA
             if ($KRA.Certificate) {
-                Write-PscriboMessage "Collecting Key Recovery Agent Certificate Certificate information of $($KRA.DisplayName)."
                 $inObj = [ordered] @{
                     'CA Name' = $KRA.DisplayName
                     'Server Name' = $KRA.ComputerName.ToString().ToUpper().Split(".")[0]

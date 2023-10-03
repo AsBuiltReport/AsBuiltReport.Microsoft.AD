@@ -86,7 +86,6 @@ function Get-AbrADDomainController {
             Section -Style Heading4 'Hardware Inventory' {
                 Paragraph "The following section provides detailed Domain Controller hardware information for domain $($Domain.ToString().ToUpper())."
                 BlankLine
-                Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 $DCHWInfo = @()
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
@@ -182,7 +181,7 @@ function Get-AbrADDomainController {
                                 Text "Best Practice:" -Bold
                                 Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
                             }
-                         }
+                        }
                     }
                 }
             }
@@ -297,7 +296,6 @@ function Get-AbrADDomainController {
             Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
             Section -Style Heading4 'NTDS Information' {
                 $OutObj = @()
-                Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
@@ -343,7 +341,6 @@ function Get-AbrADDomainController {
             Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
             Section -Style Heading4 'Time Source Information' {
                 $OutObj = @()
-                Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
@@ -577,7 +574,6 @@ function Get-AbrADDomainController {
         if ($HealthCheck.DomainController.Software) {
             try {
                 Write-PscriboMessage "Collecting additional software running on the Domain Controller."
-                Write-PscriboMessage "Discovering Active Directory Domain Controller information in $Domain."
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {

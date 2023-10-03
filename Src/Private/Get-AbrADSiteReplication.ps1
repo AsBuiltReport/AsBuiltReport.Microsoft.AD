@@ -24,7 +24,6 @@ function Get-AbrADSiteReplication {
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Domain Sites Replication information."
     }
 
     process {

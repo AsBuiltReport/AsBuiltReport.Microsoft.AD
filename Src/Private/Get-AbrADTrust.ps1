@@ -36,7 +36,6 @@ function Get-AbrADTrust {
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {
                             $TrustInfo = @()
-                            Write-PScriboMessage "Discovered created trusts in domain $Domain"
                             foreach ($Trust in $Trusts) {
                                 try {
                                     Write-PscriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"

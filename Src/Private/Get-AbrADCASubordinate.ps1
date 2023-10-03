@@ -24,7 +24,7 @@ function Get-AbrADCASubordinate {
 
     process {
         try {
-            Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
+            Write-PscriboMessage "Discovering Active Directory CA Enterprise Subordinate information in $($ForestInfo.toUpper())."
             if ($CAs | Where-Object {$_.IsRoot -like 'False'}) {
                 Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
                 Section -Style Heading2 "Enterprise Subordinate Certificate Authority" {

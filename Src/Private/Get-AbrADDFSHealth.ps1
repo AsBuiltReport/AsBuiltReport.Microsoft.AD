@@ -41,7 +41,6 @@ function Get-AbrADDFSHealth {
                         $OutObj = @()
                         foreach ($DCStatus in $DFS) {
                             try {
-                                Write-PscriboMessage "Collecting DFS information from $($Domain)."
                                 $inObj = [ordered] @{
                                     'DC Name' = $DCStatus.DomainController
                                     'Replication Status' = $DCStatus.ReplicationState
