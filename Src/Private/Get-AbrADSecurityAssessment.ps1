@@ -145,6 +145,8 @@ function Get-AbrADSecurityAssessment {
                                 Text "Ensure there aren't any account with weak security posture."}
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No Domain users information found, disabling section"
                 }
             }
             catch {
@@ -200,6 +202,8 @@ function Get-AbrADSecurityAssessment {
                                 Text "Ensure there aren't any account with weak security posture."
                             }
                         }
+                    } else {
+                        Write-PscriboMessage "No Privileged User Assessment information found, disabling section"
                     }
                 }
                 catch {
@@ -259,6 +263,8 @@ function Get-AbrADSecurityAssessment {
                                 Text  "Unused or underutilized accounts in highly privileged groups, outside of any break-glass emergency accounts like the default Administrator account, should have their AD Admin privileges removed."
                             }
                         }
+                    } else {
+                        Write-PscriboMessage "No Inactive Privileged Accounts information found, disabling section"
                     }
                 }
                 catch {
@@ -323,6 +329,8 @@ function Get-AbrADSecurityAssessment {
                                 }
                             }
                         }
+                    } else {
+                        Write-PscriboMessage "No Service Accounts Assessment information found, disabling section"
                     }
                 }
                 catch {

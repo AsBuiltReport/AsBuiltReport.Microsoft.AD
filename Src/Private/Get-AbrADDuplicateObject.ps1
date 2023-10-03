@@ -74,6 +74,8 @@ function Get-AbrADDuplicateObject {
                             Text "Ensure there aren't any duplicate object."
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No Duplicate object information found, disabling section"
                 }
             }
             catch {

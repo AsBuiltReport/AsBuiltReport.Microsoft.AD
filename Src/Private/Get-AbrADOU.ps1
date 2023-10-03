@@ -144,6 +144,8 @@ function Get-AbrADOU {
                         }
                     }
                 }
+            } else {
+                Write-PscriboMessage "No Organizational Units information found, disabling section"
             }
         }
         catch {

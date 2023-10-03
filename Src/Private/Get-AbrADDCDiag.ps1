@@ -32,7 +32,6 @@ function Get-AbrADDCDiag {
     process {
         if ($DC) {
             try {
-                Write-PscriboMessage "Discovering Active Directory DCDiag information for DC $DC."
                 $DCDIAG = Invoke-DcDiag -DomainController $DC
                 if ($DCDIAG) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 $($DC.ToString().split('.')[0].ToUpper()) {
@@ -90,6 +89,8 @@ function Get-AbrADDCDiag {
                         }
                         $OutObj | Sort-Object -Property 'Entity' | Table @TableParams
                     }
+                } else {
+                    Write-PscriboMessage "No DCDiag information found, disabling section"
                 }
             }
             catch {

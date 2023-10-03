@@ -87,6 +87,8 @@ function Get-AbrADTrust {
                                 $TrustInfo | Table @TableParams
                             }
                         }
+                    } else {
+                        Write-PscriboMessage "No Domain Trust information found, disabling section"
                     }
                 }
                 catch {

@@ -73,6 +73,8 @@ function Get-AbrADKerberosAudit {
                             Text "Ensure there aren't any unconstrained kerberos delegation in Active Directory."
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No Unconstrained Kerberos Delegation information found, disabling section"
                 }
                 try {
                     $KRBTGT = $Users | Where-Object {$_.Name  -eq 'krbtgt'}
@@ -117,6 +119,8 @@ function Get-AbrADKerberosAudit {
                                 Text "Microsoft advises changing the krbtgt account password at regular intervals to keep the environment more secure."
                             }
                         }
+                    } else {
+                        Write-PscriboMessage "No KRBTGT Account Audit information found, disabling section"
                     }
                 }
                 catch {
@@ -167,6 +171,8 @@ function Get-AbrADKerberosAudit {
                                 Text "Microsoft advises changing the administrator account password at regular intervals to keep the environment more secure."
                             }
                         }
+                    } else {
+                        Write-PscriboMessage "No Administrator Account Audit information found, disabling section"
                     }
                 }
                 catch {

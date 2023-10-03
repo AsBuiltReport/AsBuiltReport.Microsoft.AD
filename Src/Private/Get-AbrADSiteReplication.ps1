@@ -28,7 +28,6 @@ function Get-AbrADSiteReplication {
     }
 
     process {
-        Write-PscriboMessage "Collecting AD Domain Sites Replication Summary. (Sites Replication Connection)"
         $DCs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers}
         if ($DCs) {
             Write-PscriboMessage "Discovering Active Directory Sites Replication information on $Domain. (Sites Replication)"
@@ -114,6 +113,8 @@ function Get-AbrADSiteReplication {
                             $ReplInfo | Sort-Object -Property 'Replicate From Directory Server' | Table @TableParams
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No Replication Connection information found, disabling section"
                 }
             }
             catch {
@@ -172,6 +173,8 @@ function Get-AbrADSiteReplication {
                             BlankLine
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No Replication Status information found, disabling section"
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession

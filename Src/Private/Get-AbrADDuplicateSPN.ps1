@@ -75,6 +75,8 @@ function Get-AbrADDuplicateSPN {
                             }
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No Duplicate SPN information found, disabling section"
                 }
             }
             catch {

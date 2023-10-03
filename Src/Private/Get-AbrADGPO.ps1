@@ -238,6 +238,8 @@ function Get-AbrADGPO {
                                         $OutObj | Table @TableParams
                                     }
                                 }
+                            } else {
+                                Write-PscriboMessage "No WMI Filter information found, disabling section"
                             }
                         }
                         catch {
@@ -281,6 +283,8 @@ function Get-AbrADGPO {
                                     }
                                 }
                             }
+                        } else {
+                            Write-PscriboMessage "No GPO Central Store information found, disabling section"
                         }
                     }
                     catch {
@@ -334,6 +338,8 @@ function Get-AbrADGPO {
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                             }
+                        } else {
+                            Write-PscriboMessage "No GPO Logon/Logoff script information found, disabling section"
                         }
                     }
                     catch {
@@ -388,6 +394,8 @@ function Get-AbrADGPO {
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                             }
 
+                        } else {
+                            Write-PscriboMessage "No GPO Computer Startup/Shutdown script information found, disabling section"
                         }
                     }
                     catch {
@@ -442,6 +450,8 @@ function Get-AbrADGPO {
                                     Text "Remove Unused GPO from Active Directory."
                                 }
                             }
+                        } else {
+                            Write-PscriboMessage "No Unlinked Group Policy Objects information found, disabling section"
                         }
                     }
                     catch {
@@ -493,6 +503,8 @@ function Get-AbrADGPO {
                                     Text "No User and Computer parameters are set: Remove Unused GPO in Active Directory."
                                 }
                             }
+                        } else {
+                            Write-PscriboMessage "No Empty GPO information found, disabling section"
                         }
                     }
                     catch {
@@ -550,6 +562,8 @@ function Get-AbrADGPO {
                                 }
 
                             }
+                        } else {
+                            Write-PscriboMessage "No Enforced GPO information found, disabling section"
                         }
                     }
                     catch {
@@ -649,6 +663,8 @@ function Get-AbrADGPO {
                                     }
                                 }
                             }
+                        } else {
+                            Write-PscriboMessage "No Orphaned GPO information found, disabling section"
                         }
                     }
                     catch {

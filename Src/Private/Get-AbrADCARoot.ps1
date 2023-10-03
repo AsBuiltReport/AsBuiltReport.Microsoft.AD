@@ -24,8 +24,6 @@ function Get-AbrADCARoot {
 
     process {
         try {
-            Write-PscriboMessage "Discovering Active Directory Certification Authority information in $($ForestInfo.toUpper())."
-            Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
             if ($CAs | Where-Object {$_.IsRoot -like 'True'}) {
                 Section -Style Heading2 "Enterprise Root Certificate Authority" {
                     Paragraph "The following section provides the Enterprise Root CA information."

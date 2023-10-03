@@ -96,6 +96,8 @@ function Get-AbrADDFSHealth {
                             BlankLine
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No DFS information found, disabling section"
                 }
             }
             catch {
@@ -155,6 +157,8 @@ function Get-AbrADDFSHealth {
                             }
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No SYSVOL folder information found, disabling section"
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession
@@ -217,6 +221,8 @@ function Get-AbrADDFSHealth {
                             }
                         }
                     }
+                } else {
+                    Write-PscriboMessage "No NETLOGON folder information found, disabling section"
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession
