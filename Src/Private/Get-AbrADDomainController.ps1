@@ -562,7 +562,7 @@ function Get-AbrADDomainController {
                         BlankLine
                         Paragraph {
                             Text "Best Practice:" -Bold
-                            Text "Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non default file shares should be moved to another server, preferably a dedicated file server. "
+                            Text "Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non default file shares should be moved to another server, preferably a dedicated file server."
                         }
                     }
                 }
