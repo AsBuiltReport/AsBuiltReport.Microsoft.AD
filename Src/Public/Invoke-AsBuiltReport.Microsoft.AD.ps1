@@ -69,12 +69,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
 
     # Import Report Configuration
-    $Global:Report = $ReportConfig.Report
-    $Global:InfoLevel = $ReportConfig.InfoLevel
-    $Global:Options = $ReportConfig.Options
+    $script:Report = $ReportConfig.Report
+    $script:InfoLevel = $ReportConfig.InfoLevel
+    $script:Options = $ReportConfig.Options
 
     # Used to set values to TitleCase where required
-    $TextInfo = (Get-Culture).TextInfo
+    $script:TextInfo = (Get-Culture).TextInfo
 
     #---------------------------------------------------------------------------------------------#
     #                                 Connection Section                                          #
@@ -93,7 +93,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $script:ForestInfo =  $ADSystem.RootDomain.toUpper()
         [array]$RootDomains = $ADSystem.RootDomain
         [array]$ChildDomains = $ADSystem.Domains | Where-Object {$_ -ne $RootDomains}
-        [string]$OrderedDomains = $RootDomains + $ChildDomains
+        [string]$script:OrderedDomains = $RootDomains + $ChildDomains
 
         # Forest Section
         Get-AbrForestSection
