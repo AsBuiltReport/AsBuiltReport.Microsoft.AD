@@ -1,6 +1,6 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
-## [0.8.0] - 2024-01-18
+## [0.8.0] - 2024-01-22
 
 ### Added
 
@@ -8,7 +8,8 @@
 
 ### Fixed
 
-- [#138](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/138)
+- Fix [#138](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/138)
+- Fix [#137](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/137)
 
 ## [0.7.15] - 2023-10-03
 
