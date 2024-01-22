@@ -93,7 +93,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $script:ForestInfo =  $ADSystem.RootDomain.toUpper()
         [array]$RootDomains = $ADSystem.RootDomain
         [array]$ChildDomains = $ADSystem.Domains | Where-Object {$_ -ne $RootDomains}
-        [string]$script:OrderedDomains = $RootDomains + $ChildDomains
+        [string] $script:OrderedDomains = $RootDomains + $ChildDomains
 
         # Forest Section
         Get-AbrForestSection
