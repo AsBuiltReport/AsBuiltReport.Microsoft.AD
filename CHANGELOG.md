@@ -2,6 +2,10 @@
 
 ## [0.8.0] - 2024-01-18
 
+### Added
+
+- Added initial diagram support
+
 ### Fixed
 
 - [#138](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/138)
