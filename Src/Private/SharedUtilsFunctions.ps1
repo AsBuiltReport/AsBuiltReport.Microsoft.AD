@@ -1,4 +1,4 @@
-function ConvertTo-TextYN {
+﻿function ConvertTo-TextYN {
     <#
     .SYNOPSIS
     Used by As Built Report to convert true or false automatically to Yes or No.
