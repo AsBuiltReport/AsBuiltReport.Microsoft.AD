@@ -5,7 +5,7 @@ function Get-AbrADCATemplate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,7 +27,7 @@ function Get-AbrADCATemplate {
     }
 
     process {
-        $Templates = Get-CATemplate -CertificationAuthority $CA.ComputerName | Select-Object -ExpandProperty Templates
+        $Templates = Get-CATemplate -CertificationAuthority $CA | Select-Object -ExpandProperty Templates
         if ($Templates) {
             try {
                 Section -Style Heading3 "Certificate Template Summary" {
@@ -66,7 +66,7 @@ function Get-AbrADCATemplate {
                                 BlankLine
                                 foreach ($Template in $Templates) {
                                     try {
-                                        $Rights = Get-CertificateTemplateAcl -Template $Template.Name | Select-Object -ExpandProperty Access
+                                        $Rights = Get-CertificateTemplateAcl -Template $Template | Select-Object -ExpandProperty Access
                                         if ($Rights) {
                                             Section -ExcludeFromTOC -Style NOTOCHeading5 "$($Template.DisplayName)" {
                                                 $OutObj = @()
