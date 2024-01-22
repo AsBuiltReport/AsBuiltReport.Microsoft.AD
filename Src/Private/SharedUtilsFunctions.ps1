@@ -1898,3 +1898,68 @@ function Get-ImagePercent {
         return 50
     }
 } # end
+
+Function Get-ADExchangeServer {
+        <#
+    .SYNOPSIS
+    Used by As Built Report to get Exchange information from AD forest.
+    .DESCRIPTION
+
+    .NOTES
+        Version:        0.1.0
+        Author:         Brian Farnsworth
+
+    .EXAMPLE
+    Get-ADExchangeServer
+
+    .LINK
+    https://codeandkeep.com/PowerShell-ActiveDirectory-Exchange-Part1/
+    #>
+    Function ConvertToExchangeRole {
+        Param(
+            [Parameter(Position=0)]
+            [int]$roles
+            )
+
+        $roleNumber = @{
+            2='MBX';
+            4='CAS';
+            16='UM';
+            32='HUB';
+            64='EDGE';
+        }
+
+        $roleList = New-Object -TypeName Collections.ArrayList
+
+        foreach ($key in ($roleNumber).Keys) {
+            if($key -band $roles){
+                [void]$roleList.Add($roleNumber.$key)
+            }
+        }
+
+        Write-Output $roleList
+    }
+
+    # Get the Configuration Context
+    $rootDse = Invoke-Command -Session $TempPssSession {Get-ADRootDSE}
+    $cfgCtx = $rootDse.ConfigurationNamingContext
+
+    # Query AD for Exchange Servers
+    $exchServers = Invoke-Command -Session $TempPssSession {Get-ADObject -Filter "ObjectCategory -eq 'msExchExchangeServer'" -SearchBase $using:cfgCtx -Properties msExchCurrentServerRoles, networkAddress, serialNumber}
+    foreach ($server in $exchServers){
+        Try {
+            $roles = ConvertToExchangeRole -roles $server.msExchCurrentServerRoles
+
+            $fqdn = ($server.networkAddress | Where-Object {$_ -like 'ncacn_ip_tcp:*'}).Split(':')[1]
+
+            New-Object -TypeName PSObject -Property @{
+                Name = $server.Name;
+                DnsHostName = $fqdn;
+                Version = $server.serialNumber[0];
+                ServerRoles = $roles;
+            }
+        } Catch {
+            Write-Error "ExchangeServer: [$($server.Name)]. $($_.Exception.Message)"
+        }
+    }
+}

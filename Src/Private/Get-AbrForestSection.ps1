@@ -50,6 +50,12 @@ function Get-AbrForestSection {
                         catch {
                             Write-PscriboMessage -IsWarning $_.Exception.Message
                         }
+                        try {
+                            Get-AbrADExchange
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        }
                     }
                     if ($Options.EnableDiagrams) {
                         Try {
