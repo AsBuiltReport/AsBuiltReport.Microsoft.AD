@@ -96,7 +96,6 @@ function Get-AbrADDomainController {
                             $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
                             $License =  Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
                             $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
-                            $HWBIOS = Get-CimInstance -Class Win32_Bios -CimSession $CimSession
                             Remove-PSSession -Session $DCPssSession
                             Remove-CimSession $CimSession
                             if ($HW) {

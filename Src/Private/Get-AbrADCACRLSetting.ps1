@@ -5,7 +5,7 @@ function Get-AbrADCACRLSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,7 +23,7 @@ function Get-AbrADCACRLSetting {
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority Certificate Revocation List information."
+        Write-PscriboMessage "Collecting AD Certification Authority Certificate Revocation List information from $($CA.Name)."
     }
 
     process {
