@@ -24,7 +24,7 @@ function Get-AbrADFSMO {
     )
 
     begin {
-        Write-PscriboMessage "Discovering Active Directory FSMO information of domain $ForestInfo."
+        Write-PscriboMessage "Discovering Active Directory FSMO information of domain $Domain."
     }
 
     process {

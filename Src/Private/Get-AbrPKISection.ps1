@@ -5,7 +5,7 @@ function Get-AbrPKISection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,7 +34,7 @@ function Get-AbrPKISection {
                 Write-PScriboMessage "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forrest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
                 try {
                     Write-PScriboMessage "Collecting Certification Authority information from $($System.split(".")[0])"
-                    $Global:CAs = Get-CertificationAuthority -Enterprise
+                    $script:CAs = Get-CertificationAuthority -Enterprise
                 } catch {
                     Write-PscriboMessage -IsWarning $_.Exception.Message
                 }

@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -80,7 +80,7 @@ function Get-AbrADDomainObject {
                                         Palette = 'Blue'
                                         ColorPerDataPoint = $true
                                     }
-                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+                                    $sampleData | Add-PieChartSeries @addChartSeriesParams
 
                                     $addChartLegendParams = @{
                                         Chart = $exampleChart
@@ -151,7 +151,7 @@ function Get-AbrADDomainObject {
                                         Palette = 'Blue'
                                         ColorPerDataPoint = $true
                                     }
-                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+                                    $sampleData | Add-PieChartSeries @addChartSeriesParams
 
                                     $addChartLegendParams = @{
                                         Chart = $exampleChart
@@ -223,7 +223,7 @@ function Get-AbrADDomainObject {
                                         Palette = 'Blue'
                                         ColorPerDataPoint = $true
                                     }
-                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+                                    $sampleData | Add-PieChartSeries @addChartSeriesParams
 
                                     $addChartLegendParams = @{
                                         Chart = $exampleChart
@@ -267,7 +267,6 @@ function Get-AbrADDomainObject {
         }
         try {
             $OutObj = @()
-            $DaysInactive = 90
             $dormanttime = ((Get-Date).AddDays(-90)).Date
             $passwordtime = (Get-Date).Adddays(-42)
             $CannotChangePassword = $Users | Where-Object { $_.CannotChangePassword }
@@ -368,7 +367,7 @@ function Get-AbrADDomainObject {
                             Palette = 'Blue'
                             ColorPerDataPoint = $true
                         }
-                        $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+                        $sampleData | Add-PieChartSeries @addChartSeriesParams
 
                         $addChartLegendParams = @{
                             Chart = $exampleChart
@@ -582,7 +581,6 @@ function Get-AbrADDomainObject {
         }
         try {
             $OutObj = @()
-            $DaysInactive = 90
             $dormanttime = (Get-Date).Adddays(-90)
             $passwordtime = (Get-Date).Adddays(-30)
             $Dormant = $Computers | Where-Object { [datetime]::FromFileTime($_.lastlogontimestamp) -lt $dormanttime }
@@ -659,7 +657,7 @@ function Get-AbrADDomainObject {
                             Palette = 'Blue'
                             ColorPerDataPoint = $true
                         }
-                        $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
+                        $sampleData | Add-PieChartSeries @addChartSeriesParams
 
                         $addChartLegendParams = @{
                             Chart = $exampleChart
