@@ -330,7 +330,7 @@ function Convert-TimeToDay {
             if ($StartTime -notlike $Ignore -and $EndTime -notlike $Ignore) {
                 $Days = (NEW-TIMESPAN -Start $StartTime -End $EndTime).Days
             }
-        } catch {}
+        } catch {Out-Null}
     } elseif ($null -ne $EndTime) {
         if ($StartTime -notlike $Ignore -and $EndTime -notlike $Ignore) {
             $Days = (NEW-TIMESPAN -Start (Get-Date) -End ($EndTime)).Days
@@ -966,7 +966,7 @@ Function Get-WinADDuplicateObject {
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
                         $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0].TrimEnd("\"))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
-                    } catch {}
+                    } catch {Out-Null}
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
                         $ConflictObject.LiveWhenChanged = $LiveObject.WhenChanged
@@ -977,7 +977,7 @@ Function Get-WinADDuplicateObject {
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
                         $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0])$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
-                    } catch {}
+                    } catch {Out-Null}
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
                         $ConflictObject.LiveWhenChanged = $LiveObject.WhenChanged
