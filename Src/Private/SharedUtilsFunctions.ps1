@@ -1836,6 +1836,7 @@ function get-Severity {
         https://github.com/TrimarcJake/Locksmith
     #>
     [CmdletBinding()]
+    [OutputType([String])]
     param(
         [Parameter(Mandatory = $true)]
         [array]$Issue
