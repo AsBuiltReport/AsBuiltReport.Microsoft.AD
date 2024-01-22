@@ -12,6 +12,7 @@
         "ShowDefinitionInfo": false,
         "PSDefaultAuthentication": "Negotiate",
         "EnableCharts": false,
+        "EnableDiagrams": false,
         "Exclude": {
             "Domains": [],
             "DCs": []

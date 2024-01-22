@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -513,23 +513,27 @@ function Get-AbrADGPO {
                     try {
                         $OutObj = @()
                         Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
-                        $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
+                        $DM = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}
+                        $DC = $DM.ReplicaDirectoryServers | Select-Object -First 1
                         Write-PscriboMessage "Discovered Active Directory Domain Controller $DC in $Domain. (Group Policy Objects)"
-                        $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName}
+                        $OUs = (Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Filter *}).DistinguishedName
+                        if ($OUs) {
+                            $OUs += $DM.DistinguishedName
+                        }
                         if ($OUs) {
                             foreach ($OU in $OUs) {
                                 try {
-                                    $GpoEnforced = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target ($using:OU).DistinguishedName | Select-Object -ExpandProperty GpoLinks }
-                                    if ($GpoEnforced.Enforced -eq "True") {
-                                        Write-PscriboMessage "Collecting Active Directory Enforced owned Group Policy Objects'$($GpoEnforced.DisplayName)'."
-                                        $TargetCanonical = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:DC -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
-                                        $inObj = [ordered] @{
-                                            'GPO Name' = $GpoEnforced.DisplayName
-                                            'Enforced' = ConvertTo-TextYN $GpoEnforced.Enforced
-                                            'Order' = $GpoEnforced.Order
-                                            'Target' = $TargetCanonical
+                                    $GpoEnforces = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
+                                    foreach ($GpoEnforced in $GpoEnforces) {
+                                        if ($GpoEnforced.Enforced -eq "True") {
+                                            Write-PscriboMessage "Collecting Active Directory Enforced owned Group Policy Objects'$($GpoEnforced.DisplayName)'."
+                                            $TargetCanonical = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:DC -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
+                                            $inObj = [ordered] @{
+                                                'GPO Name' = $GpoEnforced.DisplayName
+                                                'Target' = $TargetCanonical
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
                                         }
-                                        $OutObj += [pscustomobject]$inobj
                                     }
                                 }
                                 catch {
@@ -547,13 +551,13 @@ function Get-AbrADGPO {
                                 $TableParams = @{
                                     Name = "Enforced GPO - $($Domain.ToString().ToUpper())"
                                     List = $false
-                                    ColumnWidths = 35, 15, 15, 35
+                                    ColumnWidths = 50, 50
                                 }
 
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
+                                $OutObj | Sort-Object -Property 'Target' | Table @TableParams
                                 Paragraph "Health Check:" -Bold -Underline
                                 BlankLine
                                 Paragraph {

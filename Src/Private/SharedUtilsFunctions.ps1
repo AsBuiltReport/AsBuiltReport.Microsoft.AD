@@ -1,4 +1,4 @@
-function ConvertTo-TextYN {
+﻿function ConvertTo-TextYN {
     <#
     .SYNOPSIS
     Used by As Built Report to convert true or false automatically to Yes or No.
@@ -1791,7 +1791,6 @@ function Find-AuditingIssue {
     }
 }
 
-
 function Get-ADCSObject {
     <#
     .SYNOPSIS
@@ -1868,3 +1867,33 @@ function get-Severity {
         }
     }
 }
+
+function Get-ImagePercent {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to get base64 image percentage calculated from image width.
+    This low the diagram image to fit the report page margins
+    .DESCRIPTION
+    .NOTES
+        Version:        0.1.0
+        Author:         Jonathan Colon
+    .EXAMPLE
+    .LINK
+    #>
+    [CmdletBinding()]
+    [OutputType([System.Int32])]
+    Param
+        (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            [string]
+            $Graph
+        )
+    $Image_FromStream = [System.Drawing.Image]::FromStream((new-object System.IO.MemoryStream(,[convert]::FromBase64String($Graph))))
+    If ($Image_FromStream.Width -gt 1500) {
+        return 20
+    } else {
+        return 50
+    }
+} # end
