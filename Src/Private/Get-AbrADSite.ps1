@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -234,7 +234,7 @@ function Get-AbrADSite {
                                                                 }
 
                                                                 if ($HealthCheck.Site.BestPractice) {
-                                                                    $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
+                                                                    $OutObj | Set-Style -Style Warning -Property 'IP'
                                                                 }
                                                             }
                                                         } else {

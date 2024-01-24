@@ -12,7 +12,7 @@
 RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.7.15'
+ModuleVersion = '0.8.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -27,7 +27,7 @@ Author = 'Jonathan Colon'
 # CompanyName = 'Unknown'
 
 # Copyright statement for this module
-Copyright = '(c) 2023 Jonathan Colon. All rights reserved.'
+Copyright = '(c) 2024 Jonathan Colon. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'A PowerShell module to generate an as built report on the configuration of Microsoft AD.'
@@ -63,6 +63,10 @@ RequiredModules = @(
     @{
         ModuleName = 'PScriboCharts';
         ModuleVersion = '0.9.0'
+    },
+    @{
+        ModuleName = 'Diagrammer.Microsoft.AD';
+        ModuleVersion = '0.1.3'
     }
 )
 

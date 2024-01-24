@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -67,14 +67,41 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
     Get-RequiredModule -Name PSPKI -Version '3.7.2'
 
-
     # Import Report Configuration
-    $Global:Report = $ReportConfig.Report
-    $Global:InfoLevel = $ReportConfig.InfoLevel
-    $Global:Options = $ReportConfig.Options
+    $script:Report = $ReportConfig.Report
+    $script:InfoLevel = $ReportConfig.InfoLevel
+    $script:Options = $ReportConfig.Options
 
     # Used to set values to TitleCase where required
-    $TextInfo = (Get-Culture).TextInfo
+    $script:TextInfo = (Get-Culture).TextInfo
+
+    # Check the install status of Graphviz
+    if ($Options.EnableDiagrams) {
+        $GraphVizPath = (
+            'C:\Program Files\NuGet\Packages\Graphviz*\dot.exe',
+            'C:\program files*\GraphViz*\bin\dot.exe'
+        )
+
+        try {
+            # Use Resolve-Path to test all passed paths
+            # Select only items with 'dot' BaseName and use first one
+            $graphViz = Resolve-Path -path $GraphVizPath -ErrorAction SilentlyContinue | Get-Item | Where-Object BaseName -eq 'dot' | Select-Object -First 1
+
+            if ( $null -eq $graphViz ) {
+                $GraphvizPathString = $GraphVizPath -Join " or "
+                Write-PScriboMessage -IsWarning "Could not find GraphViz installed on this system. Please install latest Graphviz binary from: https://graphviz.org/download/#windows"
+                Write-PScriboMessage -IsWarning "No GraphViz binary found, disabling the creation of diagrams."
+
+                $GraphvizInstallStatus = $false
+            } else {
+                Write-PScriboMessage "GraphViz binary found, enabling the creation of diagrams."
+                $GraphvizInstallStatus = $true
+            }
+
+        } catch {
+            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Graphviz Install Validation)"
+        }
+    } else {$GraphvizInstallStatus = $false}
 
     #---------------------------------------------------------------------------------------------#
     #                                 Connection Section                                          #
@@ -93,7 +120,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $script:ForestInfo =  $ADSystem.RootDomain.toUpper()
         [array]$RootDomains = $ADSystem.RootDomain
         [array]$ChildDomains = $ADSystem.Domains | Where-Object {$_ -ne $RootDomains}
-        [string]$OrderedDomains = $RootDomains + $ChildDomains
+        [string] $script:OrderedDomains = $RootDomains + $ChildDomains
 
         # Forest Section
         Get-AbrForestSection

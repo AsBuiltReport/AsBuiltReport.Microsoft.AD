@@ -5,7 +5,7 @@ function Get-AbrADCACRLSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,7 +23,7 @@ function Get-AbrADCACRLSetting {
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority Certificate Revocation List information."
+        Write-PscriboMessage "Collecting AD Certification Authority Certificate Revocation List information from $($CA.Name)."
     }
 
     process {
@@ -161,7 +161,6 @@ function Get-AbrADCACRLSetting {
                 Paragraph "The following section is intended to perform Certification Authority health status checking by CA certificate chain status and validating all CRL Distribution Point (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain."
                 BlankLine
                 $OutObj = @()
-                Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
                 try {
                     $CAHealth = Get-EnterprisePKIHealthStatus -CertificateAuthority $CA
                     foreach ($Health in $CAHealth) {

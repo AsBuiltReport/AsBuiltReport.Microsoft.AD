@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -86,48 +86,12 @@ function Get-AbrADSecurityAssessment {
                     }
                     if ($Options.EnableCharts) {
                         try {
+
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}}
-                            $exampleChart = New-Chart -Name AccountSecurityAssessment -Width 600 -Height 400
-
-                            $addChartAreaParams = @{
-                                Chart                 = $exampleChart
-                                Name                  = 'Account Security Assessment'
-                                AxisXTitle            = 'Categories'
-                                AxisYTitle            = 'Number of Users'
-                                NoAxisXMajorGridLines = $true
-                                NoAxisYMajorGridLines = $true
-                            }
-                            $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
-
-                            $addChartSeriesParams = @{
-                                Chart             = $exampleChart
-                                ChartArea         = $exampleChartArea
-                                Name              = 'exampleChartSeries'
-                                XField            = 'Category'
-                                YField            = 'Value'
-                                Palette           = 'Blue'
-                                ColorPerDataPoint = $true
-                            }
-                            $sampleData | Add-ColumnChartSeries @addChartSeriesParams
-
-                            $addChartTitleParams = @{
-                                Chart     = $exampleChart
-                                ChartArea = $exampleChartArea
-                                Name      = 'AccountSecurityAssessment'
-                                Text      = 'Assessment'
-                                Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                            }
-                            Add-ChartTitle @addChartTitleParams
-
-                            $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
-
-                            if ($PassThru)
-                            {
-                                Write-Output -InputObject $chartFileItem
-                            }
+                            $chartFileItem = Get-ColumnChart -SampleData $sampleData -ChartName 'AccountSecurityAssessment' -XField 'Category' -YField 'Value' -ChartAreaName 'Account Security Assessment' -AxisXTitle 'Categories' -AxisYTitle 'Number of Users' -ChartTitleName 'AccountSecurityAssessment' -ChartTitleText 'Assessment'
                         }
                         catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
+                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Chart)"
                         }
                     }
                     if ($OutObj) {
@@ -135,7 +99,7 @@ function Get-AbrADSecurityAssessment {
                             Paragraph "The following section provide a summary of the Account Security Assessment on Domain $($Domain.ToString().ToUpper())."
                             BlankLine
                             if ($chartFileItem) {
-                                Image -Text 'Account Security Assessment - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                                Image -Text 'Account Security Assessment - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
                             }
                             $OutObj | Table @TableParams
                             Paragraph "Health Check:" -Bold -Underline
@@ -207,7 +171,7 @@ function Get-AbrADSecurityAssessment {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Privileged Users Table)"
                 }
                 try {
                     Write-PscriboMessage "Discovered Inactive Privileged Accounts information from $Domain."
@@ -268,10 +232,9 @@ function Get-AbrADSecurityAssessment {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Inactive Privileged Accounts Table)"
                 }
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
                     $UserSPNs = Invoke-Command -Session $TempPssSession {Get-ADUser -ResultPageSize 1000 -Server $using:Domain -filter {ServicePrincipalName -like '*'} -Properties AdminCount,PasswordLastSet,LastLogonDate,ServicePrincipalName,TrustedForDelegation,TrustedtoAuthForDelegation}
                     Write-PscriboMessage "Discovered Service Accounts information from $Domain."
                     if ($UserSPNs) {
@@ -334,7 +297,7 @@ function Get-AbrADSecurityAssessment {
                     }
                 }
                 catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
+                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Service Accounts Assessment Table)"
                 }
             }
         }

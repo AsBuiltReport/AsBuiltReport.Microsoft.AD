@@ -1,4 +1,4 @@
-function ConvertTo-TextYN {
+﻿function ConvertTo-TextYN {
     <#
     .SYNOPSIS
     Used by As Built Report to convert true or false automatically to Yes or No.
@@ -330,7 +330,7 @@ function Convert-TimeToDay {
             if ($StartTime -notlike $Ignore -and $EndTime -notlike $Ignore) {
                 $Days = (NEW-TIMESPAN -Start $StartTime -End $EndTime).Days
             }
-        } catch {}
+        } catch {Out-Null}
     } elseif ($null -ne $EndTime) {
         if ($StartTime -notlike $Ignore -and $EndTime -notlike $Ignore) {
             $Days = (NEW-TIMESPAN -Start (Get-Date) -End ($EndTime)).Days
@@ -966,7 +966,7 @@ Function Get-WinADDuplicateObject {
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
                         $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0].TrimEnd("\"))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
-                    } catch {}
+                    } catch {Out-Null}
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
                         $ConflictObject.LiveWhenChanged = $LiveObject.WhenChanged
@@ -977,7 +977,7 @@ Function Get-WinADDuplicateObject {
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
                         $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0])$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
-                    } catch {}
+                    } catch {Out-Null}
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
                         $ConflictObject.LiveWhenChanged = $LiveObject.WhenChanged
@@ -1791,7 +1791,6 @@ function Find-AuditingIssue {
     }
 }
 
-
 function Get-ADCSObject {
     <#
     .SYNOPSIS
@@ -1837,6 +1836,7 @@ function get-Severity {
         https://github.com/TrimarcJake/Locksmith
     #>
     [CmdletBinding()]
+    [OutputType([String])]
     param(
         [Parameter(Mandatory = $true)]
         [array]$Issue
@@ -1868,3 +1868,272 @@ function get-Severity {
         }
     }
 }
+
+function Get-ImagePercent {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to get base64 image percentage calculated from image width.
+    This low the diagram image to fit the report page margins
+    .DESCRIPTION
+    .NOTES
+        Version:        0.1.0
+        Author:         Jonathan Colon
+    .EXAMPLE
+    .LINK
+    #>
+    [CmdletBinding()]
+    [OutputType([System.Int32])]
+    Param
+        (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            [string]
+            $Graph
+        )
+    $Image_FromStream = [System.Drawing.Image]::FromStream((new-object System.IO.MemoryStream(,[convert]::FromBase64String($Graph))))
+    If ($Image_FromStream.Width -gt 1500) {
+        return 20
+    } else {
+        return 50
+    }
+} # end
+
+Function Get-ADExchangeServer {
+        <#
+    .SYNOPSIS
+    Used by As Built Report to get Exchange information from AD forest.
+    .DESCRIPTION
+
+    .NOTES
+        Version:        0.1.0
+        Author:         Brian Farnsworth
+
+    .EXAMPLE
+    Get-ADExchangeServer
+
+    .LINK
+    https://codeandkeep.com/PowerShell-ActiveDirectory-Exchange-Part1/
+    #>
+    Function ConvertToExchangeRole {
+        Param(
+            [Parameter(Position=0)]
+            [int]$roles
+            )
+
+        $roleNumber = @{
+            2='MBX';
+            4='CAS';
+            16='UM';
+            32='HUB';
+            64='EDGE';
+        }
+
+        $roleList = New-Object -TypeName Collections.ArrayList
+
+        foreach ($key in ($roleNumber).Keys) {
+            if($key -band $roles){
+                [void]$roleList.Add($roleNumber.$key)
+            }
+        }
+
+        Write-Output $roleList
+    }
+
+    # Get the Configuration Context
+    $rootDse = Invoke-Command -Session $TempPssSession {Get-ADRootDSE}
+    $cfgCtx = $rootDse.ConfigurationNamingContext
+
+    # Query AD for Exchange Servers
+    $exchServers = Invoke-Command -Session $TempPssSession {Get-ADObject -Filter "ObjectCategory -eq 'msExchExchangeServer'" -SearchBase $using:cfgCtx -Properties msExchCurrentServerRoles, networkAddress, serialNumber}
+    foreach ($server in $exchServers){
+        Try {
+            $roles = ConvertToExchangeRole -roles $server.msExchCurrentServerRoles
+
+            $fqdn = ($server.networkAddress | Where-Object {$_ -like 'ncacn_ip_tcp:*'}).Split(':')[1]
+
+            New-Object -TypeName PSObject -Property @{
+                Name = $server.Name;
+                DnsHostName = $fqdn;
+                Version = $server.serialNumber[0];
+                ServerRoles = $roles;
+            }
+        } Catch {
+            Write-Error "ExchangeServer: [$($server.Name)]. $($_.Exception.Message)"
+        }
+    }
+}
+
+function Get-PieChart {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to generate PScriboChart pie charts.
+    .DESCRIPTION
+    .NOTES
+        Version:        0.1.0
+        Author:         Jonathan Colon
+    .EXAMPLE
+    .LINK
+    #>
+    [CmdletBinding()]
+    [OutputType([System.String])]
+    Param
+        (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            [System.Array]
+            $SampleData,
+            [String]
+            $ChartName,
+            [String]
+            $XField,
+            [String]
+            $YField,
+            [String]
+            $ChartLegendName,
+            [String]
+            $ChartLegendAlignment = 'Center',
+            [String]
+            $ChartTitleName = ' ',
+            [String]
+            $ChartTitleText = ' ',
+            [int]
+            $Width = 600,
+            [int]
+            $Height = 400
+        )
+
+    $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height
+
+    $addChartAreaParams = @{
+        Chart = $exampleChart
+        Name  = 'exampleChartArea'
+    }
+    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+
+    $addChartSeriesParams = @{
+        Chart             = $exampleChart
+        ChartArea         = $exampleChartArea
+        Name              = 'exampleChartSeries'
+        XField            = $XField
+        YField            = $YField
+        Palette           = 'Blue'
+        ColorPerDataPoint = $true
+    }
+    $sampleData | Add-PieChartSeries @addChartSeriesParams
+
+    $addChartLegendParams = @{
+        Chart             = $exampleChart
+        Name              = $ChartLegendName
+        TitleAlignment    = $ChartLegendAlignment
+    }
+    Add-ChartLegend @addChartLegendParams
+
+    $addChartTitleParams = @{
+        Chart     = $exampleChart
+        ChartArea = $exampleChartArea
+        Name      = $ChartTitleName
+        Text      = $ChartTitleText
+        Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+    }
+    Add-ChartTitle @addChartTitleParams
+
+    $ChartImage = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+
+    $Base64Image = [convert]::ToBase64String((get-content $ChartImage -encoding byte))
+
+    Remove-Item -Path $ChartImage.FullName
+
+    return $Base64Image
+
+} # end
+
+function Get-ColumnChart {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to generate PScriboChart column charts.
+    .DESCRIPTION
+    .NOTES
+        Version:        0.1.0
+        Author:         Jonathan Colon
+    .EXAMPLE
+    .LINK
+    #>
+    [CmdletBinding()]
+    [OutputType([System.String])]
+    Param
+        (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+            [System.Array]
+            $SampleData,
+            [String]
+            $ChartName,
+            [String]
+            $AxisXTitle,
+            [String]
+            $AxisYTitle,
+            [String]
+            $XField,
+            [String]
+            $YField,
+            [String]
+            $ChartAreaName,
+            [String]
+            $ChartTitleName = ' ',
+            [String]
+            $ChartTitleText = ' ',
+            [int]
+            $Width = 600,
+            [int]
+            $Height = 400
+        )
+
+    $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height
+
+    $addChartAreaParams = @{
+        Chart                 = $exampleChart
+        Name                  = $ChartAreaName
+        AxisXTitle            = $AxisXTitle
+        AxisYTitle            = $AxisYTitle
+        NoAxisXMajorGridLines = $true
+        NoAxisYMajorGridLines = $true
+    }
+    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+
+    $addChartSeriesParams = @{
+        Chart             = $exampleChart
+        ChartArea         = $exampleChartArea
+        Name              = 'exampleChartSeries'
+        XField            = $XField
+        YField            = $YField
+        Palette           = 'Blue'
+        ColorPerDataPoint = $true
+    }
+    $sampleData | Add-ColumnChartSeries @addChartSeriesParams
+
+    $addChartTitleParams = @{
+        Chart     = $exampleChart
+        ChartArea = $exampleChartArea
+        Name      = $ChartTitleName
+        Text      = $ChartTitleText
+        Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+    }
+    Add-ChartTitle @addChartTitleParams
+
+    $ChartImage = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+
+    if ($PassThru)
+    {
+        Write-Output -InputObject $chartFileItem
+    }
+
+    $Base64Image = [convert]::ToBase64String((get-content $ChartImage -encoding byte))
+
+    Remove-Item -Path $ChartImage.FullName
+
+    return $Base64Image
+
+} # end

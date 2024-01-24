@@ -108,6 +108,21 @@ function Get-AbrADForest {
                         }
                     }
                 }
+                if ($GraphvizInstallStatus) {
+                    Try {
+                        $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Forest
+                    } Catch {
+                        Write-PscriboMessage -IsWarning "Forest Diagram: $($_.Exception.Message)"
+                    }
+
+                    if ($Graph) {
+                        Section -Style Heading3 "Forest Diagram."  {
+                            Image -Base64 $Graph -Text "Forest Diagram" -Percent (Get-ImagePercent -Graph $Graph) -Align Center
+                            Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                        }
+                        BlankLine -Count 2
+                    }
+                }
             }
         }
         catch {

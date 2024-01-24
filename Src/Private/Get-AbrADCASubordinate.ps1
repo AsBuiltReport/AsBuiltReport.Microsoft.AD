@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -26,7 +26,6 @@ function Get-AbrADCASubordinate {
         try {
             Write-PscriboMessage "Discovering Active Directory CA Enterprise Subordinate information in $($ForestInfo.toUpper())."
             if ($CAs | Where-Object {$_.IsRoot -like 'False'}) {
-                Write-PscriboMessage "Discovered '$(($CAs | Measure-Object).Count)' Active Directory Certification Authority in domain $ForestInfo."
                 Section -Style Heading2 "Enterprise Subordinate Certificate Authority" {
                     Paragraph "The following section provides the Enterprise Subordinate CA information."
                     BlankLine

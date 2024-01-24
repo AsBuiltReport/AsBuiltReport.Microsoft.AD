@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -61,52 +61,18 @@ function Get-AbrADDomainObject {
                             }
                             if ($Options.EnableCharts) {
                                 try {
-                                    $sampleData = $inObj.GetEnumerator()
+                                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}} | Sort-Object -Property 'Category'
 
-                                    $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
+                                    $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'ComputersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'ComputersObject' -ChartTitleText 'Computers Count'
 
-                                    $addChartAreaParams = @{
-                                        Chart = $exampleChart
-                                        Name = 'exampleChartArea'
-                                    }
-                                    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
-
-                                    $addChartSeriesParams = @{
-                                        Chart = $exampleChart
-                                        ChartArea = $exampleChartArea
-                                        Name = 'exampleChartSeries'
-                                        XField = 'name'
-                                        YField = 'value'
-                                        Palette = 'Blue'
-                                        ColorPerDataPoint = $true
-                                    }
-                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
-
-                                    $addChartLegendParams = @{
-                                        Chart = $exampleChart
-                                        Name = 'Category'
-                                        TitleAlignment = 'Center'
-                                    }
-                                    Add-ChartLegend @addChartLegendParams
-
-                                    $addChartTitleParams = @{
-                                        Chart = $exampleChart
-                                        ChartArea = $exampleChartArea
-                                        Name = 'ComputersObject'
-                                        Text = 'Computers Count'
-                                        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                                    }
-                                    Add-ChartTitle @addChartTitleParams
-
-                                    $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
                                 } catch {
-                                    Write-PScriboMessage -IsWarning $($_.Exception.Message)
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers Object Count Chart)"
                                 }
                             }
                             if ($OutObj) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading3 'Computers' {
                                     if ($chartFileItem) {
-                                        Image -Text 'Computers Object - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                                        Image -Text 'Computers Object - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
                                     }
                                     $OutObj | Table @TableParams
                                 }
@@ -132,52 +98,18 @@ function Get-AbrADDomainObject {
                             }
                             if ($Options.EnableCharts) {
                                 try {
-                                    $sampleData = $inObj.GetEnumerator()
+                                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}} | Sort-Object -Property 'Category'
 
-                                    $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
+                                    $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'DomainControllerObject' -XField 'Name' -YField 'value' -ChartLegendName 'Category' -ChartTitleName 'DomainControllerObject' -ChartTitleText 'Domain Controller Object Count'
 
-                                    $addChartAreaParams = @{
-                                        Chart = $exampleChart
-                                        Name = 'exampleChartArea'
-                                    }
-                                    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
-
-                                    $addChartSeriesParams = @{
-                                        Chart = $exampleChart
-                                        ChartArea = $exampleChartArea
-                                        Name = 'exampleChartSeries'
-                                        XField = 'name'
-                                        YField = 'value'
-                                        Palette = 'Blue'
-                                        ColorPerDataPoint = $true
-                                    }
-                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
-
-                                    $addChartLegendParams = @{
-                                        Chart = $exampleChart
-                                        Name = 'Category'
-                                        TitleAlignment = 'Center'
-                                    }
-                                    Add-ChartLegend @addChartLegendParams
-
-                                    $addChartTitleParams = @{
-                                        Chart = $exampleChart
-                                        ChartArea = $exampleChartArea
-                                        Name = 'DomainControllerObject'
-                                        Text = 'Domain Controller Count'
-                                        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                                    }
-                                    Add-ChartTitle @addChartTitleParams
-
-                                    $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
                                 } catch {
-                                    Write-PScriboMessage -IsWarning $($_.Exception.Message)
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Count Chart)"
                                 }
                             }
                             if ($OutObj) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading3 'Domain Controller' {
                                     if ($chartFileItem) {
-                                        Image -Text 'Domain Controller Object - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                                        Image -Text 'Domain Controller Object - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
                                     }
                                     $OutObj | Table @TableParams
                                 }
@@ -204,52 +136,19 @@ function Get-AbrADDomainObject {
                             }
                             if ($Options.EnableCharts) {
                                 try {
-                                    $sampleData = $inObj.GetEnumerator()
 
-                                    $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
+                                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}} | Sort-Object -Property 'Category'
 
-                                    $addChartAreaParams = @{
-                                        Chart = $exampleChart
-                                        Name = 'exampleChartArea'
-                                    }
-                                    $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
+                                    $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'UsersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'UsersObject' -ChartTitleText 'Users Object Count'
 
-                                    $addChartSeriesParams = @{
-                                        Chart = $exampleChart
-                                        ChartArea = $exampleChartArea
-                                        Name = 'exampleChartSeries'
-                                        XField = 'name'
-                                        YField = 'value'
-                                        Palette = 'Blue'
-                                        ColorPerDataPoint = $true
-                                    }
-                                    $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
-
-                                    $addChartLegendParams = @{
-                                        Chart = $exampleChart
-                                        Name = 'Category'
-                                        TitleAlignment = 'Center'
-                                    }
-                                    Add-ChartLegend @addChartLegendParams
-
-                                    $addChartTitleParams = @{
-                                        Chart = $exampleChart
-                                        ChartArea = $exampleChartArea
-                                        Name = 'UsersObject'
-                                        Text = 'Users Count'
-                                        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                                    }
-                                    Add-ChartTitle @addChartTitleParams
-
-                                    $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
                                 } catch {
-                                    Write-PScriboMessage -IsWarning $($_.Exception.Message)
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (User Object Count Chart)"
                                 }
                             }
                             if ($OutObj) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading3 'Users' {
                                     if ($chartFileItem) {
-                                        Image -Text 'Users Object  - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                                        Image -Text 'Users Object  - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
                                     }
                                     $OutObj | Table @TableParams
                                 }
@@ -267,7 +166,6 @@ function Get-AbrADDomainObject {
         }
         try {
             $OutObj = @()
-            $DaysInactive = 90
             $dormanttime = ((Get-Date).AddDays(-90)).Date
             $passwordtime = (Get-Date).Adddays(-42)
             $CannotChangePassword = $Users | Where-Object { $_.CannotChangePassword }
@@ -349,53 +247,20 @@ function Get-AbrADDomainObject {
                 }
                 if ($Options.EnableCharts) {
                     try {
+
                         $sampleData = $OutObj
 
-                        $exampleChart = New-Chart -Name UserAccountsinAD -Width 600 -Height 400
+                        $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofUsersAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofUsersAccounts' -ChartTitleText 'Status of Users Accounts'
 
-                        $addChartAreaParams = @{
-                            Chart = $exampleChart
-                            Name = 'exampleChartArea'
-                        }
-                        $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
-
-                        $addChartSeriesParams = @{
-                            Chart = $exampleChart
-                            ChartArea = $exampleChartArea
-                            Name = 'exampleChartSeries'
-                            XField = 'Category'
-                            YField = 'Total'
-                            Palette = 'Blue'
-                            ColorPerDataPoint = $true
-                        }
-                        $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
-
-                        $addChartLegendParams = @{
-                            Chart = $exampleChart
-                            Name = 'Category'
-                            TitleAlignment = 'Center'
-                        }
-                        Add-ChartLegend @addChartLegendParams
-
-                        $addChartTitleParams = @{
-                            Chart = $exampleChart
-                            ChartArea = $exampleChartArea
-                            Name = 'StatusofUsersAccounts'
-                            Text = 'Status of Users Accounts'
-                            Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                        }
-                        Add-ChartTitle @addChartTitleParams
-
-                        $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
                     } catch {
-                        Write-PScriboMessage -IsWarning $($_.Exception.Message)
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Status of Users Accounts Chart)"
                     }
                 }
             }
             if ($OutObj) {
                 Section -Style Heading3 'Status of Users Accounts' {
                     if ($chartFileItem) {
-                        Image -Text 'Status of Users Accounts - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                        Image -Text 'Status of Users Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
                     }
                     $OutObj | Table @TableParams
                 }
@@ -582,7 +447,6 @@ function Get-AbrADDomainObject {
         }
         try {
             $OutObj = @()
-            $DaysInactive = 90
             $dormanttime = (Get-Date).Adddays(-90)
             $passwordtime = (Get-Date).Adddays(-30)
             $Dormant = $Computers | Where-Object { [datetime]::FromFileTime($_.lastlogontimestamp) -lt $dormanttime }
@@ -640,52 +504,19 @@ function Get-AbrADDomainObject {
                 }
                 if ($Options.EnableCharts) {
                     try {
+
                         $sampleData = $OutObj
 
-                        $exampleChart = New-Chart -Name StatusofComputerAccounts -Width 600 -Height 400
+                        $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofComputerAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofComputerAccounts' -ChartTitleText 'Status of Computers Accounts'
 
-                        $addChartAreaParams = @{
-                            Chart = $exampleChart
-                            Name = 'exampleChartArea'
-                        }
-                        $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
-
-                        $addChartSeriesParams = @{
-                            Chart = $exampleChart
-                            ChartArea = $exampleChartArea
-                            Name = 'exampleChartSeries'
-                            XField = 'Category'
-                            YField = 'Total'
-                            Palette = 'Blue'
-                            ColorPerDataPoint = $true
-                        }
-                        $exampleChartSeries = $sampleData | Add-PieChartSeries @addChartSeriesParams -PassThru
-
-                        $addChartLegendParams = @{
-                            Chart = $exampleChart
-                            Name = 'Category'
-                            TitleAlignment = 'Center'
-                        }
-                        Add-ChartLegend @addChartLegendParams
-
-                        $addChartTitleParams = @{
-                            Chart = $exampleChart
-                            ChartArea = $exampleChartArea
-                            Name = 'StatusofComputerAccounts'
-                            Text = 'Computer Accounts'
-                            Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
-                        }
-                        Add-ChartTitle @addChartTitleParams
-
-                        $chartFileItem = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
                     } catch {
-                        Write-PScriboMessage -IsWarning $($_.Exception.Message)
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Status of Computers Accounts Chart)"
                     }
                 }
                 if ($OutObj) {
                     Section -Style Heading3 'Status of Computer Accounts' {
                         if ($chartFileItem -and ($OutObj.'Total' | Measure-Object -Sum).Sum -ne 0) {
-                            Image -Text 'Status of Computer Accounts - Diagram' -Align 'Center' -Percent 100 -Path $chartFileItem
+                            Image -Text 'Status of Computer Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
                         }
                         $OutObj | Table @TableParams
                     }

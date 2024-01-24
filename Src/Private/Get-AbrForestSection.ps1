@@ -5,7 +5,7 @@ function Get-AbrForestSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,7 @@ function Get-AbrForestSection {
     )
 
     begin {
-        Write-PscriboMessage "Discovering Forest information from $Domain."
+        Write-PscriboMessage "Discovering Forest information from $ForestInfo."
     }
 
     process {
@@ -46,6 +46,12 @@ function Get-AbrForestSection {
                         }
                         try {
                             Get-AbrADSite
+                        }
+                        catch {
+                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        }
+                        try {
+                            Get-AbrADExchange
                         }
                         catch {
                             Write-PscriboMessage -IsWarning $_.Exception.Message
