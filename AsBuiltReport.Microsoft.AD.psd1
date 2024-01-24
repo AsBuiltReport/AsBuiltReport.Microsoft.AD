@@ -66,7 +66,7 @@ RequiredModules = @(
     },
     @{
         ModuleName = 'Diagrammer.Microsoft.AD';
-        ModuleVersion = '0.1.2'
+        ModuleVersion = '0.1.3'
     }
 )
 
