@@ -19,7 +19,7 @@ function Get-AbrForestSection {
     )
 
     begin {
-        Write-PscriboMessage "Discovering Forest information from $Domain."
+        Write-PscriboMessage "Discovering Forest information from $ForestInfo."
     }
 
     process {
@@ -55,21 +55,6 @@ function Get-AbrForestSection {
                         }
                         catch {
                             Write-PscriboMessage -IsWarning $_.Exception.Message
-                        }
-                    }
-                    if ($Options.EnableDiagrams) {
-                        Try {
-                            $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Forest
-                        } Catch {
-                            Write-PscriboMessage -IsWarning "Forest Diagram: $($_.Exception.Message)"
-                        }
-
-                        if ($Graph) {
-                            Section -Style Heading3 "Forest Diagram."  {
-                                Image -Base64 $Graph -Text "Forest Diagram" -Percent (Get-ImagePercent -Graph $Graph) -Align Center
-                                Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
-                            }
-                            BlankLine -Count 2
                         }
                     }
                 }

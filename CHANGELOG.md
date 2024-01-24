@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added initial diagram support
+- Added initial diagram support:
+  - Forest Diagram
+- Added disclaimer section if the EnableHealthCheck option is used.
 
 ### Fixed
 
-- Fix [#138](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/138)
 - Fix [#137](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/137)
+- Fix [#138](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/138)
 - Fix [#143](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/143)
 
 ## [0.7.15] - 2023-10-03
