@@ -222,6 +222,7 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 
 ## :x: Known Issues
 
+- This project uses the PScribo module to generate the documents. I have identified that the EvotecIT "PSWriteWord" project uses the same cmdlet. For this report to be generated successfully the PSWriteWord module must be uninstalled.
 - Issues with WinRM when using the IP address instead of the "Fully Qualified Domain Name".
 - This project relies heavily on the remote connection function through WinRM. For this reason the use of a Windows 10 client is specifically used as a jumpbox.
 - The report provides the ability to extract the configuration of the DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DNS-Server & RSAT-AD-PowerShell).
