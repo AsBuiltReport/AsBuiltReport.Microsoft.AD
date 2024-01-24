@@ -1,14 +1,23 @@
 # :arrows_clockwise: Microsoft AD As Built Report Changelog
 
-## [0.8.0] - 2024-01-18
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.8.0] - 2024-01-22
 
 ### Added
 
-- Added initial diagram support
+- Added initial diagram support:
+  - Forest Diagram
+- Added disclaimer section if the EnableHealthCheck option is used.
 
 ### Fixed
 
-- [#138](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/138)
+- Fix [#137](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/137)
+- Fix [#138](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/138)
+- Fix [#143](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/143)
 
 ## [0.7.15] - 2023-10-03
 
