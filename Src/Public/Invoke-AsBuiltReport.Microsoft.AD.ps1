@@ -88,7 +88,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $graphViz = Resolve-Path -path $GraphVizPath -ErrorAction SilentlyContinue | Get-Item | Where-Object BaseName -eq 'dot' | Select-Object -First 1
 
             if ( $null -eq $graphViz ) {
-                $GraphvizPathString = $GraphVizPath -Join " or "
                 Write-PScriboMessage -IsWarning "Could not find GraphViz installed on this system. Please install latest Graphviz binary from: https://graphviz.org/download/#windows"
                 Write-PScriboMessage -IsWarning "No GraphViz binary found, disabling the creation of diagrams."
 
