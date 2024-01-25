@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed Graphviz install check code.
 
+### Fixed
+
+- Improved Error Handling on Forest Diagram section.
+
 ## [0.8.0] - 2024-01-24
 
 
