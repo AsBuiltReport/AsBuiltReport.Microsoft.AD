@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.1] - 2024-01-25
 
-### Added
-
-- Added Graphviz libraries to local module folder. (No need to manually install Graphviz)
-
 ### Changed
 
 - Removed Graphviz install check code.
