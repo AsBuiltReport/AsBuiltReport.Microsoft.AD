@@ -74,7 +74,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
     # Used to set values to TitleCase where required
     $script:TextInfo = (Get-Culture).TextInfo
-
+    
     #---------------------------------------------------------------------------------------------#
     #                                 Connection Section                                          #
     #---------------------------------------------------------------------------------------------#
