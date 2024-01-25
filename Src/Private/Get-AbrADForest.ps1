@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.14
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -108,7 +108,7 @@ function Get-AbrADForest {
                         }
                     }
                 }
-                if ($GraphvizInstallStatus) {
+                if ($Options.EnableDiagrams) {
                     Try {
                         $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Forest
                     } Catch {
