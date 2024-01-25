@@ -11,8 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed Graphviz install check code.
 
-## [0.8.0] - 2024-01-24
+### Fixed
 
+- Improved error handling on Forest Diagram section.
+- Fix issue with Diagrammer.Microsoft.AD module.
+
+## [0.8.0] - 2024-01-24
 
 ### Added
 
