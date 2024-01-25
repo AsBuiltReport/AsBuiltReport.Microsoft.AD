@@ -92,16 +92,16 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                 Write-PScriboMessage -IsWarning "Could not find GraphViz installed on this system. Please install latest Graphviz binary from: https://graphviz.org/download/#windows"
                 Write-PScriboMessage -IsWarning "No GraphViz binary found, disabling the creation of diagrams."
 
-                $GraphvizInstallStatus = $false
+                $script:GraphvizInstallStatus = $false
             } else {
                 Write-PScriboMessage "GraphViz binary found, enabling the creation of diagrams."
-                $GraphvizInstallStatus = $true
+                $script:GraphvizInstallStatus = $true
             }
 
         } catch {
             Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Graphviz Install Validation)"
         }
-    } else {$GraphvizInstallStatus = $false}
+    } else {$script:GraphvizInstallStatus = $false}
 
     #---------------------------------------------------------------------------------------------#
     #                                 Connection Section                                          #
