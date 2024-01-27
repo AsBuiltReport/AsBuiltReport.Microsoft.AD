@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -38,12 +38,24 @@ function Get-AbrADDomainController {
                         Write-PscriboMessage "Collecting AD Domain Controllers information of $DC."
                         $DCInfo = Invoke-Command -Session $TempPssSession {Get-ADDomainController -Identity $using:DC -Server $using:DC}
                         $inObj = [ordered] @{
-                            'DC Name' = ($DCInfo.Name).ToString().ToUpper()
-                            'Domain Name' = $DCInfo.Domain
-                            'Site' = $DCInfo.Site
+                            'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                            'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
+                                $true {"--"}
+                                $false {$DCInfo.Domain}
+                                default {"Unknown"}
+                            }
+                            'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                $true {"--"}
+                                $false {$DCInfo.Site}
+                                default {"Unknown"}
+                            }
                             'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
                             'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
-                            'IP Address' = $DCInfo.IPv4Address
+                            'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
+                                $true {"--"}
+                                $false {$DCInfo.IPv4Address}
+                                default {"Unknown"}
+                            }
                         }
                         $OutObj += [pscustomobject]$inobj
                     }
