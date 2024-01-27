@@ -1945,7 +1945,7 @@ Function Get-ADExchangeServer {
     $cfgCtx = $rootDse.ConfigurationNamingContext
 
     # Query AD for Exchange Servers
-    $exchServers = Invoke-Command -Session $TempPssSession {Get-ADObject -Filter "ObjectCategory -eq 'msExchExchangeServer'" -SearchBase $using:cfgCtx -Properties msExchCurrentServerRoles, networkAddress, serialNumber}
+    $exchServers = Invoke-Command -ErrorAction SilentlyContinue -Session $TempPssSession {Get-ADObject -Filter "ObjectCategory -eq 'msExchExchangeServer'" -SearchBase $using:cfgCtx -Properties msExchCurrentServerRoles, networkAddress, serialNumber}
     foreach ($server in $exchServers){
         Try {
             $roles = ConvertToExchangeRole -roles $server.msExchCurrentServerRoles
