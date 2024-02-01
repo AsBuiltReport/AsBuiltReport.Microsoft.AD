@@ -5,7 +5,7 @@ function Get-AbrADDNSZone {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,26 +19,26 @@ function Get-AbrADDNSZone {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain,
-            [string]
-            $DC
+        [string]
+        $Domain,
+        [string]
+        $DC
     )
 
     begin {
-        Write-PscriboMessage "Discovering Actve Directory Domain Name System Zone information on $Domain."
+        Write-PScriboMessage "Discovering Actve Directory Domain Name System Zone information on $Domain."
     }
 
     process {
         try {
-            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder"}
+            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder" }
             if ($DNSSetting) {
                 Section -Style Heading3 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zones" {
                     $OutObj = @()
-                    Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
+                    Write-PScriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                     foreach ($Zones in $DNSSetting) {
                         try {
-                            Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
+                            Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
                             $inObj = [ordered] @{
                                 'Zone Name' = ConvertTo-EmptyToFiller $Zones.ZoneName
                                 'Zone Type' = ConvertTo-EmptyToFiller $Zones.ZoneType
@@ -49,9 +49,8 @@ function Get-AbrADDNSZone {
                                 'Signed' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $Zones.IsSigned)
                             }
                             $OutObj += [pscustomobject]$inobj
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Zone Item)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Zone Item)"
                         }
                     }
 
@@ -66,7 +65,7 @@ function Get-AbrADDNSZone {
                     $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "False" -and ($_.ZoneName -ne "_msdcs.pharmax.local" -and $_.ZoneName -ne "TrustAnchors") -and ($_.ZoneType -like "Primary" -or $_.ZoneType -like "Secondary")} | Select-Object -ExpandProperty ZoneName
+                            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and ($_.ZoneName -ne "_msdcs.pharmax.local" -and $_.ZoneName -ne "TrustAnchors") -and ($_.ZoneType -like "Primary" -or $_.ZoneType -like "Secondary") } | Select-Object -ExpandProperty ZoneName
                             if ($DNSSetting) {
                                 $OutObj = @()
                                 foreach ($Zone in $DNSSetting) {
@@ -75,7 +74,7 @@ function Get-AbrADDNSZone {
                                         if ($Delegations) {
                                             foreach ($Delegation in $Delegations) {
                                                 try {
-                                                    Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Delegation.ZoneName)' on $DC"
+                                                    Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Delegation.ZoneName)' on $DC"
                                                     $inObj = [ordered] @{
                                                         'Zone Name' = $Delegation.ZoneName
                                                         'Child Zone' = $Delegation.ChildZoneName
@@ -83,21 +82,19 @@ function Get-AbrADDNSZone {
                                                         'IP Address' = $Delegation.IPaddress.RecordData.IPv4Address.ToString()
                                                     }
                                                     $OutObj += [pscustomobject]$inobj
-                                                }
-                                                catch {
-                                                    Write-PscriboMessage -IsWarning $($_.Exception.Message)
+                                                } catch {
+                                                    Write-PScriboMessage -IsWarning $($_.Exception.Message)
                                                 }
                                             }
                                         } else {
-                                            Write-PscriboMessage -IsWarning "No Zone Delegation information found, disabling the section."
+                                            Write-PScriboMessage -IsWarning "No Zone Delegation information found, disabling the section."
                                         }
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Delegation Item)"
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Delegation Item)"
                                     }
                                 }
                             } else {
-                                Write-PscriboMessage -IsWarning "No Zone Delegation information found in $DC, disabling the section."
+                                Write-PScriboMessage -IsWarning "No Zone Delegation information found in $DC, disabling the section."
                             }
 
                             if ($OutObj) {
@@ -114,41 +111,39 @@ function Get-AbrADDNSZone {
                                     $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Delegation Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Delegation Table)"
                         }
                     }
 
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            $DNSSetting = Invoke-Command -Session $DCPssSession {Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object {$_ -match 'SecondaryServers'}}
+                            $DNSSetting = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object { $_ -match 'SecondaryServers' } }
                             if ($DNSSetting) {
                                 Section -Style Heading4 "Zone Transfers" {
                                     $OutObj = @()
                                     foreach ($Zone in $DNSSetting) {
                                         try {
-                                            Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zone.PSChildName)' on $DC"
+                                            Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Zone.PSChildName)' on $DC"
                                             $inObj = [ordered] @{
                                                 'Zone Name' = $Zone.PSChildName
                                                 'Secondary Servers' = ConvertTo-EmptyToFiller ($Zone.SecondaryServers -join ", ")
                                                 'Notify Servers' = ConvertTo-EmptyToFiller $Zone.NotifyServers
                                                 'Secure Secondaries' = Switch ($Zone.SecureSecondaries) {
-                                                    "0" {"Send zone transfers to all secondary servers that request them."}
-                                                    "1" {"Send zone transfers only to name servers that are authoritative for the zone."}
-                                                    "2" {"Send zone transfers only to servers you specify in Secondary Servers."}
-                                                    "3" {"Do not send zone transfers."}
-                                                    default {$Zone.SecureSecondaries}
+                                                    "0" { "Send zone transfers to all secondary servers that request them." }
+                                                    "1" { "Send zone transfers only to name servers that are authoritative for the zone." }
+                                                    "2" { "Send zone transfers only to servers you specify in Secondary Servers." }
+                                                    "3" { "Do not send zone transfers." }
+                                                    default { $Zone.SecureSecondaries }
                                                 }
                                             }
                                             $OutObj += [pscustomobject]$inobj
 
                                             if ($HealthCheck.DNS.Zones) {
-                                                $OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them."} | Set-Style -Style Warning -Property 'Secure Secondaries'
+                                                $OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them." } | Set-Style -Style Warning -Property 'Secure Secondaries'
                                             }
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers Item)"
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers Item)"
                                         }
                                     }
 
@@ -161,7 +156,7 @@ function Get-AbrADDNSZone {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Table @TableParams
-                                    if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them."})) {
+                                    if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them." })) {
                                         Paragraph "Health Check:" -Italic -Bold
                                         BlankLine
                                         Paragraph {
@@ -171,22 +166,21 @@ function Get-AbrADDNSZone {
                                     }
                                 }
                             } else {
-                                Write-PscriboMessage -IsWarning "No Zone Transfer information found in $DC, disabling the section."
+                                Write-PScriboMessage -IsWarning "No Zone Transfer information found in $DC, disabling the section."
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers Table)"
                         }
                     }
                     try {
-                        $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "True"}
+                        $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "True" }
                         if ($DNSSetting) {
                             Section -Style Heading4 "Reverse Lookup Zone" {
                                 $OutObj = @()
-                                Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC (Domain Name System Zone)"
+                                Write-PScriboMessage "Discovered Actve Directory Domain Controller: $DC (Domain Name System Zone)"
                                 foreach ($Zones in $DNSSetting) {
                                     try {
-                                        Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
+                                        Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
                                         $inObj = [ordered] @{
                                             'Zone Name' = ConvertTo-EmptyToFiller $Zones.ZoneName
                                             'Zone Type' = ConvertTo-EmptyToFiller $Zones.ZoneType
@@ -197,9 +191,8 @@ function Get-AbrADDNSZone {
                                             'Signed' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $Zones.IsSigned)
                                         }
                                         $OutObj += [pscustomobject]$inobj
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Reverse Lookup Zone Configuration Item)"
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Reverse Lookup Zone Configuration Item)"
                                     }
                                 }
 
@@ -214,21 +207,20 @@ function Get-AbrADDNSZone {
                                 $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No Reverse lookup zone information found in $DC, disabling the section."
+                            Write-PScriboMessage -IsWarning "No Reverse lookup zone information found in $DC, disabling the section."
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Reverse Lookup Zone Configuration Table)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Reverse Lookup Zone Configuration Table)"
                     }
                     try {
-                        $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -like "Forwarder"}
+                        $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -like "Forwarder" }
                         if ($DNSSetting) {
                             Section -Style Heading4 "Conditional Forwarder" {
                                 $OutObj = @()
-                                Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Conditional Forwarder)"
+                                Write-PScriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Conditional Forwarder)"
                                 foreach ($Zones in $DNSSetting) {
                                     try {
-                                        Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
+                                        Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
                                         $inObj = [ordered] @{
                                             'Zone Name' = $Zones.ZoneName
                                             'Zone Type' = $Zones.ZoneType
@@ -237,9 +229,8 @@ function Get-AbrADDNSZone {
                                             'DS Integrated' = ConvertTo-TextYN $Zones.IsDsIntegrated
                                         }
                                         $OutObj += [pscustomobject]$inobj
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Conditional Forwarder Item)"
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Conditional Forwarder Item)"
                                     }
                                 }
 
@@ -254,43 +245,41 @@ function Get-AbrADDNSZone {
                                 $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No Conditional forwarder zone information found in $DC, disabling the section."
+                            Write-PScriboMessage -IsWarning "No Conditional forwarder zone information found in $DC, disabling the section."
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Conditional Forwarder Table)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Conditional Forwarder Table)"
                     }
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Write-PscriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
-                            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object {$_.IsReverseLookupZone -like "False" -and $_.ZoneType -eq "Primary"} | Select-Object -ExpandProperty ZoneName
+                            Write-PScriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
+                            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -eq "Primary" } | Select-Object -ExpandProperty ZoneName
                             $Zones = Get-DnsServerZoneAging -CimSession $TempCIMSession -Name $DNSSetting -ComputerName $DC
                             if ($Zones) {
                                 Section -Style Heading4 "Zone Scope Aging" {
                                     $OutObj = @()
                                     foreach ($Settings in $Zones) {
                                         try {
-                                            Write-PscriboMessage "Collecting Actve Directory DNS Zone: '$($Settings.ZoneName)' on $DC"
+                                            Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Settings.ZoneName)' on $DC"
                                             $inObj = [ordered] @{
                                                 'Zone Name' = ConvertTo-EmptyToFiller $Settings.ZoneName
                                                 'Aging Enabled' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $Settings.AgingEnabled)
                                                 'Refresh Interval' = ConvertTo-EmptyToFiller $Settings.RefreshInterval
                                                 'NoRefresh Interval' = ConvertTo-EmptyToFiller $Settings.NoRefreshInterval
                                                 'Available For Scavenge' = Switch ($Settings.AvailForScavengeTime) {
-                                                    "" {"--"; break}
-                                                    $Null {"--"; break}
-                                                    default {(ConvertTo-EmptyToFiller ($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")); break}
+                                                    "" { "--"; break }
+                                                    $Null { "--"; break }
+                                                    default { (ConvertTo-EmptyToFiller ($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")); break }
                                                 }
                                             }
                                             $OutObj += [pscustomobject]$inobj
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Aging Item)"
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Aging Item)"
                                         }
                                     }
 
                                     if ($HealthCheck.DNS.Aging) {
-                                        $OutObj | Where-Object { $_.'Aging Enabled' -ne 'Yes'} | Set-Style -Style Warning -Property 'Aging Enabled'
+                                        $OutObj | Where-Object { $_.'Aging Enabled' -ne 'Yes' } | Set-Style -Style Warning -Property 'Aging Enabled'
                                     }
 
                                     $TableParams = @{
@@ -302,7 +291,7 @@ function Get-AbrADDNSZone {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
-                                    if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Aging Enabled' -ne 'Yes'})) {
+                                    if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Aging Enabled' -ne 'Yes' })) {
                                         Paragraph "Health Check:" -Bold -Underline
                                         Paragraph {
                                             Text "Best Practices:" -Bold
@@ -311,19 +300,17 @@ function Get-AbrADDNSZone {
                                     }
                                 }
                             } else {
-                                Write-PscriboMessage -IsWarning "No Zone Aging property information found in $DC, disabling the section."
+                                Write-PScriboMessage -IsWarning "No Zone Aging property information found in $DC, disabling the section."
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Aging Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Aging Table)"
                         }
                     }
                 }
             }
             Remove-PSSession -Session $DCPssSession
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Global DNS Zone Information)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Global DNS Zone Information)"
         }
     }
 

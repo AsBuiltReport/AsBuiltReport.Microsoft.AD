@@ -5,7 +5,7 @@ function Get-AbrADDuplicateObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,19 +19,19 @@ function Get-AbrADDuplicateObject {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain
+        [string]
+        $Domain
     )
 
     begin {
-        Write-PscriboMessage "Discovering duplicate Objects information on $Domain."
+        Write-PScriboMessage "Discovering duplicate Objects information on $Domain."
     }
 
     process {
         if ($HealthCheck.Domain.DuplicateObject) {
             try {
                 $Objects = Get-WinADDuplicateObject -Domain $Domain -Credential $Credential
-                Write-PscriboMessage "Discovered AD Duplicate Objects information from $Domain."
+                Write-PScriboMessage "Discovered AD Duplicate Objects information from $Domain."
                 if ($Objects) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate Objects' {
                         Paragraph "The following section details Duplicate Objects discovered on Domain $($Domain.ToString().ToUpper())."
@@ -39,7 +39,7 @@ function Get-AbrADDuplicateObject {
                         $OutObj = @()
                         foreach ($Object in $Objects) {
                             try {
-                                Write-PscriboMessage "Collecting $($Object.Name) information from $($Domain)."
+                                Write-PScriboMessage "Collecting $($Object.Name) information from $($Domain)."
                                 $inObj = [ordered] @{
                                     'Name' = $Object.Name
                                     'Created' = $Object.WhenCreated.ToString("yyyy:MM:dd")
@@ -51,9 +51,8 @@ function Get-AbrADDuplicateObject {
                                 if ($HealthCheck.Domain.DuplicateObject) {
                                     $OutObj | Set-Style -Style Warning
                                 }
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Duplicate Object Item)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Duplicate Object Item)"
                             }
                         }
 
@@ -75,11 +74,10 @@ function Get-AbrADDuplicateObject {
                         }
                     }
                 } else {
-                    Write-PscriboMessage -IsWarning "No Duplicate object information found in $Domain, disabling the section."
+                    Write-PScriboMessage -IsWarning "No Duplicate object information found in $Domain, disabling the section."
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Duplicate Object Table)"
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Duplicate Object Table)"
             }
         }
     }

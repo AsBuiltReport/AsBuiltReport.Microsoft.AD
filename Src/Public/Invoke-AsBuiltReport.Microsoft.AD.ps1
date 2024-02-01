@@ -15,7 +15,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD
     #>
 
-	# Do not remove or add to these parameters
+    # Do not remove or add to these parameters
     param (
         [String[]] $Target,
         [PSCredential] $Credential
@@ -38,8 +38,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             }
         }
     } Catch {
-            Write-PscriboMessage -IsWarning $_.Exception.Message
-        }
+        Write-PScriboMessage -IsWarning $_.Exception.Message
+    }
 
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 
@@ -83,15 +83,15 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Try {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
             $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
-            $script:TempCIMSession = New-CIMSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
-            $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop}
+            $script:TempCIMSession = New-CimSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
+            $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop }
         } Catch {
             throw "Unable to connect to the Domain Controller: $System"
         }
 
-        $script:ForestInfo =  $ADSystem.RootDomain.toUpper()
+        $script:ForestInfo = $ADSystem.RootDomain.toUpper()
         [array]$RootDomains = $ADSystem.RootDomain
-        [array]$ChildDomains = $ADSystem.Domains | Where-Object {$_ -ne $RootDomains}
+        [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains }
         [string] $script:OrderedDomains = $RootDomains + $ChildDomains
 
         # Forest Section
@@ -107,12 +107,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Get-AbrPKISection
 
         # Remove used PSSession
-        Write-PscriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
+        Write-PScriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
         Remove-PSSession -Session $TempPssSession
 
         # Remove used CIMSession
-        Write-PscriboMessage "Clearing CIM Session $($TempCIMSession.Id)"
-        Remove-CIMSession -CimSession $TempCIMSession
+        Write-PScriboMessage "Clearing CIM Session $($TempCIMSession.Id)"
+        Remove-CimSession -CimSession $TempCIMSession
 
-	}#endregion foreach loop
+    }#endregion foreach loop
 }

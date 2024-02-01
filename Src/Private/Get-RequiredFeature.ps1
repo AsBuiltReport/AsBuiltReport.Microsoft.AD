@@ -5,7 +5,7 @@ function Get-RequiredFeature {
     .DESCRIPTION
         Function to check if the required version of windows feature is installed
     .NOTES
-        Version:        0.1.0
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,18 +32,16 @@ function Get-RequiredFeature {
     process {
         # Check if the required version of Module is installed
         if ($OSType -eq 'WorkStation') {
-            $RequiredFeature = Get-WindowsCapability -online -Name $Name
-            if ($RequiredFeature.State -ne 'Installed')  {
+            $RequiredFeature = Get-WindowsCapability -Online -Name $Name
+            if ($RequiredFeature.State -ne 'Installed') {
                 throw "$Name is required to run the Microsoft AD As Built Report. Run 'Add-WindowsCapability -online -Name '$($Name)'' to install the required modules. https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
             }
-        }
-        elseif ($OSType -eq 'Server' -or $OSType -eq 'DomainController') {
+        } elseif ($OSType -eq 'Server' -or $OSType -eq 'DomainController') {
             $RequiredFeature = Get-WindowsFeature -Name $Name
-            if ($RequiredFeature.InstallState -ne 'Installed')  {
+            if ($RequiredFeature.InstallState -ne 'Installed') {
                 throw "$Name is required to run the Microsoft AD As Built Report. Run 'Install-WindowsFeature -Name '$($Name)'' to install the required modules. https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
             }
-        }
-        else {
+        } else {
             throw "Unable to validate if $Name is installed. https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
         }
     }

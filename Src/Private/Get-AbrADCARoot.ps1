@@ -5,7 +5,7 @@ function Get-AbrADCARoot {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,18 +19,18 @@ function Get-AbrADCARoot {
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority Per Domain information."
+        Write-PScriboMessage "Collecting AD Certification Authority Per Domain information."
     }
 
     process {
         try {
-            if ($CAs | Where-Object {$_.IsRoot -like 'True'}) {
+            if ($CAs | Where-Object { $_.IsRoot -like 'True' }) {
                 Section -Style Heading2 "Enterprise Root Certificate Authority" {
                     Paragraph "The following section provides the Enterprise Root CA information."
                     BlankLine
                     $OutObj = @()
-                    foreach ($CA in ($CAs | Where-Object {$_.IsRoot -like 'True'})) {
-                        Write-PscriboMessage "Collecting Enterprise Root Certificate Authority information from $($CA.DisplayName)."
+                    foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'True' })) {
+                        Write-PScriboMessage "Collecting Enterprise Root Certificate Authority information from $($CA.DisplayName)."
                         $inObj = [ordered] @{
                             'CA Name' = $CA.DisplayName
                             'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]
@@ -38,8 +38,8 @@ function Get-AbrADCARoot {
                             'Config String' = $CA.ConfigString
                             'Operating System' = $CA.OperatingSystem
                             'Certificate' = $CA.Certificate
-                            'Auditing' = &{
-                                (Find-AuditingIssue -ADCSObjects (Get-ADCSObject $ForestInfo) | Where-Object {$_.Name -eq $CA.DisplayName}).Issue
+                            'Auditing' = & {
+                                (Find-AuditingIssue -ADCSObjects (Get-ADCSObject $ForestInfo) | Where-Object { $_.Name -eq $CA.DisplayName }).Issue
                             }
                             'Status' = $CA.ServiceStatus
                         }
@@ -47,8 +47,8 @@ function Get-AbrADCARoot {
                     }
 
                     if ($HealthCheck.CA.Status) {
-                        $OutObj | Where-Object { $_.'Service Status' -notlike 'Running'} | Set-Style -Style Critical -Property 'Service Status'
-                        $OutObj | Where-Object { $_.'Auditing' -notlike 'Running'} | Set-Style -Style Critical -Property 'Auditing'
+                        $OutObj | Where-Object { $_.'Service Status' -notlike 'Running' } | Set-Style -Style Critical -Property 'Service Status'
+                        $OutObj | Where-Object { $_.'Auditing' -notlike 'Running' } | Set-Style -Style Critical -Property 'Auditing'
                     }
 
                     $TableParams = @{
@@ -62,9 +62,8 @@ function Get-AbrADCARoot {
                     $OutObj | Table @TableParams
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning $_.Exception.Message
+        } catch {
+            Write-PScriboMessage -IsWarning $_.Exception.Message
         }
     }
 

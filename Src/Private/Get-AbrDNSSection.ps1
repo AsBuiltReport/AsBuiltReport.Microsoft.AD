@@ -5,7 +5,7 @@ function Get-AbrDNSSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,7 @@ function Get-AbrDNSSection {
     )
 
     begin {
-        Write-PscriboMessage "Discovering DNS server information from $ForestInfo."
+        Write-PScriboMessage "Discovering DNS server information from $ForestInfo."
     }
 
     process {
@@ -43,13 +43,13 @@ function Get-AbrDNSSection {
                             } else {
                                 $DomainFilterOption = $Domain -notin $Options.Exclude.Domains
                             }
-                            if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop})) {
+                            if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop })) {
                                 Section -Style Heading2 "$($Domain.ToString().ToUpper())" {
                                     Paragraph "The following section provides a configuration summary of the DNS service."
                                     BlankLine
                                     Get-AbrADDNSInfrastructure -Domain $Domain
-                                    $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}}
-                                    foreach ($DC in $DCs){
+                                    $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } }
+                                    foreach ($DC in $DCs) {
                                         if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                                             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DDNSInfrastructure'
                                             Get-AbrADDNSZone -Domain $Domain -DC $DC
@@ -62,9 +62,8 @@ function Get-AbrDNSSection {
                             } else {
                                 Write-PScriboMessage "$($Domain) disabled in Exclude.Domain variable"
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Information)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Information)"
                             continue
                         }
                     }

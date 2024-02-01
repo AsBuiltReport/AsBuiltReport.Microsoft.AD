@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,26 +19,26 @@ function Get-AbrADFSMO {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain
+        [string]
+        $Domain
     )
 
     begin {
-        Write-PscriboMessage "Discovering Active Directory FSMO information of domain $Domain."
+        Write-PScriboMessage "Discovering Active Directory FSMO information of domain $Domain."
     }
 
     process {
         try {
-            $DomainData = Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator}
-            $ForestData = Invoke-Command -Session $TempPssSession {Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster}
+            $DomainData = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator }
+            $ForestData = Invoke-Command -Session $TempPssSession { Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster }
             if ($DomainData -and $ForestData) {
-                $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
+                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'FSMORoles'
                 Section -Style Heading3 'FSMO Roles' {
-                    $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession {Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster}).IsGlobalCatalog
+                    $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
                     $OutObj = @()
                     try {
-                        Write-PscriboMessage "Discovered Active Directory FSMO information of domain $Domain."
+                        Write-PScriboMessage "Discovered Active Directory FSMO information of domain $Domain."
                         $inObj = [ordered] @{
                             'Infrastructure Master' = $DomainData.InfrastructureMaster
                             'RID Master' = $DomainData.RIDMaster
@@ -47,9 +47,8 @@ function Get-AbrADFSMO {
                             'Schema Master' = $ForestData.SchemaMaster
                         }
                         $OutObj += [pscustomobject]$inobj
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
                     }
 
                     if ($HealthCheck.Domain.BestPractice) {
@@ -85,9 +84,8 @@ function Get-AbrADFSMO {
                     Remove-PSSession -Session $DCPssSession
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
         }
     }
     end {}

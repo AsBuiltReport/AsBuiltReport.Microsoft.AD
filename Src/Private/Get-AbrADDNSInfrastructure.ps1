@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,25 +19,25 @@ function Get-AbrADDNSInfrastructure {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain
+        [string]
+        $Domain
     )
 
     begin {
-        Write-PscriboMessage "Discovering Active Directory Domain Name System Infrastructure information for $Domain"
+        Write-PScriboMessage "Discovering Active Directory Domain Name System Infrastructure information for $Domain"
     }
 
     process {
         try {
-            $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object {$_ -notin ($using:Options).Exclude.DCs}}
+            $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } }
             if ($DCs) {
                 Section -Style Heading3 "Infrastructure Summary" {
                     Paragraph "The following section provides a summary of the DNS Infrastructure configuration."
                     BlankLine
                     $OutObj = @()
                     foreach ($DC in $DCs) {
-                        if  (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                            Write-PscriboMessage "Collecting Domain Name System Infrastructure information from '$($DC)'."
+                        if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                            Write-PScriboMessage "Collecting Domain Name System Infrastructure information from '$($DC)'."
                             try {
                                 $DNSSetting = Get-DnsServerSetting -CimSession $TempCIMSession -ComputerName $DC
                                 $inObj = [ordered] @{
@@ -49,9 +49,8 @@ function Get-AbrADDNSInfrastructure {
                                     'Listening IP' = $DNSSetting.ListeningIPAddress
                                 }
                                 $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "DNS Infrastructure Summary Section: $($_.Exception.Message)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "DNS Infrastructure Summary Section: $($_.Exception.Message)"
                             }
                         }
                     }
@@ -77,7 +76,7 @@ function Get-AbrADDNSInfrastructure {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                                         Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                                             $OutObj = @()
-                                            Write-PscriboMessage "Collecting Directory Partition information from $($DC)."
+                                            Write-PScriboMessage "Collecting Directory Partition information from $($DC)."
                                             try {
                                                 $DNSSetting = Get-DnsServerDirectoryPartition -CimSession $TempCIMSession -ComputerName $DC
                                                 foreach ($Partition in $DNSSetting) {
@@ -85,25 +84,23 @@ function Get-AbrADDNSInfrastructure {
                                                         $inObj = [ordered] @{
                                                             'Name' = $Partition.DirectoryPartitionName
                                                             'State' = Switch ($Partition.State) {
-                                                                $Null {'--'}
-                                                                0 {'DNS_DP_OKAY'}
-                                                                1 {'DNS_DP_STATE_REPL_INCOMING'}
-                                                                2 {'DNS_DP_STATE_REPL_OUTGOING'}
-                                                                3 {'DNS_DP_STATE_UNKNOWN'}
-                                                                default {$Partition.State}
+                                                                $Null { '--' }
+                                                                0 { 'DNS_DP_OKAY' }
+                                                                1 { 'DNS_DP_STATE_REPL_INCOMING' }
+                                                                2 { 'DNS_DP_STATE_REPL_OUTGOING' }
+                                                                3 { 'DNS_DP_STATE_UNKNOWN' }
+                                                                default { $Partition.State }
                                                             }
                                                             'Flags' = $Partition.Flags
                                                             'Zone Count' = $Partition.ZoneCount
                                                         }
                                                         $OutObj += [pscustomobject]$inobj
-                                                    }
-                                                    catch {
-                                                        Write-PscriboMessage -IsWarning "Directory Partitions Item Section: $($_.Exception.Message)"
+                                                    } catch {
+                                                        Write-PScriboMessage -IsWarning "Directory Partitions Item Section: $($_.Exception.Message)"
                                                     }
                                                 }
-                                            }
-                                            catch {
-                                                Write-PscriboMessage -IsWarning "Directory Partitions Table Section: $($_.Exception.Message)"
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning "Directory Partitions Table Section: $($_.Exception.Message)"
                                             }
 
                                             $TableParams = @{
@@ -119,9 +116,8 @@ function Get-AbrADDNSInfrastructure {
                                     }
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "Directory Partitions Section: $($_.Exception.Message)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "Directory Partitions Section: $($_.Exception.Message)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -133,7 +129,7 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                        Write-PscriboMessage "Collecting Response Rate Limiting (RRL) information from $($DC)."
+                                        Write-PScriboMessage "Collecting Response Rate Limiting (RRL) information from $($DC)."
                                         try {
                                             $DNSSetting = Get-DnsServerResponseRateLimiting -CimSession $TempCIMSession -ComputerName $DC
                                             $inObj = [ordered] @{
@@ -147,9 +143,8 @@ function Get-AbrADDNSInfrastructure {
 
                                             }
                                             $OutObj += [pscustomobject]$inobj
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
                                         }
                                     }
                                 }
@@ -164,9 +159,8 @@ function Get-AbrADDNSInfrastructure {
                                 }
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Table)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -178,7 +172,7 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                        Write-PscriboMessage "Collecting Scavenging Options information from $($DC)."
+                                        Write-PScriboMessage "Collecting Scavenging Options information from $($DC)."
                                         try {
                                             $DNSSetting = Get-DnsServerScavenging -CimSession $TempCIMSession -ComputerName $DC
                                             $inObj = [ordered] @{
@@ -187,26 +181,25 @@ function Get-AbrADDNSInfrastructure {
                                                 'Refresh Interval' = ConvertTo-EmptyToFiller $DNSSetting.RefreshInterval
                                                 'Scavenging Interval' = ConvertTo-EmptyToFiller $DNSSetting.ScavengingInterval
                                                 'Last Scavenge Time' = Switch ($DNSSetting.LastScavengeTime) {
-                                                    "" {"--"; break}
-                                                    $Null {"--"; break}
-                                                    default {ConvertTo-EmptyToFiller ($DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy"))}
+                                                    "" { "--"; break }
+                                                    $Null { "--"; break }
+                                                    default { ConvertTo-EmptyToFiller ($DNSSetting.LastScavengeTime.ToString("MM/dd/yyyy")) }
                                                 }
                                                 'Scavenging State' = Switch ($DNSSetting.ScavengingState) {
-                                                    "True" {"Enabled"}
-                                                    "False" {"Disabled"}
-                                                    default {ConvertTo-EmptyToFiller $DNSSetting.ScavengingState}
+                                                    "True" { "Enabled" }
+                                                    "False" { "Disabled" }
+                                                    default { ConvertTo-EmptyToFiller $DNSSetting.ScavengingState }
                                                 }
                                             }
                                             $OutObj += [pscustomobject]$inobj
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Item)"
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Item)"
                                         }
                                     }
                                 }
 
                                 if ($HealthCheck.DNS.Zones) {
-                                    $OutObj | Where-Object { $_.'Scavenging State' -eq 'Disabled'} | Set-Style -Style Warning -Property 'Scavenging State'
+                                    $OutObj | Where-Object { $_.'Scavenging State' -eq 'Disabled' } | Set-Style -Style Warning -Property 'Scavenging State'
                                 }
 
                                 $TableParams = @{
@@ -218,7 +211,7 @@ function Get-AbrADDNSInfrastructure {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-                                if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Scavenging State' -eq 'Disabled'})) {
+                                if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Scavenging State' -eq 'Disabled' })) {
                                     Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
                                     Paragraph {
@@ -227,9 +220,8 @@ function Get-AbrADDNSInfrastructure {
                                     }
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Table)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -240,7 +232,7 @@ function Get-AbrADDNSInfrastructure {
                             $OutObj = @()
                             foreach ($DC in $DCs) {
                                 if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                    Write-PscriboMessage "Collecting Forwarder Options information from $($DC)."
+                                    Write-PScriboMessage "Collecting Forwarder Options information from $($DC)."
                                     try {
                                         $DNSSetting = Get-DnsServerForwarder -CimSession $TempCIMSession -ComputerName $DC
                                         $Recursion = Get-DnsServerRecursion -CimSession $TempCIMSession -ComputerName $DC | Select-Object -ExpandProperty Enable
@@ -252,9 +244,8 @@ function Get-AbrADDNSInfrastructure {
                                             'Use Recursion' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $Recursion)
                                         }
                                         $OutObj += [pscustomobject]$inobj
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Item)"
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Item)"
                                     }
                                 }
                             }
@@ -297,9 +288,8 @@ function Get-AbrADDNSInfrastructure {
                                 }
                             }
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Table)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Table)"
                     }
                     #---------------------------------------------------------------------------------------------#
                     #                                 DNS Root Hints Section                                      #
@@ -313,29 +303,28 @@ function Get-AbrADDNSInfrastructure {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                                         Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                                             $OutObj = @()
-                                            Write-PscriboMessage "Collecting Root Hint information from $($DC)."
+                                            Write-PScriboMessage "Collecting Root Hint information from $($DC)."
                                             try {
-                                                $DNSSetting = Get-DnsServerRootHint -CimSession $TempCIMSession -ComputerName $DC -ErrorAction SilentlyContinue | Select-Object @{Name="Name"; E={$_.NameServer.RecordData.Nameserver}},@{ Name="IPv4Address"; E={$_.IPAddress.RecordData.IPv4Address.IPAddressToString}},@{ Name="IPv6Address"; E={$_.IPAddress.RecordData.IPv6Address.IPAddressToString}}
+                                                $DNSSetting = Get-DnsServerRootHint -CimSession $TempCIMSession -ComputerName $DC -ErrorAction SilentlyContinue | Select-Object @{Name = "Name"; E = { $_.NameServer.RecordData.Nameserver } }, @{ Name = "IPv4Address"; E = { $_.IPAddress.RecordData.IPv4Address.IPAddressToString } }, @{ Name = "IPv6Address"; E = { $_.IPAddress.RecordData.IPv6Address.IPAddressToString } }
                                                 if ($DNSSetting) {
                                                     foreach ($Hints in $DNSSetting) {
                                                         try {
                                                             $inObj = [ordered] @{
                                                                 'Name' = $Hints.Name
                                                                 'IPv4 Address' = Switch ([string]::IsNullOrEmpty($Hints.IPv4Address)) {
-                                                                    $true {'--'}
-                                                                    $false {$Hints.IPv4Address -split " "}
-                                                                    default {'Unknown'}
+                                                                    $true { '--' }
+                                                                    $false { $Hints.IPv4Address -split " " }
+                                                                    default { 'Unknown' }
                                                                 }
                                                                 'IPv6 Address' = Switch ([string]::IsNullOrEmpty($Hints.IPv6Address)) {
-                                                                    $true {'--'}
-                                                                    $false {$Hints.IPv6Address -split " "}
-                                                                    default {'Unknown'}
+                                                                    $true { '--' }
+                                                                    $false { $Hints.IPv6Address -split " " }
+                                                                    default { 'Unknown' }
                                                                 }
                                                             }
                                                             $OutObj += [pscustomobject]$inobj
-                                                        }
-                                                        catch {
-                                                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                        } catch {
+                                                            Write-PScriboMessage -IsWarning $_.Exception.Message
                                                         }
                                                     }
                                                 } else {
@@ -364,13 +353,12 @@ function Get-AbrADDNSInfrastructure {
                                                     }
 
                                                 }
-                                            }
-                                            catch {
-                                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Item)"
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Item)"
                                             }
 
                                             if ($HealthCheck.DNS.BestPractice) {
-                                                $OutObj | Where-Object { $_.'IPv4 Address' -eq '--' -and $_.'IPv6 Address' -eq '--' } | Set-Style -Style Warning -Property 'IPv4 Address','IPv6 Address'
+                                                $OutObj | Where-Object { $_.'IPv4 Address' -eq '--' -and $_.'IPv6 Address' -eq '--' } | Set-Style -Style Warning -Property 'IPv4 Address', 'IPv6 Address'
                                                 $OutObj | Where-Object { $_.'IPv4 Address'.Count -gt 1 } | Set-Style -Style Warning -Property 'IPv4 Address'
                                                 $OutObj | Where-Object { $_.'IPv6 Address'.Count -gt 1 } | Set-Style -Style Warning -Property 'IPv6 Address'
                                             }
@@ -404,9 +392,8 @@ function Get-AbrADDNSInfrastructure {
                                     }
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Table)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -418,22 +405,21 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                        Write-PscriboMessage "Collecting Zone Scope Recursion information from $($DC)."
+                                        Write-PScriboMessage "Collecting Zone Scope Recursion information from $($DC)."
                                         try {
                                             $DNSSetting = Get-DnsServerRecursionScope -CimSession $TempCIMSession -ComputerName $DC
                                             $inObj = [ordered] @{
                                                 'DC Name' = $($DC.ToString().ToUpper().Split(".")[0])
                                                 'Zone Name' = Switch ($DNSSetting.Name) {
-                                                    "." {"Root"}
-                                                    default {ConvertTo-EmptyToFiller $DNSSetting.Name}
+                                                    "." { "Root" }
+                                                    default { ConvertTo-EmptyToFiller $DNSSetting.Name }
                                                 }
                                                 'Forwarder' = $DNSSetting.Forwarder
                                                 'Use Recursion' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $DNSSetting.EnableRecursion)
                                             }
                                             $OutObj += [pscustomobject]$inobj
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Item)"
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Item)"
                                         }
                                     }
                                 }
@@ -448,16 +434,14 @@ function Get-AbrADDNSInfrastructure {
                                 }
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Table)"
                         }
                     }
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (DNS Infrastructure Section)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DNS Infrastructure Section)"
         }
     }
 

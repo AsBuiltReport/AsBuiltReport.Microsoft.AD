@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,26 +19,26 @@ function Get-AbrADKerberosAudit {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain
+        [string]
+        $Domain
     )
 
     begin {
-        Write-PscriboMessage "Discovering Kerberos Audit information on $Domain."
+        Write-PScriboMessage "Discovering Kerberos Audit information on $Domain."
     }
 
     process {
         if ($HealthCheck.Domain.Security) {
             try {
-                $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
-                $Unconstrained = Invoke-Command -Session $TempPssSession {Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:DC -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName}
-                Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
+                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                $Unconstrained = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:DC -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
+                Write-PScriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                 if ($Unconstrained) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Unconstrained Kerberos Delegation' {
                         Paragraph "The following section provide a summary of unconstrained kerberos delegation on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
-                        Write-PscriboMessage "Collecting Unconstrained Kerberos delegation information from $($Domain)."
+                        Write-PScriboMessage "Collecting Unconstrained Kerberos delegation information from $($Domain)."
                         foreach ($Item in $Unconstrained) {
                             try {
                                 $inObj = [ordered] @{
@@ -46,9 +46,8 @@ function Get-AbrADKerberosAudit {
                                     'Distinguished Name' = $Item.DistinguishedName
                                 }
                                 $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Item)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Item)"
                             }
                         }
 
@@ -74,17 +73,17 @@ function Get-AbrADKerberosAudit {
                         }
                     }
                 } else {
-                    Write-PscriboMessage -IsWarning "No Unconstrained Kerberos Delegation information found in $Domain, disabling the section."
+                    Write-PScriboMessage -IsWarning "No Unconstrained Kerberos Delegation information found in $Domain, disabling the section."
                 }
                 try {
-                    $KRBTGT = $Users | Where-Object {$_.Name  -eq 'krbtgt'}
-                    Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
+                    $KRBTGT = $Users | Where-Object { $_.Name -eq 'krbtgt' }
+                    Write-PScriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($KRBTGT) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'KRBTGT Account Audit' {
                             Paragraph "The following section provide a summary of KRBTGT account on Domain $($Domain.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()
-                            Write-PscriboMessage "Collecting KRBTGT account information from $($Domain)."
+                            Write-PScriboMessage "Collecting KRBTGT account information from $($Domain)."
                             try {
                                 $inObj = [ordered] @{
                                     'Name' = $KRBTGT.Name
@@ -93,9 +92,8 @@ function Get-AbrADKerberosAudit {
                                     'Distinguished Name' = $KRBTGT.DistinguishedName
                                 }
                                 $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (KRBTGT account Item)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (KRBTGT account Item)"
                             }
 
                             if ($HealthCheck.Domain.Security) {
@@ -120,22 +118,21 @@ function Get-AbrADKerberosAudit {
                             }
                         }
                     } else {
-                        Write-PscriboMessage -IsWarning "No KRBTGT Account Audit information found in $Domain, disabling the section."
+                        Write-PScriboMessage -IsWarning "No KRBTGT Account Audit information found in $Domain, disabling the section."
                     }
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
+                } catch {
+                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
                 try {
                     $SID = Invoke-Command -Session $TempPssSession { ((Get-ADDomain -Identity $using:Domain).domainsid).ToString() + "-500" }
-                    $ADMIN = $Users | Where-Object {$_.SID  -eq $SID}
-                    Write-PscriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
+                    $ADMIN = $Users | Where-Object { $_.SID -eq $SID }
+                    Write-PScriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($ADMIN) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Administrator Account Audit' {
                             Paragraph "The following section provide a summary of Administrator account on Domain $($Domain.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()
-                            Write-PscriboMessage "Collecting administrator account information from $($Domain)."
+                            Write-PScriboMessage "Collecting administrator account information from $($Domain)."
                             try {
                                 $inObj = [ordered] @{
                                     'Name' = $ADMIN.Name
@@ -145,9 +142,8 @@ function Get-AbrADKerberosAudit {
                                     'Distinguished Name' = $ADMIN.DistinguishedName
                                 }
                                 $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (ADMIN account Item)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (ADMIN account Item)"
                             }
 
                             if ($HealthCheck.Domain.Security) {
@@ -172,15 +168,13 @@ function Get-AbrADKerberosAudit {
                             }
                         }
                     } else {
-                        Write-PscriboMessage -IsWarning "No Administrator Account Audit information found in $Domain, disabling the section."
+                        Write-PScriboMessage -IsWarning "No Administrator Account Audit information found in $Domain, disabling the section."
                     }
+                } catch {
+                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
-                catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
-                }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
             }
         }
     }

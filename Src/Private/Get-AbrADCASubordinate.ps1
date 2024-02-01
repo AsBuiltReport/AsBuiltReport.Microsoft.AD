@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.0
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,20 +19,20 @@ function Get-AbrADCASubordinate {
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority Per Domain information."
+        Write-PScriboMessage "Collecting AD Certification Authority Per Domain information."
     }
 
     process {
         try {
-            Write-PscriboMessage "Discovering Active Directory CA Enterprise Subordinate information in $($ForestInfo.toUpper())."
-            if ($CAs | Where-Object {$_.IsRoot -like 'False'}) {
+            Write-PScriboMessage "Discovering Active Directory CA Enterprise Subordinate information in $($ForestInfo.toUpper())."
+            if ($CAs | Where-Object { $_.IsRoot -like 'False' }) {
                 Section -Style Heading2 "Enterprise Subordinate Certificate Authority" {
                     Paragraph "The following section provides the Enterprise Subordinate CA information."
                     BlankLine
                     $OutObj = @()
-                    foreach ($CA in ($CAs | Where-Object {$_.IsRoot -like 'False'})) {
+                    foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'False' })) {
                         try {
-                            Write-PscriboMessage "Collecting Enterprise Subordinate Certificate Authority information from $($CA.DisplayName)."
+                            Write-PScriboMessage "Collecting Enterprise Subordinate Certificate Authority information from $($CA.DisplayName)."
                             $inObj = [ordered] @{
                                 'CA Name' = $CA.DisplayName
                                 'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]
@@ -40,16 +40,16 @@ function Get-AbrADCASubordinate {
                                 'Config String' = $CA.ConfigString
                                 'Operating System' = $CA.OperatingSystem
                                 'Certificate' = $CA.Certificate
-                                'Auditing' = &{
-                                    (Find-AuditingIssue -ADCSObjects (Get-ADCSObject $ForestInfo) | Where-Object {$_.Name -eq $CA.DisplayName}).Issue
+                                'Auditing' = & {
+                                    (Find-AuditingIssue -ADCSObjects (Get-ADCSObject $ForestInfo) | Where-Object { $_.Name -eq $CA.DisplayName }).Issue
                                 }
                                 'Status' = $CA.ServiceStatus
                             }
                             $OutObj = [pscustomobject]$inobj
 
                             if ($HealthCheck.CA.Status) {
-                                $OutObj | Where-Object { $_.'Service Status' -notlike 'Running'} | Set-Style -Style Critical -Property 'Service Status'
-                                $OutObj | Where-Object { $_.'Auditing' -notlike 'Running'} | Set-Style -Style Critical -Property 'Auditing'
+                                $OutObj | Where-Object { $_.'Service Status' -notlike 'Running' } | Set-Style -Style Critical -Property 'Service Status'
+                                $OutObj | Where-Object { $_.'Auditing' -notlike 'Running' } | Set-Style -Style Critical -Property 'Auditing'
                             }
 
                             $TableParams = @{
@@ -61,16 +61,14 @@ function Get-AbrADCASubordinate {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        } catch {
+                            Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                     }
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning $_.Exception.Message
+        } catch {
+            Write-PScriboMessage -IsWarning $_.Exception.Message
         }
     }
 

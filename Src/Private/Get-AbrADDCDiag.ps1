@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,14 +19,14 @@ function Get-AbrADDCDiag {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain,
-            [string]
-            $DC
+        [string]
+        $Domain,
+        [string]
+        $DC
     )
 
     begin {
-        Write-PscriboMessage "Discovering Active Directory DCDiag information for domain $Domain."
+        Write-PScriboMessage "Discovering Active Directory DCDiag information for domain $Domain."
     }
 
     process {
@@ -60,10 +60,10 @@ function Get-AbrADDCDiag {
                             'CheckSecurityError' = 'Reports on the overall health of replication with respect to Active Directory security in domain controllers running Windows Server 2003 SP1.', 'Medium'
                             'FrsSysVol' = 'Checks that the file replication system (FRS) system volume (SYSVOL) is ready', 'Medium'
                         }
-                        Write-PscriboMessage "Discovered Active Directory DCDiag information for DC $DC."
-                        foreach ($Result in $DCDIAG | Where-Object {$_.Entity -eq $($DC.ToString().split('.')[0].ToUpper())}) {
+                        Write-PScriboMessage "Discovered Active Directory DCDiag information for DC $DC."
+                        foreach ($Result in $DCDIAG | Where-Object { $_.Entity -eq $($DC.ToString().split('.')[0].ToUpper()) }) {
                             try {
-                                Write-PscriboMessage "Collecting Active Directory DCDiag test '$($Result.TestName)' for DC $DC."
+                                Write-PScriboMessage "Collecting Active Directory DCDiag test '$($Result.TestName)' for DC $DC."
                                 $inObj = [ordered] @{
                                     'Test Name' = $Result.TestName
                                     'Result' = $TextInfo.ToTitleCase($Result.TestResult)
@@ -71,13 +71,12 @@ function Get-AbrADDCDiag {
                                     'Description' = $Description[$Result.TestName][0]
                                 }
                                 $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "Active Directory DCDiag $($Result.TestName) Section: $($_.Exception.Message)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "Active Directory DCDiag $($Result.TestName) Section: $($_.Exception.Message)"
                             }
                         }
                         if ($HealthCheck.DomainController.Diagnostic) {
-                            $OutObj | Where-Object { $_.'Result' -like 'failed'} | Set-Style -Style Critical
+                            $OutObj | Where-Object { $_.'Result' -like 'failed' } | Set-Style -Style Critical
                         }
                         $TableParams = @{
                             Name = "DCDiag Test Status - $($DC.ToString().split('.')[0].ToUpper())"
@@ -90,11 +89,10 @@ function Get-AbrADDCDiag {
                         $OutObj | Sort-Object -Property 'Entity' | Table @TableParams
                     }
                 } else {
-                    Write-PscriboMessage -IsWarning "No DCDiag information found in $DC, disabling the section."
+                    Write-PScriboMessage -IsWarning "No DCDiag information found in $DC, disabling the section."
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "Active Directory DCDiag Section: $($_.Exception.Message)"
+            } catch {
+                Write-PScriboMessage -IsWarning "Active Directory DCDiag Section: $($_.Exception.Message)"
             }
         }
     }

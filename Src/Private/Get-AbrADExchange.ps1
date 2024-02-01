@@ -5,7 +5,7 @@ function Get-AbrADExchange {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.0
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,7 @@ function Get-AbrADExchange {
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Exchange information of $($ForestInfo.toUpper())."
+        Write-PScriboMessage "Collecting AD Exchange information of $($ForestInfo.toUpper())."
     }
 
     process {
@@ -32,7 +32,7 @@ function Get-AbrADExchange {
                     $EXInfo = @()
                     foreach ($EXServer in $EXServers) {
                         try {
-                            Write-PscriboMessage "Collecting Active Directory Exchange information from $($ForestInfo.toUpper())"
+                            Write-PScriboMessage "Collecting Active Directory Exchange information from $($ForestInfo.toUpper())"
                             $inObj = [ordered] @{
                                 'Name' = $EXServer.Name
                                 'Dns Name' = $EXServer.DnsHostName
@@ -40,9 +40,8 @@ function Get-AbrADExchange {
                                 'Version' = $EXServer.Version
                             }
                             $EXInfo += [pscustomobject]$inobj
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Exchange Item)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Exchange Item)"
                         }
                     }
 
@@ -74,11 +73,10 @@ function Get-AbrADExchange {
                     }
                 }
             } else {
-                Write-PscriboMessage -IsWarning "No Exchange Infrastructure information found in $($ForestInfo.toUpper()), disabling the section."
+                Write-PScriboMessage -IsWarning "No Exchange Infrastructure information found in $($ForestInfo.toUpper()), disabling the section."
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Exchabge Table)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Exchabge Table)"
         }
     }
 
