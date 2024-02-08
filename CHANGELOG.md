@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.1] - 2024-01-31
 
+### Added
+
+- Site Inventory Diagram
+
 ### Changed
 
 - Removed Graphviz install check code.
@@ -23,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added initial diagram support:
   - Forest Diagram
-  - Site Inventory Diagram
 - Added disclaimer section if the EnableHealthCheck option is used.
 
 ### Fixed
