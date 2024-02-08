@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added initial diagram support:
   - Forest Diagram
+  - Site Inventory Diagram
 - Added disclaimer section if the EnableHealthCheck option is used.
 
 ### Fixed
