@@ -5,7 +5,7 @@ function Get-AbrADDuplicateSPN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,19 +19,19 @@ function Get-AbrADDuplicateSPN {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain
+        [string]
+        $Domain
     )
 
     begin {
-        Write-PscriboMessage "Discovering duplicate SPN information on $Domain."
+        Write-PScriboMessage "Discovering duplicate SPN information on $Domain."
     }
 
     process {
         if ($HealthCheck.Domain.SPN) {
             try {
                 $SPNs = Get-WinADDuplicateSPN -Domain $Domain -Credential $Credential
-                Write-PscriboMessage "Discovered AD Duplicate SPN information from $Domain."
+                Write-PScriboMessage "Discovered AD Duplicate SPN information from $Domain."
                 if ($SPNs) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate SPN' {
                         Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.ToString().ToUpper())."
@@ -39,7 +39,7 @@ function Get-AbrADDuplicateSPN {
                         $OutObj = @()
                         foreach ($SPN in $SPNs) {
                             try {
-                                Write-PscriboMessage "Collecting $($SPN.Name) information from $($Domain)."
+                                Write-PScriboMessage "Collecting $($SPN.Name) information from $($Domain)."
                                 $inObj = [ordered] @{
                                     'Name' = $SPN.Name
                                     'Count' = $SPN.Count
@@ -50,9 +50,8 @@ function Get-AbrADDuplicateSPN {
                                 if ($HealthCheck.Domain.SPN) {
                                     $OutObj | Set-Style -Style Warning
                                 }
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (SPN Item)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SPN Item)"
                             }
                         }
 
@@ -76,11 +75,10 @@ function Get-AbrADDuplicateSPN {
                         }
                     }
                 } else {
-                    Write-PscriboMessage -IsWarning "No Duplicate SPN information found in $Domain, disabling the section."
+                    Write-PScriboMessage -IsWarning "No Duplicate SPN information found in $Domain, disabling the section."
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (SPN Table)"
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SPN Table)"
             }
         }
     }

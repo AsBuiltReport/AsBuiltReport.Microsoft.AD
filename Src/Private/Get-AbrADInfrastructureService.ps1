@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,29 +19,29 @@ function Get-AbrADInfrastructureService {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $DC
+        [string]
+        $DC
     )
 
     begin {
-        Write-PscriboMessage "Discovering Active Directory DC Infrastructure Services information of $DC."
+        Write-PScriboMessage "Discovering Active Directory DC Infrastructure Services information of $DC."
     }
 
     process {
         try {
             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerInfrastructureServices'
-            $Available = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service "W32Time" | Select-Object DisplayName, Name, Status}
+            $Available = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-Service "W32Time" | Select-Object DisplayName, Name, Status }
             if ($Available) {
-                Write-PscriboMessage "Discovered Active Directory DC Infrastructure Services information of $DC."
+                Write-PScriboMessage "Discovered Active Directory DC Infrastructure Services information of $DC."
                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                     $OutObj = @()
                     if ($DC) {
-                        $Services = @('CertSvc','DHCPServer','DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon','Active Directory Domain Services','W32Time','ADWS','RPCSS','EVENTSYSTEM','DNSCACHE','SAMSS','WORKSTATION','Spooler')
+                        $Services = @('CertSvc', 'DHCPServer', 'DNS', 'DFS Replication', 'Intersite Messaging', 'Kerberos Key Distribution Center', 'NetLogon', 'Active Directory Domain Services', 'W32Time', 'ADWS', 'RPCSS', 'EVENTSYSTEM', 'DNSCACHE', 'SAMSS', 'WORKSTATION', 'Spooler')
                         foreach ($Service in $Services) {
                             try {
-                                $Status = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-Service $using:Service -ErrorAction SilentlyContinue | Select-Object DisplayName, Name, Status}
+                                $Status = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-Service $using:Service -ErrorAction SilentlyContinue | Select-Object DisplayName, Name, Status }
                                 if ($Status) {
-                                    Write-PscriboMessage "Collecting Domain Controller '$($Status.DisplayName)' Services status on $DC."
+                                    Write-PScriboMessage "Collecting Domain Controller '$($Status.DisplayName)' Services status on $DC."
                                     $inObj = [ordered] @{
                                         'Display Name' = $Status.DisplayName
                                         'Short Name' = $Status.Name
@@ -49,15 +49,14 @@ function Get-AbrADInfrastructureService {
                                     }
                                     $OutObj += [pscustomobject]$inobj
                                 }
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Item)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Item)"
                             }
                         }
 
                         if ($HealthCheck.DomainController.Services) {
-                            $OutObj | Where-Object { $_.'Status' -notlike 'Running' -and $_.'Short Name' -notlike 'Spooler'} | Set-Style -Style Warning -Property 'Status'
-                            $OutObj | Where-Object { $_.'Short Name' -eq 'Spooler'} | Set-Style -Style Critical
+                            $OutObj | Where-Object { $_.'Status' -notlike 'Running' -and $_.'Short Name' -notlike 'Spooler' } | Set-Style -Style Warning -Property 'Status'
+                            $OutObj | Where-Object { $_.'Short Name' -eq 'Spooler' } | Set-Style -Style Critical
                         }
 
                         $TableParams = @{
@@ -80,14 +79,13 @@ function Get-AbrADInfrastructureService {
                     }
                 }
             } else {
-                Write-PscriboMessage -IsWarning "No Infrastructure Services Status information found in $DC, disabling the section."
+                Write-PScriboMessage -IsWarning "No Infrastructure Services Status information found in $DC, disabling the section."
             }
             if ($DCPssSession) {
                 Remove-PSSession -Session $DCPssSession
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Section)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Section)"
         }
     }
 

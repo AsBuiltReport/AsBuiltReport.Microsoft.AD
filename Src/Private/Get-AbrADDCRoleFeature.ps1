@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,12 +19,12 @@ function Get-AbrADDCRoleFeature {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $DC
+        [string]
+        $DC
     )
 
     begin {
-        Write-PscriboMessage "Discovering Active Directory DC Role & Features information of $DC."
+        Write-PScriboMessage "Discovering Active Directory DC Role & Features information of $DC."
     }
 
     process {
@@ -33,25 +33,24 @@ function Get-AbrADDCRoleFeature {
             if ($DCPssSession) {
                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                     $OutObj = @()
-                    $Features = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-WindowsFeature | Where-Object {$_.installed -eq "True" -and $_.FeatureType -eq 'Role'}}
+                    $Features = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq "True" -and $_.FeatureType -eq 'Role' } }
                     Remove-PSSession -Session $DCPssSession
                     foreach ($Feature in $Features) {
                         try {
-                            Write-PscriboMessage "Collecting DC Roles: $($Feature.DisplayName) on $DC."
+                            Write-PScriboMessage "Collecting DC Roles: $($Feature.DisplayName) on $DC."
                             $inObj = [ordered] @{
                                 'Name' = $Feature.DisplayName
                                 'Parent' = $Feature.FeatureType
                                 'Description' = $Feature.Description
                             }
                             $OutObj += [pscustomobject]$inobj
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "Roles $($Feature.DisplayName) Section: $($_.Exception.Message)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "Roles $($Feature.DisplayName) Section: $($_.Exception.Message)"
                         }
                     }
 
                     if ($HealthCheck.DomainController.BestPractice) {
-                        $OutObj | Where-Object {$_.'Name' -notin @('Active Directory Domain Services','DNS Server','File and Storage Services','DHCP Server')} | Set-Style -Style Warning
+                        $OutObj | Where-Object { $_.'Name' -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') } | Set-Style -Style Warning
                     }
 
                     $TableParams = @{
@@ -63,7 +62,7 @@ function Get-AbrADDCRoleFeature {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Table @TableParams
-                    if ($HealthCheck.DomainController.Software -and ($OutObj | Where-Object {$_.'Name' -notin @('Active Directory Domain Services','DNS Server','File and Storage Services')})) {
+                    if ($HealthCheck.DomainController.Software -and ($OutObj | Where-Object { $_.'Name' -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services') })) {
                         Paragraph "Health Check:" -Bold -Underline
                         BlankLine
                         Paragraph {
@@ -73,9 +72,8 @@ function Get-AbrADDCRoleFeature {
                     }
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "Roles Section: $($_.Exception.Message)"
+        } catch {
+            Write-PScriboMessage -IsWarning "Roles Section: $($_.Exception.Message)"
         }
     }
 

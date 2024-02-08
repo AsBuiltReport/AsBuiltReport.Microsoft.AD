@@ -59,9 +59,9 @@ The Microsoft AD As Built Report supports the following Active Directory version
 This report is compatible with the following PowerShell versions;
 
 <!-- ********** Update supported PowerShell versions ********** -->
-| Windows PowerShell 5.1 |     PowerShell 7    |
-|:----------------------:|:--------------------:|
-|   :white_check_mark:   | :x: |
+| Windows PowerShell 5.1 | PowerShell 7 |
+| :--------------------: | :----------: |
+|   :white_check_mark:   |     :x:      |
 
 ## :wrench: System Requirements
 <!-- ********** Update system requirements ********** -->
@@ -151,29 +151,29 @@ The following provides information of how to configure each schema within the re
 
 The **Report** schema provides configuration of the Microsoft AD report information.
 
-| Sub-Schema          | Setting      | Default                        | Description                                                  |
-|---------------------|--------------|--------------------------------|--------------------------------------------------------------|
+| Sub-Schema          | Setting      | Default                      | Description                                                  |
+| ------------------- | ------------ | ---------------------------- | ------------------------------------------------------------ |
 | Name                | User defined | Microsoft AD As Built Report | The name of the As Built Report                              |
-| Version             | User defined | 1.0                            | The report version                                           |
-| Status              | User defined | Released                       | The report release status                                    |
-| ShowCoverPageImage  | true / false | true                           | Toggle to enable/disable the display of the cover page image |
-| ShowTableOfContents | true / false | true                           | Toggle to enable/disable table of contents                   |
-| ShowHeaderFooter    | true / false | true                           | Toggle to enable/disable document headers & footers          |
-| ShowTableCaptions   | true / false | true                           | Toggle to enable/disable table captions/numbering            |
+| Version             | User defined | 1.0                          | The report version                                           |
+| Status              | User defined | Released                     | The report release status                                    |
+| ShowCoverPageImage  | true / false | true                         | Toggle to enable/disable the display of the cover page image |
+| ShowTableOfContents | true / false | true                         | Toggle to enable/disable table of contents                   |
+| ShowHeaderFooter    | true / false | true                         | Toggle to enable/disable document headers & footers          |
+| ShowTableCaptions   | true / false | true                         | Toggle to enable/disable table captions/numbering            |
 
 ### Options
 
 The **Options** schema allows certain options within the report to be toggled on or off.
 
-| Sub-Schema      | Setting      | Default | Description                                                                                                                                                                                 |
-|-----------------|--------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ShowDefinitionInfo | true/false  | false    | Toggle to enable/disable Microsoft AD term explanations
-| PSDefaultAuthentication | Negotiate/Kerberos  | Negotiate    | Allow to set the value of the PSRemoting authentication method. For Workgroup authentication Negotiate value is required. |
-| Exclude.Domains | Array List  | Empty    | Allow to filter on AD Domain FQDN |
-| Exclude.DCs | Array List  | Empty    | Allow to filter on AD Domain Controller Server FQDN. |
-| Include.Domains | Array List  | Empty    | Allow only a list of Active Directory Domain Controller FQDN to document. |
-| Include.DCs | Array List  | Empty    | Allow only a list of Active Directory Domain FQDN to document. |
-| EnableDiagrams          | true / false       | true                          | Toggle to enable/disable of Infrastructure Diagrams|
+| Sub-Schema              | Setting            | Default   | Description                                                                                                               |
+| ----------------------- | ------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| ShowDefinitionInfo      | true/false         | false     | Toggle to enable/disable Microsoft AD term explanations                                                                   |
+| PSDefaultAuthentication | Negotiate/Kerberos | Negotiate | Allow to set the value of the PSRemoting authentication method. For Workgroup authentication Negotiate value is required. |
+| Exclude.Domains         | Array List         | Empty     | Allow to filter on AD Domain FQDN                                                                                         |
+| Exclude.DCs             | Array List         | Empty     | Allow to filter on AD Domain Controller Server FQDN.                                                                      |
+| Include.Domains         | Array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.                                                 |
+| Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                                                            |
+| EnableDiagrams          | true / false       | true      | Toggle to enable/disable of Infrastructure Diagrams                                                                       |
 
 
 ### InfoLevel
@@ -182,21 +182,21 @@ The **InfoLevel** schema allows configuration of each section of the report at a
 
 There are 4 levels (0-3) of detail granularity for each section as follows;
 
-| Setting | InfoLevel         | Description                                                                                                                                |
-|:-------:|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-|    0    | Disabled          | Does not collect or display any information                                                                                                |
-|    1    | Enabled           | Provides summarised information for a collection of objects                                                                                |
-|    2    | Adv Summary       | Provides condensed, detailed information for a collection of objects                                                                       |
-|    3    | Detailed          | Provides detailed information for individual objects                                                                                       |
+| Setting | InfoLevel   | Description                                                          |
+| :-----: | ----------- | -------------------------------------------------------------------- |
+|    0    | Disabled    | Does not collect or display any information                          |
+|    1    | Enabled     | Provides summarised information for a collection of objects          |
+|    2    | Adv Summary | Provides condensed, detailed information for a collection of objects |
+|    3    | Detailed    | Provides detailed information for individual objects                 |
 
 The table below outlines the default and maximum **InfoLevel** settings for each section.
 
-| Sub-Schema   | Default Setting | Maximum Setting |
-|--------------|:---------------:|:---------------:|
-| Forest       |        1        |        1        |
-| Domain       |        1        |        3        |
-| DNS          |        0        |        2        |
-| CA           |        0        |        3        |
+| Sub-Schema | Default Setting | Maximum Setting |
+| ---------- | :-------------: | :-------------: |
+| Forest     |        1        |        1        |
+| Domain     |        1        |        3        |
+| DNS        |        0        |        2        |
+| CA         |        0        |        3        |
 
 ### Healthcheck
 

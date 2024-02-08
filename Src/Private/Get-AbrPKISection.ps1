@@ -5,7 +5,7 @@ function Get-AbrPKISection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.0
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,7 @@ function Get-AbrPKISection {
     )
 
     begin {
-        Write-PscriboMessage "Discovering PKI infrastructure information from $ForestInfo."
+        Write-PScriboMessage "Discovering PKI infrastructure information from $ForestInfo."
     }
 
     process {
@@ -27,8 +27,8 @@ function Get-AbrPKISection {
             try {
                 $CurrentMachineADDomain = Get-ComputerADDomain -ErrorAction SilentlyContinue
             } catch {
-                Write-PscriboMessage -IsWarning 'Unable to determine current AD Domain'
-                Write-PscriboMessage -IsWarning $_.Exception.Message
+                Write-PScriboMessage -IsWarning 'Unable to determine current AD Domain'
+                Write-PScriboMessage -IsWarning $_.Exception.Message
             }
             if ($CurrentMachineADDomain.Name -in $ADSystem.Domains) {
                 Write-PScriboMessage "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forrest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
@@ -36,7 +36,7 @@ function Get-AbrPKISection {
                     Write-PScriboMessage "Collecting Certification Authority information from $($System.split(".")[0])"
                     $script:CAs = Get-CertificationAuthority -Enterprise
                 } catch {
-                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                    Write-PScriboMessage -IsWarning $_.Exception.Message
                 }
 
                 if ($CAs) {
@@ -53,57 +53,56 @@ function Get-AbrPKISection {
                             try {
                                 Get-AbrADCASummary
                             } catch {
-                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                Write-PScriboMessage -IsWarning $_.Exception.Message
                             }
                             if ($InfoLevel.CA -ge 2) {
                                 try {
                                     Get-AbrADCARoot
                                     Get-AbrADCASubordinate
                                 } catch {
-                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                    Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
                             }
-                            foreach ($CA in ($CAs | Where-Object {$_.IsAccessible -notlike 'False'}).ComputerName) {
+                            foreach ($CA in ($CAs | Where-Object { $_.IsAccessible -notlike 'False' }).ComputerName) {
                                 $CAObject = Get-CertificationAuthority -Enterprise -ComputerName $CA
                                 if ($CAObject) {
                                     Section -Style Heading2 "$($CAObject.DisplayName) Details" {
                                         try {
                                             Get-AbrADCASecurity -CA $CAObject
                                         } catch {
-                                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            Write-PScriboMessage -IsWarning $_.Exception.Message
                                         }
                                         try {
                                             Get-AbrADCACryptographyConfig -CA $CAObject
                                         } catch {
-                                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            Write-PScriboMessage -IsWarning $_.Exception.Message
                                         }
                                         if ($InfoLevel.CA -ge 2) {
                                             try {
                                                 Get-AbrADCAAIA -CA $CAObject
                                                 Get-AbrADCACRLSetting -CA $CAObject
                                             } catch {
-                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                Write-PScriboMessage -IsWarning $_.Exception.Message
                                             }
                                         }
                                         if ($InfoLevel.CA -ge 2) {
                                             try {
                                                 Get-AbrADCATemplate -CA $CAObject
                                             } catch {
-                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                Write-PScriboMessage -IsWarning $_.Exception.Message
                                             }
                                         }
                                         try {
                                             Get-AbrADCAKeyRecoveryAgent -CA $CAObject
                                         } catch {
-                                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            Write-PScriboMessage -IsWarning $_.Exception.Message
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                    } catch {
+                        Write-PScriboMessage -IsWarning $_.Exception.Message
                         continue
                     }
                 }

@@ -5,7 +5,7 @@ function Get-AbrADCASummary {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.9
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,7 @@ function Get-AbrADCASummary {
     )
 
     begin {
-        Write-PscriboMessage "Collecting Certification Authority information."
+        Write-PScriboMessage "Collecting Certification Authority information."
     }
 
     process {
@@ -27,7 +27,7 @@ function Get-AbrADCASummary {
         if ($ForestInfo) {
             foreach ($CA in $CAs) {
                 try {
-                    Write-PscriboMessage "Collecting AD Certification Authority Summary information of $($CA.DisplayName)."
+                    Write-PScriboMessage "Collecting AD Certification Authority Summary information of $($CA.DisplayName)."
                     $inObj = [ordered] @{
                         'CA Name' = $CA.DisplayName
                         'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]
@@ -35,14 +35,13 @@ function Get-AbrADCASummary {
                         'Status' = $CA.ServiceStatus
                     }
                     $OutObj += [pscustomobject]$inobj
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                } catch {
+                    Write-PScriboMessage -IsWarning $_.Exception.Message
                 }
             }
 
             if ($HealthCheck.CA.Status) {
-                $OutObj | Where-Object { $_.'Service Status' -notlike 'Running'} | Set-Style -Style Critical -Property 'Service Status'
+                $OutObj | Where-Object { $_.'Service Status' -notlike 'Running' } | Set-Style -Style Critical -Property 'Service Status'
             }
 
             $TableParams = @{

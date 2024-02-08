@@ -5,7 +5,7 @@ function Get-AbrADCACRLSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.0
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,11 +19,11 @@ function Get-AbrADCACRLSetting {
         [Parameter (
             Position = 0,
             Mandatory)]
-            $CA
+        $CA
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority Certificate Revocation List information from $($CA.Name)."
+        Write-PScriboMessage "Collecting AD Certification Authority Certificate Revocation List information from $($CA.Name)."
     }
 
     process {
@@ -34,7 +34,7 @@ function Get-AbrADCACRLSetting {
                 Section -Style Heading4 "CRL Validity Period" {
                     $OutObj = @()
                     try {
-                        Write-PscriboMessage "Collecting AD CA CRL Validity Period information on $($CA.Name)."
+                        Write-PScriboMessage "Collecting AD CA CRL Validity Period information on $($CA.Name)."
                         $CRLs = Get-CRLValidityPeriod -CertificationAuthority $CA
                         foreach ($VP in $CRLs) {
                             try {
@@ -46,14 +46,12 @@ function Get-AbrADCACRLSetting {
                                     'Delta CRL Overlap' = $VP.DeltaCRLOverlap
                                 }
                                 $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "CRL Validity Period $($VP.Name) Section: $($_.Exception.Message)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "CRL Validity Period $($VP.Name) Section: $($_.Exception.Message)"
                             }
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "CRL Validity Period Section: $($_.Exception.Message)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "CRL Validity Period Section: $($_.Exception.Message)"
                     }
 
                     $TableParams = @{
@@ -70,7 +68,7 @@ function Get-AbrADCACRLSetting {
                     Section -Style Heading4 "CRL Flags Settings" {
                         $OutObj = @()
                         try {
-                            Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $($CA.Name)."
+                            Write-PScriboMessage "Collecting AD CA CRL Distribution Point information on $($CA.Name)."
                             $CRLs = Get-CertificateRevocationListFlag -CertificationAuthority $CA
                             foreach ($Flag in $CRLs) {
                                 try {
@@ -80,14 +78,12 @@ function Get-AbrADCACRLSetting {
                                         'CRL Flags' = $Flag.CRLFlags
                                     }
                                     $OutObj += [pscustomobject]$inobj
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "CRL Validity Period $($Flag.Name) Section: $($_.Exception.Message)"
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "CRL Validity Period $($Flag.Name) Section: $($_.Exception.Message)"
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "CRL Validity Period Table Section: $($_.Exception.Message)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "CRL Validity Period Table Section: $($_.Exception.Message)"
                         }
 
                         $TableParams = @{
@@ -100,9 +96,8 @@ function Get-AbrADCACRLSetting {
                         }
                         $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
                     }
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning "CRL Validity Period Section: $($_.Exception.Message)"
+                } catch {
+                    Write-PScriboMessage -IsWarning "CRL Validity Period Section: $($_.Exception.Message)"
                 }
                 try {
                     Section -Style Heading4 "CRL Distribution Point" {
@@ -110,7 +105,7 @@ function Get-AbrADCACRLSetting {
                         BlankLine
                         try {
                             $OutObj = @()
-                            Write-PscriboMessage "Collecting AD CA CRL Distribution Point information on $($CA.NAme)."
+                            Write-PScriboMessage "Collecting AD CA CRL Distribution Point information on $($CA.NAme)."
                             $CRL = Get-CRLDistributionPoint -CertificationAuthority $CA
                             foreach ($URI in $CRL.URI) {
                                 try {
@@ -137,24 +132,20 @@ function Get-AbrADCACRLSetting {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Table @TableParams
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                } catch {
+                                    Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        } catch {
+                            Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                     }
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                } catch {
+                    Write-PScriboMessage -IsWarning $_.Exception.Message
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (CRL Distribution Point)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (CRL Distribution Point)"
         }
         try {
             Section -Style Heading3 "AIA and CDP Health Status" {
@@ -165,25 +156,23 @@ function Get-AbrADCACRLSetting {
                     $CAHealth = Get-EnterprisePKIHealthStatus -CertificateAuthority $CA
                     foreach ($Health in $CAHealth) {
                         try {
-                            Write-PscriboMessage "Collecting AIA and CDP Health Status from $($Health.Name)."
+                            Write-PScriboMessage "Collecting AIA and CDP Health Status from $($Health.Name)."
                             $inObj = [ordered] @{
                                 'CA Name' = $Health.Name
                                 'Childs' = ($Health.Childs).Name
                                 'Health' = $Health.Status
                             }
                             $OutObj += [pscustomobject]$inobj
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        } catch {
+                            Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                     }
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                } catch {
+                    Write-PScriboMessage -IsWarning $_.Exception.Message
                 }
 
                 if ($HealthCheck.CA.Status) {
-                    $OutObj | Where-Object { $_.'Health' -notlike 'OK'} | Set-Style -Style Critical -Property 'Health'
+                    $OutObj | Where-Object { $_.'Health' -notlike 'OK' } | Set-Style -Style Critical -Property 'Health'
                 }
 
                 $TableParams = @{
@@ -196,9 +185,8 @@ function Get-AbrADCACRLSetting {
                 }
                 $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning $_.Exception.Message
+        } catch {
+            Write-PScriboMessage -IsWarning $_.Exception.Message
         }
     }
 

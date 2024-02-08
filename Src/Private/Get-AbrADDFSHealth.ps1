@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,21 +19,21 @@ function Get-AbrADDFSHealth {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain
+        [string]
+        $Domain
     )
 
     begin {
-        Write-PscriboMessage "Discovering AD Domain DFS Health information on $Domain."
+        Write-PScriboMessage "Discovering AD Domain DFS Health information on $Domain."
     }
 
     process {
         if ($HealthCheck.Domain.DFS) {
             try {
                 if ($Options.Exclude.DCs) {
-                    $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential | Where-Object {$_.DomainController -notin ($Options.Exclude.DCs).split(".", 2)[0]}
-                } Else {$DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential}
-                Write-PscriboMessage "Discovered AD Domain DFS Health information from $Domain."
+                    $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential | Where-Object { $_.DomainController -notin ($Options.Exclude.DCs).split(".", 2)[0] }
+                } Else { $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential }
+                Write-PScriboMessage "Discovered AD Domain DFS Health information from $Domain."
                 if ($DFS) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Replication Status' {
                         Paragraph "The following section details the sysvol folder replication status for Domain $($Domain.ToString().ToUpper())."
@@ -51,9 +51,8 @@ function Get-AbrADDFSHealth {
 
                                 }
                                 $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "Sysvol Replication Status Iten Section: $($_.Exception.Message)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "Sysvol Replication Status Iten Section: $($_.Exception.Message)"
                             }
                         }
 
@@ -96,29 +95,28 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 } else {
-                    Write-PscriboMessage -IsWarning "No DFS information found in $Domain, disabling the section."
+                    Write-PScriboMessage -IsWarning "No DFS information found in $Domain, disabling the section."
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
+            } catch {
+                Write-PScriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
             }
             try {
-                Write-PscriboMessage "Discovered AD Domain Sysvol Health information from $Domain."
-                $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
+                Write-PScriboMessage "Discovered AD Domain Sysvol Health information from $Domain."
+                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth'
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
-                $SYSVOLFolder = Invoke-Command -Session $DCPssSession {Get-ChildItem -path $('\\'+$using:Domain+'\SYSVOL\'+$using:Domain) -Recurse | Where-Object -FilterScript {$_.PSIsContainer -eq $false} | Group-Object -Property Extension | ForEach-Object -Process {
-                    New-Object -TypeName PSObject -Property @{
-                        'Extension'= $_.name
-                        'Count' = $_.count
-                        'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
-                        } } | Sort-Object -Descending -Property 'Totalsize'}
+                $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\SYSVOL\' + $using:Domain) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
+                        New-Object -TypeName PSObject -Property @{
+                            'Extension' = $_.name
+                            'Count' = $_.count
+                            'TotalSize' = '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) / 1MB)
+                        } } | Sort-Object -Descending -Property 'Totalsize' }
                 if ($SYSVOLFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Content Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) sysvol health status."
                         BlankLine
                         $OutObj = @()
-                        Write-PscriboMessage "Collecting Sysvol information from $($Domain)."
+                        Write-PScriboMessage "Collecting Sysvol information from $($Domain)."
                         foreach ($Extension in $SYSVOLFolder) {
                             try {
                                 $inObj = [ordered] @{
@@ -127,14 +125,13 @@ function Get-AbrADDFSHealth {
                                     'Size' = "$($Extension.TotalSize) MB"
                                 }
                                 $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "Sysvol Health $($Extension.Extension) Section: $($_.Exception.Message)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "Sysvol Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }
                         }
 
                         if ($HealthCheck.Domain.DFS) {
-                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico') } | Set-Style -Style Warning -Property 'Extension'
+                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') } | Set-Style -Style Warning -Property 'Extension'
                         }
 
                         $TableParams = @{
@@ -147,7 +144,7 @@ function Get-AbrADDFSHealth {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
-                        if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico')}) {
+                        if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') }) {
                             Paragraph "Health Check:" -Bold -Underline
                             BlankLine
                             Paragraph {
@@ -157,32 +154,31 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 } else {
-                    Write-PscriboMessage -IsWarning "No SYSVOL folder information found in $Domain, disabling the section."
+                    Write-PScriboMessage -IsWarning "No SYSVOL folder information found in $Domain, disabling the section."
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
+            } catch {
+                Write-PScriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
             }
             try {
-                Write-PscriboMessage "Discovered AD Domain Netlogon Health information from $Domain."
-                $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
+                Write-PScriboMessage "Discovered AD Domain Netlogon Health information from $Domain."
+                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth'
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
-                $NetlogonFolder = Invoke-Command -Session $DCPssSession {Get-ChildItem -path $('\\'+$using:Domain+'\NETLOGON\') -Recurse | Where-Object -FilterScript {$_.PSIsContainer -eq $false} | Group-Object -Property Extension | ForEach-Object -Process {
-                    New-Object -TypeName PSObject -Property @{
-                        'Extension'= $_.name
-                        'Count' = $_.count
-                        'TotalSize'= '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) /1MB)
-                        } } | Sort-Object -Descending -Property 'Totalsize'}
+                $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
+                        New-Object -TypeName PSObject -Property @{
+                            'Extension' = $_.name
+                            'Count' = $_.count
+                            'TotalSize' = '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) / 1MB)
+                        } } | Sort-Object -Descending -Property 'Totalsize' }
                 if ($NetlogonFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Netlogon Content Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) netlogon health status."
                         BlankLine
                         $OutObj = @()
-                        Write-PscriboMessage "Collecting Netlogon information from $($Domain)."
+                        Write-PScriboMessage "Collecting Netlogon information from $($Domain)."
                         foreach ($Extension in $NetlogonFolder) {
                             try {
                                 $inObj = [ordered] @{
@@ -191,14 +187,13 @@ function Get-AbrADDFSHealth {
                                     'Size' = "$($Extension.TotalSize) MB"
                                 }
                                 $OutObj += [pscustomobject]$inobj
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "Netlogon Health $($Extension.Extension) Section: $($_.Exception.Message)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "Netlogon Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }
                         }
 
                         if ($HealthCheck.Domain.DFS) {
-                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico') } | Set-Style -Style Warning -Property 'Extension'
+                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') } | Set-Style -Style Warning -Property 'Extension'
                         }
 
                         $TableParams = @{
@@ -211,7 +206,7 @@ function Get-AbrADDFSHealth {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
-                        if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat','.exe','.nix','.vbs','.pol','.reg','.xml','.admx','.adml','.inf','.ini','.adm','.kix','.msi','.ps1','.cmd','.ico')}) {
+                        if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') }) {
                             Paragraph "Health Check:" -Bold -Underline
                             BlankLine
                             Paragraph {
@@ -221,14 +216,13 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 } else {
-                    Write-PscriboMessage -IsWarning "No NETLOGON folder information found in $Domain, disabling the section."
+                    Write-PScriboMessage -IsWarning "No NETLOGON folder information found in $Domain, disabling the section."
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "Sysvol Health Section: $($_.Exception.Message)"
+            } catch {
+                Write-PScriboMessage -IsWarning "Sysvol Health Section: $($_.Exception.Message)"
             }
         }
     }

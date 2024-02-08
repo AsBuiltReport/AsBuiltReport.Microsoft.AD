@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,43 +19,42 @@ function Get-AbrADTrust {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain
+        [string]
+        $Domain
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Trust information of $($Domain.ToString().ToUpper())."
+        Write-PScriboMessage "Collecting AD Trust information of $($Domain.ToString().ToUpper())."
     }
 
     process {
         try {
             if ($Domain) {
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
-                    $Trusts = Invoke-Command -Session $TempPssSession {Get-ADTrust -Filter * -Server $using:DC}
+                    $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                    $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Server $using:DC }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {
                             $TrustInfo = @()
                             foreach ($Trust in $Trusts) {
                                 try {
-                                    Write-PscriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
+                                    Write-PScriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
                                     $inObj = [ordered] @{
                                         'Name' = $Trust.Name
                                         'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Domain $Domain
                                         'Source' = ConvertTo-ADObjectName $Trust.Source -Session $TempPssSession -DC $DC
                                         'Target' = $Trust.Target
                                         'Direction' = $Trust.Direction
-                                        'IntraForest' =  ConvertTo-TextYN $Trust.IntraForest
-                                        'Selective Authentication' =  ConvertTo-TextYN $Trust.SelectiveAuthentication
-                                        'SID Filtering Forest Aware' =  ConvertTo-TextYN $Trust.SIDFilteringForestAware
-                                        'SID Filtering Quarantined' =  ConvertTo-TextYN $Trust.SIDFilteringQuarantined
+                                        'IntraForest' = ConvertTo-TextYN $Trust.IntraForest
+                                        'Selective Authentication' = ConvertTo-TextYN $Trust.SelectiveAuthentication
+                                        'SID Filtering Forest Aware' = ConvertTo-TextYN $Trust.SIDFilteringForestAware
+                                        'SID Filtering Quarantined' = ConvertTo-TextYN $Trust.SIDFilteringQuarantined
                                         'Trust Type' = $Trust.TrustType
                                         'Uplevel Only' = ConvertTo-TextYN $Trust.UplevelOnly
                                     }
                                     $TrustInfo += [pscustomobject]$inobj
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Item)"
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Item)"
                                 }
                             }
 
@@ -87,16 +86,14 @@ function Get-AbrADTrust {
                             }
                         }
                     } else {
-                        Write-PscriboMessage -IsWarning "No Domain Trust information found in $Domain, disabling the section."
+                        Write-PScriboMessage -IsWarning "No Domain Trust information found in $Domain, disabling the section."
                     }
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Table)"
+                } catch {
+                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Table)"
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Trust Section)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Section)"
         }
     }
 

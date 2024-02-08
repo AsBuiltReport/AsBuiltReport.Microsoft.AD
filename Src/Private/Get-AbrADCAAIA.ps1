@@ -5,7 +5,7 @@ function Get-AbrADCAAIA {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,11 +19,11 @@ function Get-AbrADCAAIA {
         [Parameter (
             Position = 0,
             Mandatory)]
-            $CA
+        $CA
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority Authority Information Access information."
+        Write-PScriboMessage "Collecting AD Certification Authority Authority Information Access information."
     }
 
     process {
@@ -33,7 +33,7 @@ function Get-AbrADCAAIA {
                 BlankLine
                 try {
                     $OutObj = @()
-                    Write-PscriboMessage "Collecting AD CA Authority Information Access information on $($CA.Name)."
+                    Write-PScriboMessage "Collecting AD CA Authority Information Access information on $($CA.Name)."
                     $AIA = Get-AuthorityInformationAccess -CertificationAuthority $CA
                     foreach ($URI in $AIA.URI) {
                         try {
@@ -56,14 +56,12 @@ function Get-AbrADCAAIA {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "Authority Information Access Item $($URI.RegURI) Section: $($_.Exception.Message)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "Authority Information Access Item $($URI.RegURI) Section: $($_.Exception.Message)"
                         }
                     }
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning "Authority Information Access Section: $($_.Exception.Message)"
+                } catch {
+                    Write-PScriboMessage -IsWarning "Authority Information Access Section: $($_.Exception.Message)"
                 }
             }
         }

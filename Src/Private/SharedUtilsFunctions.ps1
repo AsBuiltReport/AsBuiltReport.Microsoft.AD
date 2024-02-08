@@ -16,23 +16,23 @@
     [CmdletBinding()]
     [OutputType([String])]
     Param
-        (
+    (
         [Parameter (
             Position = 0,
             Mandatory)]
-            [AllowEmptyString()]
-            [string]
-            $TEXT
-        )
+        [AllowEmptyString()]
+        [string]
+        $TEXT
+    )
 
     switch ($TEXT) {
-            "" {"--"; break}
-            $Null {"--"; break}
-            "True" {"Yes"; break}
-            "False" {"No"; break}
-            default {$TEXT}
-        }
-    } # end
+        "" { "--"; break }
+        $Null { "--"; break }
+        "True" { "Yes"; break }
+        "False" { "No"; break }
+        default { $TEXT }
+    }
+} # end
 
 function ConvertTo-FileSizeString {
     <#
@@ -52,31 +52,31 @@ function ConvertTo-FileSizeString {
     [CmdletBinding()]
     [OutputType([String])]
     Param
-        (
+    (
         [Parameter (
             Position = 0,
             Mandatory)]
-            [int64]
-            $Size
-        )
+        [int64]
+        $Size
+    )
 
     switch ($Size) {
-        {$_ -gt 1TB}
-            {[string]::Format("{0:0.00} TB", $Size / 1TB); break}
-        {$_ -gt 1GB}
-            {[string]::Format("{0:0.00} GB", $Size / 1GB); break}
-        {$_ -gt 1MB}
-            {[string]::Format("{0:0.00} MB", $Size / 1MB); break}
-        {$_ -gt 1KB}
-            {[string]::Format("{0:0.00} KB", $Size / 1KB); break}
-        {$_ -gt 0}
-            {[string]::Format("{0} B", $Size); break}
-        {$_ -eq 0}
-            {"0 KB"; break}
+        { $_ -gt 1TB }
+        { [string]::Format("{0:0.00} TB", $Size / 1TB); break }
+        { $_ -gt 1GB }
+        { [string]::Format("{0:0.00} GB", $Size / 1GB); break }
+        { $_ -gt 1MB }
+        { [string]::Format("{0:0.00} MB", $Size / 1MB); break }
+        { $_ -gt 1KB }
+        { [string]::Format("{0:0.00} KB", $Size / 1KB); break }
+        { $_ -gt 0 }
+        { [string]::Format("{0} B", $Size); break }
+        { $_ -eq 0 }
+        { "0 KB"; break }
         default
-            {"0 KB"}
-        }
-    } # end >> function Format-FileSize
+        { "0 KB" }
+    }
+} # end >> function Format-FileSize
 
 function Invoke-DcDiag {
     <#
@@ -98,8 +98,8 @@ function Invoke-DcDiag {
         [ValidateNotNullOrEmpty()]
         [string]$DomainController
     )
-    $result = Invoke-Command -Session $TempPssSession {dcdiag /c /s:$using:DomainController}
-    $result | select-string -pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
+    $result = Invoke-Command -Session $TempPssSession { dcdiag /c /s:$using:DomainController }
+    $result | Select-String -Pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
         $obj = @{
             TestName = $_.Matches.Groups[3].Value
             TestResult = $_.Matches.Groups[2].Value
@@ -110,7 +110,7 @@ function Invoke-DcDiag {
 }# end
 
 function ConvertTo-EmptyToFiller {
-        <#
+    <#
         .SYNOPSIS
         Used by As Built Report to convert empty culumns to "--".
         .DESCRIPTION
@@ -124,26 +124,26 @@ function ConvertTo-EmptyToFiller {
         .LINK
 
         #>
-        [CmdletBinding()]
-        [OutputType([String])]
-        Param
-            (
-            [Parameter (
-                Position = 0,
-                Mandatory)]
-                [AllowEmptyString()]
-                [string]
-                $TEXT
-            )
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param
+    (
+        [Parameter (
+            Position = 0,
+            Mandatory)]
+        [AllowEmptyString()]
+        [string]
+        $TEXT
+    )
 
-        switch ($TEXT) {
-                "" {"--"; break}
-                $Null {"--"; break}
-                "True" {"Yes"; break}
-                "False" {"No"; break}
-                default {$TEXT}
-            }
-        } # end
+    switch ($TEXT) {
+        "" { "--"; break }
+        $Null { "--"; break }
+        "True" { "Yes"; break }
+        "False" { "No"; break }
+        default { $TEXT }
+    }
+} # end
 
 function Convert-IpAddressToMaskLength {
     <#
@@ -163,13 +163,13 @@ function Convert-IpAddressToMaskLength {
     [CmdletBinding()]
     [OutputType([String])]
     Param
-        (
+    (
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $SubnetMask
-        )
+        [string]
+        $SubnetMask
+    )
 
     [IPAddress] $MASK = $SubnetMask
     $octets = $MASK.IPAddressToString.Split('.')
@@ -207,7 +207,7 @@ function ConvertTo-ADObjectName {
     )
     $ADObject = @()
     foreach ($Object in $DN) {
-        $ADObject += Invoke-Command -Session $Session {Get-ADObject $using:Object -Server $using:DC | Select-Object -ExpandProperty Name}
+        $ADObject += Invoke-Command -Session $Session { Get-ADObject $using:Object -Server $using:DC | Select-Object -ExpandProperty Name }
     }
     return $ADObject;
 }# end
@@ -233,13 +233,13 @@ function Get-ADObjectSearch {
         $DN,
         $Session,
         $Filter,
-        $Properties="*",
+        $Properties = "*",
         $SelectPrty
 
     )
     $ADObject = @()
     foreach ($Object in $DN) {
-        $ADObject += Invoke-Command -Session $Session {Get-ADObject -SearchBase $using:DN -SearchScope OneLevel -Filter $using:Filter -Properties $using:Properties -EA 0 | Select-Object $using:SelectPrty }
+        $ADObject += Invoke-Command -Session $Session { Get-ADObject -SearchBase $using:DN -SearchScope OneLevel -Filter $using:Filter -Properties $using:Properties -EA 0 | Select-Object $using:SelectPrty }
     }
     return $ADObject;
 }# end
@@ -267,9 +267,9 @@ function ConvertTo-ADCanonicalName {
         $DC
     )
     $ADObject = @()
-    $DC = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName}
+    $DC = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName }
     foreach ($Object in $DN) {
-        $ADObject += Invoke-Command -Session $TempPssSession {Get-ADObject $using:Object -Properties * -Server $using:DC| Select-Object -ExpandProperty CanonicalName}
+        $ADObject += Invoke-Command -Session $TempPssSession { Get-ADObject $using:Object -Properties * -Server $using:DC | Select-Object -ExpandProperty CanonicalName }
     }
     return $ADObject;
 }# end
@@ -328,16 +328,16 @@ function Convert-TimeToDay {
     if ($null -ne $StartTime -and $null -ne $EndTime) {
         try {
             if ($StartTime -notlike $Ignore -and $EndTime -notlike $Ignore) {
-                $Days = (NEW-TIMESPAN -Start $StartTime -End $EndTime).Days
+                $Days = (New-TimeSpan -Start $StartTime -End $EndTime).Days
             }
-        } catch {Out-Null}
+        } catch { Out-Null }
     } elseif ($null -ne $EndTime) {
         if ($StartTime -notlike $Ignore -and $EndTime -notlike $Ignore) {
-            $Days = (NEW-TIMESPAN -Start (Get-Date) -End ($EndTime)).Days
+            $Days = (New-TimeSpan -Start (Get-Date) -End ($EndTime)).Days
         }
     } elseif ($null -ne $StartTime) {
         if ($StartTime -notlike $Ignore -and $EndTime -notlike $Ignore) {
-            $Days = (NEW-TIMESPAN -Start $StartTime -End (Get-Date)).Days
+            $Days = (New-TimeSpan -Start $StartTime -End (Get-Date)).Days
         }
     }
     return $Days
@@ -379,7 +379,7 @@ function Get-WinADLastBackup {
         try {
             [string[]]$Partitions = (Get-ADRootDSE -Credential $Credential -Server $Domain -ErrorAction Stop).namingContexts
             [System.DirectoryServices.ActiveDirectory.DirectoryContextType] $contextType = [System.DirectoryServices.ActiveDirectory.DirectoryContextType]::Domain
-            [System.DirectoryServices.ActiveDirectory.DirectoryContext] $context = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext($contextType, $Domain, $Credential.UserName,$Credential.GetNetworkCredential().Password)
+            [System.DirectoryServices.ActiveDirectory.DirectoryContext] $context = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext($contextType, $Domain, $Credential.UserName, $Credential.GetNetworkCredential().Password)
             [System.DirectoryServices.ActiveDirectory.DomainController] $domainController = [System.DirectoryServices.ActiveDirectory.DomainController]::FindOne($context)
         } catch {
             Write-Warning "Get-WinADLastBackup - Failed to gather partitions information for $Domain with error: $($_.Exception.Message)"
@@ -395,9 +395,9 @@ function Get-WinADLastBackup {
             $dsaSignature = $domainControllerMetadata.Item("dsaSignature")
             $LastBackup = [DateTime] $($dsaSignature.LastOriginatingChangeTime)
             [PSCustomObject] @{
-                Domain            = $Domain
-                NamingContext     = $Name
-                LastBackup        = $LastBackup
+                Domain = $Domain
+                NamingContext = $Name
+                LastBackup = $LastBackup
                 LastBackupDaysAgo = - (Convert-TimeToDay -StartTime ($CurrentDate) -EndTime ($LastBackup))
             }
         }
@@ -445,7 +445,7 @@ function Get-WinADDFSHealth {
         }
         # This is for case when Get-ADDomainController -Filter * is broken
         $ForestInformation = @{
-            Domains                 = $IncludeDomains
+            Domains = $IncludeDomains
             DomainDomainControllers = @{}
         }
         foreach ($Domain in $IncludeDomains) {
@@ -514,26 +514,26 @@ function Get-WinADDFSHealth {
             }
 
             $DomainSummary = [ordered] @{
-                "DomainController"              = $DCName
-                "Domain"                        = $Domain
-                "Status"                        = $false
-                "ReplicationState"              = 'Unknown'
-                "IsPDC"                         = $DC.OperationMasterRoles -contains 'PDCEmulator'
-                'GroupPolicyOutput'             = $null -ne $GPOs # This shows whether output was on Get-GPO
-                "GroupPolicyCount"              = if ($GPOs) { $GPOs.Count } else { 0 };
-                "SYSVOLCount"                   = 0
-                'CentralRepository'             = $CentralRepositoryDomain
-                'CentralRepositoryDC'           = $false
-                'IdenticalCount'                = $false
-                "Availability"                  = $false
-                "MemberReference"               = $false
-                "DFSErrors"                     = 0
-                "DFSEvents"                     = $null
-                "DFSLocalSetting"               = $false
-                "DomainSystemVolume"            = $false
-                "SYSVOLSubscription"            = $false
+                "DomainController" = $DCName
+                "Domain" = $Domain
+                "Status" = $false
+                "ReplicationState" = 'Unknown'
+                "IsPDC" = $DC.OperationMasterRoles -contains 'PDCEmulator'
+                'GroupPolicyOutput' = $null -ne $GPOs # This shows whether output was on Get-GPO
+                "GroupPolicyCount" = if ($GPOs) { $GPOs.Count } else { 0 };
+                "SYSVOLCount" = 0
+                'CentralRepository' = $CentralRepositoryDomain
+                'CentralRepositoryDC' = $false
+                'IdenticalCount' = $false
+                "Availability" = $false
+                "MemberReference" = $false
+                "DFSErrors" = 0
+                "DFSEvents" = $null
+                "DFSLocalSetting" = $false
+                "DomainSystemVolume" = $false
+                "SYSVOLSubscription" = $false
                 "StopReplicationOnAutoRecovery" = $false
-                "DFSReplicatedFolderInfo"       = $null
+                "DFSReplicatedFolderInfo" = $null
             }
             if ($SkipGPO) {
                 $DomainSummary.Remove('GroupPolicyOutput')
@@ -693,36 +693,36 @@ function ConvertTo-OperatingSystem {
             '10.0 (10240)' = "Windows 10 1507"
 
             # This is how WMI/CIM stores it
-            '10.0.22000'   = 'Windows 11 21H2'
-            '10.0.19043'   = 'Windows 10 21H1'
-            '10.0.19042'   = 'Windows 10 20H2'
-            '10.0.19041'   = 'Windows 10 2004'
-            '10.0.18898'   = 'Windows 10 Insider Preview'
-            '10.0.18363'   = "Windows 10 1909"
-            '10.0.18362'   = "Windows 10 1903"
-            '10.0.17763'   = "Windows 10 1809"
-            '10.0.17134'   = "Windows 10 1803"
-            '10.0.16299'   = "Windows 10 1709"
-            '10.0.15063'   = "Windows 10 1703"
-            '10.0.14393'   = "Windows 10 1607"
-            '10.0.10586'   = "Windows 10 1511"
-            '10.0.10240'   = "Windows 10 1507"
+            '10.0.22000' = 'Windows 11 21H2'
+            '10.0.19043' = 'Windows 10 21H1'
+            '10.0.19042' = 'Windows 10 20H2'
+            '10.0.19041' = 'Windows 10 2004'
+            '10.0.18898' = 'Windows 10 Insider Preview'
+            '10.0.18363' = "Windows 10 1909"
+            '10.0.18362' = "Windows 10 1903"
+            '10.0.17763' = "Windows 10 1809"
+            '10.0.17134' = "Windows 10 1803"
+            '10.0.16299' = "Windows 10 1709"
+            '10.0.15063' = "Windows 10 1703"
+            '10.0.14393' = "Windows 10 1607"
+            '10.0.10586' = "Windows 10 1511"
+            '10.0.10240' = "Windows 10 1507"
 
             # This is how it's written in registry
-            '22000'        = 'Windows 11 21H2'
-            '19043'        = 'Windows 10 21H1'
-            '19042'        = 'Windows 10 20H2'
-            '19041'        = 'Windows 10 2004'
-            '18898'        = 'Windows 10 Insider Preview'
-            '18363'        = "Windows 10 1909"
-            '18362'        = "Windows 10 1903"
-            '17763'        = "Windows 10 1809"
-            '17134'        = "Windows 10 1803"
-            '16299'        = "Windows 10 1709"
-            '15063'        = "Windows 10 1703"
-            '14393'        = "Windows 10 1607"
-            '10586'        = "Windows 10 1511"
-            '10240'        = "Windows 10 1507"
+            '22000' = 'Windows 11 21H2'
+            '19043' = 'Windows 10 21H1'
+            '19042' = 'Windows 10 20H2'
+            '19041' = 'Windows 10 2004'
+            '18898' = 'Windows 10 Insider Preview'
+            '18363' = "Windows 10 1909"
+            '18362' = "Windows 10 1903"
+            '17763' = "Windows 10 1809"
+            '17134' = "Windows 10 1803"
+            '16299' = "Windows 10 1709"
+            '15063' = "Windows 10 1703"
+            '14393' = "Windows 10 1607"
+            '10586' = "Windows 10 1511"
+            '10240' = "Windows 10 1507"
         }
         $System = $Systems[$OperatingSystemVersion]
         if (-not $System) {
@@ -742,35 +742,35 @@ function ConvertTo-OperatingSystem {
             '10.0 (17763)' = "Windows Server 2019 1809" # (Datacenter, Essentials, Standard)
             '10.0 (17134)' = "Windows Server 2016 1803" # (Datacenter, Standard)
             '10.0 (14393)' = "Windows Server 2016 1607"
-            '6.3 (9600)'   = 'Windows Server 2012 R2'
-            '6.1 (7601)'   = 'Windows Server 2008 R2'
-            '5.2 (3790)'   = 'Windows Server 2003'
+            '6.3 (9600)' = 'Windows Server 2012 R2'
+            '6.1 (7601)' = 'Windows Server 2008 R2'
+            '5.2 (3790)' = 'Windows Server 2003'
 
             # This is how WMI/CIM stores it
-            '10.0.20348'   = 'Windows Server 2022'
-            '10.0.19042'   = 'Windows Server 2019 20H2'
-            '10.0.19041'   = 'Windows Server 2019 2004'
-            '10.0.18363'   = 'Windows Server 2019 1909'
-            '10.0.18362'   = "Windows Server 2019 1903" #  (Datacenter Core, Standard Core)
-            '10.0.17763'   = "Windows Server 2019 1809"  # (Datacenter, Essentials, Standard)
-            '10.0.17134'   = "Windows Server 2016 1803" ## (Datacenter, Standard)
-            '10.0.14393'   = "Windows Server 2016 1607"
-            '6.3.9600'     = 'Windows Server 2012 R2'
-            '6.1.7601'     = 'Windows Server 2008 R2' # i think
-            '5.2.3790'     = 'Windows Server 2003' # i think
+            '10.0.20348' = 'Windows Server 2022'
+            '10.0.19042' = 'Windows Server 2019 20H2'
+            '10.0.19041' = 'Windows Server 2019 2004'
+            '10.0.18363' = 'Windows Server 2019 1909'
+            '10.0.18362' = "Windows Server 2019 1903" #  (Datacenter Core, Standard Core)
+            '10.0.17763' = "Windows Server 2019 1809"  # (Datacenter, Essentials, Standard)
+            '10.0.17134' = "Windows Server 2016 1803" ## (Datacenter, Standard)
+            '10.0.14393' = "Windows Server 2016 1607"
+            '6.3.9600' = 'Windows Server 2012 R2'
+            '6.1.7601' = 'Windows Server 2008 R2' # i think
+            '5.2.3790' = 'Windows Server 2003' # i think
 
             # This is how it's written in registry
-            '20348'        = 'Windows Server 2022'
-            '19042'        = 'Windows Server 2019 20H2'
-            '19041'        = 'Windows Server 2019 2004'
-            '18363'        = 'Windows Server 2019 1909'
-            '18362'        = "Windows Server 2019 1903" # (Datacenter Core, Standard Core)
-            '17763'        = "Windows Server 2019 1809" # (Datacenter, Essentials, Standard)
-            '17134'        = "Windows Server 2016 1803" # (Datacenter, Standard)
-            '14393'        = "Windows Server 2016 1607"
-            '9600'         = 'Windows Server 2012 R2'
-            '7601'         = 'Windows Server 2008 R2'
-            '3790'         = 'Windows Server 2003'
+            '20348' = 'Windows Server 2022'
+            '19042' = 'Windows Server 2019 20H2'
+            '19041' = 'Windows Server 2019 2004'
+            '18363' = 'Windows Server 2019 1909'
+            '18362' = "Windows Server 2019 1903" # (Datacenter Core, Standard Core)
+            '17763' = "Windows Server 2019 1809" # (Datacenter, Essentials, Standard)
+            '17134' = "Windows Server 2016 1803" # (Datacenter, Standard)
+            '14393' = "Windows Server 2016 1607"
+            '9600' = 'Windows Server 2012 R2'
+            '7601' = 'Windows Server 2008 R2'
+            '3790' = 'Windows Server 2003'
         }
         $System = $Systems[$OperatingSystemVersion]
         if (-not $System) {
@@ -839,11 +839,11 @@ function Get-WinADDuplicateSPN {
             foreach ($SPN in $Object.ServicePrincipalName) {
                 if (-not $SPNCache[$SPN]) {
                     $SPNCache[$SPN] = [PSCustomObject] @{
-                        Name      = $SPN
+                        Name = $SPN
                         Duplicate = $false
-                        Count     = 0
-                        Excluded  = $false
-                        List      = [System.Collections.Generic.List[Object]]::new()
+                        Count = 0
+                        Excluded = $false
+                        List = [System.Collections.Generic.List[Object]]::new()
                     }
                 }
                 if ($SPN -in $Excluded) {
@@ -906,9 +906,9 @@ Function Get-WinADDuplicateObject {
         $DC = $ForestInformation['QueryServers']["$Domain"].HostName[0]
         #Get conflict objects
         $getADObjectSplat = @{
-            LDAPFilter  = "(|(cn=*\0ACNF:*)(ou=*CNF:*))"
-            Properties  = 'DistinguishedName', 'ObjectClass', 'DisplayName', 'SamAccountName', 'Name', 'ObjectCategory', 'WhenCreated', 'WhenChanged', 'ProtectedFromAccidentalDeletion', 'ObjectGUID'
-            Server      = $DC
+            LDAPFilter = "(|(cn=*\0ACNF:*)(ou=*CNF:*))"
+            Properties = 'DistinguishedName', 'ObjectClass', 'DisplayName', 'SamAccountName', 'Name', 'ObjectCategory', 'WhenCreated', 'WhenChanged', 'ProtectedFromAccidentalDeletion', 'ObjectGUID'
+            Server = $DC
             SearchScope = 'Subtree'
             Credential = $Credential
         }
@@ -937,24 +937,24 @@ Function Get-WinADDuplicateObject {
             $DomainName = ConvertFrom-DistinguishedName -DistinguishedName $_.DistinguishedName -ToDomainCN
             # Lets create separate objects for different purpoeses
             $ConflictObject = [ordered] @{
-                ConflictDN          = $_.DistinguishedName
+                ConflictDN = $_.DistinguishedName
                 ConflictWhenChanged = $_.WhenChanged
-                DomainName          = $DomainName
-                ObjectClass         = $_.ObjectClass
+                DomainName = $DomainName
+                ObjectClass = $_.ObjectClass
             }
             $LiveObjectData = [ordered] @{
-                LiveDn          = "N/A"
+                LiveDn = "N/A"
                 LiveWhenChanged = "N/A"
             }
             $RestData = [ordered] @{
-                DisplayName                     = $_.DisplayName
-                Name                            = $_.Name.Replace("`n", ' ')
-                SamAccountName                  = $_.SamAccountName
-                ObjectCategory                  = $_.ObjectCategory
-                WhenCreated                     = $_.WhenCreated
-                WhenChanged                     = $_.WhenChanged
+                DisplayName = $_.DisplayName
+                Name = $_.Name.Replace("`n", ' ')
+                SamAccountName = $_.SamAccountName
+                ObjectCategory = $_.ObjectCategory
+                WhenCreated = $_.WhenCreated
+                WhenChanged = $_.WhenChanged
                 ProtectedFromAccidentalDeletion = $_.ProtectedFromAccidentalDeletion
-                ObjectGUID                      = $_.ObjectGUID.Guid
+                ObjectGUID = $_.ObjectGUID.Guid
             }
             if ($Extended) {
                 $LiveObject = $null
@@ -966,7 +966,7 @@ Function Get-WinADDuplicateObject {
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
                         $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0].TrimEnd("\"))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
-                    } catch {Out-Null}
+                    } catch { Out-Null }
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
                         $ConflictObject.LiveWhenChanged = $LiveObject.WhenChanged
@@ -977,7 +977,7 @@ Function Get-WinADDuplicateObject {
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
                         $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0])$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
-                    } catch {Out-Null}
+                    } catch { Out-Null }
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
                         $ConflictObject.LiveWhenChanged = $LiveObject.WhenChanged
@@ -1111,13 +1111,13 @@ function Get-WinADForestDetail {
                 $DC = Get-ADDomainController -DomainName $Domain -Discover -ErrorAction Stop
 
                 $OrderedDC = [ordered] @{
-                    Domain      = $DC.Domain
-                    Forest      = $DC.Forest
-                    HostName    = [Array] $DC.HostName
+                    Domain = $DC.Domain
+                    Forest = $DC.Forest
+                    HostName = [Array] $DC.HostName
                     IPv4Address = $DC.IPv4Address
                     IPv6Address = $DC.IPv6Address
-                    Name        = $DC.Name
-                    Site        = $DC.Site
+                    Name = $DC.Name
+                    Site = $DC.Site
                 }
 
             } catch {
@@ -1175,30 +1175,30 @@ function Get-WinADForestDetail {
                         }
                     }
                     $Server = [ordered] @{
-                        Domain                 = $Domain
-                        HostName               = $S.HostName
-                        Name                   = $S.Name
-                        Forest                 = $ForestInformation.RootDomain
-                        Site                   = $S.Site
-                        IPV4Address            = $S.IPV4Address
-                        IPV6Address            = $S.IPV6Address
-                        IsGlobalCatalog        = $S.IsGlobalCatalog
-                        IsReadOnly             = $S.IsReadOnly
-                        IsSchemaMaster         = ($S.OperationMasterRoles -contains 'SchemaMaster')
-                        IsDomainNamingMaster   = ($S.OperationMasterRoles -contains 'DomainNamingMaster')
-                        IsPDC                  = ($S.OperationMasterRoles -contains 'PDCEmulator')
-                        IsRIDMaster            = ($S.OperationMasterRoles -contains 'RIDMaster')
+                        Domain = $Domain
+                        HostName = $S.HostName
+                        Name = $S.Name
+                        Forest = $ForestInformation.RootDomain
+                        Site = $S.Site
+                        IPV4Address = $S.IPV4Address
+                        IPV6Address = $S.IPV6Address
+                        IsGlobalCatalog = $S.IsGlobalCatalog
+                        IsReadOnly = $S.IsReadOnly
+                        IsSchemaMaster = ($S.OperationMasterRoles -contains 'SchemaMaster')
+                        IsDomainNamingMaster = ($S.OperationMasterRoles -contains 'DomainNamingMaster')
+                        IsPDC = ($S.OperationMasterRoles -contains 'PDCEmulator')
+                        IsRIDMaster = ($S.OperationMasterRoles -contains 'RIDMaster')
                         IsInfrastructureMaster = ($S.OperationMasterRoles -contains 'InfrastructureMaster')
-                        OperatingSystem        = $S.OperatingSystem
+                        OperatingSystem = $S.OperatingSystem
                         OperatingSystemVersion = $S.OperatingSystemVersion
-                        OperatingSystemLong    = ConvertTo-OperatingSystem -OperatingSystem $S.OperatingSystem -OperatingSystemVersion $S.OperatingSystemVersion
-                        LdapPort               = $S.LdapPort
-                        SslPort                = $S.SslPort
-                        DistinguishedName      = $S.ComputerObjectDN
-                        Pingable               = $null
-                        WinRM                  = $null
-                        PortOpen               = $null
-                        Comment                = ''
+                        OperatingSystemLong = ConvertTo-OperatingSystem -OperatingSystem $S.OperatingSystem -OperatingSystemVersion $S.OperatingSystemVersion
+                        LdapPort = $S.LdapPort
+                        SslPort = $S.SslPort
+                        DistinguishedName = $S.ComputerObjectDN
+                        Pingable = $null
+                        WinRM = $null
+                        PortOpen = $null
+                        Comment = ''
                     }
                     if ($TestAvailability) {
                         if ($Test -eq 'All' -or $Test -like 'Ping*') {
@@ -1215,27 +1215,27 @@ function Get-WinADForestDetail {
                 }
             } catch {
                 [PSCustomObject]@{
-                    Domain                   = $Domain
-                    HostName                 = ''
-                    Name                     = ''
-                    Forest                   = $ForestInformation.RootDomain
-                    IPV4Address              = ''
-                    IPV6Address              = ''
-                    IsGlobalCatalog          = ''
-                    IsReadOnly               = ''
-                    Site                     = ''
-                    SchemaMaster             = $false
+                    Domain = $Domain
+                    HostName = ''
+                    Name = ''
+                    Forest = $ForestInformation.RootDomain
+                    IPV4Address = ''
+                    IPV6Address = ''
+                    IsGlobalCatalog = ''
+                    IsReadOnly = ''
+                    Site = ''
+                    SchemaMaster = $false
                     DomainNamingMasterMaster = $false
-                    PDCEmulator              = $false
-                    RIDMaster                = $false
-                    InfrastructureMaster     = $false
-                    LdapPort                 = ''
-                    SslPort                  = ''
-                    DistinguishedName        = ''
-                    Pingable                 = $null
-                    WinRM                    = $null
-                    PortOpen                 = $null
-                    Comment                  = $_.Exception.Message -replace "`n", " " -replace "`r", " "
+                    PDCEmulator = $false
+                    RIDMaster = $false
+                    InfrastructureMaster = $false
+                    LdapPort = ''
+                    SslPort = ''
+                    DistinguishedName = ''
+                    Pingable = $null
+                    WinRM = $null
+                    PortOpen = $null
+                    Comment = $_.Exception.Message -replace "`n", " " -replace "`r", " "
                 }
             }
             if ($SkipRODC) {
@@ -1260,36 +1260,36 @@ function Get-WinADForestDetail {
                         #True     False    ADPropertyValueCollection                System.Collections.CollectionBase
 
                         [ordered] @{
-                            AllowedDNSSuffixes                 = $_.AllowedDNSSuffixes | ForEach-Object -Process { $_ }                #: { }
-                            ChildDomains                       = $_.ChildDomains | ForEach-Object -Process { $_ }                      #: { }
-                            ComputersContainer                 = $_.ComputersContainer                 #: CN = Computers, DC = ad, DC = evotec, DC = xyz
-                            DeletedObjectsContainer            = $_.DeletedObjectsContainer            #: CN = Deleted Objects, DC = ad, DC = evotec, DC = xyz
-                            DistinguishedName                  = $_.DistinguishedName                  #: DC = ad, DC = evotec, DC = xyz
-                            DNSRoot                            = $_.DNSRoot                            #: ad.evotec.xyz
-                            DomainControllersContainer         = $_.DomainControllersContainer         #: OU = Domain Controllers, DC = ad, DC = evotec, DC = xyz
-                            DomainMode                         = $_.DomainMode                         #: Windows2012R2Domain
-                            DomainSID                          = $_.DomainSID.Value                        #: S - 1 - 5 - 21 - 853615985 - 2870445339 - 3163598659
+                            AllowedDNSSuffixes = $_.AllowedDNSSuffixes | ForEach-Object -Process { $_ }                #: { }
+                            ChildDomains = $_.ChildDomains | ForEach-Object -Process { $_ }                      #: { }
+                            ComputersContainer = $_.ComputersContainer                 #: CN = Computers, DC = ad, DC = evotec, DC = xyz
+                            DeletedObjectsContainer = $_.DeletedObjectsContainer            #: CN = Deleted Objects, DC = ad, DC = evotec, DC = xyz
+                            DistinguishedName = $_.DistinguishedName                  #: DC = ad, DC = evotec, DC = xyz
+                            DNSRoot = $_.DNSRoot                            #: ad.evotec.xyz
+                            DomainControllersContainer = $_.DomainControllersContainer         #: OU = Domain Controllers, DC = ad, DC = evotec, DC = xyz
+                            DomainMode = $_.DomainMode                         #: Windows2012R2Domain
+                            DomainSID = $_.DomainSID.Value                        #: S - 1 - 5 - 21 - 853615985 - 2870445339 - 3163598659
                             ForeignSecurityPrincipalsContainer = $_.ForeignSecurityPrincipalsContainer #: CN = ForeignSecurityPrincipals, DC = ad, DC = evotec, DC = xyz
-                            Forest                             = $_.Forest                             #: ad.evotec.xyz
-                            InfrastructureMaster               = $_.InfrastructureMaster               #: AD1.ad.evotec.xyz
-                            LastLogonReplicationInterval       = $_.LastLogonReplicationInterval       #:
-                            LinkedGroupPolicyObjects           = $_.LinkedGroupPolicyObjects | ForEach-Object -Process { $_ }           #:
-                            LostAndFoundContainer              = $_.LostAndFoundContainer              #: CN = LostAndFound, DC = ad, DC = evotec, DC = xyz
-                            ManagedBy                          = $_.ManagedBy                          #:
-                            Name                               = $_.Name                               #: ad
-                            NetBIOSName                        = $_.NetBIOSName                        #: EVOTEC
-                            ObjectClass                        = $_.ObjectClass                        #: domainDNS
-                            ObjectGUID                         = $_.ObjectGUID                         #: bc875580 - 4c70-41ad-a487-c57337e26024
-                            ParentDomain                       = $_.ParentDomain                       #:
-                            PDCEmulator                        = $_.PDCEmulator                        #: AD1.ad.evotec.xyz
-                            PublicKeyRequiredPasswordRolling   = $_.PublicKeyRequiredPasswordRolling | ForEach-Object -Process { $_ }   #:
-                            QuotasContainer                    = $_.QuotasContainer                    #: CN = NTDS Quotas, DC = ad, DC = evotec, DC = xyz
-                            ReadOnlyReplicaDirectoryServers    = $_.ReadOnlyReplicaDirectoryServers | ForEach-Object -Process { $_ }    #: { }
-                            ReplicaDirectoryServers            = $_.ReplicaDirectoryServers | ForEach-Object -Process { $_ }           #: { AD1.ad.evotec.xyz, AD2.ad.evotec.xyz, AD3.ad.evotec.xyz }
-                            RIDMaster                          = $_.RIDMaster                          #: AD1.ad.evotec.xyz
-                            SubordinateReferences              = $_.SubordinateReferences | ForEach-Object -Process { $_ }            #: { DC = ForestDnsZones, DC = ad, DC = evotec, DC = xyz, DC = DomainDnsZones, DC = ad, DC = evotec, DC = xyz, CN = Configuration, DC = ad, DC = evotec, DC = xyz }
-                            SystemsContainer                   = $_.SystemsContainer                   #: CN = System, DC = ad, DC = evotec, DC = xyz
-                            UsersContainer                     = $_.UsersContainer                     #: CN = Users, DC = ad, DC = evotec, DC = xyz
+                            Forest = $_.Forest                             #: ad.evotec.xyz
+                            InfrastructureMaster = $_.InfrastructureMaster               #: AD1.ad.evotec.xyz
+                            LastLogonReplicationInterval = $_.LastLogonReplicationInterval       #:
+                            LinkedGroupPolicyObjects = $_.LinkedGroupPolicyObjects | ForEach-Object -Process { $_ }           #:
+                            LostAndFoundContainer = $_.LostAndFoundContainer              #: CN = LostAndFound, DC = ad, DC = evotec, DC = xyz
+                            ManagedBy = $_.ManagedBy                          #:
+                            Name = $_.Name                               #: ad
+                            NetBIOSName = $_.NetBIOSName                        #: EVOTEC
+                            ObjectClass = $_.ObjectClass                        #: domainDNS
+                            ObjectGUID = $_.ObjectGUID                         #: bc875580 - 4c70-41ad-a487-c57337e26024
+                            ParentDomain = $_.ParentDomain                       #:
+                            PDCEmulator = $_.PDCEmulator                        #: AD1.ad.evotec.xyz
+                            PublicKeyRequiredPasswordRolling = $_.PublicKeyRequiredPasswordRolling | ForEach-Object -Process { $_ }   #:
+                            QuotasContainer = $_.QuotasContainer                    #: CN = NTDS Quotas, DC = ad, DC = evotec, DC = xyz
+                            ReadOnlyReplicaDirectoryServers = $_.ReadOnlyReplicaDirectoryServers | ForEach-Object -Process { $_ }    #: { }
+                            ReplicaDirectoryServers = $_.ReplicaDirectoryServers | ForEach-Object -Process { $_ }           #: { AD1.ad.evotec.xyz, AD2.ad.evotec.xyz, AD3.ad.evotec.xyz }
+                            RIDMaster = $_.RIDMaster                          #: AD1.ad.evotec.xyz
+                            SubordinateReferences = $_.SubordinateReferences | ForEach-Object -Process { $_ }            #: { DC = ForestDnsZones, DC = ad, DC = evotec, DC = xyz, DC = DomainDnsZones, DC = ad, DC = evotec, DC = xyz, CN = Configuration, DC = ad, DC = evotec, DC = xyz }
+                            SystemsContainer = $_.SystemsContainer                   #: CN = System, DC = ad, DC = evotec, DC = xyz
+                            UsersContainer = $_.UsersContainer                     #: CN = Users, DC = ad, DC = evotec, DC = xyz
                         }
                     }
 
@@ -1626,8 +1626,8 @@ function Test-WinRM {
     )
     $Output = foreach ($Computer in $ComputerName) {
         $Test = [PSCustomObject] @{
-            Output       = $null
-            Status       = $null
+            Output = $null
+            Status = $null
             ComputerName = $Computer
         }
         try {
@@ -1660,11 +1660,11 @@ function Test-ComputerPort {
             foreach ($P in $PortTCP) {
                 $Output = [ordered] @{
                     'ComputerName' = $Computer
-                    'Port'         = $P
-                    'Protocol'     = 'TCP'
-                    'Status'       = $null
-                    'Summary'      = $null
-                    'Response'     = $null
+                    'Port' = $P
+                    'Protocol' = 'TCP'
+                    'Status' = $null
+                    'Summary' = $null
+                    'Response' = $null
                 }
 
                 $TcpClient = Test-NetConnection -ComputerName $Computer -Port $P -InformationLevel Detailed -WarningAction SilentlyContinue
@@ -1681,10 +1681,10 @@ function Test-ComputerPort {
             foreach ($P in $PortUDP) {
                 $Output = [ordered] @{
                     'ComputerName' = $Computer
-                    'Port'         = $P
-                    'Protocol'     = 'UDP'
-                    'Status'       = $null
-                    'Summary'      = $null
+                    'Port' = $P
+                    'Protocol' = 'UDP'
+                    'Status' = $null
+                    'Summary' = $null
                 }
                 $UdpClient = [System.Net.Sockets.UdpClient]::new($Computer, $P)
                 $UdpClient.Client.ReceiveTimeout = $Timeout
@@ -1721,8 +1721,7 @@ function Test-ComputerPort {
     }
 }
 
-function Get-ComputerADDomain
-{
+function Get-ComputerADDomain {
     <#
             .Synopsis
             Return the current domain
@@ -1772,11 +1771,10 @@ function Find-AuditingIssue {
             $Issue | Add-Member -MemberType NoteProperty -Name Fix -Value 'N/A' -Force
             $Issue | Add-Member -MemberType NoteProperty -Name Revert -Value 'N/A' -Force
             $Issue | Add-Member -MemberType NoteProperty -Name Technique -Value 'DETECT' -Force
-        }
-        else {
+        } else {
             $AuditValue = Switch ($_.AuditFilter) {
-                $Null {'Never Configured'}
-                default {$_.AuditFilter}
+                $Null { 'Never Configured' }
+                default { $_.AuditFilter }
             }
             $Issue | Add-Member -MemberType NoteProperty -Name Issue -Value "Auditing is not fully enabled. Current value is $($AuditValue)" -Force
             $Issue | Add-Member -MemberType NoteProperty -Name Fix `
@@ -1810,10 +1808,10 @@ function Get-ADCSObject {
     param(
         [Parameter(Mandatory)]
         [string]$Target
-        )
+    )
     try {
-        $ADRoot = Invoke-Command -Session $TempPssSession {(Get-ADRootDSE -Server $Using:Target).defaultNamingContext}
-        Invoke-Command -Session $TempPssSession {Get-ADObject -Filter * -SearchBase "CN=Public Key Services,CN=Services,CN=Configuration,$Using:ADRoot" -SearchScope 2 -Properties *}
+        $ADRoot = Invoke-Command -Session $TempPssSession { (Get-ADRootDSE -Server $Using:Target).defaultNamingContext }
+        Invoke-Command -Session $TempPssSession { Get-ADObject -Filter * -SearchBase "CN=Public Key Services,CN=Services,CN=Configuration,$Using:ADRoot" -SearchScope 2 -Properties * }
     } catch {
         Write-PScriboMessage -IsWarning "Unable to find CA auditing information"
     }
@@ -1884,23 +1882,23 @@ function Get-ImagePercent {
     [CmdletBinding()]
     [OutputType([System.Int32])]
     Param
-        (
+    (
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Graph
-        )
-    $Image_FromStream = [System.Drawing.Image]::FromStream((new-object System.IO.MemoryStream(,[convert]::FromBase64String($Graph))))
+        [string]
+        $Graph
+    )
+    $Image_FromStream = [System.Drawing.Image]::FromStream((New-Object System.IO.MemoryStream(, [convert]::FromBase64String($Graph))))
     If ($Image_FromStream.Width -gt 1500) {
-        return 20
+        return 10
     } else {
         return 50
     }
 } # end
 
 Function Get-ADExchangeServer {
-        <#
+    <#
     .SYNOPSIS
     Used by As Built Report to get Exchange information from AD forest.
     .DESCRIPTION
@@ -1917,22 +1915,22 @@ Function Get-ADExchangeServer {
     #>
     Function ConvertToExchangeRole {
         Param(
-            [Parameter(Position=0)]
+            [Parameter(Position = 0)]
             [int]$roles
-            )
+        )
 
         $roleNumber = @{
-            2='MBX';
-            4='CAS';
-            16='UM';
-            32='HUB';
-            64='EDGE';
+            2 = 'MBX';
+            4 = 'CAS';
+            16 = 'UM';
+            32 = 'HUB';
+            64 = 'EDGE';
         }
 
         $roleList = New-Object -TypeName Collections.ArrayList
 
         foreach ($key in ($roleNumber).Keys) {
-            if($key -band $roles){
+            if ($key -band $roles) {
                 [void]$roleList.Add($roleNumber.$key)
             }
         }
@@ -1941,16 +1939,16 @@ Function Get-ADExchangeServer {
     }
 
     # Get the Configuration Context
-    $rootDse = Invoke-Command -Session $TempPssSession {Get-ADRootDSE}
+    $rootDse = Invoke-Command -Session $TempPssSession { Get-ADRootDSE }
     $cfgCtx = $rootDse.ConfigurationNamingContext
 
     # Query AD for Exchange Servers
-    $exchServers = Invoke-Command -Session $TempPssSession {Get-ADObject -Filter "ObjectCategory -eq 'msExchExchangeServer'" -SearchBase $using:cfgCtx -Properties msExchCurrentServerRoles, networkAddress, serialNumber}
-    foreach ($server in $exchServers){
+    $exchServers = Invoke-Command -ErrorAction SilentlyContinue -Session $TempPssSession { Get-ADObject -Filter "ObjectCategory -eq 'msExchExchangeServer'" -SearchBase $using:cfgCtx -Properties msExchCurrentServerRoles, networkAddress, serialNumber }
+    foreach ($server in $exchServers) {
         Try {
             $roles = ConvertToExchangeRole -roles $server.msExchCurrentServerRoles
 
-            $fqdn = ($server.networkAddress | Where-Object {$_ -like 'ncacn_ip_tcp:*'}).Split(':')[1]
+            $fqdn = ($server.networkAddress | Where-Object { $_ -like 'ncacn_ip_tcp:*' }).Split(':')[1]
 
             New-Object -TypeName PSObject -Property @{
                 Name = $server.Name;
@@ -1978,70 +1976,70 @@ function Get-PieChart {
     [CmdletBinding()]
     [OutputType([System.String])]
     Param
-        (
+    (
         [Parameter (
             Position = 0,
             Mandatory)]
-            [System.Array]
-            $SampleData,
-            [String]
-            $ChartName,
-            [String]
-            $XField,
-            [String]
-            $YField,
-            [String]
-            $ChartLegendName,
-            [String]
-            $ChartLegendAlignment = 'Center',
-            [String]
-            $ChartTitleName = ' ',
-            [String]
-            $ChartTitleText = ' ',
-            [int]
-            $Width = 600,
-            [int]
-            $Height = 400
-        )
+        [System.Array]
+        $SampleData,
+        [String]
+        $ChartName,
+        [String]
+        $XField,
+        [String]
+        $YField,
+        [String]
+        $ChartLegendName,
+        [String]
+        $ChartLegendAlignment = 'Center',
+        [String]
+        $ChartTitleName = ' ',
+        [String]
+        $ChartTitleText = ' ',
+        [int]
+        $Width = 600,
+        [int]
+        $Height = 400
+    )
 
     $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height
 
     $addChartAreaParams = @{
         Chart = $exampleChart
-        Name  = 'exampleChartArea'
+        Name = 'exampleChartArea'
     }
     $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
 
     $addChartSeriesParams = @{
-        Chart             = $exampleChart
-        ChartArea         = $exampleChartArea
-        Name              = 'exampleChartSeries'
-        XField            = $XField
-        YField            = $YField
-        Palette           = 'Blue'
+        Chart = $exampleChart
+        ChartArea = $exampleChartArea
+        Name = 'exampleChartSeries'
+        XField = $XField
+        YField = $YField
+        Palette = 'Blue'
         ColorPerDataPoint = $true
     }
     $sampleData | Add-PieChartSeries @addChartSeriesParams
 
     $addChartLegendParams = @{
-        Chart             = $exampleChart
-        Name              = $ChartLegendName
-        TitleAlignment    = $ChartLegendAlignment
+        Chart = $exampleChart
+        Name = $ChartLegendName
+        TitleAlignment = $ChartLegendAlignment
     }
     Add-ChartLegend @addChartLegendParams
 
     $addChartTitleParams = @{
-        Chart     = $exampleChart
+        Chart = $exampleChart
         ChartArea = $exampleChartArea
-        Name      = $ChartTitleName
-        Text      = $ChartTitleText
-        Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+        Name = $ChartTitleName
+        Text = $ChartTitleText
+        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
     }
     Add-ChartTitle @addChartTitleParams
 
     $ChartImage = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
 
-    $Base64Image = [convert]::ToBase64String((get-content $ChartImage -encoding byte))
+    $Base64Image = [convert]::ToBase64String((Get-Content $ChartImage -Encoding byte))
 
     Remove-Item -Path $ChartImage.FullName
 
@@ -2063,74 +2061,73 @@ function Get-ColumnChart {
     [CmdletBinding()]
     [OutputType([System.String])]
     Param
-        (
+    (
         [Parameter (
             Position = 0,
             Mandatory)]
-            [System.Array]
-            $SampleData,
-            [String]
-            $ChartName,
-            [String]
-            $AxisXTitle,
-            [String]
-            $AxisYTitle,
-            [String]
-            $XField,
-            [String]
-            $YField,
-            [String]
-            $ChartAreaName,
-            [String]
-            $ChartTitleName = ' ',
-            [String]
-            $ChartTitleText = ' ',
-            [int]
-            $Width = 600,
-            [int]
-            $Height = 400
-        )
+        [System.Array]
+        $SampleData,
+        [String]
+        $ChartName,
+        [String]
+        $AxisXTitle,
+        [String]
+        $AxisYTitle,
+        [String]
+        $XField,
+        [String]
+        $YField,
+        [String]
+        $ChartAreaName,
+        [String]
+        $ChartTitleName = ' ',
+        [String]
+        $ChartTitleText = ' ',
+        [int]
+        $Width = 600,
+        [int]
+        $Height = 400
+    )
 
     $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height
 
     $addChartAreaParams = @{
-        Chart                 = $exampleChart
-        Name                  = $ChartAreaName
-        AxisXTitle            = $AxisXTitle
-        AxisYTitle            = $AxisYTitle
+        Chart = $exampleChart
+        Name = $ChartAreaName
+        AxisXTitle = $AxisXTitle
+        AxisYTitle = $AxisYTitle
         NoAxisXMajorGridLines = $true
         NoAxisYMajorGridLines = $true
     }
     $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
 
     $addChartSeriesParams = @{
-        Chart             = $exampleChart
-        ChartArea         = $exampleChartArea
-        Name              = 'exampleChartSeries'
-        XField            = $XField
-        YField            = $YField
-        Palette           = 'Blue'
+        Chart = $exampleChart
+        ChartArea = $exampleChartArea
+        Name = 'exampleChartSeries'
+        XField = $XField
+        YField = $YField
+        Palette = 'Blue'
         ColorPerDataPoint = $true
     }
     $sampleData | Add-ColumnChartSeries @addChartSeriesParams
 
     $addChartTitleParams = @{
-        Chart     = $exampleChart
+        Chart = $exampleChart
         ChartArea = $exampleChartArea
-        Name      = $ChartTitleName
-        Text      = $ChartTitleText
-        Font      = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+        Name = $ChartTitleName
+        Text = $ChartTitleText
+        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
     }
     Add-ChartTitle @addChartTitleParams
 
     $ChartImage = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
 
-    if ($PassThru)
-    {
+    if ($PassThru) {
         Write-Output -InputObject $chartFileItem
     }
 
-    $Base64Image = [convert]::ToBase64String((get-content $ChartImage -encoding byte))
+    $Base64Image = [convert]::ToBase64String((Get-Content $ChartImage -Encoding byte))
 
     Remove-Item -Path $ChartImage.FullName
 

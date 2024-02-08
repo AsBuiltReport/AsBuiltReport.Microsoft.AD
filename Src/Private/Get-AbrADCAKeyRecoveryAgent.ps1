@@ -5,7 +5,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,11 +19,11 @@ function Get-AbrADCAKeyRecoveryAgent {
         [Parameter (
             Position = 0,
             Mandatory)]
-            $CA
+        $CA
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority Key Recovery Agent information."
+        Write-PScriboMessage "Collecting AD Certification Authority Key Recovery Agent information."
     }
 
     process {
@@ -38,9 +38,8 @@ function Get-AbrADCAKeyRecoveryAgent {
                 }
                 $OutObj += [pscustomobject]$inobj
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Key Recovery Agent Certificate Item)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Key Recovery Agent Certificate Item)"
         }
 
         if ($OutObj) {

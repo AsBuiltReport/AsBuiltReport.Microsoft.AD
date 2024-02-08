@@ -5,7 +5,7 @@ function Get-AbrADCACryptographyConfig {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,11 +19,11 @@ function Get-AbrADCACryptographyConfig {
         [Parameter (
             Position = 0,
             Mandatory)]
-            $CA
+        $CA
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority Cryptography Config information."
+        Write-PScriboMessage "Collecting AD Certification Authority Cryptography Config information."
     }
 
     process {
@@ -35,7 +35,7 @@ function Get-AbrADCACryptographyConfig {
                     BlankLine
                     $OutObj = @()
                     try {
-                        Write-PscriboMessage "Discovered Cryptography Configuration information from $($CryptoConfig.Name)."
+                        Write-PScriboMessage "Discovered Cryptography Configuration information from $($CryptoConfig.Name)."
                         $inObj = [ordered] @{
                             'CA Name' = $CryptoConfig.Name
                             'Server Name' = $CryptoConfig.ComputerName.ToString().ToUpper().Split(".")[0]
@@ -56,9 +56,8 @@ function Get-AbrADCACryptographyConfig {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Table @TableParams
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning $_.Exception.Message
+                    } catch {
+                        Write-PScriboMessage -IsWarning $_.Exception.Message
                     }
                 }
             }

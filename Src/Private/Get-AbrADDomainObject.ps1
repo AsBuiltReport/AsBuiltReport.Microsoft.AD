@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.0
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -61,7 +61,7 @@ function Get-AbrADDomainObject {
                             }
                             if ($Options.EnableCharts) {
                                 try {
-                                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}} | Sort-Object -Property 'Category'
+                                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
 
                                     $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'ComputersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'ComputersObject' -ChartTitleText 'Computers Count'
 
@@ -98,7 +98,7 @@ function Get-AbrADDomainObject {
                             }
                             if ($Options.EnableCharts) {
                                 try {
-                                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}} | Sort-Object -Property 'Category'
+                                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
 
                                     $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'DomainControllerObject' -XField 'Name' -YField 'value' -ChartLegendName 'Category' -ChartTitleName 'DomainControllerObject' -ChartTitleText 'Domain Controller Object Count'
 
@@ -137,7 +137,7 @@ function Get-AbrADDomainObject {
                             if ($Options.EnableCharts) {
                                 try {
 
-                                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name';  Expression = {$_.key}},@{ Name = 'Value';  Expression = {$_.value}} | Sort-Object -Property 'Category'
+                                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
 
                                     $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'UsersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'UsersObject' -ChartTitleText 'Users Object Count'
 
@@ -301,13 +301,13 @@ function Get-AbrADDomainObject {
                                 }
 
                                 if ($HealthCheck.Domain.Security) {
-                                    foreach ( $OBJ in ($OutObj | Where-Object {$_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1})) {
+                                    foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 })) {
                                         $OBJ.'Group Name' = "*" + $OBJ.'Group Name'
                                     }
-                                    foreach ( $OBJ in ($OutObj | Where-Object {$_.'Group Name' -eq 'Enterprise Admins' -and $_.Count -gt 1})) {
+                                    foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Enterprise Admins' -and $_.Count -gt 1 })) {
                                         $OBJ.'Group Name' = "**" + $OBJ.'Group Name'
                                     }
-                                    foreach ( $OBJ in ($OutObj | Where-Object {$_.'Group Name' -eq 'Domain Admins' -and $_.Count -gt 5})) {
+                                    foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Domain Admins' -and $_.Count -gt 5 })) {
                                         $OBJ.'Group Name' = "***" + $OBJ.'Group Name'
                                     }
                                     $OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
@@ -354,7 +354,7 @@ function Get-AbrADDomainObject {
                                         $Group = Invoke-Command -Session $TempPssSession { Get-ADGroup -Server $using:DC -Filter * | Where-Object { $_.SID -like $using:GroupSID } }
                                         if ($Group) {
                                             Write-PScriboMessage "Collecting Privileged Group $($Group.Name) with SID $($Group.SID)"
-                                            $GroupObjects = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:DC  -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue | ForEach-Object {Get-ADUser -Filter 'SamAccountName -eq $_.SamAccountName' -Server $using:DC -Property SamAccountName,objectClass,LastLogonDate,passwordNeverExpires,Enabled -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }}
+                                            $GroupObjects = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:DC  -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue | ForEach-Object { Get-ADUser -Filter 'SamAccountName -eq $_.SamAccountName' -Server $using:DC -Property SamAccountName, objectClass, LastLogonDate, passwordNeverExpires, Enabled -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName } }
                                             if ($GroupObjects) {
                                                 Section -ExcludeFromTOC -Style NOTOCHeading4 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) Members)" {
                                                     $OutObj = @()
@@ -362,8 +362,8 @@ function Get-AbrADDomainObject {
                                                         $inObj = [ordered] @{
                                                             'Name' = $GroupObject.SamAccountName
                                                             'Last Logon Date' = switch ($GroupObject.LastLogonDate) {
-                                                                $null {"--"}
-                                                                default {$GroupObject.LastLogonDate.ToShortDateString()}
+                                                                $null { "--" }
+                                                                default { $GroupObject.LastLogonDate.ToShortDateString() }
                                                             }
                                                             'Password Never Expires' = ConvertTo-TextYN $GroupObject.passwordNeverExpires
                                                             'Account Enabled' = ConvertTo-TextYN $GroupObject.Enabled
@@ -373,7 +373,7 @@ function Get-AbrADDomainObject {
 
                                                     if ($HealthCheck.Domain.Security) {
                                                         $OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Never Expires'
-                                                        foreach ( $OBJ in ($OutObj | Where-Object {$_.'Password Never Expires' -eq 'Yes'})) {
+                                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' })) {
                                                             $OBJ.'Password Never Expires' = "**Yes"
                                                         }
                                                         $OutObj | Where-Object { $_.'Account Enabled' -eq 'No' } | Set-Style -Style Warning -Property 'Account Enabled'
@@ -769,8 +769,8 @@ function Get-AbrADDomainObject {
                                         'Name' = $Account.Name
                                         'SamAccountName' = $Account.SamAccountName
                                         'Created' = Switch ($Account.Created) {
-                                            $null {'--'}
-                                            default {$Account.Created.ToShortDateString()}
+                                            $null { '--' }
+                                            default { $Account.Created.ToShortDateString() }
                                         }
                                         'Enabled' = ConvertTo-TextYN $Account.Enabled
                                         'DNS Host Name' = $Account.DNSHostName
@@ -778,15 +778,15 @@ function Get-AbrADDomainObject {
                                         'Retrieve Managed Password' = ConvertTo-EmptyToFiller ((ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $TempPssSession -DC $DC) -join ", ")
                                         'Primary Group' = (ConvertTo-ADObjectName $Account.PrimaryGroup -Session $TempPssSession -DC $DC) -join ", "
                                         'Last Logon Date' = Switch ($Account.LastLogonDate) {
-                                            $null {'--'}
-                                            default {$Account.LastLogonDate.ToShortDateString()}
+                                            $null { '--' }
+                                            default { $Account.LastLogonDate.ToShortDateString() }
                                         }
                                         'Locked Out' = ConvertTo-TextYN $Account.LockedOut
                                         'Logon Count' = $Account.logonCount
                                         'Password Expired' = ConvertTo-TextYN $Account.PasswordExpired
                                         'Password Last Set' = Switch ($Account.PasswordLastSet) {
-                                            $null {'--'}
-                                            default {$Account.PasswordLastSet.ToShortDateString()}
+                                            $null { '--' }
+                                            default { $Account.PasswordLastSet.ToShortDateString() }
                                         }
                                     }
                                     $GMSAInfo += [pscustomobject]$inobj
@@ -800,7 +800,7 @@ function Get-AbrADDomainObject {
                                 $GMSAInfo | Where-Object { $_.'Enabled' -ne 'Yes' } | Set-Style -Style Warning -Property 'Enabled'
                                 $GMSAInfo | Where-Object { $_.'Password Last Set' -ne '--' -and [datetime]$_.'Password Last Set' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Password Last Set'
                                 $GMSAInfo | Where-Object { $_.'Password Last Set' -eq '--' } | Set-Style -Style Warning -Property 'Password Last Set'
-                                $GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '--'  -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Last Logon Date'
+                                $GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Last Logon Date'
                                 $GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' } | Set-Style -Style Warning -Property 'Last Logon Date'
                                 foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' })) {
                                     $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
@@ -833,11 +833,11 @@ function Get-AbrADDomainObject {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $Account | Table @TableParams
-                                        if (($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq  '--')}) -or ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) -or ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '**--' })) {
+                                        if (($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '--') }) -or ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) -or ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '**--' })) {
                                             Paragraph "Health Check:" -Bold -Underline
                                             BlankLine
                                             Paragraph "Security Best Practice:" -Bold
-                                            if ($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq  '*--') }) {
+                                            if ($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '*--') }) {
                                                 BlankLine
                                                 Paragraph {
                                                     Text "*Regularly check for and remove inactive group managed service accounts from Active Directory."
@@ -869,7 +869,7 @@ function Get-AbrADDomainObject {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $GMSAInfo | Table @TableParams
-                                if (($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq  '--')})) {
+                                if (($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '--') })) {
                                     Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
                                     if ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq "*--" }) {
