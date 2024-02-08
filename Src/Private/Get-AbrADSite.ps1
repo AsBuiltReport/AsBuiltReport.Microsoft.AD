@@ -284,6 +284,25 @@ function Get-AbrADSite {
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
                     }
+                    if ($Options.EnableDiagrams) {
+                        try {
+                            try {
+                                $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Sites
+                            } catch {
+                                Write-PScriboMessage -IsWarning "Site Inventory Diagram Graph: $($_.Exception.Message)"
+                            }
+
+                            if ($Graph) {
+                                Section -Style Heading3 "Site Inventory Diagram." {
+                                    Image -Base64 $Graph -Text "Site Inventory Diagram" -Percent (Get-ImagePercent -Graph $Graph) -Align Center
+                                    Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                                }
+                                BlankLine -Count 2
+                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "Site Inventory Diagram Section: $($_.Exception.Message)"
+                        }
+                    }
                     try {
                         $Link = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLink -Filter * -Properties * }
                         if ($Link) {

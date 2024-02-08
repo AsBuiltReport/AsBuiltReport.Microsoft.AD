@@ -1891,7 +1891,7 @@ function Get-ImagePercent {
     )
     $Image_FromStream = [System.Drawing.Image]::FromStream((New-Object System.IO.MemoryStream(, [convert]::FromBase64String($Graph))))
     If ($Image_FromStream.Width -gt 1500) {
-        return 20
+        return 10
     } else {
         return 50
     }
