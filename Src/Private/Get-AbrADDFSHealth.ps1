@@ -61,8 +61,7 @@ function Get-AbrADDFSHealth {
                                 'Uninitialized',
                                 'Auto recovery',
                                 'In error state',
-                                'Disabled',
-                                'Unknown'
+                                'Disabled'
                             )
                             $ReplicationStatusWarn = @(
                                 'Initialized',

@@ -145,7 +145,7 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Connection Objects information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No Connection Objects information found in $ForestInfo, disabling the section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Connection Objects)"
@@ -271,7 +271,7 @@ function Get-AbrADSite {
                                                 }
                                             }
                                         } else {
-                                            Write-PScriboMessage -IsWarning "No Missing Subnets in AD information found in $Domain, disabling the section."
+                                            Write-PScriboMessage -IsWarning "No Missing Subnets in AD information found in $ForestInfo, disabling the section."
                                         }
                                     } catch {
                                         Write-PScriboMessage -IsWarning "Sysvol Replication Table Section: $($_.Exception.Message)"
@@ -279,7 +279,7 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Site Subnets information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No Site Subnets information found in $ForestInfo, disabling the section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
@@ -388,7 +388,7 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Site Links information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No Site Links information found in $ForestInfo, disabling the section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
@@ -470,14 +470,14 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Sysvol Replication information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No Sysvol Replication information found in $ForestInfo, disabling the section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "Sysvol Replication Table Section: $($_.Exception.Message)"
                     }
                 }
             } else {
-                Write-PScriboMessage -IsWarning "No Sites information found in $Domain, disabling the section."
+                Write-PScriboMessage -IsWarning "No Sites information found in $ForestInfo, disabling the section."
             }
         } catch {
             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Site Global)"
