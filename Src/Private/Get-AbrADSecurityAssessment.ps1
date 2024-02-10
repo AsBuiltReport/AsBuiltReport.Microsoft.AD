@@ -122,14 +122,11 @@ function Get-AbrADSecurityAssessment {
                             BlankLine
                             $OutObj = @()
                             Write-PScriboMessage "Collecting Privileged Users Assessment information from $($Domain)."
+                            $AccountNotDelegated = $PrivilegedUsers | Where-Object { -not $_.AccountNotDelegated -and $_.objectClass -eq "user" }
                             foreach ($PrivilegedUser in $PrivilegedUsers) {
                                 try {
                                     $inObj = [ordered] @{
                                         'Username' = $PrivilegedUser.SamAccountName
-                                        'Created' = Switch ($PrivilegedUser.Created) {
-                                            $Null { '--' }
-                                            default { $PrivilegedUser.Created.ToShortDateString() }
-                                        }
                                         'Password Last Set' = Switch ($PrivilegedUser.PasswordLastSet) {
                                             $Null { '--' }
                                             default { $PrivilegedUser.PasswordLastSet.ToShortDateString() }
@@ -138,6 +135,16 @@ function Get-AbrADSecurityAssessment {
                                             $Null { '--' }
                                             default { $PrivilegedUser.LastLogonDate.ToShortDateString() }
                                         }
+                                        'Email Enabled?' = Switch ([string]::IsNullOrEmpty($PrivilegedUser.EmailAddress)) {
+                                            $true { 'No' }
+                                            $false { "Yes" }
+                                            default { "Unknown" }
+                                        }
+                                        'Trusted for Delegation' = Switch ([string]::IsNullOrEmpty(($AccountNotDelegated | Where-Object { $_.SamAccountName -eq $PrivilegedUser.SamAccountName }))) {
+                                            $true { "No" }
+                                            $false { "Yes" }
+                                            default { "Unknown" }
+                                        }
                                     }
                                     $OutObj += [pscustomobject]$inobj
                                 } catch {
@@ -145,21 +152,44 @@ function Get-AbrADSecurityAssessment {
                                 }
                             }
 
+                            if ($HealthCheck.Domain.Security) {
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Email Enabled?' -eq "Yes" })) {
+                                    $OBJ.'Email Enabled?' = "* $($OBJ.'Email Enabled?')"
+                                }
+                                $OutObj | Where-Object { $_.'Email Enabled?' -eq "* Yes" } | Set-Style -Style Warning -Property 'Email Enabled?'
+
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Trusted for Delegation' -eq "Yes" })) {
+                                    $OBJ.'Trusted for Delegation' = "** $($OBJ.'Trusted for Delegation')"
+                                }
+                                $OutObj | Where-Object { $_.'Trusted for Delegation' -eq "** Yes" } | Set-Style -Style Warning -Property 'Trusted for Delegation'
+                            }
+
                             $TableParams = @{
                                 Name = "Privileged User Assessment - $($Domain.ToString().ToUpper())"
                                 List = $false
-                                ColumnWidths = 40, 20, 20, 20
+                                ColumnWidths = 40, 15, 15, 15, 15
                             }
 
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph "Health Check:" -Bold -Underline
-                            BlankLine
-                            Paragraph {
-                                Text "Corrective Actions:" -Bold
-                                Text "Ensure there aren't any account with weak security posture."
+                            if (($OutObj | Where-Object { $_.'Trusted for Delegation' -eq "** Yes" }) -or ($OutObj | Where-Object { $_.'Email Enabled?' -eq "* Yes" })) {
+                                Paragraph "Health Check:" -Bold -Underline
+                                BlankLine
+                                Paragraph "Security Best Practice:" -Bold
+                                BlankLine
+                                if ($OutObj | Where-Object { $_.'Email Enabled?' -eq "* Yes" }) {
+                                    Paragraph {
+                                        Text "* Privileged accounts such as those belonging to any of the administrator groups must not have configured email."
+                                    }
+                                    BlankLine
+                                }
+                                if ($OutObj | Where-Object { $_.'Trusted for Delegation' -eq "** Yes" }) {
+                                    Paragraph {
+                                        Text "** Privileged accounts such as those belonging to any of the administrator groups must not be trusted for delegation. Allowing privileged accounts to be trusted for delegation provides a means for privilege escalation from a compromised system. Delegation of privileged accounts must be prohibited."
+                                    }
+                                }
                             }
                         }
                     } else {
