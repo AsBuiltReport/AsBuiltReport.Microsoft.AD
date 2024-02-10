@@ -57,6 +57,11 @@ function Get-AbrADDomain {
                         'Domain Controllers Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.DomainControllersContainer -Domain $Domain
                         'Systems Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.SystemsContainer -Domain $Domain
                         'Users Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.UsersContainer -Domain $Domain
+                        'Deleted Objects Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.DeletedObjectsContainer -Domain $Domain
+                        'Foreign Security Principals Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.ForeignSecurityPrincipalsContainer -Domain $Domain
+                        'Lost And Found Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.LostAndFoundContainer -Domain $Domain
+                        'Quotas Container' = ConvertTo-ADCanonicalName -DN $DomainInfo.QuotasContainer -Domain $Domain
+
                         'ReadOnly Replica Directory Servers' = ConvertTo-EmptyToFiller $DomainInfo.ReadOnlyReplicaDirectoryServers
                         'ms-DS-MachineAccountQuota' = Invoke-Command -Session $TempPssSession { (Get-ADObject -Server $using:DC -Identity (($using:DomainInfo).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota' }
                         'RID Issued/Available' = try { "$($RIDsIssued) / $($RIDsRemaining) ($([math]::Truncate($CompleteSIDS / $RIDsRemaining))% Issued)" } catch { "$($RIDsIssued)/$($RIDsRemaining)" }
