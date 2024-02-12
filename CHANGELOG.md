@@ -14,12 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Removed Graphviz install check code.
+- Remove Graphviz install check code.
 - Code cleanup
 
 ### Fixed
 
-- Improved error handling on Forest Diagram section.
+- Improve error handling on Forest Diagram section.
 - Fix issues with Diagrammer.Microsoft.AD module.
 - Fix [#154](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/154)
 - Fix [#153](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/153)
