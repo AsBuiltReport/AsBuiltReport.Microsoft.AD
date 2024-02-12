@@ -29,172 +29,302 @@ function Get-AbrADDomainController {
     }
 
     process {
-        try {
-            $OutObj = @()
-            Write-PScriboMessage "Discovering Active Directory Domain Controller information from $Domain."
-            foreach ($DC in $DCs) {
-                if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                    try {
-                        Write-PScriboMessage "Collecting AD Domain Controllers information of $DC."
-                        $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
-                        $inObj = [ordered] @{
-                            'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
-                            'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
-                                $true { "--" }
-                                $false { $DCInfo.Domain }
-                                default { "Unknown" }
-                            }
-                            'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
-                                $true { "--" }
-                                $false { $DCInfo.Site }
-                                default { "Unknown" }
-                            }
-                            'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
-                            'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
-                            'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
-                                $true { "--" }
-                                $false { $DCInfo.IPv4Address }
-                                default { "Unknown" }
-                            }
-                        }
-                        $OutObj += [pscustomobject]$inobj
-                    } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
-                    }
-                }
-            }
-
-            if ($HealthCheck.DomainController.BestPractice) {
-                if ($OutObj.Count -eq 1) {
-                    $OutObj | Set-Style -Style Warning
-                }
-            }
-
-            $TableParams = @{
-                Name = "Domain Controllers - $($Domain.ToString().ToUpper())"
-                List = $false
-                ColumnWidths = 25, 25, 15, 10, 10, 15
-            }
-            if ($Report.ShowTableCaptions) {
-                $TableParams['Caption'] = "- $($TableParams.Name)"
-            }
-            $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-            if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
-                Paragraph "Health Check:" -Bold -Underline
-                BlankLine
-                Paragraph {
-                    Text "Best Practice:" -Bold
-                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
-                }
-            }
-        } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
-        }
-
-        try {
-            Write-PScriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
-            Section -Style Heading4 'Hardware Inventory' {
-                Paragraph "The following section provides detailed Domain Controller hardware information for domain $($Domain.ToString().ToUpper())."
-                BlankLine
-                $DCHWInfo = @()
+        if ($InfoLevel.Domain -eq 1) {
+            try {
+                $OutObj = @()
+                Write-PScriboMessage "Discovering Active Directory Domain Controller information from $Domain."
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                        $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
+                        $DCComputerObject = try { Invoke-Command -Session $TempPssSession { Get-ADComputer ($using:DCInfo).ComputerObjectDN -Properties * -Server $using:DC } } catch { Out-Null }
+                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DCNetSettings'
+                        $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Out-Null }
+                        Remove-PSSession -Session $DCPssSession
                         try {
-                            Write-PScriboMessage "Collecting AD Domain Controller Hardware information for $DC."
-                            $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware'
-                            $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
-                            $License = Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
-                            $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
-                            Remove-PSSession -Session $DCPssSession
-                            Remove-CimSession $CimSession
-                            if ($HW) {
-                                $inObj = [ordered] @{
-                                    'Name' = $HW.CsName
-                                    'Windows Product Name' = $HW.WindowsProductName
-                                    'Windows Build Number' = $HW.OsVersion
-                                    'AD Domain' = $HW.CsDomain
-                                    'Windows Installation Date' = $HW.OsInstallDate
-                                    'Time Zone' = $HW.TimeZone
-                                    'License Type' = $License.ProductKeyChannel
-                                    'Partial Product Key' = $License.PartialProductKey
-                                    'Manufacturer' = $HW.CsManufacturer
-                                    'Model' = $HW.CsModel
-                                    'Processor Model' = $HWCPU[0].Name
-                                    'Number of Processors' = ($HWCPU | Measure-Object).Count
-                                    'Number of CPU Cores' = $HWCPU[0].NumberOfCores
-                                    'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
-                                    'Physical Memory' = & {
-                                        try {
-                                            ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
-                                        } catch { '0.00 GB' }
-                                    }
+                            Write-PScriboMessage "Collecting AD Domain Controllers information of $DC."
+                            $inObj = [ordered] @{
+                                'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
+                                    $true { "--" }
+                                    $false { $DCInfo.Domain }
+                                    default { "Unknown" }
                                 }
-                                $DCHWInfo += [pscustomobject]$inobj
+                                'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                    $true { "--" }
+                                    $false { $DCInfo.Site }
+                                    default { "Unknown" }
+                                }
+                                'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
+                                'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
+                                'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
+                                    $true { "--" }
+                                    $false { $DCInfo.IPv4Address }
+                                    default { "Unknown" }
+                                }
                             }
+                            $OutObj += [pscustomobject]$inobj
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Hardware Inventory Item)"
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
                         }
                     }
                 }
+                if ($HealthCheck.DomainController.BestPractice) {
+                    if ($OutObj.Count -eq 1) {
+                        $OutObj | Set-Style -Style Warning
+                    }
+                }
 
-                if ($InfoLevel.Domain -ge 2) {
-                    foreach ($DCHW in $DCHWInfo) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading5 $($DCHW.Name.ToString().ToUpper()) {
-                            if ($HealthCheck.DomainController.Diagnostic) {
-                                if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                                    $DCHW | Set-Style -Style Warning -Property 'Physical Memory'
+                $TableParams = @{
+                    Name = "Domain Controllers - $($Domain.ToString().ToUpper())"
+                    List = $false
+                    ColumnWidths = 25, 25, 15, 10, 10, 15
+                }
+                if ($Report.ShowTableCaptions) {
+                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                }
+                $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
+                    Paragraph "Health Check:" -Bold -Underline
+                    BlankLine
+                    Paragraph {
+                        Text "Best Practice:" -Bold
+                        Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
+                    }
+                }
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
+            }
+        } else {
+            try {
+                $OutObj = @()
+                Write-PScriboMessage "Discovering Active Directory Domain Controller information from $Domain."
+                foreach ($DC in $DCs) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                        $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
+                        $DCComputerObject = try { Invoke-Command -Session $TempPssSession { Get-ADComputer ($using:DCInfo).ComputerObjectDN -Properties * -Server $using:DC } } catch { Out-Null }
+                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DCNetSettings'
+                        $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Out-Null }
+                        Remove-PSSession -Session $DCPssSession
+                        if ($InfoLevel.Domain -eq 1) {
+                            try {
+                                Write-PScriboMessage "Collecting AD Domain Controllers information of $DC."
+                                $inObj = [ordered] @{
+                                    'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                    'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
+                                        $true { "--" }
+                                        $false { $DCInfo.Domain }
+                                        default { "Unknown" }
+                                    }
+                                    'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                        $true { "--" }
+                                        $false { $DCInfo.Site }
+                                        default { "Unknown" }
+                                    }
+                                    'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
+                                    'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
+                                    'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
+                                        $true { "--" }
+                                        $false { $DCInfo.IPv4Address }
+                                        default { "Unknown" }
+                                    }
+                                }
+                                $OutObj += [pscustomobject]$inobj
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
+                            }
+                            if ($HealthCheck.DomainController.BestPractice) {
+                                if ($OutObj.Count -eq 1) {
+                                    $OutObj | Set-Style -Style Warning
                                 }
                             }
+
                             $TableParams = @{
-                                Name = "Hardware Inventory - $($DCHW.Name.ToString().ToUpper())"
-                                List = $true
-                                ColumnWidths = 40, 60
+                                Name = "Domain Controllers - $($Domain.ToString().ToUpper())"
+                                List = $false
+                                ColumnWidths = 25, 25, 15, 10, 10, 15
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $DCHW | Table @TableParams
-                            if ($HealthCheck.DomainController.Diagnostic) {
-                                if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                                    Paragraph "Health Check:" -Bold -Underline
-                                    BlankLine
-                                    Paragraph {
-                                        Text "Best Practice:" -Bold
-                                        Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
-                                    }
+                            $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                            if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
+                                Paragraph "Health Check:" -Bold -Underline
+                                BlankLine
+                                Paragraph {
+                                    Text "Best Practice:" -Bold
+                                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
                                 }
                             }
-                        }
-                    }
-                } else {
-                    if ($HealthCheck.DomainController.Diagnostic) {
-                        $DCHWInfo | Where-Object { [int]([regex]::Matches($_.'Physical Memory', "\d+(\.*\d+)").value) -lt 8 } | Set-Style -Style Warning -Property 'Physical Memory'
-                    }
-                    $TableParams = @{
-                        Name = "Hardware Inventory - $($Domain.ToString().ToUpper())"
-                        List = $false
-                        Columns = 'Name', 'Number of Processors', 'Number of CPU Cores', 'Physical Memory'
-                        ColumnWidths = 25, 25, 25, 25
-                    }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    $DCHWInfo | Table @TableParams
-                    if ($HealthCheck.DomainController.Diagnostic) {
-                        if ($DCHWInfo | Where-Object { [int]([regex]::Matches($_.'Physical Memory', "\d+(\.*\d+)").value) -lt 8 }) {
-                            Paragraph "Health Check:" -Bold -Underline
-                            BlankLine
-                            Paragraph {
-                                Text "Best Practice:" -Bold
-                                Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
+                        } else {
+                            try {
+                                Section -Style Heading4 $DCInfo.Name {
+                                    Write-PScriboMessage "Collecting AD Domain Controllers information of $DC."
+                                    Section -ExcludeFromTOC -Style NOTOCHeading5 "General Information" {
+                                        $inObj = [ordered] @{
+                                            'DC Name' = $DCInfo.Hostname
+                                            'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
+                                                $true { "--" }
+                                                $false { $DCInfo.Domain }
+                                                default { "Unknown" }
+                                            }
+                                            'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                                $true { "--" }
+                                                $false { $DCInfo.Site }
+                                                default { "Unknown" }
+                                            }
+                                            'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
+                                            'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
+                                            'Location' = $DCComputerObject.Location
+                                            'Computer Object SID' = $DCComputerObject.SID
+                                            "Operating System" = $DCInfo.OperatingSystem
+                                            'Description' = $DCComputerObject.Description
+                                        }
+                                        $OutObj = [pscustomobject]$inobj
+
+                                        $TableParams = @{
+                                            Name = "General Information - $($DCInfo.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
+                                    }
+                                    Section -ExcludeFromTOC -Style NOTOCHeading5 "Partitions" {
+                                        $inObj = [ordered] @{
+                                            'Default Partition' = $DCInfo.DefaultPartition
+                                            'Partitions' = $DCInfo.Partitions
+                                        }
+                                        $OutObj = [pscustomobject]$inobj
+
+
+                                        $TableParams = @{
+                                            Name = "Partitions - $($DCInfo.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
+                                    }
+                                    Section -ExcludeFromTOC -Style NOTOCHeading5 "Networking Settings" {
+                                        $inObj = [ordered] @{
+                                            'IPv4 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address))) {
+                                                $true { "--" }
+                                                $false { ($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address -join "," }
+                                                default { "Unknown" }
+                                            }
+                                            'IPv6 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv6' -and $_.IPAddress -ne '::1' }).IPv6Address))) {
+                                                $true { "--" }
+                                                $false { ($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv6' -and $_.IPAddress -ne '::1' }).IPv6Address -join "," }
+                                                default { "Unknown" }
+                                            }
+                                            "LDAP Port" = $DCInfo.LdapPort
+                                            "SSL Port" = $DCInfo.SslPort
+                                        }
+                                        $OutObj = [pscustomobject]$inobj
+
+                                        if ($HealthCheck.DomainController.BestPractice) {
+                                            $OutObj | Where-Object { $_.'IPv4 Addresses'.Split(",").Count -gt 1 } | Set-Style -Style Warning -Property 'IPv4 Addresses'
+                                        }
+
+                                        $TableParams = @{
+                                            Name = "Networking Settings - $($DCInfo.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
+                                        if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'IPv4 Addresses'.Split(",").Count -gt 1 })) {
+                                            Paragraph "Health Check:" -Bold -Underline
+                                            BlankLine
+                                            Paragraph {
+                                                Text "Best Practice:" -Bold
+                                                Text "On Domain Controllers with more than one NIC where each NIC is connected to separate Network, there's a possibility that the Host A DNS registration can occur for unwanted NICs. Avoid registering unwanted NICs in DNS on a multihomed domain controller"
+                                            }
+                                        }
+                                    }
+                                    try {
+                                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Hardware Inventory' {
+                                            $DCHWInfo = @()
+                                            try {
+                                                $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware'
+                                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware'
+                                                $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
+                                                $License = Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
+                                                $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
+                                                Remove-PSSession -Session $DCPssSession
+                                                Remove-CimSession $CimSession
+                                                if ($HW) {
+                                                    $inObj = [ordered] @{
+                                                        'Name' = $HW.CsName
+                                                        'Windows Product Name' = $HW.WindowsProductName
+                                                        'Windows Build Number' = $HW.OsVersion
+                                                        'AD Domain' = $HW.CsDomain
+                                                        'Windows Installation Date' = $HW.OsInstallDate
+                                                        'Time Zone' = $HW.TimeZone
+                                                        'License Type' = $License.ProductKeyChannel
+                                                        'Partial Product Key' = $License.PartialProductKey
+                                                        'Manufacturer' = $HW.CsManufacturer
+                                                        'Model' = $HW.CsModel
+                                                        'Processor Model' = $HWCPU[0].Name
+                                                        'Number of Processors' = ($HWCPU | Measure-Object).Count
+                                                        'Number of CPU Cores' = $HWCPU[0].NumberOfCores
+                                                        'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
+                                                        'Physical Memory' = & {
+                                                            try {
+                                                                ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                                                            } catch { '0.00 GB' }
+                                                        }
+                                                    }
+                                                    $DCHWInfo += [pscustomobject]$inobj
+                                                }
+
+                                                if ($HealthCheck.DomainController.Diagnostic) {
+                                                    if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
+                                                        $DCHWInfo | Set-Style -Style Warning -Property 'Physical Memory'
+                                                    }
+                                                }
+                                                $TableParams = @{
+                                                    Name = "Hardware Inventory - $($DCHWInfo.Name.ToString().ToUpper())"
+                                                    List = $true
+                                                    ColumnWidths = 40, 60
+                                                }
+                                                if ($Report.ShowTableCaptions) {
+                                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                                }
+                                                $DCHWInfo | Table @TableParams
+                                                if ($HealthCheck.DomainController.Diagnostic) {
+                                                    if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
+                                                        Paragraph "Health Check:" -Bold -Underline
+                                                        BlankLine
+                                                        Paragraph {
+                                                            Text "Best Practice:" -Bold
+                                                            Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
+                                                        }
+                                                    }
+                                                }
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Hardware Inventory Table)"
+                                            }
+                                        }
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Section)"
+                                    }
+                                }
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
                             }
                         }
                     }
                 }
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
             }
-        } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Table)"
         }
         #---------------------------------------------------------------------------------------------#
         #                                 DNS IP Section                                              #
@@ -401,7 +531,7 @@ function Get-AbrADDomainController {
                         if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                             try {
                                 Write-PScriboMessage "Collecting AD Domain Controller SRV Records Status for $DC."
-                                $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                                $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication  -Name 'SRVRecordsStatus'
                                 $PDCEmulator = Invoke-Command -Session $TempPssSession { (Get-ADDomain $using:Domain -ErrorAction Stop).PDCEmulator }
                                 if ($Domain -eq $ADSystem.RootDomain) {
                                     $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName _msdcs.$Domain -RRType Srv

@@ -32,7 +32,7 @@ function Get-AbrADTrust {
             if ($Domain) {
                 try {
                     $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
-                    $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Server $using:DC }
+                    $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:DC }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {
                             $TrustInfo = @()
@@ -44,12 +44,31 @@ function Get-AbrADTrust {
                                         'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Domain $Domain
                                         'Source' = ConvertTo-ADObjectName $Trust.Source -Session $TempPssSession -DC $DC
                                         'Target' = $Trust.Target
-                                        'Direction' = $Trust.Direction
+                                        'Trust Type' = $Trust.TrustType
+                                        'Trust Attributes' = switch ($Trust.TrustAttributes) {
+                                            1 { "Non-Transitive" }
+                                            2 { "Uplevel clients only (Windows 2000 or newer" }
+                                            4 { "Quarantined Domain (External)" }
+                                            8 { "Forest Trust" }
+                                            16 { "Cross-Organizational Trust (Selective Authentication)" }
+                                            32 { "Intra-Forest Trust (trust within the forest)" }
+                                            64 { "Inter-Forest Trust (trust with another forest)" }
+                                            default {$Trust.TrustAttributes}
+                                        }
+                                        'Trust Direction' = Switch ($Trust.TrustDirection) {
+                                            0 { "Disabled (The trust relationship exists but has been disabled)" }
+                                            1 { "Inbound (TrustING domain)" }
+                                            2 { "Outbound (TrustED domain)" }
+                                            3 { "Bidirectional (two-way trust)" }
+                                            default {$Trust.TrustDirection}
+                                        }
                                         'IntraForest' = ConvertTo-TextYN $Trust.IntraForest
                                         'Selective Authentication' = ConvertTo-TextYN $Trust.SelectiveAuthentication
                                         'SID Filtering Forest Aware' = ConvertTo-TextYN $Trust.SIDFilteringForestAware
                                         'SID Filtering Quarantined' = ConvertTo-TextYN $Trust.SIDFilteringQuarantined
-                                        'Trust Type' = $Trust.TrustType
+                                        'TGT Delegation' = ConvertTo-TextYN $Trust.TGTDelegation
+                                        'Kerberos AES Encryption' = ConvertTo-TextYN $Trust.UsesAESKeys
+                                        'Kerberos RC4 Encryption' = ConvertTo-TextYN $Trust.UsesRC4Encryption
                                         'Uplevel Only' = ConvertTo-TextYN $Trust.UplevelOnly
                                     }
                                     $TrustInfo += [pscustomobject]$inobj
@@ -76,7 +95,7 @@ function Get-AbrADTrust {
                                 $TableParams = @{
                                     Name = "Trusts - $($Domain.ToString().ToUpper())"
                                     List = $false
-                                    Columns = 'Name', 'Path', 'Source', 'Target', 'Direction'
+                                    Columns = 'Name', 'Path', 'Source', 'Target', 'Trust Direction'
                                     ColumnWidths = 20, 20, 20, 20, 20
                                 }
                                 if ($Report.ShowTableCaptions) {

@@ -86,7 +86,7 @@ function Get-AbrADOU {
                         try {
                             $OutObj = @()
                             $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
-                            $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName }
+                            # $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName }
                             if ($OUs) {
                                 Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                                 foreach ($OU in $OUs) {

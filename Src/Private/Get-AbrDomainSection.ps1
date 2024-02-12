@@ -125,10 +125,10 @@ function Get-AbrDomainSection {
                                                 continue
                                             }
                                         }
-                                        Get-AbrADSiteReplication -Domain $Domain
-                                        Get-AbrADGPO -Domain $Domain
-                                        Get-AbrADOU -Domain $Domain
                                     }
+                                    Get-AbrADSiteReplication -Domain $Domain
+                                    Get-AbrADGPO -Domain $Domain
+                                    Get-AbrADOU -Domain $Domain
                                 }
                             } else {
                                 Write-PScriboMessage "$($Domain) disabled in Exclude.Domain variable"
