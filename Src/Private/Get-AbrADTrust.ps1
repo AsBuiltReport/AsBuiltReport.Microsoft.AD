@@ -95,7 +95,7 @@ function Get-AbrADTrust {
                                 $TableParams = @{
                                     Name = "Trusts - $($Domain.ToString().ToUpper())"
                                     List = $false
-                                    Columns = 'Name', 'Path', 'Source', 'Target', 'Direction'
+                                    Columns = 'Name', 'Path', 'Source', 'Target', 'Trust Direction'
                                     ColumnWidths = 20, 20, 20, 20, 20
                                 }
                                 if ($Report.ShowTableCaptions) {

@@ -188,6 +188,8 @@ function Get-AbrADSecurityAssessment {
                                 if ($OutObj | Where-Object { $_.'Trusted for Delegation' -eq "** Yes" }) {
                                     Paragraph {
                                         Text "** Privileged accounts such as those belonging to any of the administrator groups must not be trusted for delegation. Allowing privileged accounts to be trusted for delegation provides a means for privilege escalation from a compromised system. Delegation of privileged accounts must be prohibited."
+                                        Text "Reference: "
+                                        Text "https://www.stigviewer.com/stig/active_directory_domain/2017-12-15/finding/V-36435"
                                     }
                                 }
                             }

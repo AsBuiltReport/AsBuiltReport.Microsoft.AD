@@ -82,8 +82,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         Try {
             Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
-            $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
-            $script:TempCIMSession = New-CimSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop
+            $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name "Global:TempPssSession"
+            $script:TempCIMSession = New-CimSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name "Global:TempCIMSession"
             $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop }
         } Catch {
             throw "Unable to connect to the Domain Controller: $System"
