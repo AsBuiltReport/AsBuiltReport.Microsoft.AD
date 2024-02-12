@@ -898,6 +898,52 @@ function Get-AbrADDomainObject {
         } catch {
             Write-PScriboMessage -IsWarning $($_.Exception.Message)
         }
+        try {
+            if ($Domain) {
+                Write-PScriboMessage "Collecting the Active Directory Foreign Security Principals."
+                try {
+                    Write-PScriboMessage "Collecting the Active Directory Foreign Security Principals from DC $DC."
+                    $FSP = Invoke-Command -Session $TempPssSession {Get-ADObject -Server $using:DC -Filter {ObjectClass -eq "foreignSecurityPrincipal"} -Properties msds-principalname,memberof}
+                    if ($FSP) {
+                        Section -Style Heading3 'Foreign Security Principals' {
+                            $FSPInfo = @()
+                            foreach ($Account in $FSP) {
+                                try {
+                                    $inObj = [ordered] @{
+                                        'Name' = $Account.'msds-principalname'
+                                        'Principal Name' = $Account.memberof | ForEach-Object {
+                                            if ($Null -ne $_) {
+                                                ConvertTo-ADObjectName -DN $_ -Session $TempPssSession -DC $DC
+                                            } else {
+                                                return "--"
+                                            }
+                                        }
+                                    }
+                                    $FSPInfo += [pscustomobject]$inobj
+
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Foreign Security Principals Item)"
+                                }
+                            }
+
+                            $TableParams = @{
+                                Name = "Foreign Security Principals - $($Domain.ToString().ToUpper())"
+                                List = $false
+                                ColumnWidths = 50, 50
+                            }
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $FSPInfo | Table @TableParams
+                        }
+                    }
+                } catch {
+                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Foreign Security Principals Section)"
+                }
+            }
+        } catch {
+            Write-PScriboMessage -IsWarning $($_.Exception.Message)
+        }
     }
 
     end {}
