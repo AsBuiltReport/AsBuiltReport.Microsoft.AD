@@ -903,7 +903,7 @@ function Get-AbrADDomainObject {
                 Write-PScriboMessage "Collecting the Active Directory Foreign Security Principals."
                 try {
                     Write-PScriboMessage "Collecting the Active Directory Foreign Security Principals from DC $DC."
-                    $FSP = Invoke-Command -Session $TempPssSession {Get-ADObject -Server $using:DC -Filter {ObjectClass -eq "foreignSecurityPrincipal"} -Properties msds-principalname,memberof}
+                    $FSP = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:DC -Filter { ObjectClass -eq "foreignSecurityPrincipal" } -Properties msds-principalname, memberof }
                     if ($FSP) {
                         Section -Style Heading3 'Foreign Security Principals' {
                             $FSPInfo = @()
