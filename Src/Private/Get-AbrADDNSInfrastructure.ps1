@@ -24,7 +24,7 @@ function Get-AbrADDNSInfrastructure {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Active Directory Domain Name System Infrastructure information for $Domain"
+        Write-PScriboMessage "Collecting Active Directory Domain Name System Infrastructure information for $Domain"
     }
 
     process {
@@ -37,7 +37,6 @@ function Get-AbrADDNSInfrastructure {
                     $OutObj = @()
                     foreach ($DC in $DCs) {
                         if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                            Write-PScriboMessage "Collecting Domain Name System Infrastructure information from '$($DC)'."
                             try {
                                 $DNSSetting = Get-DnsServerSetting -CimSession $TempCIMSession -ComputerName $DC
                                 $inObj = [ordered] @{
@@ -52,6 +51,8 @@ function Get-AbrADDNSInfrastructure {
                             } catch {
                                 Write-PScriboMessage -IsWarning "DNS Infrastructure Summary Section: $($_.Exception.Message)"
                             }
+                        } else {
+                            Write-PScriboMessage -IsWarning "DNS Infrastructure Summary Section: Unable to connect to DC server $DC"
                         }
                     }
 
@@ -74,10 +75,9 @@ function Get-AbrADDNSInfrastructure {
                                 BlankLine
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                        Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
-                                            $OutObj = @()
-                                            Write-PScriboMessage "Collecting Directory Partition information from $($DC)."
-                                            try {
+                                        try {
+                                            Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                                $OutObj = @()
                                                 $DNSSetting = Get-DnsServerDirectoryPartition -CimSession $TempCIMSession -ComputerName $DC
                                                 foreach ($Partition in $DNSSetting) {
                                                     try {
@@ -99,20 +99,21 @@ function Get-AbrADDNSInfrastructure {
                                                         Write-PScriboMessage -IsWarning "Directory Partitions Item Section: $($_.Exception.Message)"
                                                     }
                                                 }
-                                            } catch {
-                                                Write-PScriboMessage -IsWarning "Directory Partitions Table Section: $($_.Exception.Message)"
+                                                $TableParams = @{
+                                                    Name = "Directory Partitions - $($DC.ToString().ToUpper().Split(".")[0])"
+                                                    List = $false
+                                                    ColumnWidths = 40, 25, 25, 10
+                                                }
+                                                if ($Report.ShowTableCaptions) {
+                                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                                }
+                                                $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                             }
-
-                                            $TableParams = @{
-                                                Name = "Directory Partitions - $($DC.ToString().ToUpper().Split(".")[0])"
-                                                List = $false
-                                                ColumnWidths = 40, 25, 25, 10
-                                            }
-                                            if ($Report.ShowTableCaptions) {
-                                                $TableParams['Caption'] = "- $($TableParams.Name)"
-                                            }
-                                            $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "Directory Partitions Table Section: $($_.Exception.Message)"
                                         }
+                                    } else {
+                                        Write-PScriboMessage -IsWarning "DNS Directory Partition Section: Unable to connect to DC server $DC"
                                     }
                                 }
                             }
@@ -129,7 +130,6 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                        Write-PScriboMessage "Collecting Response Rate Limiting (RRL) information from $($DC)."
                                         try {
                                             $DNSSetting = Get-DnsServerResponseRateLimiting -CimSession $TempCIMSession -ComputerName $DC
                                             $inObj = [ordered] @{
@@ -146,6 +146,8 @@ function Get-AbrADDNSInfrastructure {
                                         } catch {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
                                         }
+                                    } else {
+                                        Write-PScriboMessage -IsWarning "DNS Response Rate Limiting (RRL) Section: Unable to connect to DC server $DC"
                                     }
                                 }
 
@@ -172,7 +174,6 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                        Write-PScriboMessage "Collecting Scavenging Options information from $($DC)."
                                         try {
                                             $DNSSetting = Get-DnsServerScavenging -CimSession $TempCIMSession -ComputerName $DC
                                             $inObj = [ordered] @{
@@ -195,6 +196,8 @@ function Get-AbrADDNSInfrastructure {
                                         } catch {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Item)"
                                         }
+                                    } else {
+                                        Write-PScriboMessage -IsWarning "DNS Scavenging Section: Unable to connect to DC server $DC"
                                     }
                                 }
 
@@ -232,7 +235,6 @@ function Get-AbrADDNSInfrastructure {
                             $OutObj = @()
                             foreach ($DC in $DCs) {
                                 if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                    Write-PScriboMessage "Collecting Forwarder Options information from $($DC)."
                                     try {
                                         $DNSSetting = Get-DnsServerForwarder -CimSession $TempCIMSession -ComputerName $DC
                                         $Recursion = Get-DnsServerRecursion -CimSession $TempCIMSession -ComputerName $DC | Select-Object -ExpandProperty Enable
@@ -247,6 +249,8 @@ function Get-AbrADDNSInfrastructure {
                                     } catch {
                                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Item)"
                                     }
+                                } else {
+                                    Write-PScriboMessage -IsWarning "DNS Forwarder Section: Unable to connect to DC server $DC"
                                 }
                             }
 
@@ -301,10 +305,9 @@ function Get-AbrADDNSInfrastructure {
                                 BlankLine
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                        Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
-                                            $OutObj = @()
-                                            Write-PScriboMessage "Collecting Root Hint information from $($DC)."
-                                            try {
+                                        try {
+                                            Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
+                                                $OutObj = @()
                                                 $DNSSetting = Get-DnsServerRootHint -CimSession $TempCIMSession -ComputerName $DC -ErrorAction SilentlyContinue | Select-Object @{Name = "Name"; E = { $_.NameServer.RecordData.Nameserver } }, @{ Name = "IPv4Address"; E = { $_.IPAddress.RecordData.IPv4Address.IPAddressToString } }, @{ Name = "IPv6Address"; E = { $_.IPAddress.RecordData.IPv6Address.IPAddressToString } }
                                                 if ($DNSSetting) {
                                                     foreach ($Hints in $DNSSetting) {
@@ -353,47 +356,49 @@ function Get-AbrADDNSInfrastructure {
                                                     }
 
                                                 }
-                                            } catch {
-                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Item)"
-                                            }
 
-                                            if ($HealthCheck.DNS.BestPractice) {
-                                                $OutObj | Where-Object { $_.'IPv4 Address' -eq '--' -and $_.'IPv6 Address' -eq '--' } | Set-Style -Style Warning -Property 'IPv4 Address', 'IPv6 Address'
-                                                $OutObj | Where-Object { $_.'IPv4 Address'.Count -gt 1 } | Set-Style -Style Warning -Property 'IPv4 Address'
-                                                $OutObj | Where-Object { $_.'IPv6 Address'.Count -gt 1 } | Set-Style -Style Warning -Property 'IPv6 Address'
-                                            }
+                                                if ($HealthCheck.DNS.BestPractice) {
+                                                    $OutObj | Where-Object { $_.'IPv4 Address' -eq '--' -and $_.'IPv6 Address' -eq '--' } | Set-Style -Style Warning -Property 'IPv4 Address', 'IPv6 Address'
+                                                    $OutObj | Where-Object { $_.'IPv4 Address'.Count -gt 1 } | Set-Style -Style Warning -Property 'IPv4 Address'
+                                                    $OutObj | Where-Object { $_.'IPv6 Address'.Count -gt 1 } | Set-Style -Style Warning -Property 'IPv6 Address'
+                                                }
 
-                                            $TableParams = @{
-                                                Name = "Root Hints - $($DC.ToString().ToUpper().Split(".")[0])"
-                                                List = $false
-                                                ColumnWidths = 40, 30, 30
-                                            }
-                                            if ($Report.ShowTableCaptions) {
-                                                $TableParams['Caption'] = "- $($TableParams.Name)"
-                                            }
-                                            $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                                            if ($HealthCheck.DNS.BestPractice -and (($OutObj | Where-Object { $_.'IPv4 Address' -eq '--' -and $_.'IPv6 Address' -eq '--' }) -or (($OutObj | Where-Object { $_.'IPv4 Address'.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'IPv6 Address'.Count -gt 1 })))) {
-                                                Paragraph "Health Check:" -Bold -Underline
-                                                BlankLine
-                                                if ($OutObj | Where-Object { $_.'IPv4 Address' -eq '--' -and $_.'IPv6 Address' -eq '--' }) {
-                                                    Paragraph {
-                                                        Text "Corrective Actions:" -Bold
-                                                        Text "A default installation of the DNS server role should have root hints unless the server has a root zone - .(root). If the server has a root zone then delete it. If the server doesn't have a root zone and there are no root servers listed on the Root Hints tab of the DNS server properties then the server may be missing the cache.dns file in the %systemroot%\system32\dns directory, which is where the list of root servers is loaded from."
+                                                $TableParams = @{
+                                                    Name = "Root Hints - $($DC.ToString().ToUpper().Split(".")[0])"
+                                                    List = $false
+                                                    ColumnWidths = 40, 30, 30
+                                                }
+                                                if ($Report.ShowTableCaptions) {
+                                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                                }
+                                                $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                                                if ($HealthCheck.DNS.BestPractice -and (($OutObj | Where-Object { $_.'IPv4 Address' -eq '--' -and $_.'IPv6 Address' -eq '--' }) -or (($OutObj | Where-Object { $_.'IPv4 Address'.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'IPv6 Address'.Count -gt 1 })))) {
+                                                    Paragraph "Health Check:" -Bold -Underline
+                                                    BlankLine
+                                                    if ($OutObj | Where-Object { $_.'IPv4 Address' -eq '--' -and $_.'IPv6 Address' -eq '--' }) {
+                                                        Paragraph {
+                                                            Text "Corrective Actions:" -Bold
+                                                            Text "A default installation of the DNS server role should have root hints unless the server has a root zone - .(root). If the server has a root zone then delete it. If the server doesn't have a root zone and there are no root servers listed on the Root Hints tab of the DNS server properties then the server may be missing the cache.dns file in the %systemroot%\system32\dns directory, which is where the list of root servers is loaded from."
+                                                        }
+                                                    }
+                                                    if (($OutObj | Where-Object { $_.'IPv4 Address'.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'IPv6 Address'.Count -gt 1 })) {
+                                                        Paragraph {
+                                                            Text "Corrective Actions:" -Bold
+                                                            Text "Duplicate IP Address found in the table of the DNS root hints servers. The DNS console does not show the duplicate Root Hint servers; you can only see them using the DNS PowerShell cmdlets. While there is a dnscmd utility to replace the Root Hints file, Using PowerShell is the best way to remediate this issue."
+                                                        }
                                                     }
                                                 }
-                                                if (($OutObj | Where-Object { $_.'IPv4 Address'.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'IPv6 Address'.Count -gt 1 })) {
-                                                    Paragraph {
-                                                        Text "Corrective Actions:" -Bold
-                                                        Text "Duplicate IP Address found in the table of the DNS root hints servers. The DNS console does not show the duplicate Root Hint servers; you can only see them using the DNS PowerShell cmdlets. While there is a dnscmd utility to replace the Root Hints file, Using PowerShell is the best way to remediate this issue."
-                                                    }
-                                                }
                                             }
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Table)"
                                         }
+                                    } else {
+                                        Write-PScriboMessage -IsWarning "DNS Root Hints Section: Unable to connect to DC server $DC"
                                     }
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Table)"
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Section)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -405,7 +410,6 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
                                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                        Write-PScriboMessage "Collecting Zone Scope Recursion information from $($DC)."
                                         try {
                                             $DNSSetting = Get-DnsServerRecursionScope -CimSession $TempCIMSession -ComputerName $DC
                                             $inObj = [ordered] @{
@@ -421,6 +425,8 @@ function Get-AbrADDNSInfrastructure {
                                         } catch {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Item)"
                                         }
+                                    } else {
+                                        Write-PScriboMessage -IsWarning "DNS Zone Scope Recursion Section: Unable to connect to DC server $DC"
                                     }
                                 }
 
