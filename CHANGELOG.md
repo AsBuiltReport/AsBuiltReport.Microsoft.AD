@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove Graphviz install check code
 - Code cleanup
-- Improved script logging
-- Increased Diagrammer.Microsoft.AD module version requirements
+- Improve script logging
+- Increase Diagrammer.Microsoft.AD module version requirements
 
 ### Fixed
 
