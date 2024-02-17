@@ -24,14 +24,13 @@ function Get-AbrADDomainObject {
     )
 
     begin {
-        Write-PScriboMessage "Discovering AD Domain Objects information on forest $Forestinfo."
+        Write-PScriboMessage "Collecting AD Domain Objects information on forest $Forestinfo."
     }
 
     process {
         try {
             Section -Style Heading3 'Domain Object Stats' {
                 if ($Domain) {
-                    Write-PScriboMessage "Collecting the Active Directory Object Count of domain $Domain."
                     try {
                         $ADLimitedProperties = @("Name", "Enabled", "SAMAccountname", "DisplayName", "Enabled", "LastLogonDate", "PasswordLastSet", "PasswordNeverExpires", "PasswordNotRequired", "PasswordExpired", "SmartcardLogonRequired", "AccountExpirationDate", "AdminCount", "Created", "Modified", "LastBadPasswordAttempt", "badpwdcount", "mail", "CanonicalName", "DistinguishedName", "ServicePrincipalName", "SIDHistory", "PrimaryGroupID", "UserAccountControl", "CannotChangePassword", "PwdLastSet", "LockedOut", "TrustedForDelegation", "TrustedtoAuthForDelegation", "msds-keyversionnumber", "SID", "AccountNotDelegated", "EmailAddress")
                         $script:DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
@@ -181,7 +180,6 @@ function Get-AbrADDomainObject {
             $AccountLockout = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:DC -LockedOut }
             $Categories = @('Total Users', 'Cannot Change Password', 'Password Never Expires', 'Must Change Password at Logon', 'Password Age (> 42 days)', 'SmartcardLogonRequired', 'SidHistory', 'Never Logged in', 'Dormant (> 90 days)', 'Password Not Required', 'Account Expired', 'Account Lockout')
             if ($Categories) {
-                Write-PScriboMessage "Collecting User Accounts in Domain."
                 foreach ($Category in $Categories) {
                     try {
                         if ($Category -eq 'Total Users') {
@@ -272,7 +270,6 @@ function Get-AbrADDomainObject {
             Section -Style Heading3 'Privileged Groups' {
                 $OutObj = @()
                 if ($Domain) {
-                    Write-PScriboMessage "Collecting Privileged Group in Active Directory."
                     try {
                         $DomainSID = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).domainsid.Value }
                         if ($Domain -eq $ADSystem.Name) {
@@ -288,7 +285,6 @@ function Get-AbrADDomainObject {
                                     try {
                                         $Group = $GroupOBj | Where-Object { $_.SID -like $GroupSID }
                                         if ($Group) {
-                                            Write-PScriboMessage "Collecting Privileged Group $($Group.Name) with SID $($Group.SID)"
                                             $GroupObject = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:DC -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue }
                                             $inObj = [ordered] @{
                                                 'Group Name' = $Group.Name
@@ -355,7 +351,6 @@ function Get-AbrADDomainObject {
                                     try {
                                         $Group = $GroupOBj | Where-Object { $_.SID -like $GroupSID }
                                         if ($Group) {
-                                            Write-PScriboMessage "Collecting Privileged Group $($Group.Name) with SID $($Group.SID)"
                                             $GroupObjects = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:DC  -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue | ForEach-Object { Get-ADUser -Filter 'SamAccountName -eq $_.SamAccountName' -Server $using:DC -Property SamAccountName, objectClass, LastLogonDate, passwordNeverExpires, Enabled -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName } }
                                             if ($GroupObjects) {
                                                 Section -ExcludeFromTOC -Style NOTOCHeading4 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) Members)" {
@@ -462,7 +457,6 @@ function Get-AbrADDomainObject {
             $SidHistory = $Computers.SIDHistory
             $Categories = @('Total Computers', 'Dormant (> 90 days)', 'Password Age (> 30 days)', 'SidHistory')
             if ($Categories) {
-                Write-PScriboMessage "Collecting Status of Computer Accounts."
                 foreach ($Category in $Categories) {
                     try {
                         if ($Category -eq 'Total Computers') {
@@ -537,7 +531,6 @@ function Get-AbrADDomainObject {
             Section -Style Heading3 'Operating Systems Count' {
                 $OutObj = @()
                 if ($Domain) {
-                    Write-PScriboMessage "Collecting Operating Systems in Active Directory."
                     try {
                         $OSObjects = $Computers | Where-Object { $_.name -like '*' } | Group-Object -Property operatingSystem | Select-Object Name, Count
                         if ($OSObjects) {
@@ -585,7 +578,6 @@ function Get-AbrADDomainObject {
             Section -Style Heading3 'Default Domain Password Policy' {
                 $OutObj = @()
                 if ($Domain) {
-                    Write-PScriboMessage "Collecting the Active Directory Default Domain Password Policy of domain $Item."
                     try {
                         $PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADDefaultDomainPasswordPolicy -Identity $using:Domain }
                         if ($PasswordPolicy) {
@@ -624,7 +616,6 @@ function Get-AbrADDomainObject {
         try {
             if ($Domain) {
                 foreach ($Item in $Domain) {
-                    Write-PScriboMessage "Collecting the Active Directory Fined Grained Password Policies of domain $Item."
                     $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
                     $PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADFineGrainedPasswordPolicy -Server $using:DCPDC -Filter { Name -like "*" } -Properties * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName } | Sort-Object -Property Name
                     if ($PasswordPolicy) {
@@ -695,7 +686,6 @@ function Get-AbrADDomainObject {
         try {
             if ($Domain -eq $ADSystem.RootDomain) {
                 foreach ($Item in $Domain) {
-                    Write-PScriboMessage "Collecting the Active Directory LAPS Policies from domain $Item."
                     $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                     $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
                     $LAPS = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:DCPDC "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:DomainInfo).DistinguishedName)" } | Sort-Object -Property Name
@@ -764,9 +754,7 @@ function Get-AbrADDomainObject {
 
         try {
             if ($Domain) {
-                Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts for $Item."
                 try {
-                    Write-PScriboMessage "Collecting the Active Directory Group Managed Service Accounts from DC $DC."
                     $GMSA = Invoke-Command -Session $TempPssSession { Get-ADServiceAccount -Server $using:DC -Filter * -Properties * }
                     if ($GMSA) {
                         Section -Style Heading3 'gMSA Identities' {
@@ -900,9 +888,7 @@ function Get-AbrADDomainObject {
         }
         try {
             if ($Domain) {
-                Write-PScriboMessage "Collecting the Active Directory Foreign Security Principals."
                 try {
-                    Write-PScriboMessage "Collecting the Active Directory Foreign Security Principals from DC $DC."
                     $FSP = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:DC -Filter { ObjectClass -eq "foreignSecurityPrincipal" } -Properties msds-principalname, memberof }
                     if ($FSP) {
                         Section -Style Heading3 'Foreign Security Principals' {

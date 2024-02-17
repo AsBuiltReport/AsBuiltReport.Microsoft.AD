@@ -27,7 +27,6 @@ function Get-AbrADCASummary {
         if ($ForestInfo) {
             foreach ($CA in $CAs) {
                 try {
-                    Write-PScriboMessage "Collecting AD Certification Authority Summary information of $($CA.DisplayName)."
                     $inObj = [ordered] @{
                         'CA Name' = $CA.DisplayName
                         'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]

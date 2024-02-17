@@ -24,7 +24,7 @@ function Get-AbrADKerberosAudit {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Kerberos Audit information on $Domain."
+        Write-PScriboMessage "Collecting Kerberos Audit information on $Domain."
     }
 
     process {
@@ -32,13 +32,11 @@ function Get-AbrADKerberosAudit {
             try {
                 $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                 $Unconstrained = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:DC -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
-                Write-PScriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                 if ($Unconstrained) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Unconstrained Kerberos Delegation' {
                         Paragraph "The following section provide a summary of unconstrained kerberos delegation on Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
-                        Write-PScriboMessage "Collecting Unconstrained Kerberos delegation information from $($Domain)."
                         foreach ($Item in $Unconstrained) {
                             try {
                                 $inObj = [ordered] @{
@@ -77,13 +75,11 @@ function Get-AbrADKerberosAudit {
                 }
                 try {
                     $KRBTGT = $Users | Where-Object { $_.Name -eq 'krbtgt' }
-                    Write-PScriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($KRBTGT) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'KRBTGT Account Audit' {
                             Paragraph "The following section provide a summary of KRBTGT account on Domain $($Domain.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()
-                            Write-PScriboMessage "Collecting KRBTGT account information from $($Domain)."
                             try {
                                 $inObj = [ordered] @{
                                     'Name' = $KRBTGT.Name
@@ -126,13 +122,11 @@ function Get-AbrADKerberosAudit {
                 try {
                     $SID = Invoke-Command -Session $TempPssSession { ((Get-ADDomain -Identity $using:Domain).domainsid).ToString() + "-500" }
                     $ADMIN = $Users | Where-Object { $_.SID -eq $SID }
-                    Write-PScriboMessage "Discovered Unconstrained Kerberos Delegation information from $Domain."
                     if ($ADMIN) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Administrator Account Audit' {
                             Paragraph "The following section provide a summary of Administrator account on Domain $($Domain.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()
-                            Write-PScriboMessage "Collecting administrator account information from $($Domain)."
                             try {
                                 $inObj = [ordered] @{
                                     'Name' = $ADMIN.Name

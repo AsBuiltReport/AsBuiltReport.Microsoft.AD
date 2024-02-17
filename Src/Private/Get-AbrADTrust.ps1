@@ -38,7 +38,6 @@ function Get-AbrADTrust {
                             $TrustInfo = @()
                             foreach ($Trust in $Trusts) {
                                 try {
-                                    Write-PScriboMessage "Collecting Active Directory Domain Trust information from $($Trust.Name)"
                                     $inObj = [ordered] @{
                                         'Name' = $Trust.Name
                                         'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Domain $Domain

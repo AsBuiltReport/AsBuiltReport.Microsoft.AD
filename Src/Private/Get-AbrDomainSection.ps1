@@ -19,7 +19,7 @@ function Get-AbrDomainSection {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Domain information from $ForestInfo."
+        Write-PScriboMessage "Collecting Domain information from $ForestInfo."
     }
 
     process {
@@ -70,8 +70,13 @@ function Get-AbrDomainSection {
                                             BlankLine
                                         }
                                         if (!$Options.ShowDefinitionInfo) {
-                                            Paragraph "The following section provides a summary of the Active Directory Domain Controllers."
-                                            BlankLine
+                                            if ($InfoLevel.Domain -ge 2) {
+                                                Paragraph "The following section provides detailed information about Active Directory domain controllers."
+                                                BlankLine
+                                            } else {
+                                                Paragraph "The following section provides an overview of Active Directory domain controllers."
+                                                BlankLine
+                                            }
                                         }
                                         $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
@@ -107,7 +112,6 @@ function Get-AbrDomainSection {
                                                 } catch {
                                                     Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
                                                     Write-PScriboMessage -IsWarning $_.Exception.Message
-                                                    continue
                                                 }
                                             }
                                             try {
@@ -122,7 +126,6 @@ function Get-AbrDomainSection {
                                             } catch {
                                                 Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
                                                 Write-PScriboMessage -IsWarning $_.Exception.Message
-                                                continue
                                             }
                                         }
                                     }
@@ -135,7 +138,6 @@ function Get-AbrDomainSection {
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Active Directory Domain)"
-                            continue
                         }
                     }
                 }

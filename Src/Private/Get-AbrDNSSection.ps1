@@ -19,7 +19,7 @@ function Get-AbrDNSSection {
     )
 
     begin {
-        Write-PScriboMessage "Discovering DNS server information from $ForestInfo."
+        Write-PScriboMessage "Collecting DNS server information from $ForestInfo."
     }
 
     process {
@@ -64,7 +64,6 @@ function Get-AbrDNSSection {
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Information)"
-                            continue
                         }
                     }
                 }

@@ -24,14 +24,13 @@ function Get-AbrADDuplicateSPN {
     )
 
     begin {
-        Write-PScriboMessage "Discovering duplicate SPN information on $Domain."
+        Write-PScriboMessage "Collecting duplicate SPN information on $Domain."
     }
 
     process {
         if ($HealthCheck.Domain.SPN) {
             try {
                 $SPNs = Get-WinADDuplicateSPN -Domain $Domain -Credential $Credential
-                Write-PScriboMessage "Discovered AD Duplicate SPN information from $Domain."
                 if ($SPNs) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate SPN' {
                         Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.ToString().ToUpper())."
@@ -39,7 +38,6 @@ function Get-AbrADDuplicateSPN {
                         $OutObj = @()
                         foreach ($SPN in $SPNs) {
                             try {
-                                Write-PScriboMessage "Collecting $($SPN.Name) information from $($Domain)."
                                 $inObj = [ordered] @{
                                     'Name' = $SPN.Name
                                     'Count' = $SPN.Count

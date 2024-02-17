@@ -19,14 +19,13 @@ function Get-AbrADForest {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Active Directory forest information."
+        Write-PScriboMessage "Collecting Active Directory forest information."
     }
 
     process {
         try {
             $Data = Invoke-Command -Session $TempPssSession { Get-ADForest }
             $ForestInfo = $Data.RootDomain.toUpper()
-            Write-PScriboMessage "Discovered Active Directory information of forest $ForestInfo."
             $DomainDN = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
             $TombstoneLifetime = Invoke-Command -Session $TempPssSession { Get-ADObject "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$using:DomainDN" -Properties tombstoneLifetime | Select-Object -ExpandProperty tombstoneLifetime }
             $ADVersion = Invoke-Command -Session $TempPssSession { Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion }
@@ -42,7 +41,6 @@ function Get-AbrADForest {
             ElseIf ($ADVersion -eq '30') { $server = 'Windows Server 2003' }
             $OutObj = @()
             if ($Data) {
-                Write-PScriboMessage "Collecting Active Directory information of forest $ForestInfo."
                 foreach ($Item in $Data) {
                     try {
                         $inObj = [ordered] @{
@@ -140,16 +138,13 @@ function Get-AbrADForest {
                     Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
                     BlankLine
                 }
-                Write-PScriboMessage "Discovering certificate authority information on forest $ForestInfo."
                 $ConfigNCDN = $Data.PartitionsContainer.Split(',') | Select-Object -Skip 1
                 $rootCA = Get-ADObjectSearch -DN "CN=Certification Authorities,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq "certificationAuthority" } -Properties "Name" -SelectPrty 'DistinguishedName', 'Name' -Session $TempPssSession
                 if ($rootCA) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Certification Authority Root(s)' {
                         $OutObj = @()
-                        Write-PScriboMessage "Discovered Certificate Authority Information on forest $ForestInfo."
                         foreach ($Item in $rootCA) {
                             try {
-                                Write-PScriboMessage "Collecting Certificate Authority Information '$($Item.Name)'"
                                 $inObj = [ordered] @{
                                     'Name' = $Item.Name
                                     'Distinguished Name' = $Item.DistinguishedName
@@ -185,16 +180,13 @@ function Get-AbrADForest {
                 } else {
                     Write-PScriboMessage -IsWarning "No Certificate Authority Root information found in $ForestInfo, disabling the section."
                 }
-                Write-PScriboMessage "Discovering certificate authority issuers on forest $ForestInfo."
                 $ConfigNCDN = $Data.PartitionsContainer.Split(',') | Select-Object -Skip 1
                 $subordinateCA = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq "pKIEnrollmentService" } -Properties "*" -SelectPrty 'dNSHostName', 'Name' -Session $TempPssSession
                 if ($subordinateCA) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Certification Authority Issuer(s)' {
                         $OutObj = @()
-                        Write-PScriboMessage "Discovered Certificate Authority issuers on forest $ForestInfo."
                         foreach ($Item in $subordinateCA) {
                             try {
-                                Write-PScriboMessage "Collecting Certificate Authority issuers '$($Item.Name)'"
                                 $inObj = [ordered] @{
                                     'Name' = $Item.Name
                                     'DNS Name' = $Item.dNSHostName
@@ -224,14 +216,11 @@ function Get-AbrADForest {
         }
         try {
             Section -Style Heading3 'Optional Features' {
-                Write-PScriboMessage "Discovering Optional Features enabled on forest $ForestInfo."
                 $Data = Invoke-Command -Session $TempPssSession { Get-ADOptionalFeature -Filter * }
                 $OutObj = @()
                 if ($Data) {
-                    Write-PScriboMessage "Discovered Optional Features enabled on forest $ForestInfo."
                     foreach ($Item in $Data) {
                         try {
-                            Write-PScriboMessage "Collecting Optional Features '$($Item.Name)'"
                             $inObj = [ordered] @{
                                 'Name' = $Item.Name
                                 'Required Forest Mode' = $Item.RequiredForestMode

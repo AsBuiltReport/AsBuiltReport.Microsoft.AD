@@ -24,7 +24,7 @@ function Get-AbrADSecurityAssessment {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Account Security Assessment information on $Domain."
+        Write-PScriboMessage "Collecting Account Security Assessment information on $Domain."
     }
 
     process {
@@ -42,10 +42,8 @@ function Get-AbrADSecurityAssessment {
                 $DomainKerberosDESUsersArray = $DomainUsers | Where-Object { $_.UserAccountControl -band 0x200000 } | Measure-Object
                 $DomainUserDoesNotRequirePreAuthArray = $DomainUsers | Where-Object { $_.DoesNotRequirePreAuth -eq $True } | Measure-Object
                 $DomainUsersWithSIDHistoryArray = $DomainUsers | Where-Object { $_.SIDHistory -like "*" } | Measure-Object
-                Write-PScriboMessage "Discovered AD Account Security Assessment information from $Domain."
                 if ($DomainUsers) {
                     $OutObj = @()
-                    Write-PScriboMessage "Collecting Account Security Assessment information from $($Domain)."
                     try {
                         $inObj = [ordered] @{
                             'Total Users' = $DomainUsers.Count
@@ -115,13 +113,11 @@ function Get-AbrADSecurityAssessment {
             }
             if ($InfoLevel.Domain -ge 2) {
                 try {
-                    Write-PScriboMessage "Discovered Privileged Users information from $Domain."
                     if ($PrivilegedUsers) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Privileged Users Assessment' {
                             Paragraph "The following section details probable AD Admin accounts (user accounts with AdminCount set to 1) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
-                            Write-PScriboMessage "Collecting Privileged Users Assessment information from $($Domain)."
                             $AccountNotDelegated = $PrivilegedUsers | Where-Object { -not $_.AccountNotDelegated -and $_.objectClass -eq "user" }
                             foreach ($PrivilegedUser in $PrivilegedUsers) {
                                 try {
@@ -201,14 +197,12 @@ function Get-AbrADSecurityAssessment {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Users Table)"
                 }
                 try {
-                    Write-PScriboMessage "Discovered Inactive Privileged Accounts information from $Domain."
                     $InactivePrivilegedUsers = $PrivilegedUsers | Where-Object { ($_.LastLogonDate -le (Get-Date).AddDays(-30)) -AND ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
                     if ($InactivePrivilegedUsers) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Inactive Privileged Accounts' {
                             Paragraph "The following section details privileged accounts with the following filter (LastLogonDate >=30 days and PasswordLastSet >= 365 days) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
-                            Write-PScriboMessage "Collecting Inactive Privileged Accounts information from $($Domain)."
                             foreach ($InactivePrivilegedUser in $InactivePrivilegedUsers) {
                                 try {
                                     $inObj = [ordered] @{
@@ -261,13 +255,11 @@ function Get-AbrADSecurityAssessment {
                 }
                 try {
                     $UserSPNs = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:Domain -Filter { ServicePrincipalName -like '*' } -Properties AdminCount, PasswordLastSet, LastLogonDate, ServicePrincipalName, TrustedForDelegation, TrustedtoAuthForDelegation }
-                    Write-PScriboMessage "Discovered Service Accounts information from $Domain."
                     if ($UserSPNs) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Service Accounts Assessment' {
                             Paragraph "The following section details probable AD Service Accounts (user accounts with SPNs) on Domain $($Domain.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
-                            Write-PScriboMessage "Collecting Service Accounts information from $($Domain)."
                             $AdminCount = ($UserSPNs | Where-Object { $_.AdminCount -eq 1 -and $_.SamAccountName -ne 'krbtgt' }).Name
                             foreach ($UserSPN in $UserSPNs) {
                                 try {

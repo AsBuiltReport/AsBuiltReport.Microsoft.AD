@@ -36,7 +36,6 @@ function Get-AbrADCASecurity {
                         BlankLine
                         $OutObj = @()
                         try {
-                            Write-PScriboMessage "Collecting Certificate Validity Period information of $($CFP.Name)."
                             $inObj = [ordered] @{
                                 'CA Name' = $CFP.Name
                                 'Server Name' = $CFP.ComputerName
@@ -67,7 +66,6 @@ function Get-AbrADCASecurity {
                     Section -Style Heading4 "Access Control List (ACL)" {
                         $OutObj = @()
                         try {
-                            Write-PScriboMessage "Collecting Certification Authority Access Control List information of $($CA.Name)."
                             foreach ($ACL in $ACLs) {
                                 try {
                                     $inObj = [ordered] @{
@@ -96,7 +94,6 @@ function Get-AbrADCASecurity {
                         try {
                             Section -Style Heading5 "Access Rights" {
                                 $OutObj = @()
-                                Write-PScriboMessage "Collecting AD Certification Authority Access Control List information of $($CA.Name)."
                                 foreach ($ACL in $ACLs.Access) {
                                     try {
                                         $inObj = [ordered] @{
