@@ -30,7 +30,7 @@ function Get-AbrADDCDiag {
     }
 
     process {
-        if ($DC) {
+        if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
             try {
                 $DCDIAG = Invoke-DcDiag -DomainController $DC
                 if ($DCDIAG) {
@@ -92,9 +92,10 @@ function Get-AbrADDCDiag {
             } catch {
                 Write-PScriboMessage -IsWarning "Active Directory DCDiag Section: $($_.Exception.Message)"
             }
+        } else {
+            Write-PScriboMessage -IsWarning "Active Directory DCDiag Section: Unable to connect to DC server $DC."
         }
     }
 
     end {}
-
 }
