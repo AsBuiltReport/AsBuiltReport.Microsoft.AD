@@ -162,10 +162,10 @@ function Get-AbrADSite {
                                         $inObj = [ordered] @{
                                             'Subnet' = $Item.Name
                                             'Description' = ConvertTo-EmptyToFiller $Item.Description
-                                            'Sites' = & {
-                                                try {
-                                                    $Item.Site.Split(",")[0].SubString($Item.Site.Split(",")[0].IndexOf("=") + 1)
-                                                } catch { "No site assigned" }
+                                            'Sites' = Switch ([string]::IsNullOrEmpty($Item.Site)) {
+                                                $true { "No site assigned" }
+                                                $false { $Item.Site.Split(",")[0].SubString($Item.Site.Split(",")[0].IndexOf("=") + 1) }
+                                                default { 'Unknown' }
                                             }
                                         }
                                         $OutObj += [pscustomobject]$inObj
@@ -291,8 +291,9 @@ function Get-AbrADSite {
                             }
 
                             if ($Graph) {
+                                If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
                                 Section -Style Heading4 "Site Inventory Diagram." {
-                                    Image -Base64 $Graph -Text "Site Inventory Diagram" -Percent (Get-ImagePercent -Graph $Graph) -Align Center
+                                    Image -Base64 $Graph -Text "Site Inventory Diagram" -Percent $ImagePrty -Align Center
                                     Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
                                 }
                                 BlankLine -Count 2

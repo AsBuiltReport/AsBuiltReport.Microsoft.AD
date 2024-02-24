@@ -175,7 +175,6 @@ The **Options** schema allows certain options within the report to be toggled on
 | Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                                                            |
 | EnableDiagrams          | true / false       | true      | Toggle to enable/disable of Infrastructure Diagrams                                                                       |
 
-
 ### InfoLevel
 
 The **InfoLevel** schema allows configuration of each section of the report at a granular level. The following sections can be set.

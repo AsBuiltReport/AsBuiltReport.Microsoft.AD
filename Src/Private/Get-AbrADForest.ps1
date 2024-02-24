@@ -114,8 +114,9 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
+                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
                             Section -Style Heading3 "Forest Diagram." {
-                                Image -Base64 $Graph -Text "Forest Diagram" -Percent (Get-ImagePercent -Graph $Graph) -Align Center
+                                Image -Base64 $Graph -Text "Forest Diagram" -Percent $ImagePrty -Align Center
                                 Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
                             }
                             BlankLine -Count 2
