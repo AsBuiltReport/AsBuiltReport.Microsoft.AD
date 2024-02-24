@@ -92,7 +92,7 @@ function Get-AbrDomainSection {
                                                         if ($DCStatus -eq $false) {
                                                             Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
                                                         }
-                                                        if (($DC -notin $Options.Exclude.DCs) -and $DCStatus) {
+                                                        if ($DCStatus) {
                                                             Get-AbrADDCRoleFeature -DC $DC
                                                         }
                                                     }
@@ -104,7 +104,7 @@ function Get-AbrDomainSection {
                                                         Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
                                                         BlankLine
                                                         foreach ($DC in $DCs) {
-                                                            if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 2)) {
+                                                            if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                                                                 Get-AbrADDCDiag -Domain $Domain -DC $DC
                                                             }
                                                         }
@@ -118,7 +118,7 @@ function Get-AbrDomainSection {
                                                 Section -Style Heading4 "Infrastructure Services" {
                                                     Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
                                                     foreach ($DC in $DCs) {
-                                                        if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 2)) {
+                                                        if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                                                             Get-AbrADInfrastructureService -DC $DC
                                                         }
                                                     }
