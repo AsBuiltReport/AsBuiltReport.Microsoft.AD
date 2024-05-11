@@ -42,8 +42,6 @@ Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for m
 
 Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.html)
 
-Sample Microsoft AD As Built report PDF file: [Sample Microsoft AD As Built Report.pdf](https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.pdf)
-
 # :beginner: Getting Started
 
 Below are the instructions on how to install, configure and generate a Microsoft AD As Built report.
