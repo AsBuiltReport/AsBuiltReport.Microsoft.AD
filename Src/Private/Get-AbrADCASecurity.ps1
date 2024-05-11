@@ -5,7 +5,7 @@ function Get-AbrADCASecurity {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,11 +19,11 @@ function Get-AbrADCASecurity {
         [Parameter (
             Position = 0,
             Mandatory)]
-            $CA
+        $CA
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority Security information."
+        Write-PScriboMessage "Collecting AD Certification Authority Security information."
     }
 
     process {
@@ -36,16 +36,15 @@ function Get-AbrADCASecurity {
                         BlankLine
                         $OutObj = @()
                         try {
-                            Write-PscriboMessage "Collecting Certificate Validity Period information of $($CFP.Name)."
+                            Write-PScriboMessage "Collecting Certificate Validity Period information of $($CFP.Name)."
                             $inObj = [ordered] @{
                                 'CA Name' = $CFP.Name
                                 'Server Name' = $CFP.ComputerName
                                 'Validity Period' = $CFP.ValidityPeriod
                             }
                             $OutObj += [pscustomobject]$inobj
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Certificate Validity Period Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Validity Period Table)"
                         }
 
                         $TableParams = @{
@@ -59,17 +58,16 @@ function Get-AbrADCASecurity {
                         $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
                     }
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Certificate Validity Period Section)"
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Validity Period Section)"
             }
             try {
-                $ACLs =  Get-CertificationAuthorityAcl -CertificationAuthority $CA
+                $ACLs = Get-CertificationAuthorityAcl -CertificationAuthority $CA
                 if ($ACLs) {
                     Section -Style Heading4 "Access Control List (ACL)" {
                         $OutObj = @()
                         try {
-                            Write-PscriboMessage "Collecting Certification Authority Access Control List information of $($CA.Name)."
+                            Write-PScriboMessage "Collecting Certification Authority Access Control List information of $($CA.Name)."
                             foreach ($ACL in $ACLs) {
                                 try {
                                     $inObj = [ordered] @{
@@ -78,14 +76,12 @@ function Get-AbrADCASecurity {
                                         'Group' = $ACL.Group
                                     }
                                     $OutObj += [pscustomobject]$inobj
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                } catch {
+                                    Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Access Control List table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Access Control List table)"
                         }
 
                         $TableParams = @{
@@ -100,7 +96,7 @@ function Get-AbrADCASecurity {
                         try {
                             Section -Style Heading5 "Access Rights" {
                                 $OutObj = @()
-                                Write-PscriboMessage "Collecting AD Certification Authority Access Control List information of $($CA.Name)."
+                                Write-PScriboMessage "Collecting AD Certification Authority Access Control List information of $($CA.Name)."
                                 foreach ($ACL in $ACLs.Access) {
                                     try {
                                         $inObj = [ordered] @{
@@ -109,9 +105,8 @@ function Get-AbrADCASecurity {
                                             'Rights' = $ACL.Rights
                                         }
                                         $OutObj += [pscustomobject]$inobj
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Access Control List Rights table)"
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Access Control List Rights table)"
                                     }
                                 }
 
@@ -125,15 +120,13 @@ function Get-AbrADCASecurity {
                                 }
                                 $OutObj | Sort-Object -Property 'Identity' | Table @TableParams
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Access Control List Rights section)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Access Control List Rights section)"
                         }
                     }
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Access Control List Section)"
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Access Control List Section)"
             }
         }
     }

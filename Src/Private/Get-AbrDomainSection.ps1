@@ -5,7 +5,7 @@ function Get-AbrDomainSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,7 @@ function Get-AbrDomainSection {
     )
 
     begin {
-        Write-PscriboMessage "Discovering Domain information from $ForestInfo."
+        Write-PScriboMessage "Discovering Domain information from $ForestInfo."
     }
 
     process {
@@ -44,7 +44,7 @@ function Get-AbrDomainSection {
                             $DomainFilterOption = $Domain -notin $Options.Exclude.Domains
                         }
                         try {
-                            if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain})) {
+                            if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain })) {
                                 Section -Style Heading2 "$($Domain.ToString().ToUpper())" {
                                     Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                     BlankLine
@@ -73,7 +73,7 @@ function Get-AbrDomainSection {
                                             Paragraph "The following section provides a summary of the Active Directory Domain Controllers."
                                             BlankLine
                                         }
-                                        $DCs = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs}} | Sort-Object
+                                        $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
                                         if ($DCs) {
 
@@ -82,7 +82,7 @@ function Get-AbrDomainSection {
                                             if ($InfoLevel.Domain -ge 2) {
                                                 Section -Style Heading4 "Roles" {
                                                     Paragraph "The following section provides a summary of installed role & features on $Domain DCs."
-                                                    foreach ($DC in $DCs){
+                                                    foreach ($DC in $DCs) {
                                                         $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 2
                                                         if ($DCStatus -eq $false) {
                                                             Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
@@ -98,46 +98,43 @@ function Get-AbrDomainSection {
                                                     Section -Style Heading4 'DC Diagnostic' {
                                                         Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
                                                         BlankLine
-                                                        foreach ($DC in $DCs){
+                                                        foreach ($DC in $DCs) {
                                                             if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 2)) {
                                                                 Get-AbrADDCDiag -Domain $Domain -DC $DC
                                                             }
                                                         }
                                                     }
-                                                }
-                                                catch {
-                                                    Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
-                                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                                } catch {
+                                                    Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
+                                                    Write-PScriboMessage -IsWarning $_.Exception.Message
                                                     continue
                                                 }
                                             }
                                             try {
                                                 Section -Style Heading4 "Infrastructure Services" {
                                                     Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
-                                                    foreach ($DC in $DCs){
+                                                    foreach ($DC in $DCs) {
                                                         if (($DC -notin $Options.Exclude.DCs) -and (Test-Connection -ComputerName $DC -Quiet -Count 2)) {
                                                             Get-AbrADInfrastructureService -DC $DC
                                                         }
                                                     }
                                                 }
-                                            }
-                                            catch {
-                                                Write-PscriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
-                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
+                                                Write-PScriboMessage -IsWarning $_.Exception.Message
                                                 continue
                                             }
                                         }
-                                        Get-AbrADSiteReplication -Domain $Domain
-                                        Get-AbrADGPO -Domain $Domain
-                                        Get-AbrADOU -Domain $Domain
                                     }
+                                    Get-AbrADSiteReplication -Domain $Domain
+                                    Get-AbrADGPO -Domain $Domain
+                                    Get-AbrADOU -Domain $Domain
                                 }
                             } else {
                                 Write-PScriboMessage "$($Domain) disabled in Exclude.Domain variable"
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Active Directory Domain)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Active Directory Domain)"
                             continue
                         }
                     }

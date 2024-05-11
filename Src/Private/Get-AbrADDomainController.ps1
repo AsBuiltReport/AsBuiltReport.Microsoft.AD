@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,174 +19,312 @@ function Get-AbrADDomainController {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain,
-            $DCs
+        [string]
+        $Domain,
+        $DCs
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Domain Controller information."
+        Write-PScriboMessage "Collecting AD Domain Controller information."
     }
 
     process {
-        try {
-            $OutObj = @()
-            Write-PscriboMessage "Discovering Active Directory Domain Controller information from $Domain."
-            foreach ($DC in $DCs) {
-                if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                    try {
-                        Write-PscriboMessage "Collecting AD Domain Controllers information of $DC."
-                        $DCInfo = Invoke-Command -Session $TempPssSession {Get-ADDomainController -Identity $using:DC -Server $using:DC}
-                        $inObj = [ordered] @{
-                            'DC Name' = ($DCInfo.Name).ToString().ToUpper()
-                            'Domain Name' = $DCInfo.Domain
-                            'Site' = $DCInfo.Site
-                            'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
-                            'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
-                            'IP Address' = $DCInfo.IPv4Address
-                        }
-                        $OutObj += [pscustomobject]$inobj
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
-                    }
-                }
-            }
-
-            if ($HealthCheck.DomainController.BestPractice) {
-                if ($OutObj.Count -eq 1) {
-                    $OutObj | Set-Style -Style Warning
-                }
-            }
-
-            $TableParams = @{
-                Name = "Domain Controllers - $($Domain.ToString().ToUpper())"
-                List = $false
-                ColumnWidths = 25, 25, 15, 10, 10, 15
-            }
-            if ($Report.ShowTableCaptions) {
-                $TableParams['Caption'] = "- $($TableParams.Name)"
-            }
-            $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-            if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
-                Paragraph "Health Check:" -Bold -Underline
-                BlankLine
-                Paragraph {
-                    Text "Best Practice:" -Bold
-                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
-                }
-            }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
-        }
-
-        try {
-            Write-PscriboMessage "Collecting AD Domain Controller Hardware information for domain $Domain"
-            Section -Style Heading4 'Hardware Inventory' {
-                Paragraph "The following section provides detailed Domain Controller hardware information for domain $($Domain.ToString().ToUpper())."
-                BlankLine
-                $DCHWInfo = @()
+        if ($InfoLevel.Domain -eq 1) {
+            try {
+                $OutObj = @()
+                Write-PScriboMessage "Discovering Active Directory Domain Controller information from $Domain."
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                        $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
+                        $DCComputerObject = try { Invoke-Command -Session $TempPssSession { Get-ADComputer ($using:DCInfo).ComputerObjectDN -Properties * -Server $using:DC } } catch { Out-Null }
+                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DCNetSettings'
+                        $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Out-Null }
+                        Remove-PSSession -Session $DCPssSession
                         try {
-                            Write-PscriboMessage "Collecting AD Domain Controller Hardware information for $DC."
-                            $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware'
-                            $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
-                            $License =  Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
-                            $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
-                            Remove-PSSession -Session $DCPssSession
-                            Remove-CimSession $CimSession
-                            if ($HW) {
-                                $inObj = [ordered] @{
-                                    'Name' = $HW.CsName
-                                    'Windows Product Name' = $HW.WindowsProductName
-                                    'Windows Build Number' = $HW.OsVersion
-                                    'AD Domain' = $HW.CsDomain
-                                    'Windows Installation Date' = $HW.OsInstallDate
-                                    'Time Zone' = $HW.TimeZone
-                                    'License Type' = $License.ProductKeyChannel
-                                    'Partial Product Key' = $License.PartialProductKey
-                                    'Manufacturer' = $HW.CsManufacturer
-                                    'Model' = $HW.CsModel
-                                    'Processor Model' = $HWCPU[0].Name
-                                    'Number of Processors' = ($HWCPU | Measure-Object).Count
-                                    'Number of CPU Cores' = $HWCPU[0].NumberOfCores
-                                    'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
-                                    'Physical Memory' = &{
-                                        try {
-                                            ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
-                                        } catch {'0.00 GB'}
-                                    }
+                            Write-PScriboMessage "Collecting AD Domain Controllers information of $DC."
+                            $inObj = [ordered] @{
+                                'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
+                                    $true { "--" }
+                                    $false { $DCInfo.Domain }
+                                    default { "Unknown" }
                                 }
-                                $DCHWInfo += [pscustomobject]$inobj
+                                'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                    $true { "--" }
+                                    $false { $DCInfo.Site }
+                                    default { "Unknown" }
+                                }
+                                'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
+                                'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
+                                'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
+                                    $true { "--" }
+                                    $false { $DCInfo.IPv4Address }
+                                    default { "Unknown" }
+                                }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Hardware Inventory Item)"
+                            $OutObj += [pscustomobject]$inobj
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
                         }
                     }
                 }
+                if ($HealthCheck.DomainController.BestPractice) {
+                    if ($OutObj.Count -eq 1) {
+                        $OutObj | Set-Style -Style Warning
+                    }
+                }
 
-                if ($InfoLevel.Domain -ge 2) {
-                    foreach ($DCHW in $DCHWInfo) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading5 $($DCHW.Name.ToString().ToUpper()) {
-                            if ($HealthCheck.DomainController.Diagnostic) {
-                                if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                                    $DCHW | Set-Style -Style Warning -Property 'Physical Memory'
+                $TableParams = @{
+                    Name = "Domain Controllers - $($Domain.ToString().ToUpper())"
+                    List = $false
+                    ColumnWidths = 25, 25, 15, 10, 10, 15
+                }
+                if ($Report.ShowTableCaptions) {
+                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                }
+                $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
+                    Paragraph "Health Check:" -Bold -Underline
+                    BlankLine
+                    Paragraph {
+                        Text "Best Practice:" -Bold
+                        Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
+                    }
+                }
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
+            }
+        } else {
+            try {
+                $OutObj = @()
+                Write-PScriboMessage "Discovering Active Directory Domain Controller information from $Domain."
+                foreach ($DC in $DCs) {
+                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                        $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
+                        $DCComputerObject = try { Invoke-Command -Session $TempPssSession { Get-ADComputer ($using:DCInfo).ComputerObjectDN -Properties * -Server $using:DC } } catch { Out-Null }
+                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DCNetSettings'
+                        $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Out-Null }
+                        Remove-PSSession -Session $DCPssSession
+                        if ($InfoLevel.Domain -eq 1) {
+                            try {
+                                Write-PScriboMessage "Collecting AD Domain Controllers information of $DC."
+                                $inObj = [ordered] @{
+                                    'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                    'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
+                                        $true { "--" }
+                                        $false { $DCInfo.Domain }
+                                        default { "Unknown" }
+                                    }
+                                    'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                        $true { "--" }
+                                        $false { $DCInfo.Site }
+                                        default { "Unknown" }
+                                    }
+                                    'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
+                                    'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
+                                    'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
+                                        $true { "--" }
+                                        $false { $DCInfo.IPv4Address }
+                                        default { "Unknown" }
+                                    }
+                                }
+                                $OutObj += [pscustomobject]$inobj
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
+                            }
+                            if ($HealthCheck.DomainController.BestPractice) {
+                                if ($OutObj.Count -eq 1) {
+                                    $OutObj | Set-Style -Style Warning
                                 }
                             }
+
                             $TableParams = @{
-                                Name = "Hardware Inventory - $($DCHW.Name.ToString().ToUpper())"
-                                List = $true
-                                ColumnWidths = 40, 60
+                                Name = "Domain Controllers - $($Domain.ToString().ToUpper())"
+                                List = $false
+                                ColumnWidths = 25, 25, 15, 10, 10, 15
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $DCHW | Table @TableParams
-                            if ($HealthCheck.DomainController.Diagnostic) {
-                                if ([int]([regex]::Matches($DCHW.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                                    Paragraph "Health Check:" -Bold -Underline
-                                    BlankLine
-                                    Paragraph {
-                                        Text "Best Practice:" -Bold
-                                        Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
-                                    }
+                            $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                            if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
+                                Paragraph "Health Check:" -Bold -Underline
+                                BlankLine
+                                Paragraph {
+                                    Text "Best Practice:" -Bold
+                                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
                                 }
                             }
-                        }
-                    }
-                } else {
-                    if ($HealthCheck.DomainController.Diagnostic) {
-                        $DCHWInfo | Where-Object {[int]([regex]::Matches($_.'Physical Memory', "\d+(\.*\d+)").value) -lt 8} | Set-Style -Style Warning -Property 'Physical Memory'
-                    }
-                    $TableParams = @{
-                        Name = "Hardware Inventory - $($Domain.ToString().ToUpper())"
-                        List = $false
-                        Columns = 'Name', 'Number of Processors', 'Number of CPU Cores', 'Physical Memory'
-                        ColumnWidths = 25, 25, 25, 25
-                    }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    $DCHWInfo | Table @TableParams
-                    if ($HealthCheck.DomainController.Diagnostic) {
-                        if ($DCHWInfo | Where-Object {[int]([regex]::Matches($_.'Physical Memory', "\d+(\.*\d+)").value) -lt 8}) {
-                            Paragraph "Health Check:" -Bold -Underline
-                            BlankLine
-                            Paragraph {
-                                Text "Best Practice:" -Bold
-                                Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
+                        } else {
+                            try {
+                                Section -Style Heading4 $DCInfo.Name {
+                                    Write-PScriboMessage "Collecting AD Domain Controllers information of $DC."
+                                    Section -ExcludeFromTOC -Style NOTOCHeading5 "General Information" {
+                                        $inObj = [ordered] @{
+                                            'DC Name' = $DCInfo.Hostname
+                                            'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
+                                                $true { "--" }
+                                                $false { $DCInfo.Domain }
+                                                default { "Unknown" }
+                                            }
+                                            'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                                $true { "--" }
+                                                $false { $DCInfo.Site }
+                                                default { "Unknown" }
+                                            }
+                                            'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
+                                            'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
+                                            'Location' = $DCComputerObject.Location
+                                            'Computer Object SID' = $DCComputerObject.SID
+                                            "Operating System" = $DCInfo.OperatingSystem
+                                            'Description' = $DCComputerObject.Description
+                                        }
+                                        $OutObj = [pscustomobject]$inobj
+
+                                        $TableParams = @{
+                                            Name = "General Information - $($DCInfo.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
+                                    }
+                                    Section -ExcludeFromTOC -Style NOTOCHeading5 "Partitions" {
+                                        $inObj = [ordered] @{
+                                            'Default Partition' = $DCInfo.DefaultPartition
+                                            'Partitions' = $DCInfo.Partitions
+                                        }
+                                        $OutObj = [pscustomobject]$inobj
+
+
+                                        $TableParams = @{
+                                            Name = "Partitions - $($DCInfo.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
+                                    }
+                                    Section -ExcludeFromTOC -Style NOTOCHeading5 "Networking Settings" {
+                                        $inObj = [ordered] @{
+                                            'IPv4 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address))) {
+                                                $true { "--" }
+                                                $false { ($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address -join "," }
+                                                default { "Unknown" }
+                                            }
+                                            'IPv6 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv6' -and $_.IPAddress -ne '::1' }).IPv6Address))) {
+                                                $true { "--" }
+                                                $false { ($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv6' -and $_.IPAddress -ne '::1' }).IPv6Address -join "," }
+                                                default { "Unknown" }
+                                            }
+                                            "LDAP Port" = $DCInfo.LdapPort
+                                            "SSL Port" = $DCInfo.SslPort
+                                        }
+                                        $OutObj = [pscustomobject]$inobj
+
+                                        if ($HealthCheck.DomainController.BestPractice) {
+                                            $OutObj | Where-Object { $_.'IPv4 Addresses'.Split(",").Count -gt 1 } | Set-Style -Style Warning -Property 'IPv4 Addresses'
+                                        }
+
+                                        $TableParams = @{
+                                            Name = "Networking Settings - $($DCInfo.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
+                                        if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'IPv4 Addresses'.Split(",").Count -gt 1 })) {
+                                            Paragraph "Health Check:" -Bold -Underline
+                                            BlankLine
+                                            Paragraph {
+                                                Text "Best Practice:" -Bold
+                                                Text "On Domain Controllers with more than one NIC where each NIC is connected to separate Network, there's a possibility that the Host A DNS registration can occur for unwanted NICs. Avoid registering unwanted NICs in DNS on a multihomed domain controller"
+                                            }
+                                        }
+                                    }
+                                    try {
+                                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Hardware Inventory' {
+                                            $DCHWInfo = @()
+                                            try {
+                                                $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware'
+                                                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware'
+                                                $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
+                                                $License = Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
+                                                $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
+                                                Remove-PSSession -Session $DCPssSession
+                                                Remove-CimSession $CimSession
+                                                if ($HW) {
+                                                    $inObj = [ordered] @{
+                                                        'Name' = $HW.CsName
+                                                        'Windows Product Name' = $HW.WindowsProductName
+                                                        'Windows Build Number' = $HW.OsVersion
+                                                        'AD Domain' = $HW.CsDomain
+                                                        'Windows Installation Date' = $HW.OsInstallDate
+                                                        'Time Zone' = $HW.TimeZone
+                                                        'License Type' = $License.ProductKeyChannel
+                                                        'Partial Product Key' = $License.PartialProductKey
+                                                        'Manufacturer' = $HW.CsManufacturer
+                                                        'Model' = $HW.CsModel
+                                                        'Processor Model' = $HWCPU[0].Name
+                                                        'Number of Processors' = ($HWCPU | Measure-Object).Count
+                                                        'Number of CPU Cores' = $HWCPU[0].NumberOfCores
+                                                        'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
+                                                        'Physical Memory' = & {
+                                                            try {
+                                                                ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                                                            } catch { '0.00 GB' }
+                                                        }
+                                                    }
+                                                    $DCHWInfo += [pscustomobject]$inobj
+                                                }
+
+                                                if ($HealthCheck.DomainController.Diagnostic) {
+                                                    if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
+                                                        $DCHWInfo | Set-Style -Style Warning -Property 'Physical Memory'
+                                                    }
+                                                }
+                                                $TableParams = @{
+                                                    Name = "Hardware Inventory - $($DCHWInfo.Name.ToString().ToUpper())"
+                                                    List = $true
+                                                    ColumnWidths = 40, 60
+                                                }
+                                                if ($Report.ShowTableCaptions) {
+                                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                                }
+                                                $DCHWInfo | Table @TableParams
+                                                if ($HealthCheck.DomainController.Diagnostic) {
+                                                    if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
+                                                        Paragraph "Health Check:" -Bold -Underline
+                                                        BlankLine
+                                                        Paragraph {
+                                                            Text "Best Practice:" -Bold
+                                                            Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
+                                                        }
+                                                    }
+                                                }
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Hardware Inventory Table)"
+                                            }
+                                        }
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Section)"
+                                    }
+                                }
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
                             }
                         }
                     }
                 }
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Table)"
         }
         #---------------------------------------------------------------------------------------------#
         #                                 DNS IP Section                                              #
@@ -196,10 +334,10 @@ function Get-AbrADDomainController {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                        Write-PscriboMessage "Collecting DNS IP Configuration information from $($DC)."
+                        Write-PScriboMessage "Collecting DNS IP Configuration information from $($DC)."
                         $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DNSIPConfiguration'
                         try {
-                            $DCIPAddress = Invoke-Command -Session $DCPssSession {[System.Net.Dns]::GetHostAddresses($using:DC).IPAddressToString}
+                            $DCIPAddress = Invoke-Command -Session $DCPssSession { [System.Net.Dns]::GetHostAddresses($using:DC).IPAddressToString }
                             $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4 }
                             $PrimaryDNSSoA = Invoke-Command -Session $DCPssSession { (Get-DnsServerResourceRecord -RRType Soa -ZoneName $using:Domain).RecordData.PrimaryServer }
                             $UnresolverDNS = @()
@@ -220,14 +358,12 @@ function Get-AbrADDomainController {
                                         'DNS 4' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[3]
                                     }
                                     $OutObj += [pscustomobject]$inobj
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "$($DC.ToString().ToUpper().Split(".")[0]) DNS IP Configuration Section: $($_.Exception.Message)"
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($DC.ToString().ToUpper().Split(".")[0]) DNS IP Configuration Section: $($_.Exception.Message)"
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Table Section: $($_.Exception.Message)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "Domain Controller DNS IP Configuration Table Section: $($_.Exception.Message)"
                         }
 
                         if ($DCPssSession) {
@@ -239,9 +375,9 @@ function Get-AbrADDomainController {
                 if ($HealthCheck.DomainController.BestPractice) {
                     $OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1" -or $_.'Prefered DNS' -in $DCIPAddress } | Set-Style -Style Warning -Property 'Prefered DNS'
                     $OutObj | Where-Object { $_.'Alternate DNS' -eq "--" } | Set-Style -Style Warning -Property 'Alternate DNS'
-                    $OutObj | Where-Object { $_.'Prefered DNS'-in $UnresolverDNS } | Set-Style -Style Critical -Property 'Prefered DNS'
-                    $OutObj | Where-Object { $_.'Alternate DNS'-in $UnresolverDNS } | Set-Style -Style Critical -Property 'Alternate DNS'
-                    $OutObj | Where-Object { $_.'DNS 3'-in $UnresolverDNS } | Set-Style -Style Critical -Property 'DNS 3'
+                    $OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'Prefered DNS'
+                    $OutObj | Where-Object { $_.'Alternate DNS' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'Alternate DNS'
+                    $OutObj | Where-Object { $_.'DNS 3' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'DNS 3'
                     $OutObj | Where-Object { $_.'DNS 4' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'DNS 4'
                 }
 
@@ -254,10 +390,10 @@ function Get-AbrADDomainController {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-                if ($HealthCheck.DomainController.BestPractice -and (($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1"}) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) -or ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--"}) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS -or $_.'Alternate DNS' -in $UnresolverDNS -or $_.'DNS 3' -in $UnresolverDNS -or $_.'DNS 4' -in $UnresolverDNS }))) {
+                if ($HealthCheck.DomainController.BestPractice -and (($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1" }) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) -or ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--" }) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS -or $_.'Alternate DNS' -in $UnresolverDNS -or $_.'DNS 3' -in $UnresolverDNS -or $_.'DNS 4' -in $UnresolverDNS }))) {
                     Paragraph "Health Check:" -Bold -Underline
                     BlankLine
-                    if ($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1"}) {
+                    if ($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1" }) {
                         Paragraph {
                             Text "Best Practices:" -Bold
                             Text "DNS configuration on network adapter should include the loopback address, but not as the first entry."
@@ -270,7 +406,7 @@ function Get-AbrADDomainController {
                             Text "DNS configuration on network adapter shouldn't include the Domain Controller own IP address as the first entry."
                         }
                     }
-                    if ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--"}) {
+                    if ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--" }) {
                         BlankLine
                         Paragraph {
                             Text "Best Practices:" -Bold
@@ -286,24 +422,23 @@ function Get-AbrADDomainController {
                     }
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "Domain Controller DNS IP Configuration Section: $($_.Exception.Message)"
+        } catch {
+            Write-PScriboMessage -IsWarning "Domain Controller DNS IP Configuration Section: $($_.Exception.Message)"
         }
 
         try {
-            Write-PscriboMessage "Collecting AD Domain Controller NTDS information."
+            Write-PScriboMessage "Collecting AD Domain Controller NTDS information."
             Section -Style Heading4 'NTDS Information' {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
-                            Write-PscriboMessage "Collecting AD Domain Controller NTDS information for $DC."
+                            Write-PScriboMessage "Collecting AD Domain Controller NTDS information for $DC."
                             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NTDS'
-                            $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File'}
-                            $size = Invoke-Command -Session $DCPssSession -ScriptBlock {(Get-ItemProperty -Path $using:NTDS).Length}
-                            $LogFiles = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'Database log files path'}
-                            $SYSVOL = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters | Select-Object -ExpandProperty 'SysVol'}
+                            $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File' }
+                            $size = Invoke-Command -Session $DCPssSession -ScriptBlock { (Get-ItemProperty -Path $using:NTDS).Length }
+                            $LogFiles = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'Database log files path' }
+                            $SYSVOL = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters | Select-Object -ExpandProperty 'SysVol' }
                             Remove-PSSession -Session $DCPssSession
                             if ( $NTDS -and $size ) {
                                 $inObj = [ordered] @{
@@ -315,9 +450,8 @@ function Get-AbrADDomainController {
                                 }
                                 $OutObj += [pscustomobject]$inobj
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
                         }
                     }
                 }
@@ -332,47 +466,44 @@ function Get-AbrADDomainController {
                 }
                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (NTDS Table)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Table)"
         }
         try {
-            Write-PscriboMessage "Collecting AD Domain Controller Time Source information."
+            Write-PScriboMessage "Collecting AD Domain Controller Time Source information."
             Section -Style Heading4 'Time Source Information' {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
-                            Write-PscriboMessage "Collecting AD Domain Controller Time Source information for $DC."
+                            Write-PScriboMessage "Collecting AD Domain Controller Time Source information for $DC."
                             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'TimeSource'
-                            $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer'}
-                            $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type'}
+                            $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer' }
+                            $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type' }
                             Remove-PSSession -Session $DCPssSession
                             if ( $NtpServer -and $SourceType ) {
                                 try {
                                     $inObj = [ordered] @{
                                         'Name' = $DC.ToString().ToUpper().Split(".")[0]
                                         'Time Server' = Switch ($NtpServer) {
-                                            'time.windows.com,0x8' {"Domain Hierarchy"}
-                                            'time.windows.com' {"Domain Hierarchy"}
-                                            '0x8' {"Domain Hierarchy"}
-                                            default {$NtpServer}
+                                            'time.windows.com,0x8' { "Domain Hierarchy" }
+                                            'time.windows.com' { "Domain Hierarchy" }
+                                            '0x8' { "Domain Hierarchy" }
+                                            default { $NtpServer }
                                         }
                                         'Type' = Switch ($SourceType) {
-                                            'NTP' {"MANUAL (NTP)"}
-                                            'NT5DS' {"DOMHIER"}
-                                            default {$SourceType}
+                                            'NTP' { "MANUAL (NTP)" }
+                                            'NT5DS' { "DOMHIER" }
+                                            default { $SourceType }
                                         }
                                     }
                                     $OutObj += [pscustomobject]$inobj
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning  "$($_.Exception.Message) (Time Source Item)"
+                                } catch {
+                                    Write-PScriboMessage -IsWarning  "$($_.Exception.Message) (Time Source Item)"
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Time Source Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Time Source Table)"
                         }
                     }
                 }
@@ -387,44 +518,43 @@ function Get-AbrADDomainController {
                 }
                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Time Source)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Time Source)"
         }
         if ($HealthCheck.DomainController.Diagnostic) {
             try {
-                Write-PscriboMessage "Collecting AD Domain Controller SRV Records Status."
+                Write-PScriboMessage "Collecting AD Domain Controller SRV Records Status."
                 Section -Style Heading4 'SRV Records Status' {
                     $OutObj = @()
-                    Write-PscriboMessage "Discovering Active Directory Domain Controller SRV Records Status in $Domain."
+                    Write-PScriboMessage "Discovering Active Directory Domain Controller SRV Records Status in $Domain."
                     foreach ($DC in $DCs) {
                         if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                             try {
-                                Write-PscriboMessage "Collecting AD Domain Controller SRV Records Status for $DC."
-                                $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                                $PDCEmulator = Invoke-Command -Session $TempPssSession {(Get-ADDomain $using:Domain -ErrorAction Stop).PDCEmulator}
+                                Write-PScriboMessage "Collecting AD Domain Controller SRV Records Status for $DC."
+                                $CimSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication  -Name 'SRVRecordsStatus'
+                                $PDCEmulator = Invoke-Command -Session $TempPssSession { (Get-ADDomain $using:Domain -ErrorAction Stop).PDCEmulator }
                                 if ($Domain -eq $ADSystem.RootDomain) {
                                     $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName _msdcs.$Domain -RRType Srv
-                                    $DCARR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType A | Where-Object {$_.Hostname -eq $DC.ToString().ToUpper().Split(".")[0]}
+                                    $DCARR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType A | Where-Object { $_.Hostname -eq $DC.ToString().ToUpper().Split(".")[0] }
                                     if ($DC -in $PDCEmulator) {
-                                        $PDC = $SRVRR | Where-Object {$_.Hostname -eq "_ldap._tcp.pdc" -and $_.RecordData.DomainName -eq "$($DC)."}
-                                    } else {$PDC = 'NonPDC'}
+                                        $PDC = $SRVRR | Where-Object { $_.Hostname -eq "_ldap._tcp.pdc" -and $_.RecordData.DomainName -eq "$($DC)." }
+                                    } else { $PDC = 'NonPDC' }
                                     if ($DC -in $ADSystem.GlobalCatalogs) {
-                                        $GC = $SRVRR | Where-Object {$_.Hostname -eq "_ldap._tcp.gc" -and $_.RecordData.DomainName -eq "$($DC)."}
-                                    } else {$GC = 'NonGC'}
-                                    $KDC = $SRVRR | Where-Object {$_.Hostname -eq "_kerberos._tcp.dc" -and $_.RecordData.DomainName -eq "$($DC)."}
-                                    $DCRR = $SRVRR | Where-Object {$_.Hostname -eq "_ldap._tcp.dc" -and $_.RecordData.DomainName -eq "$($DC)."}
+                                        $GC = $SRVRR | Where-Object { $_.Hostname -eq "_ldap._tcp.gc" -and $_.RecordData.DomainName -eq "$($DC)." }
+                                    } else { $GC = 'NonGC' }
+                                    $KDC = $SRVRR | Where-Object { $_.Hostname -eq "_kerberos._tcp.dc" -and $_.RecordData.DomainName -eq "$($DC)." }
+                                    $DCRR = $SRVRR | Where-Object { $_.Hostname -eq "_ldap._tcp.dc" -and $_.RecordData.DomainName -eq "$($DC)." }
                                 } else {
                                     $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType Srv
-                                    $DCARR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType A | Where-Object {$_.Hostname -eq $DC.ToString().ToUpper().Split(".")[0]}
+                                    $DCARR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType A | Where-Object { $_.Hostname -eq $DC.ToString().ToUpper().Split(".")[0] }
                                     if ($DC -in $PDCEmulator) {
-                                        $PDC = $SRVRR | Where-Object {$_.Hostname -eq "_ldap._tcp.pdc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)."}
-                                    } else {$PDC = 'NonPDC'}
+                                        $PDC = $SRVRR | Where-Object { $_.Hostname -eq "_ldap._tcp.pdc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)." }
+                                    } else { $PDC = 'NonPDC' }
                                     if ($DC -in $ADSystem.GlobalCatalogs) {
-                                        $GC = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName "_msdcs.$($ADSystem.RootDomain)" -RRType Srv | Where-Object {$_.Hostname -eq "_ldap._tcp.gc" -and $_.RecordData.DomainName -eq "$($DC)."}
-                                    } else {$GC = 'NonGC'}
-                                    $KDC = $SRVRR | Where-Object {$_.Hostname -eq "_kerberos._tcp.dc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)."}
-                                    $DCRR = $SRVRR | Where-Object {$_.Hostname -eq "_ldap._tcp.dc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)."}
+                                        $GC = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName "_msdcs.$($ADSystem.RootDomain)" -RRType Srv | Where-Object { $_.Hostname -eq "_ldap._tcp.gc" -and $_.RecordData.DomainName -eq "$($DC)." }
+                                    } else { $GC = 'NonGC' }
+                                    $KDC = $SRVRR | Where-Object { $_.Hostname -eq "_kerberos._tcp.dc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)." }
+                                    $DCRR = $SRVRR | Where-Object { $_.Hostname -eq "_ldap._tcp.dc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)." }
                                 }
                                 Remove-CimSession $CimSession
                                 if ( $SRVRR ) {
@@ -432,40 +562,39 @@ function Get-AbrADDomainController {
                                         $inObj = [ordered] @{
                                             'Name' = $DC.ToString().ToUpper().Split(".")[0]
                                             'A Record' = Switch ([string]::IsNullOrEmpty($DCARR)) {
-                                                $True {'Fail'}
-                                                default {'OK'}
+                                                $True { 'Fail' }
+                                                default { 'OK' }
                                             }
                                             'KDC SRV' = Switch ([string]::IsNullOrEmpty($KDC)) {
-                                                $True {'Fail'}
-                                                default {'OK'}
+                                                $True { 'Fail' }
+                                                default { 'OK' }
                                             }
                                             'PDC SRV' = Switch ([string]::IsNullOrEmpty($PDC)) {
-                                                $True {'Fail'}
+                                                $True { 'Fail' }
                                                 $False {
                                                     Switch ($PDC) {
-                                                        'NonPDC' {'Non PDC'}
-                                                        default {'OK'}
+                                                        'NonPDC' { 'Non PDC' }
+                                                        default { 'OK' }
                                                     }
                                                 }
                                             }
                                             'GC SRV' = Switch ([string]::IsNullOrEmpty($GC)) {
-                                                $True {'Fail'}
+                                                $True { 'Fail' }
                                                 $False {
                                                     Switch ($GC) {
-                                                        'NonGC' {'Non GC'}
-                                                        default {'OK'}
+                                                        'NonGC' { 'Non GC' }
+                                                        default { 'OK' }
                                                     }
                                                 }
                                             }
                                             'DC SRV' = Switch ([string]::IsNullOrEmpty($DCRR)) {
-                                                $True {'Fail'}
-                                                default {'OK'}
+                                                $True { 'Fail' }
+                                                default { 'OK' }
                                             }
                                         }
                                         $OutObj += [pscustomobject]$inobj
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning  "$($_.Exception.Message) (SRV Records Status Item)"
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning  "$($_.Exception.Message) (SRV Records Status Item)"
                                     }
                                     if ($HealthCheck.DomainController.Diagnostic) {
                                         $OutObj | Where-Object { $_.'A Record' -eq 'Fail' } | Set-Style -Style Critical -Property 'A Record'
@@ -476,9 +605,8 @@ function Get-AbrADDomainController {
                                         $OutObj | Where-Object { $_.'DC SRV' -eq 'Fail' } | Set-Style -Style Critical -Property 'DC SRV'
                                     }
                                 }
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status Table)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status Table)"
                             }
                         }
                     }
@@ -492,7 +620,7 @@ function Get-AbrADDomainController {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                    if ( $OutObj | Where-Object { $_.'KDC SRV' -eq 'Fail' -or  $_.'PDC SRV' -eq 'Fail' -or  $_.'GC SRV' -eq 'Fail' -or  $_.'DC SRV' -eq 'Fail' }) {
+                    if ( $OutObj | Where-Object { $_.'KDC SRV' -eq 'Fail' -or $_.'PDC SRV' -eq 'Fail' -or $_.'GC SRV' -eq 'Fail' -or $_.'DC SRV' -eq 'Fail' }) {
                         Paragraph "Health Check:" -Bold -Underline
                         BlankLine
                         Paragraph {
@@ -501,18 +629,17 @@ function Get-AbrADDomainController {
                         }
                     }
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status)"
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status)"
             }
         }
         try {
             if ($HealthCheck.DomainController.BestPractice) {
-                Write-PscriboMessage "Discovering Active Directory File Shares information from $Domain."
+                Write-PScriboMessage "Discovering Active Directory File Shares information from $Domain."
                 $OutObj = foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
-                            Write-PscriboMessage "Collecting AD Domain Controllers file shares information of $DC."
+                            Write-PScriboMessage "Collecting AD Domain Controllers file shares information of $DC."
                             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllersFileShares'
                             $Shares = Invoke-Command -Session $DCPssSession { Get-SmbShare | Where-Object { $_.Description -ne 'Default share' -and $_.Description -notmatch 'Remote' -and $_.Name -ne 'NETLOGON' -and $_.Name -ne 'SYSVOL' } }
                             if ($Shares) {
@@ -546,9 +673,8 @@ function Get-AbrADDomainController {
                             if ($DCPssSession) {
                                 Remove-PSSession -Session $DCPssSession
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (File Shares Item)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (File Shares Item)"
                         }
                     }
                 }
@@ -566,22 +692,21 @@ function Get-AbrADDomainController {
                     }
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (File Shares Table)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (File Shares Table)"
         }
         if ($HealthCheck.DomainController.Software) {
             try {
-                Write-PscriboMessage "Collecting additional software running on the Domain Controller."
+                Write-PScriboMessage "Collecting additional software running on the Domain Controller."
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         try {
                             $Software = @()
-                            Write-PscriboMessage "Collecting AD Domain Controller installed software information for $DC."
+                            Write-PScriboMessage "Collecting AD Domain Controller installed software information for $DC."
                             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerInstalledSoftware'
-                            $SoftwareX64 = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
-                            $SoftwareX86 = Invoke-Command -Session $DCPssSession -ScriptBlock {Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName)} | Select-Object -Property DisplayName,Publisher,InstallDate | Sort-Object -Property DisplayName}
+                            $SoftwareX64 = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { ($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName) } | Select-Object -Property DisplayName, Publisher, InstallDate | Sort-Object -Property DisplayName }
+                            $SoftwareX86 = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { ($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName) } | Select-Object -Property DisplayName, Publisher, InstallDate | Sort-Object -Property DisplayName }
                             Remove-PSSession -Session $DCPssSession
 
                             If ($SoftwareX64) {
@@ -606,9 +731,8 @@ function Get-AbrADDomainController {
                                             if ($HealthCheck.DomainController.Software) {
                                                 $OutObj | Set-Style -Style Warning
                                             }
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning $_.Exception.Message
                                         }
                                     }
                                     $TableParams = @{
@@ -630,9 +754,8 @@ function Get-AbrADDomainController {
                                     }
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Installed Software Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Installed Software Table)"
                         }
                     }
                 }
@@ -643,20 +766,19 @@ function Get-AbrADDomainController {
                         $DCObj
                     }
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
             }
             try {
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                        Write-PscriboMessage "Collecting pending/missing patch information from Domain Controller $($DC)."
+                        Write-PScriboMessage "Collecting pending/missing patch information from Domain Controller $($DC)."
                         try {
                             $Software = @()
-                            Write-PscriboMessage "Collecting AD Domain Controller pending/missing patch information for $DC."
+                            Write-PScriboMessage "Collecting AD Domain Controller pending/missing patch information for $DC."
                             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerPendingMissingPatch'
-                            $Updates = Invoke-Command -Session $DCPssSession -ScriptBlock {(New-Object -ComObject Microsoft.Update.Session).CreateupdateSearcher().Search("IsHidden=0 and IsInstalled=0").Updates | Select-Object Title,KBArticleIDs}
+                            $Updates = Invoke-Command -Session $DCPssSession -ScriptBlock { (New-Object -ComObject Microsoft.Update.Session).CreateupdateSearcher().Search("IsHidden=0 and IsInstalled=0").Updates | Select-Object Title, KBArticleIDs }
                             Remove-PSSession -Session $DCPssSession
 
                             if ( $Updates ) {
@@ -673,9 +795,8 @@ function Get-AbrADDomainController {
                                             if ($HealthCheck.DomainController.Software) {
                                                 $OutObj | Set-Style -Style Warning
                                             }
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning $_.Exception.Message
                                         }
                                     }
                                     $TableParams = @{
@@ -690,16 +811,15 @@ function Get-AbrADDomainController {
                                     if ($HealthCheck.DomainController.Software) {
                                         Paragraph "Health Check:" -Bold -Underline
                                         BlankLine
-                                        Paragraph  {
+                                        Paragraph {
                                             Text "Security Best Practices:" -Bold
                                             Text "It is critical to install security updates to protect your systems from malicious attacks. In the long run, it is also important to install software updates, not only to access new features, but also to be on the safe side in terms of security loop holes being discovered in outdated programs. And it is in your own best interest to install all other updates, which may potentially cause your system to become vulnerable to attack."
                                         }
                                     }
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Installed Software Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Installed Software Table)"
                         }
                     }
                 }
@@ -710,9 +830,8 @@ function Get-AbrADDomainController {
                         $DCObj
                     }
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
             }
         }
     }

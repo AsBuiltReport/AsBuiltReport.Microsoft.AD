@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.0
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,12 +19,12 @@ function Get-AbrADGPO {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain
-            )
+        [string]
+        $Domain
+    )
 
     begin {
-        Write-PscriboMessage "Discovering Active Directory Group Policy Objects information for $($Domain.ToString().ToUpper())."
+        Write-PScriboMessage "Discovering Active Directory Group Policy Objects information for $($Domain.ToString().ToUpper())."
     }
 
     process {
@@ -33,38 +33,37 @@ function Get-AbrADGPO {
                 Paragraph "The following section provides a summary of the Group Policy Objects for domain $($Domain.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
-                $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-GPO -Domain $using:Domain -All}
-                Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Domain $using:Domain -All }
+                Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                 if ($GPOs) {
                     if ($InfoLevel.Domain -eq 1) {
                         try {
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML}
-                                    Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'."
+                                    [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML }
+                                    Write-PScriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'."
                                     $inObj = [ordered] @{
                                         'GPO Name' = $GPO.DisplayName
-                                        'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
-                                        'Security Filtering' =  &{
-                                            $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock {(Get-GPPermission -DomainName $using:Domain -All -Guid ($using:GPO).ID | Where-Object {$_.Permission -eq 'GpoApply'}).Trustee.Name}
+                                        'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
+                                        'Security Filtering' = & {
+                                            $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName $using:Domain -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
                                             if ($GPOSECFILTER) {
 
                                                 return $GPOSECFILTER
 
-                                            } else {'No Security Filtering'}
+                                            } else { 'No Security Filtering' }
                                         }
                                         'Links Count' = $Links.GPO.LinksTo.SOMPath.Count
                                     }
                                     $OutObj += [pscustomobject]$inobj
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
                                 }
                             }
 
                             if ($HealthCheck.Domain.GPO) {
-                                $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
-                                $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'} | Set-Style -Style Warning -Property 'Security Filtering'
+                                $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
+                                $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' } | Set-Style -Style Warning -Property 'Security Filtering'
                                 $OutObj | Where-Object { $_.'Links Count' -eq 0 } | Set-Style -Style Warning -Property 'Links Count'
                             }
 
@@ -78,17 +77,17 @@ function Get-AbrADGPO {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                            if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}) -or ($OutObj | Where-Object { $_.'Links Count' -eq 0 }))) {
+                            if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' }) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' }) -or ($OutObj | Where-Object { $_.'Links Count' -eq 0 }))) {
                                 Paragraph "Health Check:" -Bold -Underline
                                 BlankLine
-                                if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
+                                if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' })) {
                                     Paragraph {
                                         Text "Best Practices:" -Bold
                                         Text "Ensure 'All Settings Disabled' GPOs are removed from Active Directory."
                                     }
                                     BlankLine
                                 }
-                                if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'})) {
+                                if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' })) {
                                     Paragraph {
                                         Text "Corrective Actions:" -Bold
                                         Text "Determine which 'No Security Filtering' GPOs should be deleted and delete them."
@@ -103,9 +102,8 @@ function Get-AbrADGPO {
                                     BlankLine
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
                         }
                     }
                     if ($InfoLevel.Domain -ge 2) {
@@ -113,34 +111,34 @@ function Get-AbrADGPO {
                             foreach ($GPO in $GPOs) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading5 "$($GPO.DisplayName)" {
                                     try {
-                                        [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock {$using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML}
-                                        Write-PscriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
+                                        [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML }
+                                        Write-PScriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
                                         $inObj = [ordered] @{
-                                            'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                                            'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
                                             'GUID' = $GPO.Id
                                             'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
                                             'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
                                             'Owner' = $GPO.Owner
                                             'Computer Version' = "$($Links.GPO.Computer.VersionDirectory) (AD), $($Links.GPO.Computer.VersionSysvol) (SYSVOL)"
                                             'User Version' = "$($Links.GPO.User.VersionDirectory) (AD), $($Links.GPO.User.VersionSysvol) (SYSVOL)"
-                                            'WMI Filter' = &{
-                                                $WMIFilter = Invoke-Command -Session $TempPssSession -ScriptBlock {((Get-Gpo -DomainName $using:Domain  -Name $using:GPO.DisplayName).WMifilter.Name)}
+                                            'WMI Filter' = & {
+                                                $WMIFilter = Invoke-Command -Session $TempPssSession -ScriptBlock { ((Get-GPO -DomainName $using:Domain  -Name $using:GPO.DisplayName).WMifilter.Name) }
                                                 if ($WMIFilter) {
                                                     $WMIFilter
-                                                } else {'--'}
+                                                } else { '--' }
                                             }
-                                            'Security Filtering' =  &{
-                                                $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock {(Get-GPPermission -DomainName $using:Domain -All -Guid ($using:GPO).ID | Where-Object {$_.Permission -eq 'GpoApply'}).Trustee.Name}
+                                            'Security Filtering' = & {
+                                                $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName $using:Domain -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
                                                 if ($GPOSECFILTER) {
 
                                                     return $GPOSECFILTER
 
-                                                } else {'No Security Filtering'}
+                                                } else { 'No Security Filtering' }
                                             }
                                             'Linked Target' = Switch ([string]::IsNullOrEmpty($Links.GPO.LinksTo.SOMPath)) {
-                                                'True' {'--'}
-                                                'False' {$Links.GPO.LinksTo.SOMPath}
-                                                default {'Unknown'}
+                                                'True' { '--' }
+                                                'False' { $Links.GPO.LinksTo.SOMPath }
+                                                default { 'Unknown' }
                                             }
                                             'Description' = ConvertTo-EmptyToFiller $GPO.Description
                                         }
@@ -148,10 +146,10 @@ function Get-AbrADGPO {
                                         $OutObj = [pscustomobject]$inobj
 
                                         if ($HealthCheck.Domain.GPO) {
-                                            $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
-                                            $OutObj | Where-Object {$Null -eq $_.'Owner'} | Set-Style -Style Warning -Property 'Owner'
-                                            $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'} | Set-Style -Style Warning -Property 'Security Filtering'
-                                            $OutObj | Where-Object { $_.'Linked Target' -eq '--'} | Set-Style -Style Warning -Property 'Linked Target'
+                                            $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
+                                            $OutObj | Where-Object { $Null -eq $_.'Owner' } | Set-Style -Style Warning -Property 'Owner'
+                                            $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' } | Set-Style -Style Warning -Property 'Security Filtering'
+                                            $OutObj | Where-Object { $_.'Linked Target' -eq '--' } | Set-Style -Style Warning -Property 'Linked Target'
                                         }
 
                                         $TableParams = @{
@@ -164,24 +162,24 @@ function Get-AbrADGPO {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $OutObj | Table @TableParams
-                                        if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'}) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'}) -or ($OutObj | Where-Object { $_.'Linked Target' -eq '--'}))) {
+                                        if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' }) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' }) -or ($OutObj | Where-Object { $_.'Linked Target' -eq '--' }))) {
                                             Paragraph "Health Check:" -Bold -Underline
                                             BlankLine
-                                            if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'})) {
+                                            if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' })) {
                                                 Paragraph {
                                                     Text "Best Practices:" -Bold
                                                     Text "Ensure 'All Settings Disabled' GPO are removed from Active Directory."
                                                 }
                                                 BlankLine
                                             }
-                                            if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering'})) {
+                                            if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' })) {
                                                 Paragraph {
                                                     Text "Corrective Actions:" -Bold
                                                     Text "Determine which 'No Security Filtering' Group Policies should be deleted and delete them."
                                                 }
                                                 BlankLine
                                             }
-                                            if ($OutObj | Where-Object { $_.'Linked Target' -eq '--'}) {
+                                            if ($OutObj | Where-Object { $_.'Linked Target' -eq '--' }) {
                                                 Paragraph {
                                                     Text "Corrective Actions:" -Bold
                                                     Text "Ensure unused or unlinked GPOs are removed from Active Directory."
@@ -189,22 +187,20 @@ function Get-AbrADGPO {
                                                 BlankLine
                                             }
                                         }
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
                                     }
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (WMI Filters)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (WMI Filters)"
                         }
                     }
                     if ($InfoLevel.Domain -ge 2) {
                         try {
-                            $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
+                            $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                             $DCPssSession = New-PSSession -ComputerName $DC -Name "WmiFilters" -Credential $Credential -Authentication $Options.PSDefaultAuthentication
-                            $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
+                            $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                             $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
                             if ($DCPssSession) {
                                 Remove-PSSession -Session $DCPssSession
@@ -213,7 +209,7 @@ function Get-AbrADGPO {
                                 Section -Style Heading5 "WMI Filters" {
                                     $OutObj = @()
                                     foreach ($WmiFilter in $WmiFilters) {
-                                        Write-PscriboMessage "Discovered wmi filter information on $Domain. (WMI Filters)"
+                                        Write-PScriboMessage "Discovered wmi filter information on $Domain. (WMI Filters)"
                                         $inObj = [ordered] @{
                                             'Name' = $WmiFilter.'msWMI-Name'
                                             'Author' = $WmiFilter.'msWMI-Author'
@@ -223,7 +219,7 @@ function Get-AbrADGPO {
                                         $OutObj = [pscustomobject]$inobj
 
                                         if ($HealthCheck.Domain.GPO) {
-                                            $OutObj | Where-Object { $_.'Description' -eq "--"} | Set-Style -Style Warning -Property 'Description'
+                                            $OutObj | Where-Object { $_.'Description' -eq "--" } | Set-Style -Style Warning -Property 'Description'
                                         }
 
                                         $TableParams = @{
@@ -239,20 +235,19 @@ function Get-AbrADGPO {
                                     }
                                 }
                             } else {
-                                Write-PscriboMessage -IsWarning "No WMI Filter information found in $Domain, disabling the section."
+                                Write-PScriboMessage -IsWarning "No WMI Filter information found in $Domain, disabling the section."
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (WMI Filters)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (WMI Filters)"
                         }
                     }
                     try {
                         $PATH = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
-                        $CentralStore = Invoke-Command -Session $TempPssSession -ScriptBlock {Test-Path $using:PATH}
+                        $CentralStore = Invoke-Command -Session $TempPssSession -ScriptBlock { Test-Path $using:PATH }
                         if ($PATH) {
                             Section -Style Heading5 "Central Store Repository" {
                                 $OutObj = @()
-                                Write-PscriboMessage "Discovered Active Directory Central Store information on $Domain. (Central Store)"
+                                Write-PScriboMessage "Discovered Active Directory Central Store information on $Domain. (Central Store)"
                                 $inObj = [ordered] @{
                                     'Domain' = $Domain.ToString().ToUpper()
                                     'Configured' = ConvertTo-TextYN $CentralStore
@@ -261,7 +256,7 @@ function Get-AbrADGPO {
                                 $OutObj = [pscustomobject]$inobj
 
                                 if ($HealthCheck.Domain.GPO) {
-                                    $OutObj | Where-Object { $_.'Configured' -eq 'No'} | Set-Style -Style Warning -Property 'Configured'
+                                    $OutObj | Where-Object { $_.'Configured' -eq 'No' } | Set-Style -Style Warning -Property 'Configured'
                                 }
 
                                 $TableParams = @{
@@ -274,7 +269,7 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Table @TableParams
-                                if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'Configured' -eq 'No'})) {
+                                if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'Configured' -eq 'No' })) {
                                     Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
                                     Paragraph {
@@ -284,47 +279,44 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No GPO Central Store information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No GPO Central Store information found in $Domain, disabling the section."
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (GPO Central Store)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO Central Store)"
                     }
                     try {
                         if ($GPOs) {
-                            Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                            Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                             $OutObj = @()
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml =  Invoke-Command -Session $TempPssSession -ScriptBlock {Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id}
+                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
                                     $UserScripts = $Gpoxml.GPO.User.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
                                     if ($UserScripts.extension.Script) {
                                         foreach ($Script in $UserScripts.extension.Script) {
                                             try {
-                                                Write-PscriboMessage "Collecting Active Directory Group Policy Objects with Logon/Logoff Script '$($GPO.DisplayName)'."
+                                                Write-PScriboMessage "Collecting Active Directory Group Policy Objects with Logon/Logoff Script '$($GPO.DisplayName)'."
                                                 $inObj = [ordered] @{
                                                     'GPO Name' = $GPO.DisplayName
-                                                    'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                                                    'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
                                                     'Type' = $Script.Type
                                                     'Script' = $Script.command
                                                 }
                                                 $OutObj += [pscustomobject]$inobj
-                                            }
-                                            catch {
-                                                Write-PscriboMessage -IsWarning $_.Exception.Message
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning $_.Exception.Message
                                             }
                                         }
                                     }
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (GPO with Logon/Logoff Script Item)"
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO with Logon/Logoff Script Item)"
                                 }
                             }
                         }
                         if ($OutObj) {
                             Section -Style Heading5 "Logon/Logoff Script" {
                                 if ($HealthCheck.Domain.GPO) {
-                                    $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
+                                    $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
                                 }
 
                                 $TableParams = @{
@@ -339,47 +331,44 @@ function Get-AbrADGPO {
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No GPO Logon/Logoff script information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No GPO Logon/Logoff script information found in $Domain, disabling the section."
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (GPO with Logon/Logoff Script Section)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO with Logon/Logoff Script Section)"
                     }
                     try {
                         if ($GPOs) {
                             $OutObj = @()
-                            Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                            Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml =  Invoke-Command -Session $TempPssSession -ScriptBlock {Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id}
+                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
                                     $ComputerScripts = $Gpoxml.GPO.Computer.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
                                     if ($ComputerScripts.extension.Script) {
                                         foreach ($Script in $ComputerScripts.extension.Script) {
                                             try {
-                                                Write-PscriboMessage "Collecting Active Directory Group Policy Objects with Startup/Shutdown Script '$($GPO.DisplayName)'."
+                                                Write-PScriboMessage "Collecting Active Directory Group Policy Objects with Startup/Shutdown Script '$($GPO.DisplayName)'."
                                                 $inObj = [ordered] @{
                                                     'GPO Name' = $GPO.DisplayName
-                                                    'GPO Status' = ($GPO.GpoStatus -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                                                    'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
                                                     'Type' = $Script.Type
                                                     'Script' = $Script.command
                                                 }
                                                 $OutObj += [pscustomobject]$inobj
-                                            }
-                                            catch {
-                                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Item)"
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Item)"
                                             }
                                         }
                                     }
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script)"
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script)"
                                 }
                             }
                         }
                         if ($OutObj) {
                             Section -Style Heading5 "Startup/Shutdown Script" {
                                 if ($HealthCheck.Domain.GPO) {
-                                    $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled'} | Set-Style -Style Warning -Property 'GPO Status'
+                                    $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
                                 }
 
                                 $TableParams = @{
@@ -395,23 +384,22 @@ function Get-AbrADGPO {
                             }
 
                         } else {
-                            Write-PscriboMessage -IsWarning "No GPO Computer Startup/Shutdown script information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No GPO Computer Startup/Shutdown script information found in $Domain, disabling the section."
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Section)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Section)"
                     }
                 }
                 if ($HealthCheck.Domain.GPO) {
                     try {
                         $OutObj = @()
                         if ($GPOs) {
-                            Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                            Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml =  Invoke-Command -Session $TempPssSession -ScriptBlock {Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id}
+                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
                                     if (($Null -ne $Gpoxml.GPO.Name) -and ($Null -eq $Gpoxml.GPO.LinksTo.SOMPath)) {
-                                        Write-PscriboMessage "Collecting Active Directory Unlinked Group Policy Objects '$($Gpoxml.GPO.Name)'."
+                                        Write-PScriboMessage "Collecting Active Directory Unlinked Group Policy Objects '$($Gpoxml.GPO.Name)'."
                                         $inObj = [ordered] @{
                                             'GPO Name' = $Gpoxml.GPO.Name
                                             'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split("T")[0]
@@ -421,9 +409,8 @@ function Get-AbrADGPO {
                                         }
                                         $OutObj += [pscustomobject]$inobj
                                     }
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Item)"
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Item)"
                                 }
                             }
                         }
@@ -451,21 +438,20 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No Unlinked Group Policy Objects information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No Unlinked Group Policy Objects information found in $Domain, disabling the section."
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Section)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Section)"
                     }
                     try {
                         $OutObj = @()
                         if ($GPOs) {
-                            Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                            Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml =  Invoke-Command -Session $TempPssSession -ScriptBlock {Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id}
+                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
                                     if (($Null -eq ($Gpoxml.GPO.Computer.ExtensionData)) -and ($Null -eq ($Gpoxml.GPO.User.extensionData))) {
-                                        Write-PscriboMessage "Collecting Active Directory Empty Group Policy Objects '$($Gpoxml.GPO.Name)'."
+                                        Write-PScriboMessage "Collecting Active Directory Empty Group Policy Objects '$($Gpoxml.GPO.Name)'."
                                         $inObj = [ordered] @{
                                             'GPO Name' = $Gpoxml.GPO.Name
                                             'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split("T")[0]
@@ -474,9 +460,8 @@ function Get-AbrADGPO {
                                         }
                                         $OutObj += [pscustomobject]$inobj
                                     }
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Item)"
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Item)"
                                 }
                             }
                         }
@@ -504,19 +489,18 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No Empty GPO information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No Empty GPO information found in $Domain, disabling the section."
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Section)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Section)"
                     }
                     try {
                         $OutObj = @()
-                        Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
-                        $DM = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}
+                        Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                        $DM = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain }
                         $DC = $DM.ReplicaDirectoryServers | Select-Object -First 1
-                        Write-PscriboMessage "Discovered Active Directory Domain Controller $DC in $Domain. (Group Policy Objects)"
-                        $OUs = (Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Filter *}).DistinguishedName
+                        Write-PScriboMessage "Discovered Active Directory Domain Controller $DC in $Domain. (Group Policy Objects)"
+                        $OUs = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * }).DistinguishedName
                         if ($OUs) {
                             $OUs += $DM.DistinguishedName
                         }
@@ -526,7 +510,7 @@ function Get-AbrADGPO {
                                     $GpoEnforces = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
                                     foreach ($GpoEnforced in $GpoEnforces) {
                                         if ($GpoEnforced.Enforced -eq "True") {
-                                            Write-PscriboMessage "Collecting Active Directory Enforced owned Group Policy Objects'$($GpoEnforced.DisplayName)'."
+                                            Write-PScriboMessage "Collecting Active Directory Enforced owned Group Policy Objects'$($GpoEnforced.DisplayName)'."
                                             $TargetCanonical = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:DC -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
                                             $inObj = [ordered] @{
                                                 'GPO Name' = $GpoEnforced.DisplayName
@@ -535,9 +519,8 @@ function Get-AbrADGPO {
                                             $OutObj += [pscustomobject]$inobj
                                         }
                                     }
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Enforced Group Policy Objects Item)"
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Enforced Group Policy Objects Item)"
                                 }
                             }
                         }
@@ -567,33 +550,32 @@ function Get-AbrADGPO {
 
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No Enforced GPO information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No Enforced GPO information found in $Domain, disabling the section."
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Enforced Group Policy Objects Table)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Enforced Group Policy Objects Table)"
                     }
                     # Code taken from Jeremy Saunders
                     # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
                     try {
-                        $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
+                        $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                         $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO'
-                        $DomainInfo =  Invoke-Command -Session $TempPssSession {Get-ADDomain $using:Domain -ErrorAction Stop}
+                        $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                         $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
                         $OrphanGPOs = @()
                         $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
                         if ($DCPssSession) {
                             Remove-PSSession -Session $DCPssSession
                         }
-                        $GPOPoliciesSYSVOL = (Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object}).Name.Trim("{}")
+                        $GPOPoliciesSYSVOL = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object }).Name.Trim("{}")
                         $SYSVOLGPOList = @()
                         ForEach ($GPOinSYSVOL in $GPOPoliciesSYSVOL) {
                             If ($GPOinSYSVOL -ne "PolicyDefinitions") {
                                 $SYSVOLGPOList += $GPOinSYSVOL
                             }
                         }
-                        $MissingADGPOs = Compare-Object $SYSVOLGPOList $GPOPoliciesADSI -passThru | Where-Object { $_.SideIndicator -eq '<=' }
-                        $MissingSYSVOLGPOs = Compare-Object $GPOPoliciesADSI $SYSVOLGPOList -passThru | Where-Object { $_.SideIndicator -eq '<=' }
+                        $MissingADGPOs = Compare-Object $SYSVOLGPOList $GPOPoliciesADSI -PassThru | Where-Object { $_.SideIndicator -eq '<=' }
+                        $MissingSYSVOLGPOs = Compare-Object $GPOPoliciesADSI $SYSVOLGPOList -PassThru | Where-Object { $_.SideIndicator -eq '<=' }
                         $OrphanGPOs += $MissingADGPOs
                         $OrphanGPOs += $MissingSYSVOLGPOs
                         if ($OrphanGPOs) {
@@ -601,40 +583,40 @@ function Get-AbrADGPO {
                                 Paragraph "The following table summarizes the group policy objects that are orphaned or missing in the AD database or in the SYSVOL directory."
                                 BlankLine
                                 $OutObj = @()
-                                Write-PscriboMessage "Discovered orphaned gpo information on $Domain. (Orphaned GPO)"
+                                Write-PScriboMessage "Discovered orphaned gpo information on $Domain. (Orphaned GPO)"
                                 foreach ($OrphanGPO in $OrphanGPOs) {
                                     $inObj = [ordered] @{
-                                        'Name' = Switch (($GPOs | Where-Object {$_.id -eq $OrphanGPO}).DisplayName) {
-                                            $Null {'Unknown'}
-                                            default {($GPOs | Where-Object {$_.id -eq $OrphanGPO}).DisplayName}
+                                        'Name' = Switch (($GPOs | Where-Object { $_.id -eq $OrphanGPO }).DisplayName) {
+                                            $Null { 'Unknown' }
+                                            default { ($GPOs | Where-Object { $_.id -eq $OrphanGPO }).DisplayName }
                                         }
                                         'Guid' = $OrphanGPO
-                                        'AD DN Database' = &{
+                                        'AD DN Database' = & {
                                             if ($OrphanGPO -in $MissingADGPOs) {
                                                 return "Missing"
-                                            } else {'Valid'}
+                                            } else { 'Valid' }
                                         }
-                                        'AD DN Path' = &{
+                                        'AD DN Path' = & {
                                             if ($OrphanGPO -in $MissingADGPOs) {
                                                 return "CN={$($OrphanGPO)},CN=Policies,CN=System,$($DomainInfo.DistinguishedName) (Missing)"
-                                            } else {"CN={$($OrphanGPO)},CN=Policies,CN=System,$($DomainInfo.DistinguishedName) (Valid)"}
+                                            } else { "CN={$($OrphanGPO)},CN=Policies,CN=System,$($DomainInfo.DistinguishedName) (Valid)" }
                                         }
-                                        'SYSVOL Guid Directory' = &{
+                                        'SYSVOL Guid Directory' = & {
                                             if ($OrphanGPO -in $MissingSYSVOLGPOs) {
                                                 return "Missing"
-                                            } else {'Valid'}
+                                            } else { 'Valid' }
                                         }
-                                        'SYSVOL Guid Path' = &{
+                                        'SYSVOL Guid Path' = & {
                                             if ($OrphanGPO -in $MissingSYSVOLGPOs) {
                                                 return "\\$Domain\SYSVOL\$Domain\Policies\{$($OrphanGPO)} (Missing)"
-                                            } else {"\\$Domain\SYSVOL\$Domain\Policies\{$($OrphanGPO)} (Valid)"}
+                                            } else { "\\$Domain\SYSVOL\$Domain\Policies\{$($OrphanGPO)} (Valid)" }
                                         }
                                     }
                                     $OutObj = [pscustomobject]$inobj
 
                                     if ($HealthCheck.Domain.GPO) {
-                                        $OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing'} | Set-Style -Style Warning -Property 'AD DN Database','AD DN Path'
-                                        $OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing'} | Set-Style -Style Warning -Property 'SYSVOL Guid Directory','SYSVOL Guid Path'
+                                        $OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing' } | Set-Style -Style Warning -Property 'AD DN Database', 'AD DN Path'
+                                        $OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing' } | Set-Style -Style Warning -Property 'SYSVOL Guid Directory', 'SYSVOL Guid Path'
                                     }
 
                                     $TableParams = @{
@@ -647,17 +629,17 @@ function Get-AbrADGPO {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Table @TableParams
-                                    if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing'}) -or ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing'}))) {
+                                    if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing' }) -or ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing' }))) {
                                         Paragraph "Health Check:" -Bold -Underline
                                         BlankLine
-                                        if ($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing'}) {
+                                        if ($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing' }) {
                                             Paragraph {
                                                 Text "Corrective Actions:" -Bold
                                                 Text "Evaluate orphaned group policies objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and bandwidth during replication."
                                             }
                                             BlankLine
                                         }
-                                        if ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing'}) {
+                                        if ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing' }) {
                                             Paragraph {
                                                 Text "Corrective Actions:" -Bold
                                                 Text "Evaluate orphaned group policies folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and bandwidth during replication."
@@ -668,17 +650,15 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PscriboMessage -IsWarning "No Orphaned GPO information found in $Domain, disabling the section."
+                            Write-PScriboMessage -IsWarning "No Orphaned GPO information found in $Domain, disabling the section."
                         }
-                    }
-                    catch {
-                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Orphaned GPO)"
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Orphaned GPO)"
                     }
                 }
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Section)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects Section)"
         }
     }
 

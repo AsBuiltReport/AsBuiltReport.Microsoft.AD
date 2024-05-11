@@ -5,7 +5,7 @@ function Get-AbrADCATemplate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.0
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,11 +19,11 @@ function Get-AbrADCATemplate {
         [Parameter (
             Position = 0,
             Mandatory)]
-            $CA
+        $CA
     )
 
     begin {
-        Write-PscriboMessage "Collecting AD Certification Authority Templates information from $($CA.ComputerName)."
+        Write-PScriboMessage "Collecting AD Certification Authority Templates information from $($CA.ComputerName)."
     }
 
     process {
@@ -35,7 +35,7 @@ function Get-AbrADCATemplate {
                     BlankLine
                     $OutObj = @()
                     foreach ($Template in $Templates) {
-                        Write-PscriboMessage "Collecting $($Template.DisplayName) Issued Certificate Template information from $($CA.Name)."
+                        Write-PScriboMessage "Collecting $($Template.DisplayName) Issued Certificate Template information from $($CA.Name)."
                         try {
                             $inObj = [ordered] @{
                                 'Template Name' = $Template.DisplayName
@@ -44,9 +44,8 @@ function Get-AbrADCATemplate {
                                 'Autoenrollment' = ConvertTo-TextYN $Template.AutoenrollmentAllowed
                             }
                             $OutObj += [pscustomobject]$inobj
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (CA Certificate Templates table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (CA Certificate Templates table)"
                         }
                     }
 
@@ -79,9 +78,8 @@ function Get-AbrADCATemplate {
                                                             'Inherited' = ConvertTo-TextYN $Right.IsInherited
                                                         }
                                                         $OutObj += [pscustomobject]$inobj
-                                                    }
-                                                    catch {
-                                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Certificate Templates ACL Item)"
+                                                    } catch {
+                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Templates ACL Item)"
                                                     }
                                                 }
                                                 $TableParams = @{
@@ -95,20 +93,18 @@ function Get-AbrADCATemplate {
                                                 $OutObj | Sort-Object -Property 'Identity' | Table @TableParams
                                             }
                                         }
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Certificate Templates ACL Table)"
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Templates ACL Table)"
                                     }
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Issued Certificate Template ACLs Section)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Issued Certificate Template ACLs Section)"
                         }
                     }
                     if ($InfoLevel.CA -ge 2) {
                         try {
-                            $Templates =  Get-CertificateTemplate
+                            $Templates = Get-CertificateTemplate
                             if ($Templates) {
                                 Section -Style Heading4 "Certificate Template In Active Directory" {
                                     Paragraph "The following section provides registered certificate templates from Active Directory."
@@ -116,7 +112,7 @@ function Get-AbrADCATemplate {
                                     $OutObj = @()
                                     foreach ($Template in $Templates) {
                                         try {
-                                            Write-PscriboMessage "Collecting $($Template.DisplayName) Certificate Template In Active Directory."
+                                            Write-PScriboMessage "Collecting $($Template.DisplayName) Certificate Template In Active Directory."
                                             $inObj = [ordered] @{
                                                 'Template Name' = $Template.DisplayName
                                                 'Schema Version' = $Template.SchemaVersion
@@ -124,9 +120,8 @@ function Get-AbrADCATemplate {
                                                 'Autoenrollment' = ConvertTo-TextYN $Template.AutoenrollmentAllowed
                                             }
                                             $OutObj += [pscustomobject]$inobj
-                                        }
-                                        catch {
-                                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Certificate Template In Active Directory Item)"
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Template In Active Directory Item)"
                                         }
                                     }
 
@@ -141,15 +136,13 @@ function Get-AbrADCATemplate {
                                     $OutObj | Sort-Object -Property 'Template Name' | Table @TableParams
                                 }
                             }
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Certificate Template In Active Directory Table)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Template In Active Directory Table)"
                         }
                     }
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (CA Certificate Templates section)"
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (CA Certificate Templates section)"
             }
         }
     }

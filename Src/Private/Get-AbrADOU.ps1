@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.0
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,18 +19,18 @@ function Get-AbrADOU {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain
+        [string]
+        $Domain
     )
 
     begin {
-        Write-PscriboMessage "Discovering Active Directory Organizational Unit information on domain $Domain"
+        Write-PScriboMessage "Discovering Active Directory Organizational Unit information on domain $Domain"
     }
 
     process {
         try {
-            $DC = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName}
-            $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Properties * -Searchbase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter *}
+            $DC = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName }
+            $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Properties * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * }
             if ($OUs) {
                 Section -Style Heading3 "Organizational Units" {
                     Paragraph "The following section provides a summary of Active Directory Organizational Unit information."
@@ -38,17 +38,16 @@ function Get-AbrADOU {
                     $OutObj = @()
                     foreach ($OU in $OUs) {
                         try {
-                            Write-PscriboMessage "Collecting information of Active Directory Organizational Unit $OU."
+                            Write-PScriboMessage "Collecting information of Active Directory Organizational Unit $OU."
                             $GPOArray = @()
                             [array]$GPOs = $OU.LinkedGroupPolicyObjects
                             foreach ($Object in $GPOs) {
                                 try {
-                                    $GP = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-GPO -Server $using:DC -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain $using:Domain}
-                                    Write-PscriboMessage "Collecting linked GPO: '$($GP.DisplayName)' on Organizational Unit $OU."
+                                    $GP = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:DC -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain $using:Domain }
+                                    Write-PScriboMessage "Collecting linked GPO: '$($GP.DisplayName)' on Organizational Unit $OU."
                                     $GPOArray += $GP.DisplayName
-                                }
-                                catch {
-                                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                                } catch {
+                                    Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
                             }
                             $inObj = [ordered] @{
@@ -57,9 +56,8 @@ function Get-AbrADOU {
                                 'Protected' = ConvertTo-TextYN $OU.ProtectedFromAccidentalDeletion
                             }
                             $OutObj += [pscustomobject]$inobj
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit Item)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit Item)"
                         }
                     }
 
@@ -87,15 +85,15 @@ function Get-AbrADOU {
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
-                            $DC = Invoke-Command -Session $TempPssSession {(Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1}
-                            $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock {Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName}
+                            $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                            # $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName }
                             if ($OUs) {
-                                Write-PscriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
+                                Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                                 foreach ($OU in $OUs) {
                                     try {
-                                        $GpoInheritance =  Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target ($using:OU).DistinguishedName }
+                                        $GpoInheritance = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target ($using:OU).DistinguishedName }
                                         if ( $GpoInheritance.GPOInheritanceBlocked -eq "True") {
-                                            Write-PscriboMessage "Collecting Active Directory Blocked Inheritance Group Policy Objects'$($GpoEnforced.DisplayName)'."
+                                            Write-PScriboMessage "Collecting Active Directory Blocked Inheritance Group Policy Objects'$($GpoEnforced.DisplayName)'."
                                             $inObj = [ordered] @{
                                                 'OU Name' = $GpoInheritance.Name
                                                 'Container Type' = $GpoInheritance.ContainerType
@@ -104,9 +102,8 @@ function Get-AbrADOU {
                                             }
                                             $OutObj += [pscustomobject]$inobj
                                         }
-                                    }
-                                    catch {
-                                        Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Blocked Inheritance GPO Item)"
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Blocked Inheritance GPO Item)"
                                     }
                                 }
                             }
@@ -135,18 +132,16 @@ function Get-AbrADOU {
                                 }
                             }
 
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Blocked Inheritance GPO Section)"
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Blocked Inheritance GPO Section)"
                         }
                     }
                 }
             } else {
-                Write-PscriboMessage -IsWarning "No Organizational Units information found in $Domain, disabling the section."
+                Write-PScriboMessage -IsWarning "No Organizational Units information found in $Domain, disabling the section."
             }
-        }
-        catch {
-            Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit Section)"
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit Section)"
         }
     }
 

@@ -5,7 +5,7 @@ function Get-AbrForestSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.0
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,7 @@ function Get-AbrForestSection {
     )
 
     begin {
-        Write-PscriboMessage "Discovering Forest information from $ForestInfo."
+        Write-PScriboMessage "Discovering Forest information from $ForestInfo."
     }
 
     process {
@@ -29,7 +29,7 @@ function Get-AbrForestSection {
             Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -ge 1) {
                 try {
-                    Section -Style Heading2 "Forest Configuration."  {
+                    Section -Style Heading2 "Forest Configuration." {
                         if ($Options.ShowDefinitionInfo) {
                             Paragraph "The Active Directory framework that holds the objects can be viewed at a number of levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest. A forest is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are accessible."
                             BlankLine
@@ -40,27 +40,23 @@ function Get-AbrForestSection {
                         }
                         try {
                             Get-AbrADForest
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        } catch {
+                            Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                         try {
                             Get-AbrADSite
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        } catch {
+                            Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                         try {
                             Get-AbrADExchange
-                        }
-                        catch {
-                            Write-PscriboMessage -IsWarning $_.Exception.Message
+                        } catch {
+                            Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                     }
-                }
-                catch {
-                    Write-PscriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."
-                    Write-PscriboMessage -IsWarning $_.Exception.Message
+                } catch {
+                    Write-PScriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."
+                    Write-PScriboMessage -IsWarning $_.Exception.Message
                 }
             }
         }

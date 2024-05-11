@@ -5,7 +5,7 @@ function Get-AbrADDomainLastBackup {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.7.15
+        Version:        0.8.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,32 +19,32 @@ function Get-AbrADDomainLastBackup {
         [Parameter (
             Position = 0,
             Mandatory)]
-            [string]
-            $Domain
+        [string]
+        $Domain
     )
 
     begin {
-        Write-PscriboMessage "Discovering AD Domain last backup information on $Domain."
+        Write-PScriboMessage "Discovering AD Domain last backup information on $Domain."
     }
 
     process {
         if ($Domain -and $HealthCheck.Domain.Backup) {
             try {
-                $LastBackups =  Get-WinADLastBackup -Domain $Domain -Credential $Credential
-                Write-PscriboMessage "Discovered last taken backup information of domain $Domain."
+                $LastBackups = Get-WinADLastBackup -Domain $Domain -Credential $Credential
+                Write-PScriboMessage "Discovered last taken backup information of domain $Domain."
                 if ($LastBackups) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Naming Context Last Backup' {
                         Paragraph "The following section details naming context last backup time for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
-                        Write-PscriboMessage "Collecting Naming Context Last Backup information of $($Domain)."
+                        Write-PScriboMessage "Collecting Naming Context Last Backup information of $($Domain)."
                         foreach ($LastBackup in $LastBackups) {
                             try {
                                 $inObj = [ordered] @{
                                     'Naming Context' = $LastBackup.NamingContext
                                     'Last Backup' = Switch ($LastBackup.LastBackup) {
-                                        $Null {'Unknown'; break}
-                                        default {$LastBackup.LastBackup.ToString("yyyy:MM:dd")}
+                                        $Null { 'Unknown'; break }
+                                        default { $LastBackup.LastBackup.ToString("yyyy:MM:dd") }
                                     }
                                     'Last Backup in Days' = $LastBackup.LastBackupDaysAgo
                                 }
@@ -53,9 +53,8 @@ function Get-AbrADDomainLastBackup {
                                 if ($HealthCheck.Domain.Backup) {
                                     $OutObj | Where-Object { $_.'Last Backup in Days' -gt 180 } | Set-Style -Style Warning -Property 'Last Backup in Days'
                                 }
-                            }
-                            catch {
-                                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup Item)"
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup Item)"
                             }
                         }
 
@@ -79,11 +78,10 @@ function Get-AbrADDomainLastBackup {
                         }
                     }
                 } else {
-                    Write-PscriboMessage -IsWarning "No Naming context last backup information found in $Domain, disabling the section."
+                    Write-PScriboMessage -IsWarning "No Naming context last backup information found in $Domain, disabling the section."
                 }
-            }
-            catch {
-                Write-PscriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup Table)"
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup Table)"
             }
         }
     }

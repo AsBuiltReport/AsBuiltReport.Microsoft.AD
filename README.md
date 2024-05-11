@@ -42,8 +42,6 @@ Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for m
 
 Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.html)
 
-Sample Microsoft AD As Built report PDF file: [Sample Microsoft AD As Built Report.pdf](https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.pdf)
-
 # :beginner: Getting Started
 
 Below are the instructions on how to install, configure and generate a Microsoft AD As Built report.
@@ -52,16 +50,16 @@ Below are the instructions on how to install, configure and generate a Microsoft
 <!-- ********** Update supported AD versions ********** -->
 The Microsoft AD As Built Report supports the following Active Directory versions;
 
-- 2012, 2016, 2019 & 2022
+- 2016, 2019 & 2022
 
 ### PowerShell
 
 This report is compatible with the following PowerShell versions;
 
 <!-- ********** Update supported PowerShell versions ********** -->
-| Windows PowerShell 5.1 |     PowerShell 7    |
-|:----------------------:|:--------------------:|
-|   :white_check_mark:   | :x: |
+| Windows PowerShell 5.1 | PowerShell 7 |
+| :--------------------: | :----------: |
+|   :white_check_mark:   |     :x:      |
 
 ## :wrench: System Requirements
 <!-- ********** Update system requirements ********** -->
@@ -70,6 +68,7 @@ PowerShell 5.1, and the following PowerShell modules are required for generating
 - [AsBuiltReport.Core Module](https://github.com/AsBuiltReport/AsBuiltReport.Core)
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
 - [PScribo Module](https://github.com/iainbrighton/PScribo)
+- [Diagrammer.Microsoft.AD Module](https://github.com/rebelinux/Diagrammer.Microsoft.AD)
 - [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
 - [ADCSAdministration Module](https://learn.microsoft.com/en-us/powershell/module/adcsadministration/?view=windowsserver2019-ps)
@@ -94,6 +93,7 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module -Name PSPKI
+Install-Module -Name Diagrammer.Microsoft.AD
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Install-WindowsFeature -Name RSAT-AD-PowerShell
 Install-WindowsFeature -Name RSAT-ADCS,RSAT-ADCS-mgmt
@@ -149,29 +149,29 @@ The following provides information of how to configure each schema within the re
 
 The **Report** schema provides configuration of the Microsoft AD report information.
 
-| Sub-Schema          | Setting      | Default                        | Description                                                  |
-|---------------------|--------------|--------------------------------|--------------------------------------------------------------|
+| Sub-Schema          | Setting      | Default                      | Description                                                  |
+| ------------------- | ------------ | ---------------------------- | ------------------------------------------------------------ |
 | Name                | User defined | Microsoft AD As Built Report | The name of the As Built Report                              |
-| Version             | User defined | 1.0                            | The report version                                           |
-| Status              | User defined | Released                       | The report release status                                    |
-| ShowCoverPageImage  | true / false | true                           | Toggle to enable/disable the display of the cover page image |
-| ShowTableOfContents | true / false | true                           | Toggle to enable/disable table of contents                   |
-| ShowHeaderFooter    | true / false | true                           | Toggle to enable/disable document headers & footers          |
-| ShowTableCaptions   | true / false | true                           | Toggle to enable/disable table captions/numbering            |
+| Version             | User defined | 1.0                          | The report version                                           |
+| Status              | User defined | Released                     | The report release status                                    |
+| ShowCoverPageImage  | true / false | true                         | Toggle to enable/disable the display of the cover page image |
+| ShowTableOfContents | true / false | true                         | Toggle to enable/disable table of contents                   |
+| ShowHeaderFooter    | true / false | true                         | Toggle to enable/disable document headers & footers          |
+| ShowTableCaptions   | true / false | true                         | Toggle to enable/disable table captions/numbering            |
 
 ### Options
 
 The **Options** schema allows certain options within the report to be toggled on or off.
 
-| Sub-Schema      | Setting      | Default | Description                                                                                                                                                                                 |
-|-----------------|--------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ShowDefinitionInfo | true/false  | false    | Toggle to enable/disable Microsoft AD term explanations
-| PSDefaultAuthentication | Negotiate/Kerberos  | Negotiate    | Allow to set the value of the PSRemoting authentication method. For Workgroup authentication Negotiate value is required. |
-| Exclude.Domains | Array List  | Empty    | Allow to filter on AD Domain FQDN |
-| Exclude.DCs | Array List  | Empty    | Allow to filter on AD Domain Controller Server FQDN. |
-| Include.Domains | Array List  | Empty    | Allow only a list of Active Directory Domain Controller FQDN to document. |
-| Include.DCs | Array List  | Empty    | Allow only a list of Active Directory Domain FQDN to document. |
-| EnableDiagrams          | true / false       | false                          | Toggle to enable/disable of Infrastructure Diagrams|
+| Sub-Schema              | Setting            | Default   | Description                                                                                                               |
+| ----------------------- | ------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| ShowDefinitionInfo      | true/false         | false     | Toggle to enable/disable Microsoft AD term explanations                                                                   |
+| PSDefaultAuthentication | Negotiate/Kerberos | Negotiate | Allow to set the value of the PSRemoting authentication method. For Workgroup authentication Negotiate value is required. |
+| Exclude.Domains         | Array List         | Empty     | Allow to filter on AD Domain FQDN                                                                                         |
+| Exclude.DCs             | Array List         | Empty     | Allow to filter on AD Domain Controller Server FQDN.                                                                      |
+| Include.Domains         | Array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.                                                 |
+| Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                                                            |
+| EnableDiagrams          | true / false       | true      | Toggle to enable/disable of Infrastructure Diagrams                                                                       |
 
 
 ### InfoLevel
@@ -180,21 +180,21 @@ The **InfoLevel** schema allows configuration of each section of the report at a
 
 There are 4 levels (0-3) of detail granularity for each section as follows;
 
-| Setting | InfoLevel         | Description                                                                                                                                |
-|:-------:|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-|    0    | Disabled          | Does not collect or display any information                                                                                                |
-|    1    | Enabled           | Provides summarised information for a collection of objects                                                                                |
-|    2    | Adv Summary       | Provides condensed, detailed information for a collection of objects                                                                       |
-|    3    | Detailed          | Provides detailed information for individual objects                                                                                       |
+| Setting | InfoLevel   | Description                                                          |
+| :-----: | ----------- | -------------------------------------------------------------------- |
+|    0    | Disabled    | Does not collect or display any information                          |
+|    1    | Enabled     | Provides summarised information for a collection of objects          |
+|    2    | Adv Summary | Provides condensed, detailed information for a collection of objects |
+|    3    | Detailed    | Provides detailed information for individual objects                 |
 
 The table below outlines the default and maximum **InfoLevel** settings for each section.
 
-| Sub-Schema   | Default Setting | Maximum Setting |
-|--------------|:---------------:|:---------------:|
-| Forest       |        1        |        1        |
-| Domain       |        1        |        3        |
-| DNS          |        0        |        2        |
-| CA           |        0        |        3        |
+| Sub-Schema | Default Setting | Maximum Setting |
+| ---------- | :-------------: | :-------------: |
+| Forest     |        1        |        1        |
+| Domain     |        1        |        3        |
+| DNS        |        0        |        2        |
+| CA         |        0        |        3        |
 
 ### Healthcheck
 
@@ -222,6 +222,7 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 
 ## :x: Known Issues
 
+- This project uses the PScribo module to generate the documents. I have identified that the EvotecIT "PSWriteWord" project uses the same cmdlet. For this report to be generated successfully the PSWriteWord module must be uninstalled.
 - Issues with WinRM when using the IP address instead of the "Fully Qualified Domain Name".
 - This project relies heavily on the remote connection function through WinRM. For this reason the use of a Windows 10 client is specifically used as a jumpbox.
 - The report provides the ability to extract the configuration of the DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DNS-Server & RSAT-AD-PowerShell).
