@@ -40,7 +40,7 @@ Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for m
 
 ## Sample Report - Custom Style 1
 
-Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.html)
+Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/dev/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.html)
 
 # :beginner: Getting Started
 
