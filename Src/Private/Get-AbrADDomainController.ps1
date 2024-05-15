@@ -29,6 +29,41 @@ function Get-AbrADDomainController {
     }
 
     process {
+        try {
+            $OutObj = @()
+            $inObj = [ordered] @{
+                'Domain Controller' = $DomainController.Count
+                'Global Catalog' = $GC.Count
+            }
+            $OutObj += [pscustomobject]$inobj
+
+            $TableParams = @{
+                Name = "Domain Controller Counts - $($Domain.ToString().ToUpper())"
+                List = $true
+                ColumnWidths = 40, 60
+            }
+            if ($Report.ShowTableCaptions) {
+                $TableParams['Caption'] = "- $($TableParams.Name)"
+            }
+            if ($Options.EnableCharts) {
+                try {
+                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
+
+                    $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'DomainControllerObject' -XField 'Name' -YField 'value' -ChartLegendName 'Category' -ChartTitleName 'DomainControllerObject' -ChartTitleText 'DC vs GC Distribution' -ReversePalette $True
+
+                } catch {
+                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Count Chart)"
+                }
+            }
+            if ($OutObj) {
+                if ($chartFileItem) {
+                    Image -Text 'Domain Controller Object - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
+                }
+                $OutObj | Table @TableParams
+            }
+        } catch {
+            Write-PScriboMessage -IsWarning $($_.Exception.Message)
+        }
         if ($InfoLevel.Domain -eq 1) {
             try {
                 $OutObj = @()
@@ -36,7 +71,7 @@ function Get-AbrADDomainController {
                     if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
                         $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DCNetSettings'
-                        $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Out-Null }
+                        $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Write-PScriboMessage -IsWarning "Unable to get $DC network interfaces information" }
                         Remove-PSSession -Session $DCPssSession
                         try {
                             $inObj = [ordered] @{
@@ -184,6 +219,7 @@ function Get-AbrADDomainController {
                                                 }
                                                 'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
                                                 'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
+                                                'Operation Master Roles' = $DCInfo.OperationMasterRoles -join ', '
                                                 'Location' = $DCComputerObject.Location
                                                 'Computer Object SID' = $DCComputerObject.SID
                                                 "Operating System" = $DCInfo.OperatingSystem
@@ -231,7 +267,7 @@ function Get-AbrADDomainController {
                                             $inObj = [ordered] @{
                                                 'IPv4 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address))) {
                                                     $true { "--" }
-                                                    $false { ($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address -join "," }
+                                                    $false { ($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address -join ", " }
                                                     default { "Unknown" }
                                                 }
                                                 'IPv6 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { $_.AddressFamily -eq 'IPv6' -and $_.IPAddress -ne '::1' }).IPv6Address))) {
@@ -262,7 +298,7 @@ function Get-AbrADDomainController {
                                                 BlankLine
                                                 Paragraph {
                                                     Text "Best Practice:" -Bold
-                                                    Text "On Domain Controllers with more than one NIC where each NIC is connected to separate Network, there's a possibility that the Host A DNS registration can occur for unwanted NICs. Avoid registering unwanted NICs in DNS on a multihomed domain controller"
+                                                    Text "On Domain Controllers with more than one NIC where each NIC is connected to separate Network, there's a possibility that the Host A DNS registration can occur for unwanted NICs. Avoid registering unwanted NICs in DNS on a multihomed domain controller."
                                                 }
                                             }
                                         }

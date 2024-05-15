@@ -1968,14 +1968,29 @@ function Get-PieChart {
         [int]
         $Width = 600,
         [int]
-        $Height = 400
+        $Height = 400,
+        [bool]
+        $ReversePalette = $false
     )
 
-    $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height
+    $AbrCustomPalette = @(
+        [System.Drawing.ColorTranslator]::FromHtml('#355780')
+        [System.Drawing.ColorTranslator]::FromHtml('#48678f')
+        [System.Drawing.ColorTranslator]::FromHtml('#5b789e')
+        [System.Drawing.ColorTranslator]::FromHtml('#6e89ae')
+        [System.Drawing.ColorTranslator]::FromHtml('#809bbe')
+        [System.Drawing.ColorTranslator]::FromHtml('#94acce')
+        [System.Drawing.ColorTranslator]::FromHtml('#a7bfde')
+        [System.Drawing.ColorTranslator]::FromHtml('#bbd1ee')
+        [System.Drawing.ColorTranslator]::FromHtml('#cfe4ff')
+    )
+
+    $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height -BorderColor 'DarkBlue' -BorderStyle Dash -BorderWidth 1
 
     $addChartAreaParams = @{
         Chart = $exampleChart
         Name = 'exampleChartArea'
+        AxisXInterval = 1
     }
     $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
 
@@ -1985,8 +2000,9 @@ function Get-PieChart {
         Name = 'exampleChartSeries'
         XField = $XField
         YField = $YField
-        Palette = 'Blue'
+        CustomPalette = $AbrCustomPalette
         ColorPerDataPoint = $true
+        ReversePalette = $ReversePalette
     }
     $sampleData | Add-PieChartSeries @addChartSeriesParams
 
@@ -2002,7 +2018,7 @@ function Get-PieChart {
         ChartArea = $exampleChartArea
         Name = $ChartTitleName
         Text = $ChartTitleText
-        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Segoe Ui', '12', [System.Drawing.FontStyle]::Bold)
     }
     Add-ChartTitle @addChartTitleParams
 
@@ -2057,10 +2073,24 @@ function Get-ColumnChart {
         [int]
         $Width = 600,
         [int]
-        $Height = 400
+        $Height = 400,
+        [bool]
+        $ReversePalette = $false
     )
 
-    $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height
+    $AbrCustomPalette = @(
+        [System.Drawing.ColorTranslator]::FromHtml('#355780')
+        [System.Drawing.ColorTranslator]::FromHtml('#48678f')
+        [System.Drawing.ColorTranslator]::FromHtml('#5b789e')
+        [System.Drawing.ColorTranslator]::FromHtml('#6e89ae')
+        [System.Drawing.ColorTranslator]::FromHtml('#809bbe')
+        [System.Drawing.ColorTranslator]::FromHtml('#94acce')
+        [System.Drawing.ColorTranslator]::FromHtml('#a7bfde')
+        [System.Drawing.ColorTranslator]::FromHtml('#bbd1ee')
+        [System.Drawing.ColorTranslator]::FromHtml('#cfe4ff')
+    )
+
+    $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height -BorderColor 'DarkBlue' -BorderStyle Dash -BorderWidth 1
 
     $addChartAreaParams = @{
         Chart = $exampleChart
@@ -2069,6 +2099,7 @@ function Get-ColumnChart {
         AxisYTitle = $AxisYTitle
         NoAxisXMajorGridLines = $true
         NoAxisYMajorGridLines = $true
+        AxisXInterval = 1
     }
     $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
 
@@ -2078,8 +2109,9 @@ function Get-ColumnChart {
         Name = 'exampleChartSeries'
         XField = $XField
         YField = $YField
-        Palette = 'Blue'
+        CustomPalette = $AbrCustomPalette
         ColorPerDataPoint = $true
+        ReversePalette = $ReversePalette
     }
     $sampleData | Add-ColumnChartSeries @addChartSeriesParams
 
@@ -2088,7 +2120,7 @@ function Get-ColumnChart {
         ChartArea = $exampleChartArea
         Name = $ChartTitleName
         Text = $ChartTitleText
-        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Segoe Ui', '12', [System.Drawing.FontStyle]::Bold)
     }
     Add-ChartTitle @addChartTitleParams
 

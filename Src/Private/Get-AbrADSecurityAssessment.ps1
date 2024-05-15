@@ -85,7 +85,7 @@ function Get-AbrADSecurityAssessment {
                         try {
 
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } }
-                            $chartFileItem = Get-ColumnChart -SampleData $sampleData -ChartName 'AccountSecurityAssessment' -XField 'Category' -YField 'Value' -ChartAreaName 'Account Security Assessment' -AxisXTitle 'Categories' -AxisYTitle 'Number of Users' -ChartTitleName 'AccountSecurityAssessment' -ChartTitleText 'Assessment'
+                            $chartFileItem = Get-ColumnChart -SampleData $sampleData -ChartName 'AccountSecurityAssessment' -XField 'Category' -YField 'Value' -ChartAreaName 'Account Security Assessment' -AxisXTitle 'Categories' -AxisYTitle 'Number of Users' -ChartTitleName 'AccountSecurityAssessment' -ChartTitleText 'Assessment' -ReversePalette $True
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Chart)"
                         }
@@ -185,7 +185,7 @@ function Get-AbrADSecurityAssessment {
                                     Paragraph {
                                         Text "** Privileged accounts such as those belonging to any of the administrator groups must not be trusted for delegation. Allowing privileged accounts to be trusted for delegation provides a means for privilege escalation from a compromised system. Delegation of privileged accounts must be prohibited."
                                         Text "Reference: "
-                                        Text "https://www.stigviewer.com/stig/active_directory_domain/2017-12-15/finding/V-36435"
+                                        Text "https://www.stigviewer.com/stig/active_directory_domain/2017-12-15/finding/V-36435"  -Color blue
                                     }
                                 }
                             }
@@ -304,7 +304,7 @@ function Get-AbrADSecurityAssessment {
                                 Paragraph {
                                     Text "Security Best Practice:" -Bold
 
-                                    Text "**Attackers are most interested in Service Accounts that are members of highly privileged groups like Domain Admins. A quick way to check for this is to enumerate all user accounts with the attribute AdminCount equal to 1. This means an attacker may just ask AD for all user accounts with a SPN and with AdminCount=1. Ensure that there are no privileged accounts that have SPNs assigned to them. "
+                                    Text "**Attackers are most interested in Service Accounts that are members of highly privileged groups like Domain Admins. A quick way to check for this is to enumerate all user accounts with the attribute AdminCount equal to 1. This means an attacker may just ask AD for all user accounts with a SPN and with AdminCount=1. Ensure that there are no privileged accounts that have SPNs assigned to them."
                                 }
                             }
                         }

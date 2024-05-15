@@ -90,7 +90,7 @@ function Get-AbrADDomain {
                         BlankLine
                         Paragraph {
                             Text "Reference:" -Bold
-                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736"
+                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736" -Color blue
                         }
                     }
                 }

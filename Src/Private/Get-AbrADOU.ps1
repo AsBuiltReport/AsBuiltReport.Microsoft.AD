@@ -77,7 +77,7 @@ function Get-AbrADOU {
                         BlankLine
                         Paragraph {
                             Text "Best Practice:" -Bold
-                            Text "If the Organizational Units in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion"
+                            Text "If the Organizational Units in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion."
                         }
                     }
                     if ($HealthCheck.Domain.GPO) {
@@ -104,7 +104,7 @@ function Get-AbrADOU {
                                 }
                             }
                             if ($OutObj) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading3 "GPO Blocked Inheritance" {
+                                Section -ExcludeFromTOC -Style NOTOCHeading4 "GPO Blocked Inheritance" {
                                     if ($HealthCheck.Domain.GPO) {
                                         $OutObj | Set-Style -Style Warning
                                     }

@@ -5,11 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.8.1] - 2024-02-18
+## [0.8.1] - Unreleased
 
 ### Added
 
-- Site Inventory Diagram
+- Site Topology diagram
+- Domain and Trust diagram
 - Foreign Security Principals section
 
 ### Changed
@@ -18,10 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code cleanup
 - Improve script logging
 - Increase Diagrammer.Microsoft.AD module version requirements
+- Change charts default font to Segoe Ui
+- Improved Forest diagram
 
 ### Fixed
 
-- Improve error handling on Forest Diagram section
+- Improve error handling on Forest diagram section
 - Fix issues with Diagrammer.Microsoft.AD module
 - Fix DNS section not getting data when there are unavailable DC servers
 - Fix [#154](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/154)

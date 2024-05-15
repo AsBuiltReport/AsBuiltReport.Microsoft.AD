@@ -287,19 +287,19 @@ function Get-AbrADSite {
                             try {
                                 $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Sites
                             } catch {
-                                Write-PScriboMessage -IsWarning "Site Inventory Diagram Graph: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning "Site Topology Diagram Graph: $($_.Exception.Message)"
                             }
 
                             if ($Graph) {
                                 If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
-                                Section -Style Heading4 "Site Inventory Diagram." {
-                                    Image -Base64 $Graph -Text "Site Inventory Diagram" -Percent $ImagePrty -Align Center
+                                Section -Style Heading4 "Site Topology Diagram." {
+                                    Image -Base64 $Graph -Text "Site Topology Diagram" -Percent $ImagePrty -Align Center
                                     Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
                                 }
                                 BlankLine -Count 2
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "Site Inventory Diagram Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning "Site Topology Diagram Section: $($_.Exception.Message)"
                         }
                     }
                     try {

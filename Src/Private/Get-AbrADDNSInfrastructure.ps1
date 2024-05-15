@@ -280,7 +280,7 @@ function Get-AbrADDNSInfrastructure {
                                     BlankLine
                                     Paragraph {
                                         Text "Reference:" -Bold
-                                        Text "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/forwarders-resolution-timeouts"
+                                        Text "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/forwarders-resolution-timeouts" -Color blue
                                     }
                                     BlankLine
                                 }

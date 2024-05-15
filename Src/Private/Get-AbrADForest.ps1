@@ -72,7 +72,7 @@ function Get-AbrADForest {
                 }
 
                 if ($HealthCheck.Domain.Security) {
-                    $OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled' } | Set-Style -Style Warning -Property 'Anonymous Access (dsHeuristics)'
+                    $OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled' } | Set-Style -Style Critical -Property 'Anonymous Access (dsHeuristics)'
                     $OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 } | Set-Style -Style Warning -Property 'Tombstone Lifetime (days)'
                 }
 
@@ -93,10 +93,10 @@ function Get-AbrADForest {
                             Text "Best Practice:" -Bold
                             Text "Anonymous Access to Active Directory forest data above the rootDSE level must be disabled."
                         }
+                        BlankLine
                         Paragraph "Reference:" -Bold
                         BlankLine
                         Paragraph "https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555" -Color blue
-                        BlankLine
                     }
                     if ($OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 }) {
                         Paragraph {
@@ -260,7 +260,7 @@ function Get-AbrADForest {
                         Paragraph {
                             Text "Reference:" -Bold
                             BlankLine
-                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944"
+                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944" -Color blue
 
                         }
                     }
