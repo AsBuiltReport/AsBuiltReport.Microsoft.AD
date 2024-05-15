@@ -102,6 +102,26 @@ function Get-AbrADTrust {
                                 }
                                 $TrustInfo | Table @TableParams
                             }
+                            if ($Options.EnableDiagrams -and ($Domain -eq $ADSystem.RootDomain)) {
+                                try {
+                                    try {
+                                        $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Trusts
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
+                                    }
+
+                                    if ($Graph) {
+                                        If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
+                                        Section -Style Heading3 "Domain and Trusts Diagram." {
+                                            Image -Base64 $Graph -Text "Domain and Trusts Diagram" -Percent $ImagePrty -Align Center
+                                            Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                                        }
+                                        BlankLine -Count 2
+                                    }
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "Domain and Trusts Diagram Section: $($_.Exception.Message)"
+                                }
+                            }
                         }
                     } else {
                         Write-PScriboMessage -IsWarning "No Domain Trust information found in $Domain, disabling the section."
