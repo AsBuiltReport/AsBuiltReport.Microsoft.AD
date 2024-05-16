@@ -75,7 +75,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     # Used to set values to TitleCase where required
     $script:TextInfo = (Get-Culture).TextInfo
 
-    if ($Global:BuitReportParams.EnableHealthCheck) {
+    if ($Healthcheck) {
         Section -Style TOC -ExcludeFromTOC 'DISCLAIMER' {
             Paragraph "The information contained in this report has been obtained through automation and observations. Opinions, recommendations and conclusions are disseminated using insight, knowledge, training and experience. This assessment was not intended to be exhaustive. However, we have done our best to capture the most relevant opportunities for improvement. It is expected that responsibility for the implementation of these recommendations will be reviewed and implemented by a person with the necessary knowledge, experience or expertise. In no event shall the author(s) be liable for damages of any kind (including, but not limited to, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss) arising out of the use or inability to use these recommendations or the statements made in this documentation."
         }
