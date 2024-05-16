@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove Graphviz install check code
 - Code cleanup
 - Improve script logging
-- Increase Diagrammer.Microsoft.AD module version requirements
+- Increase Diagrammer.Microsoft.AD module version requirements v0.2.3
+- Increase AsBuiltReport.Core module version requirements v1.4.0
 - Change charts default font to Segoe Ui
 - Improved Forest diagram
 
