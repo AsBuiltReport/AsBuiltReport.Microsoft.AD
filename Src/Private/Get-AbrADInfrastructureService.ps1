@@ -24,7 +24,7 @@ function Get-AbrADInfrastructureService {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Active Directory DC Infrastructure Services information of $DC."
+        Write-PScriboMessage "Collecting Active Directory DC Infrastructure Services information of $DC."
     }
 
     process {
@@ -32,7 +32,6 @@ function Get-AbrADInfrastructureService {
             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerInfrastructureServices'
             $Available = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-Service "W32Time" | Select-Object DisplayName, Name, Status }
             if ($Available) {
-                Write-PScriboMessage "Discovered Active Directory DC Infrastructure Services information of $DC."
                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                     $OutObj = @()
                     if ($DC) {
@@ -41,7 +40,6 @@ function Get-AbrADInfrastructureService {
                             try {
                                 $Status = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-Service $using:Service -ErrorAction SilentlyContinue | Select-Object DisplayName, Name, Status }
                                 if ($Status) {
-                                    Write-PScriboMessage "Collecting Domain Controller '$($Status.DisplayName)' Services status on $DC."
                                     $inObj = [ordered] @{
                                         'Display Name' = $Status.DisplayName
                                         'Short Name' = $Status.Name

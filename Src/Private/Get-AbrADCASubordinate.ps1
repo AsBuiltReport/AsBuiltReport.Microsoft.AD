@@ -24,7 +24,6 @@ function Get-AbrADCASubordinate {
 
     process {
         try {
-            Write-PScriboMessage "Discovering Active Directory CA Enterprise Subordinate information in $($ForestInfo.toUpper())."
             if ($CAs | Where-Object { $_.IsRoot -like 'False' }) {
                 Section -Style Heading2 "Enterprise Subordinate Certificate Authority" {
                     Paragraph "The following section provides the Enterprise Subordinate CA information."
@@ -32,7 +31,6 @@ function Get-AbrADCASubordinate {
                     $OutObj = @()
                     foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'False' })) {
                         try {
-                            Write-PScriboMessage "Collecting Enterprise Subordinate Certificate Authority information from $($CA.DisplayName)."
                             $inObj = [ordered] @{
                                 'CA Name' = $CA.DisplayName
                                 'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]

@@ -24,20 +24,18 @@ function Get-AbrADDomainLastBackup {
     )
 
     begin {
-        Write-PScriboMessage "Discovering AD Domain last backup information on $Domain."
+        Write-PScriboMessage "Collecting AD Domain last backup information on $Domain."
     }
 
     process {
         if ($Domain -and $HealthCheck.Domain.Backup) {
             try {
                 $LastBackups = Get-WinADLastBackup -Domain $Domain -Credential $Credential
-                Write-PScriboMessage "Discovered last taken backup information of domain $Domain."
                 if ($LastBackups) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Naming Context Last Backup' {
                         Paragraph "The following section details naming context last backup time for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
-                        Write-PScriboMessage "Collecting Naming Context Last Backup information of $($Domain)."
                         foreach ($LastBackup in $LastBackups) {
                             try {
                                 $inObj = [ordered] @{

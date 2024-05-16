@@ -171,8 +171,6 @@ The **Options** schema allows certain options within the report to be toggled on
 | Exclude.DCs             | Array List         | Empty     | Allow to filter on AD Domain Controller Server FQDN.                                                                      |
 | Include.Domains         | Array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.                                                 |
 | Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                                                            |
-| EnableDiagrams          | true / false       | true      | Toggle to enable/disable of Infrastructure Diagrams                                                                       |
-
 
 ### InfoLevel
 

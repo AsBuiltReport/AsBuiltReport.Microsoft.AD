@@ -66,7 +66,7 @@
         },
         @{
             ModuleName = 'Diagrammer.Microsoft.AD';
-            ModuleVersion = '0.1.6'
+            ModuleVersion = '0.2.0'
         }
     )
 
@@ -131,7 +131,7 @@
     } # End of PrivateData hashtable
 
     # HelpInfo URI of this module
-    # HelpInfoURI = ''
+    HelpInfoURI = 'https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD#readme'
 
     # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
     # DefaultCommandPrefix = ''

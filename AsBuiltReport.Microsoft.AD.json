@@ -1,6 +1,6 @@
 {
     "Report": {
-        "Name": "Microsoft AD As Built Report",
+        "Name": "Microsoft Active Directory As Built Report",
         "Version": "1.0",
         "Status": "Released",
         "ShowCoverPageImage": true,
@@ -11,8 +11,6 @@
     "Options": {
         "ShowDefinitionInfo": false,
         "PSDefaultAuthentication": "Negotiate",
-        "EnableCharts": false,
-        "EnableDiagrams": true,
         "Exclude": {
             "Domains": [],
             "DCs": []

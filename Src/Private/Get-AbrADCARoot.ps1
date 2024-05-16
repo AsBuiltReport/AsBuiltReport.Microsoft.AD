@@ -30,7 +30,6 @@ function Get-AbrADCARoot {
                     BlankLine
                     $OutObj = @()
                     foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'True' })) {
-                        Write-PScriboMessage "Collecting Enterprise Root Certificate Authority information from $($CA.DisplayName)."
                         $inObj = [ordered] @{
                             'CA Name' = $CA.DisplayName
                             'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]

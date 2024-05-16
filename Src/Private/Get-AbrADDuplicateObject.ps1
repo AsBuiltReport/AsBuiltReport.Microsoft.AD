@@ -24,14 +24,13 @@ function Get-AbrADDuplicateObject {
     )
 
     begin {
-        Write-PScriboMessage "Discovering duplicate Objects information on $Domain."
+        Write-PScriboMessage "Collecting duplicate Objects information on $Domain."
     }
 
     process {
         if ($HealthCheck.Domain.DuplicateObject) {
             try {
                 $Objects = Get-WinADDuplicateObject -Domain $Domain -Credential $Credential
-                Write-PScriboMessage "Discovered AD Duplicate Objects information from $Domain."
                 if ($Objects) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate Objects' {
                         Paragraph "The following section details Duplicate Objects discovered on Domain $($Domain.ToString().ToUpper())."
@@ -39,7 +38,6 @@ function Get-AbrADDuplicateObject {
                         $OutObj = @()
                         foreach ($Object in $Objects) {
                             try {
-                                Write-PScriboMessage "Collecting $($Object.Name) information from $($Domain)."
                                 $inObj = [ordered] @{
                                     'Name' = $Object.Name
                                     'Created' = $Object.WhenCreated.ToString("yyyy:MM:dd")

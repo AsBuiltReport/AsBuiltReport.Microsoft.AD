@@ -26,11 +26,11 @@ function Get-AbrADDCDiag {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Active Directory DCDiag information for domain $Domain."
+        Write-PScriboMessage "Collecting Active Directory $DC DCDiag information for domain $Domain."
     }
 
     process {
-        if ($DC) {
+        if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
             try {
                 $DCDIAG = Invoke-DcDiag -DomainController $DC
                 if ($DCDIAG) {
@@ -60,10 +60,8 @@ function Get-AbrADDCDiag {
                             'CheckSecurityError' = 'Reports on the overall health of replication with respect to Active Directory security in domain controllers running Windows Server 2003 SP1.', 'Medium'
                             'FrsSysVol' = 'Checks that the file replication system (FRS) system volume (SYSVOL) is ready', 'Medium'
                         }
-                        Write-PScriboMessage "Discovered Active Directory DCDiag information for DC $DC."
                         foreach ($Result in $DCDIAG | Where-Object { $_.Entity -eq $($DC.ToString().split('.')[0].ToUpper()) }) {
                             try {
-                                Write-PScriboMessage "Collecting Active Directory DCDiag test '$($Result.TestName)' for DC $DC."
                                 $inObj = [ordered] @{
                                     'Test Name' = $Result.TestName
                                     'Result' = $TextInfo.ToTitleCase($Result.TestResult)
@@ -94,9 +92,10 @@ function Get-AbrADDCDiag {
             } catch {
                 Write-PScriboMessage -IsWarning "Active Directory DCDiag Section: $($_.Exception.Message)"
             }
+        } else {
+            Write-PScriboMessage -IsWarning "Active Directory DCDiag Section: Unable to connect to DC server $DC."
         }
     }
 
     end {}
-
 }
