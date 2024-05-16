@@ -26,7 +26,7 @@ function Get-AbrADDNSZone {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Actve Directory Domain Name System Zone information on $Domain."
+        Write-PScriboMessage "Collecting Actve Directory Domain Name System Zone information on $Domain."
     }
 
     process {
@@ -35,10 +35,8 @@ function Get-AbrADDNSZone {
             if ($DNSSetting) {
                 Section -Style Heading3 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zones" {
                     $OutObj = @()
-                    Write-PScriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                     foreach ($Zones in $DNSSetting) {
                         try {
-                            Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
                             $inObj = [ordered] @{
                                 'Zone Name' = ConvertTo-EmptyToFiller $Zones.ZoneName
                                 'Zone Type' = ConvertTo-EmptyToFiller $Zones.ZoneType
@@ -74,7 +72,6 @@ function Get-AbrADDNSZone {
                                         if ($Delegations) {
                                             foreach ($Delegation in $Delegations) {
                                                 try {
-                                                    Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Delegation.ZoneName)' on $DC"
                                                     $inObj = [ordered] @{
                                                         'Zone Name' = $Delegation.ZoneName
                                                         'Child Zone' = $Delegation.ChildZoneName
@@ -124,7 +121,6 @@ function Get-AbrADDNSZone {
                                     $OutObj = @()
                                     foreach ($Zone in $DNSSetting) {
                                         try {
-                                            Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Zone.PSChildName)' on $DC"
                                             $inObj = [ordered] @{
                                                 'Zone Name' = $Zone.PSChildName
                                                 'Secondary Servers' = ConvertTo-EmptyToFiller ($Zone.SecondaryServers -join ", ")
@@ -177,10 +173,8 @@ function Get-AbrADDNSZone {
                         if ($DNSSetting) {
                             Section -Style Heading4 "Reverse Lookup Zone" {
                                 $OutObj = @()
-                                Write-PScriboMessage "Discovered Actve Directory Domain Controller: $DC (Domain Name System Zone)"
                                 foreach ($Zones in $DNSSetting) {
                                     try {
-                                        Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
                                         $inObj = [ordered] @{
                                             'Zone Name' = ConvertTo-EmptyToFiller $Zones.ZoneName
                                             'Zone Type' = ConvertTo-EmptyToFiller $Zones.ZoneType
@@ -217,10 +211,8 @@ function Get-AbrADDNSZone {
                         if ($DNSSetting) {
                             Section -Style Heading4 "Conditional Forwarder" {
                                 $OutObj = @()
-                                Write-PScriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Conditional Forwarder)"
                                 foreach ($Zones in $DNSSetting) {
                                     try {
-                                        Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Zones.ZoneName)' on $DC"
                                         $inObj = [ordered] @{
                                             'Zone Name' = $Zones.ZoneName
                                             'Zone Type' = $Zones.ZoneType
@@ -252,7 +244,6 @@ function Get-AbrADDNSZone {
                     }
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            Write-PScriboMessage "Discovered Actve Directory Domain Controller: $DC. (Domain Name System Zone)"
                             $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -eq "Primary" } | Select-Object -ExpandProperty ZoneName
                             $Zones = Get-DnsServerZoneAging -CimSession $TempCIMSession -Name $DNSSetting -ComputerName $DC
                             if ($Zones) {
@@ -260,7 +251,6 @@ function Get-AbrADDNSZone {
                                     $OutObj = @()
                                     foreach ($Settings in $Zones) {
                                         try {
-                                            Write-PScriboMessage "Collecting Actve Directory DNS Zone: '$($Settings.ZoneName)' on $DC"
                                             $inObj = [ordered] @{
                                                 'Zone Name' = ConvertTo-EmptyToFiller $Settings.ZoneName
                                                 'Aging Enabled' = ConvertTo-EmptyToFiller (ConvertTo-TextYN $Settings.AgingEnabled)

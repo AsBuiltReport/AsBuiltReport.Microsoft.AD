@@ -24,7 +24,7 @@ function Get-AbrADDFSHealth {
     )
 
     begin {
-        Write-PScriboMessage "Discovering AD Domain DFS Health information on $Domain."
+        Write-PScriboMessage "Collecting AD Domain DFS Health information on $Domain."
     }
 
     process {
@@ -33,7 +33,6 @@ function Get-AbrADDFSHealth {
                 if ($Options.Exclude.DCs) {
                     $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential | Where-Object { $_.DomainController -notin ($Options.Exclude.DCs).split(".", 2)[0] }
                 } Else { $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential }
-                Write-PScriboMessage "Discovered AD Domain DFS Health information from $Domain."
                 if ($DFS) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Replication Status' {
                         Paragraph "The following section details the sysvol folder replication status for Domain $($Domain.ToString().ToUpper())."
@@ -43,7 +42,11 @@ function Get-AbrADDFSHealth {
                             try {
                                 $inObj = [ordered] @{
                                     'DC Name' = $DCStatus.DomainController
-                                    'Replication Status' = $DCStatus.ReplicationState
+                                    'Replication Status' = Switch ([string]::IsNullOrEmpty($DCStatus.ReplicationState)) {
+                                        $true {"Unknown"}
+                                        $false {$DCStatus.ReplicationState}
+                                        default {"--"}
+                                    }
                                     'GPO Count' = $DCStatus.GroupPolicyCount
                                     'Sysvol Count' = $DCStatus.SysvolCount
                                     'Identical Count' = ConvertTo-TextYN $DCStatus.IdenticalCount
@@ -100,7 +103,6 @@ function Get-AbrADDFSHealth {
                 Write-PScriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
             }
             try {
-                Write-PScriboMessage "Discovered AD Domain Sysvol Health information from $Domain."
                 $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth'
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
@@ -115,7 +117,6 @@ function Get-AbrADDFSHealth {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) sysvol health status."
                         BlankLine
                         $OutObj = @()
-                        Write-PScriboMessage "Collecting Sysvol information from $($Domain)."
                         foreach ($Extension in $SYSVOLFolder) {
                             try {
                                 $inObj = [ordered] @{
@@ -162,7 +163,6 @@ function Get-AbrADDFSHealth {
                 Write-PScriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
             }
             try {
-                Write-PScriboMessage "Discovered AD Domain Netlogon Health information from $Domain."
                 $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth'
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
@@ -177,7 +177,6 @@ function Get-AbrADDFSHealth {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) netlogon health status."
                         BlankLine
                         $OutObj = @()
-                        Write-PScriboMessage "Collecting Netlogon information from $($Domain)."
                         foreach ($Extension in $NetlogonFolder) {
                             try {
                                 $inObj = [ordered] @{

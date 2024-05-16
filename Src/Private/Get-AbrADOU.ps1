@@ -24,7 +24,7 @@ function Get-AbrADOU {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Active Directory Organizational Unit information on domain $Domain"
+        Write-PScriboMessage "Collecting Active Directory Organizational Unit information on domain $Domain"
     }
 
     process {
@@ -38,13 +38,11 @@ function Get-AbrADOU {
                     $OutObj = @()
                     foreach ($OU in $OUs) {
                         try {
-                            Write-PScriboMessage "Collecting information of Active Directory Organizational Unit $OU."
                             $GPOArray = @()
                             [array]$GPOs = $OU.LinkedGroupPolicyObjects
                             foreach ($Object in $GPOs) {
                                 try {
                                     $GP = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:DC -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain $using:Domain }
-                                    Write-PScriboMessage "Collecting linked GPO: '$($GP.DisplayName)' on Organizational Unit $OU."
                                     $GPOArray += $GP.DisplayName
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
@@ -79,7 +77,7 @@ function Get-AbrADOU {
                         BlankLine
                         Paragraph {
                             Text "Best Practice:" -Bold
-                            Text "If the Organizational Units in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion"
+                            Text "If the Organizational Units in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion."
                         }
                     }
                     if ($HealthCheck.Domain.GPO) {
@@ -88,12 +86,10 @@ function Get-AbrADOU {
                             $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                             # $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName }
                             if ($OUs) {
-                                Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                                 foreach ($OU in $OUs) {
                                     try {
                                         $GpoInheritance = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target ($using:OU).DistinguishedName }
                                         if ( $GpoInheritance.GPOInheritanceBlocked -eq "True") {
-                                            Write-PScriboMessage "Collecting Active Directory Blocked Inheritance Group Policy Objects'$($GpoEnforced.DisplayName)'."
                                             $inObj = [ordered] @{
                                                 'OU Name' = $GpoInheritance.Name
                                                 'Container Type' = $GpoInheritance.ContainerType
@@ -108,7 +104,7 @@ function Get-AbrADOU {
                                 }
                             }
                             if ($OutObj) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading3 "GPO Blocked Inheritance" {
+                                Section -ExcludeFromTOC -Style NOTOCHeading4 "GPO Blocked Inheritance" {
                                     if ($HealthCheck.Domain.GPO) {
                                         $OutObj | Set-Style -Style Warning
                                     }

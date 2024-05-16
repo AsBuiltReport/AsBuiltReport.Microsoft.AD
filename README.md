@@ -40,7 +40,7 @@ Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for m
 
 ## Sample Report - Custom Style 1
 
-Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.html)
+Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/dev/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.html)
 
 # :beginner: Getting Started
 
@@ -171,8 +171,6 @@ The **Options** schema allows certain options within the report to be toggled on
 | Exclude.DCs             | Array List         | Empty     | Allow to filter on AD Domain Controller Server FQDN.                                                                      |
 | Include.Domains         | Array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.                                                 |
 | Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                                                            |
-| EnableDiagrams          | true / false       | true      | Toggle to enable/disable of Infrastructure Diagrams                                                                       |
-
 
 ### InfoLevel
 

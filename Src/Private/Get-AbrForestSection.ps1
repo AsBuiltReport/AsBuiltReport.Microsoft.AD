@@ -19,7 +19,7 @@ function Get-AbrForestSection {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Forest information from $ForestInfo."
+        Write-PScriboMessage "Collecting Forest information from $ForestInfo."
     }
 
     process {

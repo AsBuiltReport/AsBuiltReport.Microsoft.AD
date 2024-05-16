@@ -24,7 +24,7 @@ function Get-AbrADFSMO {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Active Directory FSMO information of domain $Domain."
+        Write-PScriboMessage "Collecting Active Directory FSMO information of domain $Domain."
     }
 
     process {
@@ -38,7 +38,6 @@ function Get-AbrADFSMO {
                     $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
                     $OutObj = @()
                     try {
-                        Write-PScriboMessage "Discovered Active Directory FSMO information of domain $Domain."
                         $inObj = [ordered] @{
                             'Infrastructure Master' = $DomainData.InfrastructureMaster
                             'RID Master' = $DomainData.RIDMaster

@@ -24,7 +24,7 @@ function Get-AbrADGPO {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Active Directory Group Policy Objects information for $($Domain.ToString().ToUpper())."
+        Write-PScriboMessage "Collecting Active Directory Group Policy Objects information for $($Domain.ToString().ToUpper())."
     }
 
     process {
@@ -34,14 +34,12 @@ function Get-AbrADGPO {
                 BlankLine
                 $OutObj = @()
                 $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Domain $using:Domain -All }
-                Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                 if ($GPOs) {
                     if ($InfoLevel.Domain -eq 1) {
                         try {
                             foreach ($GPO in $GPOs) {
                                 try {
                                     [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML }
-                                    Write-PScriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'."
                                     $inObj = [ordered] @{
                                         'GPO Name' = $GPO.DisplayName
                                         'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
@@ -112,7 +110,6 @@ function Get-AbrADGPO {
                                 Section -ExcludeFromTOC -Style NOTOCHeading5 "$($GPO.DisplayName)" {
                                     try {
                                         [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML }
-                                        Write-PScriboMessage "Collecting Active Directory Group Policy Objects '$($GPO.DisplayName)'. (Group Policy Objects)"
                                         $inObj = [ordered] @{
                                             'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
                                             'GUID' = $GPO.Id
@@ -209,7 +206,6 @@ function Get-AbrADGPO {
                                 Section -Style Heading5 "WMI Filters" {
                                     $OutObj = @()
                                     foreach ($WmiFilter in $WmiFilters) {
-                                        Write-PScriboMessage "Discovered wmi filter information on $Domain. (WMI Filters)"
                                         $inObj = [ordered] @{
                                             'Name' = $WmiFilter.'msWMI-Name'
                                             'Author' = $WmiFilter.'msWMI-Author'
@@ -247,7 +243,6 @@ function Get-AbrADGPO {
                         if ($PATH) {
                             Section -Style Heading5 "Central Store Repository" {
                                 $OutObj = @()
-                                Write-PScriboMessage "Discovered Active Directory Central Store information on $Domain. (Central Store)"
                                 $inObj = [ordered] @{
                                     'Domain' = $Domain.ToString().ToUpper()
                                     'Configured' = ConvertTo-TextYN $CentralStore
@@ -286,7 +281,6 @@ function Get-AbrADGPO {
                     }
                     try {
                         if ($GPOs) {
-                            Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                             $OutObj = @()
                             foreach ($GPO in $GPOs) {
                                 try {
@@ -295,7 +289,6 @@ function Get-AbrADGPO {
                                     if ($UserScripts.extension.Script) {
                                         foreach ($Script in $UserScripts.extension.Script) {
                                             try {
-                                                Write-PScriboMessage "Collecting Active Directory Group Policy Objects with Logon/Logoff Script '$($GPO.DisplayName)'."
                                                 $inObj = [ordered] @{
                                                     'GPO Name' = $GPO.DisplayName
                                                     'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
@@ -339,7 +332,6 @@ function Get-AbrADGPO {
                     try {
                         if ($GPOs) {
                             $OutObj = @()
-                            Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                             foreach ($GPO in $GPOs) {
                                 try {
                                     [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
@@ -347,7 +339,6 @@ function Get-AbrADGPO {
                                     if ($ComputerScripts.extension.Script) {
                                         foreach ($Script in $ComputerScripts.extension.Script) {
                                             try {
-                                                Write-PScriboMessage "Collecting Active Directory Group Policy Objects with Startup/Shutdown Script '$($GPO.DisplayName)'."
                                                 $inObj = [ordered] @{
                                                     'GPO Name' = $GPO.DisplayName
                                                     'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
@@ -394,12 +385,10 @@ function Get-AbrADGPO {
                     try {
                         $OutObj = @()
                         if ($GPOs) {
-                            Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                             foreach ($GPO in $GPOs) {
                                 try {
                                     [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
                                     if (($Null -ne $Gpoxml.GPO.Name) -and ($Null -eq $Gpoxml.GPO.LinksTo.SOMPath)) {
-                                        Write-PScriboMessage "Collecting Active Directory Unlinked Group Policy Objects '$($Gpoxml.GPO.Name)'."
                                         $inObj = [ordered] @{
                                             'GPO Name' = $Gpoxml.GPO.Name
                                             'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split("T")[0]
@@ -446,12 +435,10 @@ function Get-AbrADGPO {
                     try {
                         $OutObj = @()
                         if ($GPOs) {
-                            Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                             foreach ($GPO in $GPOs) {
                                 try {
                                     [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
                                     if (($Null -eq ($Gpoxml.GPO.Computer.ExtensionData)) -and ($Null -eq ($Gpoxml.GPO.User.extensionData))) {
-                                        Write-PScriboMessage "Collecting Active Directory Empty Group Policy Objects '$($Gpoxml.GPO.Name)'."
                                         $inObj = [ordered] @{
                                             'GPO Name' = $Gpoxml.GPO.Name
                                             'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split("T")[0]
@@ -496,10 +483,8 @@ function Get-AbrADGPO {
                     }
                     try {
                         $OutObj = @()
-                        Write-PScriboMessage "Discovered Active Directory Group Policy Objects information on $Domain. (Group Policy Objects)"
                         $DM = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain }
                         $DC = $DM.ReplicaDirectoryServers | Select-Object -First 1
-                        Write-PScriboMessage "Discovered Active Directory Domain Controller $DC in $Domain. (Group Policy Objects)"
                         $OUs = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * }).DistinguishedName
                         if ($OUs) {
                             $OUs += $DM.DistinguishedName
@@ -510,7 +495,6 @@ function Get-AbrADGPO {
                                     $GpoEnforces = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
                                     foreach ($GpoEnforced in $GpoEnforces) {
                                         if ($GpoEnforced.Enforced -eq "True") {
-                                            Write-PScriboMessage "Collecting Active Directory Enforced owned Group Policy Objects'$($GpoEnforced.DisplayName)'."
                                             $TargetCanonical = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:DC -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
                                             $inObj = [ordered] @{
                                                 'GPO Name' = $GpoEnforced.DisplayName
@@ -583,7 +567,6 @@ function Get-AbrADGPO {
                                 Paragraph "The following table summarizes the group policy objects that are orphaned or missing in the AD database or in the SYSVOL directory."
                                 BlankLine
                                 $OutObj = @()
-                                Write-PScriboMessage "Discovered orphaned gpo information on $Domain. (Orphaned GPO)"
                                 foreach ($OrphanGPO in $OrphanGPOs) {
                                     $inObj = [ordered] @{
                                         'Name' = Switch (($GPOs | Where-Object { $_.id -eq $OrphanGPO }).DisplayName) {

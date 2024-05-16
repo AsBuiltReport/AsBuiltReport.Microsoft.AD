@@ -29,7 +29,7 @@ function Get-AbrADSiteReplication {
     process {
         $DCs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers }
         if ($DCs) {
-            Write-PScriboMessage "Discovering Active Directory Sites Replication information on $Domain. (Sites Replication)"
+            Write-PScriboMessage "Collecting Active Directory Sites Replication information on $Domain. (Sites Replication)"
             try {
                 $ReplInfo = @()
                 foreach ($DC in $DCs) {
@@ -37,7 +37,6 @@ function Get-AbrADSiteReplication {
                         $Replication = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Server $using:DC -Properties * }
                         if ($Replication) {
                             try {
-                                Write-PScriboMessage "Collecting Active Directory Sites Replication information on $DC. (Sites Replication Connection)"
                                 foreach ($Repl in $Replication) {
                                     try {
                                         $inObj = [ordered] @{
@@ -119,15 +118,12 @@ function Get-AbrADSiteReplication {
         }
         try {
             if ($HealthCheck.Site.Replication) {
-                Write-PScriboMessage "Discovering Active Directory Replication Status on $Domain. (Replication Status)"
                 $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                 $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ActiveDirectoryReplicationStatus'
-                Write-PScriboMessage "Discovered Active Directory Replication Status on $Domain. (Replication Status)"
                 $RepStatus = Invoke-Command -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }
                 if ($RepStatus) {
                     Section -Style Heading4 'Replication Status' {
                         $OutObj = @()
-                        Write-PScriboMessage "Collecting Active Directory Replication Status from $($Domain). (Replication Status)"
                         foreach ($Status in $RepStatus) {
                             try {
                                 $inObj = [ordered] @{

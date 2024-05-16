@@ -1463,7 +1463,6 @@ function Get-CimData {
     )
     $CimObject
 }
-
 function ConvertFrom-DistinguishedName {
     <#
     .SYNOPSIS
@@ -1568,7 +1567,6 @@ function ConvertFrom-DistinguishedName {
                     $Distinguished
                 }
                 while ($true) {
-                    #$dn = $dn -replace '^.+?,(?=CN|OU|DC)'
                     $Distinguished = $Distinguished -replace '^.+?,(?=..=)'
                     if ($Distinguished -match '^DC=') {
                         break
@@ -1576,23 +1574,11 @@ function ConvertFrom-DistinguishedName {
                     $Distinguished
                 }
             } elseif ($ToDC) {
-                #return [Regex]::Match($DistinguishedName, '(?=DC=)(.*\n?)(?<=.)').Value
-                # return [Regex]::Match($DistinguishedName, '.*?(DC=.*)').Value
                 $Value = $Distinguished -replace '.*?((DC=[^=]+,)+DC=[^=]+)$', '$1'
                 if ($Value) {
                     $Value
                 }
-                #return [Regex]::Match($DistinguishedName, 'CN=.*?(DC=.*)').Groups[1].Value
             } elseif ($ToLastName) {
-                # Would be best if it worked, but there is too many edge cases so hand splits seems to be the best solution
-                # Feel free to change it back to regex if you know how ;)
-                <# https://stackoverflow.com/questions/51761894/regex-extract-ou-from-distinguished-name
-                $Regex = "^(?:(?<cn>CN=(?<name>.*?)),)?(?<parent>(?:(?<path>(?:CN|OU).*?),)?(?<domain>(?:DC=.*)+))$"
-                $Found = $Distinguished -match $Regex
-                if ($Found) {
-                    $Matches.name
-                }
-                #>
                 $NewDN = $Distinguished -split ",DC="
                 if ($NewDN[0].Contains(",OU=")) {
                     [Array] $ChangedDN = $NewDN[0] -split ",OU="
@@ -1608,13 +1594,10 @@ function ConvertFrom-DistinguishedName {
                 }
             } else {
                 $Regex = '^CN=(?<cn>.+?)(?<!\\),(?<ou>(?:(?:OU|CN).+?(?<!\\),)+(?<dc>DC.+?))$'
-                #$Output = foreach ($_ in $Distinguished) {
                 $Found = $Distinguished -match $Regex
                 if ($Found) {
                     $Matches.cn
                 }
-                #}
-                #$Output.cn
             }
         }
     }
@@ -1866,37 +1849,6 @@ function get-Severity {
         }
     }
 }
-
-function Get-ImagePercent {
-    <#
-    .SYNOPSIS
-    Used by As Built Report to get base64 image percentage calculated from image width.
-    This low the diagram image to fit the report page margins
-    .DESCRIPTION
-    .NOTES
-        Version:        0.1.0
-        Author:         Jonathan Colon
-    .EXAMPLE
-    .LINK
-    #>
-    [CmdletBinding()]
-    [OutputType([System.Int32])]
-    Param
-    (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Graph
-    )
-    $Image_FromStream = [System.Drawing.Image]::FromStream((New-Object System.IO.MemoryStream(, [convert]::FromBase64String($Graph))))
-    If ($Image_FromStream.Width -gt 1500) {
-        return 10
-    } else {
-        return 50
-    }
-} # end
-
 Function Get-ADExchangeServer {
     <#
     .SYNOPSIS
@@ -1999,14 +1951,29 @@ function Get-PieChart {
         [int]
         $Width = 600,
         [int]
-        $Height = 400
+        $Height = 400,
+        [bool]
+        $ReversePalette = $false
     )
 
-    $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height
+    $AbrCustomPalette = @(
+        [System.Drawing.ColorTranslator]::FromHtml('#355780')
+        [System.Drawing.ColorTranslator]::FromHtml('#48678f')
+        [System.Drawing.ColorTranslator]::FromHtml('#5b789e')
+        [System.Drawing.ColorTranslator]::FromHtml('#6e89ae')
+        [System.Drawing.ColorTranslator]::FromHtml('#809bbe')
+        [System.Drawing.ColorTranslator]::FromHtml('#94acce')
+        [System.Drawing.ColorTranslator]::FromHtml('#a7bfde')
+        [System.Drawing.ColorTranslator]::FromHtml('#bbd1ee')
+        [System.Drawing.ColorTranslator]::FromHtml('#cfe4ff')
+    )
+
+    $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height -BorderColor 'DarkBlue' -BorderStyle Dash -BorderWidth 1
 
     $addChartAreaParams = @{
         Chart = $exampleChart
         Name = 'exampleChartArea'
+        AxisXInterval = 1
     }
     $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
 
@@ -2016,8 +1983,9 @@ function Get-PieChart {
         Name = 'exampleChartSeries'
         XField = $XField
         YField = $YField
-        Palette = 'Blue'
+        CustomPalette = $AbrCustomPalette
         ColorPerDataPoint = $true
+        ReversePalette = $ReversePalette
     }
     $sampleData | Add-PieChartSeries @addChartSeriesParams
 
@@ -2033,11 +2001,13 @@ function Get-PieChart {
         ChartArea = $exampleChartArea
         Name = $ChartTitleName
         Text = $ChartTitleText
-        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Segoe Ui', '12', [System.Drawing.FontStyle]::Bold)
     }
     Add-ChartTitle @addChartTitleParams
 
-    $ChartImage = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+    $TempPath = Resolve-Path ([System.IO.Path]::GetTempPath())
+
+    $ChartImage = Export-Chart -Chart $exampleChart -Path $TempPath.Path -Format "PNG" -PassThru
 
     $Base64Image = [convert]::ToBase64String((Get-Content $ChartImage -Encoding byte))
 
@@ -2086,10 +2056,24 @@ function Get-ColumnChart {
         [int]
         $Width = 600,
         [int]
-        $Height = 400
+        $Height = 400,
+        [bool]
+        $ReversePalette = $false
     )
 
-    $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height
+    $AbrCustomPalette = @(
+        [System.Drawing.ColorTranslator]::FromHtml('#355780')
+        [System.Drawing.ColorTranslator]::FromHtml('#48678f')
+        [System.Drawing.ColorTranslator]::FromHtml('#5b789e')
+        [System.Drawing.ColorTranslator]::FromHtml('#6e89ae')
+        [System.Drawing.ColorTranslator]::FromHtml('#809bbe')
+        [System.Drawing.ColorTranslator]::FromHtml('#94acce')
+        [System.Drawing.ColorTranslator]::FromHtml('#a7bfde')
+        [System.Drawing.ColorTranslator]::FromHtml('#bbd1ee')
+        [System.Drawing.ColorTranslator]::FromHtml('#cfe4ff')
+    )
+
+    $exampleChart = New-Chart -Name $ChartName -Width $Width -Height $Height -BorderColor 'DarkBlue' -BorderStyle Dash -BorderWidth 1
 
     $addChartAreaParams = @{
         Chart = $exampleChart
@@ -2098,6 +2082,7 @@ function Get-ColumnChart {
         AxisYTitle = $AxisYTitle
         NoAxisXMajorGridLines = $true
         NoAxisYMajorGridLines = $true
+        AxisXInterval = 1
     }
     $exampleChartArea = Add-ChartArea @addChartAreaParams -PassThru
 
@@ -2107,8 +2092,9 @@ function Get-ColumnChart {
         Name = 'exampleChartSeries'
         XField = $XField
         YField = $YField
-        Palette = 'Blue'
+        CustomPalette = $AbrCustomPalette
         ColorPerDataPoint = $true
+        ReversePalette = $ReversePalette
     }
     $sampleData | Add-ColumnChartSeries @addChartSeriesParams
 
@@ -2117,11 +2103,13 @@ function Get-ColumnChart {
         ChartArea = $exampleChartArea
         Name = $ChartTitleName
         Text = $ChartTitleText
-        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Arial', '12', [System.Drawing.FontStyle]::Bold)
+        Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList @('Segoe Ui', '12', [System.Drawing.FontStyle]::Bold)
     }
     Add-ChartTitle @addChartTitleParams
 
-    $ChartImage = Export-Chart -Chart $exampleChart -Path (Get-Location).Path -Format "PNG" -PassThru
+    $TempPath = Resolve-Path ([System.IO.Path]::GetTempPath())
+
+    $ChartImage = Export-Chart -Chart $exampleChart -Path $TempPath.Path -Format "PNG" -PassThru
 
     if ($PassThru) {
         Write-Output -InputObject $chartFileItem

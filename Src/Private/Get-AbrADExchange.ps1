@@ -32,7 +32,6 @@ function Get-AbrADExchange {
                     $EXInfo = @()
                     foreach ($EXServer in $EXServers) {
                         try {
-                            Write-PScriboMessage "Collecting Active Directory Exchange information from $($ForestInfo.toUpper())"
                             $inObj = [ordered] @{
                                 'Name' = $EXServer.Name
                                 'Dns Name' = $EXServer.DnsHostName

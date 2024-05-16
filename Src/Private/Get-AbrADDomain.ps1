@@ -24,7 +24,7 @@ function Get-AbrADDomain {
     )
 
     begin {
-        Write-PScriboMessage "Discovering AD Domain information on forest $Forestinfo."
+        Write-PScriboMessage "Collecting AD Domain information on forest $Forestinfo."
     }
 
     process {
@@ -39,9 +39,7 @@ function Get-AbrADDomain {
                 [int64] $TEMP = $CompleteSIDS * ([math]::Pow(2, 32))
                 $RIDsIssued = [int32]($($RIDavailable) - $TEMP)
                 $RIDsRemaining = $CompleteSIDS - $RIDsIssued
-                Write-PScriboMessage "Discovered Active Directory Domain information of domain $Domain."
                 if ($DomainInfo) {
-                    Write-PScriboMessage "Collecting Domain information of '$($DomainInfo)'."
                     $inObj = [ordered] @{
                         'Domain Name' = $DomainInfo.Name
                         'NetBIOS Name' = $DomainInfo.NetBIOSName
@@ -92,7 +90,7 @@ function Get-AbrADDomain {
                         BlankLine
                         Paragraph {
                             Text "Reference:" -Bold
-                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736"
+                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736" -Color blue
                         }
                     }
                 }

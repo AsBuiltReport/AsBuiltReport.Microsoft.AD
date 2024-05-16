@@ -19,7 +19,7 @@ function Get-AbrPKISection {
     )
 
     begin {
-        Write-PScriboMessage "Discovering PKI infrastructure information from $ForestInfo."
+        Write-PScriboMessage "Collecting PKI infrastructure information from $ForestInfo."
     }
 
     process {
@@ -33,7 +33,6 @@ function Get-AbrPKISection {
             if ($CurrentMachineADDomain.Name -in $ADSystem.Domains) {
                 Write-PScriboMessage "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forrest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
                 try {
-                    Write-PScriboMessage "Collecting Certification Authority information from $($System.split(".")[0])"
                     $script:CAs = Get-CertificationAuthority -Enterprise
                 } catch {
                     Write-PScriboMessage -IsWarning $_.Exception.Message

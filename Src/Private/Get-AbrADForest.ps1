@@ -19,14 +19,13 @@ function Get-AbrADForest {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Active Directory forest information."
+        Write-PScriboMessage "Collecting Active Directory forest information."
     }
 
     process {
         try {
             $Data = Invoke-Command -Session $TempPssSession { Get-ADForest }
             $ForestInfo = $Data.RootDomain.toUpper()
-            Write-PScriboMessage "Discovered Active Directory information of forest $ForestInfo."
             $DomainDN = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
             $TombstoneLifetime = Invoke-Command -Session $TempPssSession { Get-ADObject "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$using:DomainDN" -Properties tombstoneLifetime | Select-Object -ExpandProperty tombstoneLifetime }
             $ADVersion = Invoke-Command -Session $TempPssSession { Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion }
@@ -42,7 +41,6 @@ function Get-AbrADForest {
             ElseIf ($ADVersion -eq '30') { $server = 'Windows Server 2003' }
             $OutObj = @()
             if ($Data) {
-                Write-PScriboMessage "Collecting Active Directory information of forest $ForestInfo."
                 foreach ($Item in $Data) {
                     try {
                         $inObj = [ordered] @{
@@ -74,7 +72,7 @@ function Get-AbrADForest {
                 }
 
                 if ($HealthCheck.Domain.Security) {
-                    $OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled' } | Set-Style -Style Warning -Property 'Anonymous Access (dsHeuristics)'
+                    $OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled' } | Set-Style -Style Critical -Property 'Anonymous Access (dsHeuristics)'
                     $OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 } | Set-Style -Style Warning -Property 'Tombstone Lifetime (days)'
                 }
 
@@ -95,10 +93,10 @@ function Get-AbrADForest {
                             Text "Best Practice:" -Bold
                             Text "Anonymous Access to Active Directory forest data above the rootDSE level must be disabled."
                         }
+                        BlankLine
                         Paragraph "Reference:" -Bold
                         BlankLine
                         Paragraph "https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555" -Color blue
-                        BlankLine
                     }
                     if ($OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 }) {
                         Paragraph {
@@ -107,24 +105,23 @@ function Get-AbrADForest {
                         }
                     }
                 }
-                if ($Options.EnableDiagrams) {
+                try {
                     try {
-                        try {
-                            $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Forest
-                        } catch {
-                            Write-PScriboMessage -IsWarning "Forest Diagram Graph: $($_.Exception.Message)"
-                        }
-
-                        if ($Graph) {
-                            Section -Style Heading3 "Forest Diagram." {
-                                Image -Base64 $Graph -Text "Forest Diagram" -Percent (Get-ImagePercent -Graph $Graph) -Align Center
-                                Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
-                            }
-                            BlankLine -Count 2
-                        }
+                        $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Forest
                     } catch {
-                        Write-PScriboMessage -IsWarning "Forest Diagram Section: $($_.Exception.Message)"
+                        Write-PScriboMessage -IsWarning "Forest Diagram Graph: $($_.Exception.Message)"
                     }
+
+                    if ($Graph) {
+                        If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
+                        Section -Style Heading3 "Forest Diagram." {
+                            Image -Base64 $Graph -Text "Forest Diagram" -Percent $ImagePrty -Align Center
+                            Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                        }
+                        BlankLine -Count 2
+                    }
+                } catch {
+                    Write-PScriboMessage -IsWarning "Forest Diagram Section: $($_.Exception.Message)"
                 }
             }
         } catch {
@@ -140,16 +137,13 @@ function Get-AbrADForest {
                     Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
                     BlankLine
                 }
-                Write-PScriboMessage "Discovering certificate authority information on forest $ForestInfo."
                 $ConfigNCDN = $Data.PartitionsContainer.Split(',') | Select-Object -Skip 1
                 $rootCA = Get-ADObjectSearch -DN "CN=Certification Authorities,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq "certificationAuthority" } -Properties "Name" -SelectPrty 'DistinguishedName', 'Name' -Session $TempPssSession
                 if ($rootCA) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Certification Authority Root(s)' {
                         $OutObj = @()
-                        Write-PScriboMessage "Discovered Certificate Authority Information on forest $ForestInfo."
                         foreach ($Item in $rootCA) {
                             try {
-                                Write-PScriboMessage "Collecting Certificate Authority Information '$($Item.Name)'"
                                 $inObj = [ordered] @{
                                     'Name' = $Item.Name
                                     'Distinguished Name' = $Item.DistinguishedName
@@ -185,16 +179,13 @@ function Get-AbrADForest {
                 } else {
                     Write-PScriboMessage -IsWarning "No Certificate Authority Root information found in $ForestInfo, disabling the section."
                 }
-                Write-PScriboMessage "Discovering certificate authority issuers on forest $ForestInfo."
                 $ConfigNCDN = $Data.PartitionsContainer.Split(',') | Select-Object -Skip 1
                 $subordinateCA = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq "pKIEnrollmentService" } -Properties "*" -SelectPrty 'dNSHostName', 'Name' -Session $TempPssSession
                 if ($subordinateCA) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Certification Authority Issuer(s)' {
                         $OutObj = @()
-                        Write-PScriboMessage "Discovered Certificate Authority issuers on forest $ForestInfo."
                         foreach ($Item in $subordinateCA) {
                             try {
-                                Write-PScriboMessage "Collecting Certificate Authority issuers '$($Item.Name)'"
                                 $inObj = [ordered] @{
                                     'Name' = $Item.Name
                                     'DNS Name' = $Item.dNSHostName
@@ -224,14 +215,11 @@ function Get-AbrADForest {
         }
         try {
             Section -Style Heading3 'Optional Features' {
-                Write-PScriboMessage "Discovering Optional Features enabled on forest $ForestInfo."
                 $Data = Invoke-Command -Session $TempPssSession { Get-ADOptionalFeature -Filter * }
                 $OutObj = @()
                 if ($Data) {
-                    Write-PScriboMessage "Discovered Optional Features enabled on forest $ForestInfo."
                     foreach ($Item in $Data) {
                         try {
-                            Write-PScriboMessage "Collecting Optional Features '$($Item.Name)'"
                             $inObj = [ordered] @{
                                 'Name' = $Item.Name
                                 'Required Forest Mode' = $Item.RequiredForestMode
@@ -270,7 +258,7 @@ function Get-AbrADForest {
                         Paragraph {
                             Text "Reference:" -Bold
                             BlankLine
-                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944"
+                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944" -Color blue
 
                         }
                     }

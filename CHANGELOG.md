@@ -2,30 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.8.1] - 2024-02-11
+## [0.8.1] - 2024-05-16
 
 ### Added
 
-- Site Inventory Diagram
+- Site Topology diagram
+- Domain and Trust diagram
 - Foreign Security Principals section
 
 ### Changed
 
-- Remove Graphviz install check code.
+- Remove Graphviz install check code
 - Code cleanup
+- Improve script logging
+- Increase Diagrammer.Microsoft.AD module version requirements
+- Change charts default font to Segoe Ui
+- Improved Forest diagram
 
 ### Fixed
 
-- Improve error handling on Forest Diagram section.
-- Fix issues with Diagrammer.Microsoft.AD module.
+- Improve error handling on Forest diagram section
+- Fix issues with Diagrammer.Microsoft.AD module
+- Fix DNS section not getting data when there are unavailable DC servers
 - Fix [#154](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/154)
 - Fix [#153](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/153)
 - Fix [#152](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/152)
 - Fix [#151](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/151)
 - Fix [#150](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/150)
+
+### Removed
+
+- Removed EnableDiagrams option
+- Removed EnableCharts option
 
 ## [0.8.0] - 2024-01-24
 

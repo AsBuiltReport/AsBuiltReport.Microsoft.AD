@@ -24,7 +24,7 @@ function Get-AbrADDCRoleFeature {
     )
 
     begin {
-        Write-PScriboMessage "Discovering Active Directory DC Role & Features information of $DC."
+        Write-PScriboMessage "Collecting Active Directory DC Role & Features information of $DC."
     }
 
     process {
@@ -37,7 +37,6 @@ function Get-AbrADDCRoleFeature {
                     Remove-PSSession -Session $DCPssSession
                     foreach ($Feature in $Features) {
                         try {
-                            Write-PScriboMessage "Collecting DC Roles: $($Feature.DisplayName) on $DC."
                             $inObj = [ordered] @{
                                 'Name' = $Feature.DisplayName
                                 'Parent' = $Feature.FeatureType

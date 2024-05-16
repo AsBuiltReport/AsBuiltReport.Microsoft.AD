@@ -35,7 +35,6 @@ function Get-AbrADCATemplate {
                     BlankLine
                     $OutObj = @()
                     foreach ($Template in $Templates) {
-                        Write-PScriboMessage "Collecting $($Template.DisplayName) Issued Certificate Template information from $($CA.Name)."
                         try {
                             $inObj = [ordered] @{
                                 'Template Name' = $Template.DisplayName
@@ -112,7 +111,6 @@ function Get-AbrADCATemplate {
                                     $OutObj = @()
                                     foreach ($Template in $Templates) {
                                         try {
-                                            Write-PScriboMessage "Collecting $($Template.DisplayName) Certificate Template In Active Directory."
                                             $inObj = [ordered] @{
                                                 'Template Name' = $Template.DisplayName
                                                 'Schema Version' = $Template.SchemaVersion
