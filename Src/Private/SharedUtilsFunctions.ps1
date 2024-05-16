@@ -1463,7 +1463,6 @@ function Get-CimData {
     )
     $CimObject
 }
-
 function ConvertFrom-DistinguishedName {
     <#
     .SYNOPSIS
@@ -1568,7 +1567,6 @@ function ConvertFrom-DistinguishedName {
                     $Distinguished
                 }
                 while ($true) {
-                    #$dn = $dn -replace '^.+?,(?=CN|OU|DC)'
                     $Distinguished = $Distinguished -replace '^.+?,(?=..=)'
                     if ($Distinguished -match '^DC=') {
                         break
@@ -1576,23 +1574,11 @@ function ConvertFrom-DistinguishedName {
                     $Distinguished
                 }
             } elseif ($ToDC) {
-                #return [Regex]::Match($DistinguishedName, '(?=DC=)(.*\n?)(?<=.)').Value
-                # return [Regex]::Match($DistinguishedName, '.*?(DC=.*)').Value
                 $Value = $Distinguished -replace '.*?((DC=[^=]+,)+DC=[^=]+)$', '$1'
                 if ($Value) {
                     $Value
                 }
-                #return [Regex]::Match($DistinguishedName, 'CN=.*?(DC=.*)').Groups[1].Value
             } elseif ($ToLastName) {
-                # Would be best if it worked, but there is too many edge cases so hand splits seems to be the best solution
-                # Feel free to change it back to regex if you know how ;)
-                <# https://stackoverflow.com/questions/51761894/regex-extract-ou-from-distinguished-name
-                $Regex = "^(?:(?<cn>CN=(?<name>.*?)),)?(?<parent>(?:(?<path>(?:CN|OU).*?),)?(?<domain>(?:DC=.*)+))$"
-                $Found = $Distinguished -match $Regex
-                if ($Found) {
-                    $Matches.name
-                }
-                #>
                 $NewDN = $Distinguished -split ",DC="
                 if ($NewDN[0].Contains(",OU=")) {
                     [Array] $ChangedDN = $NewDN[0] -split ",OU="
@@ -1608,13 +1594,10 @@ function ConvertFrom-DistinguishedName {
                 }
             } else {
                 $Regex = '^CN=(?<cn>.+?)(?<!\\),(?<ou>(?:(?:OU|CN).+?(?<!\\),)+(?<dc>DC.+?))$'
-                #$Output = foreach ($_ in $Distinguished) {
                 $Found = $Distinguished -match $Regex
                 if ($Found) {
                     $Matches.cn
                 }
-                #}
-                #$Output.cn
             }
         }
     }

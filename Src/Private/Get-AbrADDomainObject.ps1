@@ -66,17 +66,16 @@ function Get-AbrADDomainObject {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        if ($Options.EnableCharts) {
-                            try {
+                        try {
 
-                                $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
+                            $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
 
-                                $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'UsersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'UsersObject' -ChartTitleText 'User Objects' -ReversePalette $True
+                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'UsersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'UsersObject' -ChartTitleText 'User Objects' -ReversePalette $True
 
-                            } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (User Object Count Chart)"
-                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (User Object Count Chart)"
                         }
+
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Users' {
                                 if ($chartFileItem) {
@@ -168,16 +167,14 @@ function Get-AbrADDomainObject {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        if ($Options.EnableCharts) {
-                            try {
+                        try {
 
-                                $sampleData = $OutObj
+                            $sampleData = $OutObj
 
-                                $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofUsersAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofUsersAccounts' -ChartTitleText 'Status of Users Accounts' -ReversePalette $True
+                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofUsersAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofUsersAccounts' -ChartTitleText 'Status of Users Accounts' -ReversePalette $True
 
-                            } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Status of Users Accounts Chart)"
-                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Status of Users Accounts Chart)"
                         }
                     }
                     if ($OutObj) {
@@ -249,16 +246,14 @@ function Get-AbrADDomainObject {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        if ($Options.EnableCharts) {
-                            try {
+                        try {
 
-                                $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
+                            $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
 
-                                $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'GroupCategoryObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'GroupCategoryObject' -ChartTitleText 'Group Categories' -ReversePalette $True
+                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'GroupCategoryObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'GroupCategoryObject' -ChartTitleText 'Group Categories' -ReversePalette $True
 
-                            } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Category Object Chart)"
-                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Category Object Chart)"
                         }
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Groups Categories' {
@@ -288,16 +283,14 @@ function Get-AbrADDomainObject {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        if ($Options.EnableCharts) {
-                            try {
+                        try {
 
-                                $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
+                            $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
 
-                                $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'GroupCategoryObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'GroupScopesObject' -ChartTitleText 'Group Scopes' -ReversePalette $True
+                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'GroupCategoryObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'GroupScopesObject' -ChartTitleText 'Group Scopes' -ReversePalette $True
 
-                            } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Scopes Object Chart)"
-                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Scopes Object Chart)"
                         }
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Groups Scopes' {
@@ -544,15 +537,13 @@ function Get-AbrADDomainObject {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    if ($Options.EnableCharts) {
-                        try {
-                            $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
+                    try {
+                        $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
 
-                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'ComputersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'ComputersObject' -ChartTitleText 'Computers Count' -ReversePalette $True
+                        $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'ComputersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'ComputersObject' -ChartTitleText 'Computers Count' -ReversePalette $True
 
-                        } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers Object Count Chart)"
-                        }
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers Object Count Chart)"
                     }
                     if ($OutObj) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Computers' {
@@ -621,17 +612,16 @@ function Get-AbrADDomainObject {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        if ($Options.EnableCharts) {
-                            try {
 
-                                $sampleData = $OutObj
+                        try {
+                            $sampleData = $OutObj
 
-                                $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofComputerAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofComputerAccounts' -ChartTitleText 'Status of Computers Accounts' -ReversePalette $True
+                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofComputerAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofComputerAccounts' -ChartTitleText 'Status of Computers Accounts' -ReversePalette $True
 
-                            } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Status of Computers Accounts Chart)"
-                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Status of Computers Accounts Chart)"
                         }
+
                         if ($OutObj) {
                             Section -Style Heading5 'Status of Computer Accounts' {
                                 if ($chartFileItem -and ($OutObj.'Total' | Measure-Object -Sum).Sum -ne 0) {

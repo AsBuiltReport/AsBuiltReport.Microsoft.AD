@@ -102,7 +102,7 @@ function Get-AbrADTrust {
                                 }
                                 $TrustInfo | Table @TableParams
                             }
-                            if ($Options.EnableDiagrams -and ($Domain -eq $ADSystem.RootDomain)) {
+                            if ($Domain -eq $ADSystem.RootDomain) {
                                 try {
                                     try {
                                         $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Trusts

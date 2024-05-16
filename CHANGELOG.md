@@ -33,6 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix [#151](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/151)
 - Fix [#150](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/150)
 
+### Removed
+
+- Removed EnableDiagrams option
+- Removed EnableCharts option
+
 ## [0.8.0] - 2024-01-24
 
 ### Added

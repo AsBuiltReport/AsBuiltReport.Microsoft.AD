@@ -45,15 +45,13 @@ function Get-AbrADDomainController {
             if ($Report.ShowTableCaptions) {
                 $TableParams['Caption'] = "- $($TableParams.Name)"
             }
-            if ($Options.EnableCharts) {
-                try {
-                    $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
+            try {
+                $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
 
-                    $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'DomainControllerObject' -XField 'Name' -YField 'value' -ChartLegendName 'Category' -ChartTitleName 'DomainControllerObject' -ChartTitleText 'DC vs GC Distribution' -ReversePalette $True
+                $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'DomainControllerObject' -XField 'Name' -YField 'value' -ChartLegendName 'Category' -ChartTitleName 'DomainControllerObject' -ChartTitleText 'DC vs GC Distribution' -ReversePalette $True
 
-                } catch {
-                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Count Chart)"
-                }
+            } catch {
+                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Count Chart)"
             }
             if ($OutObj) {
                 if ($chartFileItem) {

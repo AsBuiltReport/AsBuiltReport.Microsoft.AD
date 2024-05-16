@@ -105,25 +105,23 @@ function Get-AbrADForest {
                         }
                     }
                 }
-                if ($Options.EnableDiagrams) {
+                try {
                     try {
-                        try {
-                            $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Forest
-                        } catch {
-                            Write-PScriboMessage -IsWarning "Forest Diagram Graph: $($_.Exception.Message)"
-                        }
-
-                        if ($Graph) {
-                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
-                            Section -Style Heading3 "Forest Diagram." {
-                                Image -Base64 $Graph -Text "Forest Diagram" -Percent $ImagePrty -Align Center
-                                Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
-                            }
-                            BlankLine -Count 2
-                        }
+                        $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Forest
                     } catch {
-                        Write-PScriboMessage -IsWarning "Forest Diagram Section: $($_.Exception.Message)"
+                        Write-PScriboMessage -IsWarning "Forest Diagram Graph: $($_.Exception.Message)"
                     }
+
+                    if ($Graph) {
+                        If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
+                        Section -Style Heading3 "Forest Diagram." {
+                            Image -Base64 $Graph -Text "Forest Diagram" -Percent $ImagePrty -Align Center
+                            Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                        }
+                        BlankLine -Count 2
+                    }
+                } catch {
+                    Write-PScriboMessage -IsWarning "Forest Diagram Section: $($_.Exception.Message)"
                 }
             }
         } catch {
