@@ -228,3 +228,5 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 - In some cases when trying to update the report, an error similar to this is generated:
   - "PackageManagement\Install-Package : Authenticode issuer 'CN="xyz, INC.", O="xyz, INC.", L=San Jose, S=California on the previusly-installed module 'PSPKI'. If you still want to install or update, use -SkipPublisherCheck parameter."
   - The expected workaround is to add the '-SkipPublisherCheck' to the install module 'Update-Module -Name PSPKI -Force -SkipPublisherCheck'
+- Issues when running the report against Windows Server 2012 and 2012 R2.
+  - Error: "Exception calling Save with 1 argument(s): hexadecimal value 0x00, is an invalid character."
