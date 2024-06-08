@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -524,8 +524,8 @@ function Get-AbrADDomainObject {
                 try {
                     $OutObj = @()
                     $inObj = [ordered] @{
-                        'Computers' = $Computers.Count
-                        'Servers' = $Servers.Count
+                        'Computers' = ($Computers | Measure-Object).Count
+                        'Servers' = ($Servers | Measure-Object).Count
                     }
                     $OutObj += [pscustomobject]$inobj
 
@@ -692,9 +692,9 @@ function Get-AbrADDomainObject {
                                         'DNS HostName' = ConvertTo-EmptyToFiller $Computer.DNSHostName
                                         'Operating System' = ConvertTo-EmptyToFiller $Computer.operatingSystem
                                         'Status' = Switch ($Computer.Enabled) {
-                                            'True' {'Enabled'}
-                                            'False' {'Disabled'}
-                                            default {'Unknown'}
+                                            'True' { 'Enabled' }
+                                            'False' { 'Disabled' }
+                                            default { 'Unknown' }
                                         }
                                     }
                                     $OutObj += [pscustomobject]$inobj

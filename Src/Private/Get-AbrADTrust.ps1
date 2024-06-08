@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -52,14 +52,14 @@ function Get-AbrADTrust {
                                             16 { "Cross-Organizational Trust (Selective Authentication)" }
                                             32 { "Intra-Forest Trust (trust within the forest)" }
                                             64 { "Inter-Forest Trust (trust with another forest)" }
-                                            default {$Trust.TrustAttributes}
+                                            default { $Trust.TrustAttributes }
                                         }
                                         'Trust Direction' = Switch ($Trust.TrustDirection) {
                                             0 { "Disabled (The trust relationship exists but has been disabled)" }
                                             1 { "Inbound (TrustING domain)" }
                                             2 { "Outbound (TrustED domain)" }
                                             3 { "Bidirectional (two-way trust)" }
-                                            default {$Trust.TrustDirection}
+                                            default { $Trust.TrustDirection }
                                         }
                                         'IntraForest' = ConvertTo-TextYN $Trust.IntraForest
                                         'Selective Authentication' = ConvertTo-TextYN $Trust.SelectiveAuthentication

@@ -29,7 +29,7 @@ function Get-AbrDomainSection {
                     Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user or a group or it can be a hardware component, such as a computer or printer.Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain or an alternate version (which may end in .local)."
                     BlankLine
                 }
-                if (!$Options.ShowDefinitionInfo) {
+                if (-Not $Options.ShowDefinitionInfo) {
                     Paragraph "The following section provides a summary of the Active Directory Domain Information."
                     BlankLine
                 }
@@ -69,7 +69,7 @@ function Get-AbrDomainSection {
                                             Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
                                             BlankLine
                                         }
-                                        if (!$Options.ShowDefinitionInfo) {
+                                        if (-Not $Options.ShowDefinitionInfo) {
                                             if ($InfoLevel.Domain -ge 2) {
                                                 Paragraph "The following section provides detailed information about Active Directory domain controllers."
                                                 BlankLine
@@ -89,7 +89,7 @@ function Get-AbrDomainSection {
                                                     Paragraph "The following section provides a summary of installed role & features on $Domain DCs."
                                                     foreach ($DC in $DCs) {
                                                         $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 2
-                                                        if ($DCStatus -eq $false) {
+                                                        if (-Not $DCStatus) {
                                                             Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
                                                         }
                                                         if ($DCStatus) {
@@ -115,12 +115,15 @@ function Get-AbrDomainSection {
                                                 }
                                             }
                                             try {
-                                                Section -Style Heading4 "Infrastructure Services" {
-                                                    Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
-                                                    foreach ($DC in $DCs) {
-                                                        if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                                            Get-AbrADInfrastructureService -DC $DC
-                                                        }
+                                                $ADInfraServices = foreach ($DC in $DCs) {
+                                                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                                        Get-AbrADInfrastructureService -DC $DC
+                                                    }
+                                                }
+                                                if ($ADInfraServices) {
+                                                    Section -Style Heading4 "Infrastructure Services" {
+                                                        Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
+                                                        $ADInfraServices
                                                     }
                                                 }
                                             } catch {

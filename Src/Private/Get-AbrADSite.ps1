@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -81,7 +81,7 @@ function Get-AbrADSite {
                         }
                         $OutObj | Sort-Object -Property 'Site Name' | Table @TableParams
                         if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Subnets' -eq '--' }) -or ($OutObj | Where-Object { $_.'Description' -eq '--' }))) {
-                            Paragraph "Health Check:" -Bold -Underline
+                            Paragraph 'Health Check:' -Bold -Underline
                             BlankLine
                             if ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' }) {
                                 Paragraph {

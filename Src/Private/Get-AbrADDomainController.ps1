@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,8 +32,8 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             $inObj = [ordered] @{
-                'Domain Controller' = $DomainController.Count
-                'Global Catalog' = $GC.Count
+                'Domain Controller' = ($DomainController | Measure-Object).Count
+                'Global Catalog' = ($GC | Measure-Object).Count
             }
             $OutObj += [pscustomobject]$inobj
 
