@@ -5,7 +5,7 @@ function Get-AbrForestSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
