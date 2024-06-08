@@ -133,7 +133,7 @@ function Get-AbrADForest {
                     Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
                     BlankLine
                 }
-                if (!$Options.ShowDefinitionInfo) {
+                if (-Not $Options.ShowDefinitionInfo) {
                     Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
                     BlankLine
                 }

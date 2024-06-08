@@ -32,8 +32,8 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             $inObj = [ordered] @{
-                'Domain Controller' = $DomainController.Count
-                'Global Catalog' = $GC.Count
+                'Domain Controller' = ($DomainController | Measure-Object).Count
+                'Global Catalog' = ($GC | Measure-Object).Count
             }
             $OutObj += [pscustomobject]$inobj
 
