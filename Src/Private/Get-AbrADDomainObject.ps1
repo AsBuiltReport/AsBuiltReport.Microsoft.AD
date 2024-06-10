@@ -40,8 +40,9 @@ function Get-AbrADDomainObject {
                     $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:DC -Filter * -Property $using:ADLimitedProperties -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
                     $script:PrivilegedUsers = $Users | Where-Object { $_.AdminCount -eq 1 }
                     $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
-                    $excludedDomainGroupsBySID = @("$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-1106", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
+                    $excludedDomainGroupsBySID = @("$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
                     $excludedForestGroupsBySID = ($GroupOBj | Where-Object { $_.SID -like 'S-1-5-32-*' }).SID
+                    $AdminGroupsBySID = "S-1-5-32-552", "$DomainSID-521", "$DomainSID-516", "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
                     $script:DomainController = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter *) | Select-Object name | Measure-Object }
                     $script:GC = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name | Measure-Object }
 
@@ -341,7 +342,7 @@ function Get-AbrADDomainObject {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Groups Objects Section)"
                         }
                     }
-                    Section -Style Heading5 'Privileged Groups' {
+                    Section -Style Heading5 'Privileged Groups (Built-in)' {
                         $OutObj = @()
                         if ($Domain) {
                             try {
@@ -519,6 +520,49 @@ function Get-AbrADDomainObject {
                         }
                     }
                     if ($HealthCheck.Domain.BestPractice) {
+                        try {
+                            $AdminGroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter "admincount -eq '1'" -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
+                            if ($AdminGroupOBj) {
+                                Section -Style Heading5 'Privileged Group (Non-Default)' {
+                                    Paragraph "The following session summarizes the privileged groups with AdminCount set to 1 (non-defaults)."
+                                    BlankLine
+                                    $OutObj = @()
+                                    foreach ($Group in ($AdminGroupOBj | Where-Object { $_.SID -notin $AdminGroupsBySID }) ) {
+                                        try {
+                                            $inObj = [ordered] @{
+                                                'Group Name' = $Group.Name
+                                                'Group SID' = $Group.SID
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group (Non-Default) Table)"
+                                        }
+                                    }
+
+                                    $TableParams = @{
+                                        Name = "Privileged Group (Non-Default) - $($Domain.ToString().ToUpper())"
+                                        List = $false
+                                        ColumnWidths = 50, 50
+                                    }
+
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
+                                    Paragraph "Health Check:" -Bold -Underline
+                                    BlankLine
+                                    Paragraph {
+                                        Text "Best Practice:" -Bold
+                                        Text "Remove empty or unused Active Directory Groups. An empty Active Directory security group causes two major problems. First, they add unnecessary clutter and make active directory administration difficult, even when paired with user friendly Active Directory tools. The second and most important point to note is that empty groups are a security risk to your network."
+                                    }
+                                }
+                            }
+
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group (Non-Default) Section)"
+                        }
+                    }
+                    if ($HealthCheck.Domain.BestPractice -and ($GroupOBj | Where-Object { -Not $_.Members })) {
                         try {
                             Section -Style Heading5 'Empty Groups (Non-Default)' {
                                 $OutObj = @()
