@@ -32,6 +32,7 @@ function Get-AbrADDomainObject {
             Paragraph "The following section details information about computers, groups and users objects found in $($Domain) "
             try {
                 try {
+                    $script:DomainSID = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).domainsid.Value }
                     $ADLimitedProperties = @("Name", "Enabled", "SAMAccountname", "DisplayName", "Enabled", "LastLogonDate", "PasswordLastSet", "PasswordNeverExpires", "PasswordNotRequired", "PasswordExpired", "SmartcardLogonRequired", "AccountExpirationDate", "AdminCount", "Created", "Modified", "LastBadPasswordAttempt", "badpwdcount", "mail", "CanonicalName", "DistinguishedName", "ServicePrincipalName", "SIDHistory", "PrimaryGroupID", "UserAccountControl", "CannotChangePassword", "PwdLastSet", "LockedOut", "TrustedForDelegation", "TrustedtoAuthForDelegation", "msds-keyversionnumber", "SID", "AccountNotDelegated", "EmailAddress")
                     $script:DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                     $script:Computers = Invoke-Command -Session $TempPssSession { (Get-ADComputer -ResultPageSize 1000 -Server $using:DC -Filter * -Properties Enabled, OperatingSystem, lastlogontimestamp, PasswordLastSet, SIDHistory -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
@@ -39,6 +40,8 @@ function Get-AbrADDomainObject {
                     $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:DC -Filter * -Property $using:ADLimitedProperties -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
                     $script:PrivilegedUsers = $Users | Where-Object { $_.AdminCount -eq 1 }
                     $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
+                    $excludedDomainGroupsBySID = @("$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-1106", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
+                    $excludedForestGroupsBySID = ($GroupOBj | Where-Object { $_.SID -like 'S-1-5-32-*' }).SID
                     $script:DomainController = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter *) | Select-Object name | Measure-Object }
                     $script:GC = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name | Measure-Object }
 
@@ -67,7 +70,7 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-
+                            # Chart Section
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
 
                             $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'UsersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'UsersObject' -ChartTitleText 'User Objects' -ReversePalette $True
@@ -168,7 +171,7 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-
+                            # Chart Section
                             $sampleData = $OutObj
 
                             $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofUsersAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofUsersAccounts' -ChartTitleText 'Status of Users Accounts' -ReversePalette $True
@@ -247,7 +250,7 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-
+                            # Chart Section
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
 
                             $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'GroupCategoryObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'GroupCategoryObject' -ChartTitleText 'Group Categories' -ReversePalette $True
@@ -284,7 +287,7 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-
+                            # Chart Section
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
 
                             $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'GroupCategoryObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'GroupScopesObject' -ChartTitleText 'Group Scopes' -ReversePalette $True
@@ -342,15 +345,14 @@ function Get-AbrADDomainObject {
                         $OutObj = @()
                         if ($Domain) {
                             try {
-                                $DomainSID = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).domainsid.Value }
                                 if ($Domain -eq $ADSystem.Name) {
-                                    $GroupsSID = "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518"
+                                    $GroupsSID = "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
                                 } else {
-                                    $GroupsSID = "$DomainSID-512", 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548'
+                                    $GroupsSID = "$DomainSID-1107", "$DomainSID-512", 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', 'S-1-5-32-578'
                                 }
                                 if ($GroupsSID) {
                                     if ($InfoLevel.Domain -eq 1) {
-                                        Paragraph "The following session summarizes the counts of users within the privileged groups."
+                                        Paragraph "The following session summarizes the counts of users within the privileged groups. (Empty group are excluded)"
                                         BlankLine
                                         foreach ($GroupSID in $GroupsSID) {
                                             try {
@@ -416,7 +418,7 @@ function Get-AbrADDomainObject {
                                             }
                                         }
                                     } else {
-                                        Paragraph "The following session details the members users within the privilege groups."
+                                        Paragraph "The following session details the members users within the privilege groups. (Empty group are excluded)"
                                         BlankLine
                                         foreach ($GroupSID in $GroupsSID) {
                                             try {
@@ -516,6 +518,46 @@ function Get-AbrADDomainObject {
                             }
                         }
                     }
+                    if ($HealthCheck.Domain.BestPractice) {
+                        try {
+                            Section -Style Heading5 'Empty Groups (Non-Default)' {
+                                $OutObj = @()
+                                foreach ($Group in ($GroupOBj | Where-Object { -Not $_.Members }) ) {
+                                    if ($Group.SID -notin $excludedForestGroupsBySID -and $Group.SID -notin $excludedDomainGroupsBySID ) {
+                                        try {
+                                            $inObj = [ordered] @{
+                                                'Group Name' = $Group.Name
+                                                'Group SID' = $Group.SID
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Groups Objects Table)"
+                                        }
+                                    }
+                                }
+
+                                $TableParams = @{
+                                    Name = "Empty Groups - $($Domain.ToString().ToUpper())"
+                                    List = $false
+                                    ColumnWidths = 50, 50
+                                }
+
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
+                                Paragraph "Health Check:" -Bold -Underline
+                                BlankLine
+                                Paragraph {
+                                    Text "Best Practice:" -Bold
+                                    Text "Remove empty or unused Active Directory Groups. An empty Active Directory security group causes two major problems. First, they add unnecessary clutter and make active directory administration difficult, even when paired with user friendly Active Directory tools. The second and most important point to note is that empty groups are a security risk to your network."
+                                }
+                            }
+
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Groups Objects Section)"
+                        }
+                    }
                 }
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
@@ -538,6 +580,7 @@ function Get-AbrADDomainObject {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     try {
+                        # Chart Section
                         $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
 
                         $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'ComputersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'ComputersObject' -ChartTitleText 'Computers Count' -ReversePalette $True
@@ -614,6 +657,7 @@ function Get-AbrADDomainObject {
                         }
 
                         try {
+                            # Chart Section
                             $sampleData = $OutObj
 
                             $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofComputerAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofComputerAccounts' -ChartTitleText 'Status of Computers Accounts' -ReversePalette $True
