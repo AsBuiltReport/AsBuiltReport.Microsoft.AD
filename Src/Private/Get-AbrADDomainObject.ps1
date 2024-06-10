@@ -42,7 +42,7 @@ function Get-AbrADDomainObject {
                     $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
                     $excludedDomainGroupsBySID = @("$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
                     $excludedForestGroupsBySID = ($GroupOBj | Where-Object { $_.SID -like 'S-1-5-32-*' }).SID
-                    $AdminGroupsBySID = "S-1-5-32-552", "$DomainSID-521", "$DomainSID-516", "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
+                    $AdminGroupsBySID = "S-1-5-32-552", "$DomainSID-527", "$DomainSID-521", "$DomainSID-516", "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
                     $script:DomainController = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter *) | Select-Object name | Measure-Object }
                     $script:GC = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name | Measure-Object }
 
@@ -353,7 +353,7 @@ function Get-AbrADDomainObject {
                                 }
                                 if ($GroupsSID) {
                                     if ($InfoLevel.Domain -eq 1) {
-                                        Paragraph "The following session summarizes the counts of users within the privileged groups. (Empty group are excluded)"
+                                        Paragraph "The following section summarizes the counts of users within the privileged groups. (Empty group are excluded)"
                                         BlankLine
                                         foreach ($GroupSID in $GroupsSID) {
                                             try {
@@ -419,7 +419,7 @@ function Get-AbrADDomainObject {
                                             }
                                         }
                                     } else {
-                                        Paragraph "The following session details the members users within the privilege groups. (Empty group are excluded)"
+                                        Paragraph "The following section details the members users within the privilege groups. (Empty group are excluded)"
                                         BlankLine
                                         foreach ($GroupSID in $GroupsSID) {
                                             try {
@@ -524,7 +524,7 @@ function Get-AbrADDomainObject {
                             $AdminGroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter "admincount -eq '1'" -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
                             if ($AdminGroupOBj) {
                                 Section -Style Heading5 'Privileged Group (Non-Default)' {
-                                    Paragraph "The following session summarizes the privileged groups with AdminCount set to 1 (non-defaults)."
+                                    Paragraph "The following section summarizes the privileged groups with AdminCount set to 1 (non-defaults)."
                                     BlankLine
                                     $OutObj = @()
                                     foreach ($Group in ($AdminGroupOBj | Where-Object { $_.SID -notin $AdminGroupsBySID }) ) {
@@ -553,7 +553,7 @@ function Get-AbrADDomainObject {
                                     BlankLine
                                     Paragraph {
                                         Text "Best Practice:" -Bold
-                                        Text "Remove empty or unused Active Directory Groups. An empty Active Directory security group causes two major problems. First, they add unnecessary clutter and make active directory administration difficult, even when paired with user friendly Active Directory tools. The second and most important point to note is that empty groups are a security risk to your network."
+                                        Text "Regularly validate and remove unneeded privileged group members in Active Directory."
                                     }
                                 }
                             }
@@ -724,6 +724,53 @@ function Get-AbrADDomainObject {
                 }
                 try {
                     Section -Style Heading5 'Operating Systems Count' {
+                        $OutObj = @()
+                        if ($Domain) {
+                            try {
+                                $OSObjects = $Computers | Where-Object { $_.name -like '*' } | Group-Object -Property operatingSystem | Select-Object Name, Count
+                                if ($OSObjects) {
+                                    foreach ($OSObject in $OSObjects) {
+                                        $inObj = [ordered] @{
+                                            'Operating System' = Switch ([string]::IsNullOrEmpty($OSObject.Name)) {
+                                                $True { 'No OS Specified' }
+                                                default { $OSObject.Name }
+                                            }
+                                            'Count' = $OSObject.Count
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
+                                    if ($HealthCheck.Domain.Security) {
+                                        $OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' } | Set-Style -Style Critical -Property 'Operating System'
+                                    }
+
+                                    $TableParams = @{
+                                        Name = "Operating System Count - $($Domain.ToString().ToUpper())"
+                                        List = $false
+                                        ColumnWidths = 60, 40
+                                    }
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Sort-Object -Property 'Operating System' |  Table @TableParams
+                                    if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' })) {
+                                        Paragraph "Health Check:" -Bold -Underline
+                                        BlankLine
+                                        Paragraph {
+                                            Text "Security Best Practice:" -Bold
+                                            Text "Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture."
+                                        }
+                                    }
+                                }
+                            } catch {
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Operating Systems in Active Directory)"
+                            }
+                        }
+                    }
+                } catch {
+                    Write-PScriboMessage -IsWarning $($_.Exception.Message)
+                }
+                try {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers with Password-Not-Required Attribute Set' {
                         $OutObj = @()
                         if ($Domain) {
                             try {
