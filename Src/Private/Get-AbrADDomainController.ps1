@@ -148,6 +148,7 @@ function Get-AbrADDomainController {
                         $DCComputerObject = try { Invoke-Command -Session $TempPssSession { Get-ADComputer ($using:DCInfo).ComputerObjectDN -Properties * -Server $using:DC } } catch { Out-Null }
                         $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DCNetSettings'
                         $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Out-Null }
+                        $DCNetSMBv1Setting = try { Invoke-Command -Session $DCPssSession { Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol } } catch { Out-Null }
                         Remove-PSSession -Session $DCPssSession
                         if ($InfoLevel.Domain -eq 1) {
                             try {
@@ -217,13 +218,18 @@ function Get-AbrADDomainController {
                                                 }
                                                 'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
                                                 'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
-                                                'Operation Master Roles' = $DCInfo.OperationMasterRoles -join ', '
-                                                'Location' = $DCComputerObject.Location
+                                                'Operation Master Roles' = ConvertTo-EmptyToFiller ($DCInfo.OperationMasterRoles -join ', ')
+                                                'Location' = ConvertTo-EmptyToFiller $DCComputerObject.Location
                                                 'Computer Object SID' = $DCComputerObject.SID
-                                                "Operating System" = $DCInfo.OperatingSystem
-                                                'Description' = $DCComputerObject.Description
+                                                'Operating System' = $DCInfo.OperatingSystem
+                                                'SMB1 Status' = $DCNetSMBv1Setting.State
+                                                'Description' = ConvertTo-EmptyToFiller $DCComputerObject.Description
                                             }
                                             $OutObj = [pscustomobject]$inobj
+
+                                            if ($HealthCheck.DomainController.BestPractice) {
+                                                $OutObj | Where-Object { $_.'SMB1 Status' -eq 'Enabled' } | Set-Style -Style Critical -Property 'SMB1 Status'
+                                            }
 
                                             $TableParams = @{
                                                 Name = "General Information - $($DCInfo.Name)"
@@ -234,6 +240,14 @@ function Get-AbrADDomainController {
                                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                                             }
                                             $OutObj | Table @TableParams
+                                            if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'SMB1 Status' -eq 'Enabled' })) {
+                                                Paragraph "Health Check:" -Bold -Underline
+                                                BlankLine
+                                                Paragraph {
+                                                    Text "Best Practice:" -Bold
+                                                    Text "Disable SMB v1: SMB v1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems."
+                                                }
+                                            }
                                         }
                                     } catch {
                                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (General Information Section)"
