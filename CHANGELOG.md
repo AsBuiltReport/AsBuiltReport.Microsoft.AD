@@ -13,12 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [#168](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/168)
-- [#171](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/171)
-- [#172](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/172)
-- [#174](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/174)
-- [#176](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/176)
-- [#178](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/178)
+- Fix [#168](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/168)
+- Fix [#171](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/171)
+- Fix [#172](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/172)
+- Fix [#174](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/174)
+- Fix [#176](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/176)
+- Fix [#178](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/178)
 
 ## [0.8.1] - 2024-05-16
 
