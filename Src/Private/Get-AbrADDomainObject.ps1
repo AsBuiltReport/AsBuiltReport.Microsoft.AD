@@ -527,15 +527,17 @@ function Get-AbrADDomainObject {
                                     Paragraph "The following section summarizes the privileged groups with AdminCount set to 1 (non-defaults)."
                                     BlankLine
                                     $OutObj = @()
-                                    foreach ($Group in ($AdminGroupOBj | Where-Object { $_.SID -notin $AdminGroupsBySID }) ) {
-                                        try {
-                                            $inObj = [ordered] @{
-                                                'Group Name' = $Group.Name
-                                                'Group SID' = $Group.SID
+                                    foreach ($Group in $AdminGroupOBj) {
+                                        if ($Group.SID -notin $AdminGroupsBySID) {
+                                            try {
+                                                $inObj = [ordered] @{
+                                                    'Group Name' = $Group.Name
+                                                    'Group SID' = $Group.SID
+                                                }
+                                                $OutObj += [pscustomobject]$inobj
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group (Non-Default) Table)"
                                             }
-                                            $OutObj += [pscustomobject]$inobj
-                                        } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group (Non-Default) Table)"
                                         }
                                     }
 
@@ -770,51 +772,42 @@ function Get-AbrADDomainObject {
                     Write-PScriboMessage -IsWarning $($_.Exception.Message)
                 }
                 try {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers with Password-Not-Required Attribute Set' {
-                        $OutObj = @()
-                        if ($Domain) {
+                    $ComputerObjects = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { PasswordNotRequired -eq $true } -Properties Name, DistinguishedName, Enabled }
+                    if ($ComputerObjects) {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers with Password-Not-Required Attribute Set' {
+                            $OutObj = @()
                             try {
-                                $OSObjects = $Computers | Where-Object { $_.name -like '*' } | Group-Object -Property operatingSystem | Select-Object Name, Count
-                                if ($OSObjects) {
-                                    foreach ($OSObject in $OSObjects) {
-                                        $inObj = [ordered] @{
-                                            'Operating System' = Switch ([string]::IsNullOrEmpty($OSObject.Name)) {
-                                                $True { 'No OS Specified' }
-                                                default { $OSObject.Name }
-                                            }
-                                            'Count' = $OSObject.Count
-                                        }
-                                        $OutObj += [pscustomobject]$inobj
+                                foreach ($ComputerObject in $ComputerObjects) {
+                                    $inObj = [ordered] @{
+                                        'Computer Name' = $ComputerObject.Name
+                                        'Distinguished Name' = $ComputerObject.DistinguishedName
+                                        'Enabled' = ConvertTo-TextYN $ComputerObject.Enabled
                                     }
-                                    if ($HealthCheck.Domain.Security) {
-                                        $OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' } | Set-Style -Style Critical -Property 'Operating System'
-                                    }
+                                    $OutObj += [pscustomobject]$inobj
+                                }
 
-                                    $TableParams = @{
-                                        Name = "Operating System Count - $($Domain.ToString().ToUpper())"
-                                        List = $false
-                                        ColumnWidths = 60, 40
-                                    }
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                    }
-                                    $OutObj | Sort-Object -Property 'Operating System' |  Table @TableParams
-                                    if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' })) {
-                                        Paragraph "Health Check:" -Bold -Underline
-                                        BlankLine
-                                        Paragraph {
-                                            Text "Security Best Practice:" -Bold
-                                            Text "Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture."
-                                        }
-                                    }
+                                $TableParams = @{
+                                    Name = "Computers with Password-Not-Required - $($Domain.ToString().ToUpper())"
+                                    List = $false
+                                    ColumnWidths = 30, 58, 12
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $OutObj | Sort-Object -Property 'Computer Name' |  Table @TableParams
+                                Paragraph "Health Check:" -Bold -Underline
+                                BlankLine
+                                Paragraph {
+                                    Text "Security Best Practice:" -Bold
+                                    Text "Ensure there aren't any computer account with weak security posture."
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Operating Systems in Active Directory)"
+                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers with Password-Not-Required table)"
                             }
                         }
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning $($_.Exception.Message)
+                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers with Password-Not-Required section)"
                 }
                 if ($InfoLevel.Domain -ge 4) {
                     try {
