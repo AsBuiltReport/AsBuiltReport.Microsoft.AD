@@ -51,11 +51,7 @@ function Get-AbrDNSSection {
                                     $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } }
                                     foreach ($DC in $DCs) {
                                         if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DDNSInfrastructure'
                                             Get-AbrADDNSZone -Domain $Domain -DC $DC
-                                        }
-                                        if ($DCPssSession) {
-                                            Remove-PSSession -Session $DCPssSession
                                         }
                                     }
                                 }

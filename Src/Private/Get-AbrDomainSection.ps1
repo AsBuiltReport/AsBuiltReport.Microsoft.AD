@@ -85,28 +85,34 @@ function Get-AbrDomainSection {
                                             Get-AbrADDomainController -Domain $Domain -Dcs $DCs
 
                                             if ($InfoLevel.Domain -ge 2) {
-                                                Section -Style Heading4 "Roles" {
-                                                    Paragraph "The following section provides a summary of installed role & features on $Domain DCs."
-                                                    foreach ($DC in $DCs) {
-                                                        $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 2
-                                                        if (-Not $DCStatus) {
-                                                            Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
-                                                        }
-                                                        if ($DCStatus) {
-                                                            Get-AbrADDCRoleFeature -DC $DC
-                                                        }
+                                                $RolesObj = foreach ($DC in $DCs) {
+                                                    $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 2
+                                                    if (-Not $DCStatus) {
+                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
+                                                    }
+                                                    if ($DCStatus) {
+                                                        Get-AbrADDCRoleFeature -DC $DC
+                                                    }
+                                                }
+                                                if ($RolesObj) {
+                                                    Section -Style Heading4 "Roles" {
+                                                        Paragraph "The following section provides a summary of installed role & features on $Domain DCs."
+                                                        $RolesObj
                                                     }
                                                 }
                                             }
                                             if ($HealthCheck.DomainController.Diagnostic) {
                                                 try {
-                                                    Section -Style Heading4 'DC Diagnostic' {
-                                                        Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
-                                                        BlankLine
-                                                        foreach ($DC in $DCs) {
-                                                            if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                                                Get-AbrADDCDiag -Domain $Domain -DC $DC
-                                                            }
+                                                    $DCDiagObj = foreach ($DC in $DCs) {
+                                                        if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                                            Get-AbrADDCDiag -Domain $Domain -DC $DC
+                                                        }
+                                                    }
+                                                    if ($DCDiagObj) {
+                                                        Section -Style Heading4 'DC Diagnostic' {
+                                                            Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                                                            BlankLine
+                                                            $DCDiagObj
                                                         }
                                                     }
                                                 } catch {
