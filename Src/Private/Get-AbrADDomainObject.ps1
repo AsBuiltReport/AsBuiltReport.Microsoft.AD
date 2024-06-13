@@ -347,9 +347,9 @@ function Get-AbrADDomainObject {
                         if ($Domain) {
                             try {
                                 if ($Domain -eq $ADSystem.Name) {
-                                    $GroupsSID = "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
+                                    $GroupsSID = "", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
                                 } else {
-                                    $GroupsSID = "$DomainSID-1107", "$DomainSID-512", 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', 'S-1-5-32-578'
+                                    $GroupsSID = "$DomainSID-512", 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', 'S-1-5-32-578'
                                 }
                                 if ($GroupsSID) {
                                     if ($InfoLevel.Domain -eq 1) {
@@ -523,39 +523,41 @@ function Get-AbrADDomainObject {
                         try {
                             $AdminGroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter "admincount -eq '1'" -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
                             if ($AdminGroupOBj) {
-                                Section -Style Heading5 'Privileged Group (Non-Default)' {
-                                    Paragraph "The following section summarizes the privileged groups with AdminCount set to 1 (non-defaults)."
-                                    BlankLine
-                                    $OutObj = @()
-                                    foreach ($Group in $AdminGroupOBj) {
-                                        if ($Group.SID -notin $AdminGroupsBySID) {
-                                            try {
-                                                $inObj = [ordered] @{
-                                                    'Group Name' = $Group.Name
-                                                    'Group SID' = $Group.SID
-                                                }
-                                                $OutObj += [pscustomobject]$inobj
-                                            } catch {
-                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group (Non-Default) Table)"
+                                $OutObj = @()
+                                foreach ($Group in $AdminGroupOBj) {
+                                    if ($Group.SID -notin $AdminGroupsBySID) {
+                                        try {
+                                            $inObj = [ordered] @{
+                                                'Group Name' = $Group.Name
+                                                'Group SID' = $Group.SID
                                             }
+                                            $OutObj += [pscustomobject]$inobj
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group (Non-Default) Table)"
                                         }
                                     }
+                                }
 
-                                    $TableParams = @{
-                                        Name = "Privileged Group (Non-Default) - $($Domain.ToString().ToUpper())"
-                                        List = $false
-                                        ColumnWidths = 50, 50
-                                    }
+                                $TableParams = @{
+                                    Name = "Privileged Group (Non-Default) - $($Domain.ToString().ToUpper())"
+                                    List = $false
+                                    ColumnWidths = 50, 50
+                                }
 
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                    }
-                                    $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
-                                    Paragraph "Health Check:" -Bold -Underline
-                                    BlankLine
-                                    Paragraph {
-                                        Text "Best Practice:" -Bold
-                                        Text "Regularly validate and remove unneeded privileged group members in Active Directory."
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                if ($OutObj) {
+                                    Section -Style Heading5 'Privileged Group (Non-Default)' {
+                                        Paragraph "The following section summarizes the privileged groups with AdminCount set to 1 (non-defaults)."
+                                        BlankLine
+                                        $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
+                                        Paragraph "Health Check:" -Bold -Underline
+                                        BlankLine
+                                        Paragraph {
+                                            Text "Best Practice:" -Bold
+                                            Text "Regularly validate and remove unneeded privileged group members in Active Directory."
+                                        }
                                     }
                                 }
                             }
@@ -975,24 +977,24 @@ function Get-AbrADDomainObject {
                     foreach ($Item in $Domain) {
                         $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                         $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
-                        $LAPS = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:DCPDC "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:DomainInfo).DistinguishedName)" } | Sort-Object -Property Name
-                        Section -Style Heading3 'Windows LAPS ' {
+                        $LAPS = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Server $using:DCPDC "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:DomainInfo).DistinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
+                        Section -Style Heading3 'Microsoft LAPS ' {
                             $LAPSInfo = @()
                             try {
                                 $inObj = [ordered] @{
-                                    'Name' = $LAPS.Name
+                                    'Name' = 'Local Administrator Password Solution'
                                     'Domain Name' = $Item
                                     'Enabled' = Switch ($LAPS.Count) {
                                         0 { 'No' }
                                         default { 'Yes' }
                                     }
-                                    'Distinguished Name' = $LAPS.DistinguishedName
+                                    'Distinguished Name' = ConvertTo-EmptyToFiller $LAPS.DistinguishedName
 
                                 }
                                 $LAPSInfo += [pscustomobject]$inobj
 
                                 if ($HealthCheck.Domain.Security) {
-                                    $LAPSInfo | Where-Object { $_.'Enabled' -eq 'No' } | Set-Style -Style Warning
+                                    $LAPSInfo | Where-Object { $_.'Enabled' -eq 'No' } | Set-Style -Style Warning -Property 'Enabled'
                                 }
 
                             } catch {
@@ -1002,7 +1004,7 @@ function Get-AbrADDomainObject {
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($LAP in $LAPSInfo) {
                                     $TableParams = @{
-                                        Name = "Windows LAPS - $($Domain.ToString().ToUpper())"
+                                        Name = "Microsoft LAPS - $($Domain.ToString().ToUpper())"
                                         List = $true
                                         ColumnWidths = 40, 60
                                     }
@@ -1013,7 +1015,7 @@ function Get-AbrADDomainObject {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Windows LAPS -  $($Domain.ToString().ToUpper())"
+                                    Name = "Microsoft LAPS -  $($Domain.ToString().ToUpper())"
                                     List = $false
                                     Columns = 'Name', 'Domain Name', 'Enabled'
                                     ColumnWidths = 34, 33, 33
