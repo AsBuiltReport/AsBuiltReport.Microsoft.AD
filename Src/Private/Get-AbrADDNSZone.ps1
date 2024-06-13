@@ -5,7 +5,7 @@ function Get-AbrADDNSZone {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,6 +31,7 @@ function Get-AbrADDNSZone {
 
     process {
         try {
+            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DDNSInfrastructure'
             $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder" }
             if ($DNSSetting) {
                 Section -Style Heading3 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zones" {
@@ -115,7 +116,11 @@ function Get-AbrADDNSZone {
 
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            $DNSSetting = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object { $_ -match 'SecondaryServers' } }
+                            $DNSSetting = $Null
+                            if ($DCPssSession) {
+                                $DNSSetting = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object { $_ -match 'SecondaryServers' } }
+                                Remove-PSSession -Session $DCPssSession
+                            }
                             if ($DNSSetting) {
                                 Section -Style Heading4 "Zone Transfers" {
                                     $OutObj = @()
@@ -298,7 +303,6 @@ function Get-AbrADDNSZone {
                     }
                 }
             }
-            Remove-PSSession -Session $DCPssSession
         } catch {
             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Global DNS Zone Information)"
         }

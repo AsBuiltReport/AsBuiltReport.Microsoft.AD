@@ -30,7 +30,10 @@ function Get-AbrADInfrastructureService {
     process {
         try {
             $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerInfrastructureServices'
-            if ($DCPssSession -and ($Available = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-Service "W32Time" | Select-Object DisplayName, Name, Status })) {
+            if ($DCPssSession) {
+                $Available = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-Service "W32Time" | Select-Object DisplayName, Name, Status }
+            }
+            if ($Available) {
                 $OutObj = @()
                 $Services = @('CertSvc', 'DHCPServer', 'DNS', 'DFS Replication', 'Intersite Messaging', 'Kerberos Key Distribution Center', 'NetLogon', 'Active Directory Domain Services', 'W32Time', 'ADWS', 'RPCSS', 'EVENTSYSTEM', 'DNSCACHE', 'SAMSS', 'WORKSTATION', 'Spooler')
                 foreach ($Service in $Services) {

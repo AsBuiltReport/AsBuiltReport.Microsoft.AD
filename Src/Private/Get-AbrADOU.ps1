@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -88,7 +88,7 @@ function Get-AbrADOU {
                             if ($OUs) {
                                 foreach ($OU in $OUs) {
                                     try {
-                                        $GpoInheritance = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target ($using:OU).DistinguishedName }
+                                        $GpoInheritance = Invoke-Command -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target ($using:OU).DistinguishedName }
                                         if ( $GpoInheritance.GPOInheritanceBlocked -eq "True") {
                                             $inObj = [ordered] @{
                                                 'OU Name' = $GpoInheritance.Name

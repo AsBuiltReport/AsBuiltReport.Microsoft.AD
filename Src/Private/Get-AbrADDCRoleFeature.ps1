@@ -29,7 +29,8 @@ function Get-AbrADDCRoleFeature {
 
     process {
         try {
-            if ($DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ADDCRoleFeature') {
+            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ADDCRoleFeature'
+            if ($DCPssSession) {
                 $Features = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq "True" -and $_.FeatureType -eq 'Role' } }
                 Remove-PSSession -Session $DCPssSession
             }

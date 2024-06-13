@@ -5,7 +5,7 @@ function Get-AbrADExchange {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,7 +23,7 @@ function Get-AbrADExchange {
     }
 
     process {
-        $EXServers = Get-ADExchangeServer
+        $EXServers = try {Get-ADExchangeServer} catch {Out-Null}
         try {
             if ($EXServers ) {
                 Section -Style Heading3 'Exchange Infrastructure' {

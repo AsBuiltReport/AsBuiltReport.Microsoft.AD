@@ -238,7 +238,7 @@ function Get-AbrADSite {
                                                             Remove-PSSession -Session $DCPssSession
                                                         }
                                                     } catch {
-                                                        Write-PScriboMessage -IsWarning "Missing Subnet in AD Item Section: $($_.Exception.Message)"
+                                                        Write-PScriboMessage -IsWarning "Missing Subnet in AD Item table: $($_.Exception.Message)"
                                                     }
                                                 }
                                             }
@@ -272,7 +272,7 @@ function Get-AbrADSite {
                                             Write-PScriboMessage -IsWarning "No Missing Subnets in AD information found in $ForestInfo, disabling the section."
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "Sysvol Replication Table Section: $($_.Exception.Message)"
+                                        Write-PScriboMessage -IsWarning "Missing Subnet in AD Item Section: $($_.Exception.Message)"
                                     }
                                 }
                             }
@@ -302,7 +302,7 @@ function Get-AbrADSite {
                     }
                     try {
                         $DomainDN = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
-                        $InterSiteTransports = Invoke-Command -Session $TempPssSession { Get-ADObject -Filter { (objectClass -eq "interSiteTransport") } -SearchBase "CN=Inter-Site Transports,CN=Sites,CN=Configuration,$using:DomainDN" -Properties * }
+                        $InterSiteTransports = try {Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Filter { (objectClass -eq "interSiteTransport") } -SearchBase "CN=Inter-Site Transports,CN=Sites,CN=Configuration,$using:DomainDN" -Properties * }} catch {Out-Null}
                         if ($InterSiteTransports) {
                             Section -Style Heading4 'Inter-Site Transports' {
                                 Paragraph "Site links in Active Directory represent the inter-site connectivity and method used to transfer replication traffic.There are two transport protocols that can be used for replication via site links. The default protocol used in site link is IP, and it performs synchronous replication between available domain controllers. The SMTP method can be used when the link between sites is not reliable."
@@ -690,8 +690,7 @@ function Get-AbrADSite {
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
-                                if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                    $DCCIMSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name "SysvolReplication"
+                                if ((Test-Connection -ComputerName $DC -Quiet -Count 2) -and ($DCCIMSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name "SysvolReplication")) {
                                     $Replication = Get-CimInstance -CimSession $DCCIMSession -Namespace "root/microsoftdfs" -Class "dfsrreplicatedfolderinfo" -Filter "ReplicatedFolderName = 'SYSVOL Share'" -EA 0 -Verbose:$False | Select-Object State
                                     if ($DCCIMSession) {
                                         Remove-CimSession -CimSession $DCCIMSession

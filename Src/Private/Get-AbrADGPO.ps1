@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -198,8 +198,8 @@ function Get-AbrADGPO {
                             $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                             $DCPssSession = New-PSSession -ComputerName $DC -Name "WmiFilters" -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
-                            $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
                             if ($DCPssSession) {
+                                $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
                                 Remove-PSSession -Session $DCPssSession
                             }
                             if ($WmiFilters) {
@@ -492,7 +492,7 @@ function Get-AbrADGPO {
                         if ($OUs) {
                             foreach ($OU in $OUs) {
                                 try {
-                                    $GpoEnforces = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
+                                    $GpoEnforces = Invoke-Command -Session $TempPssSession -ErrorAction Stop  -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
                                     foreach ($GpoEnforced in $GpoEnforces) {
                                         if ($GpoEnforced.Enforced -eq "True") {
                                             $TargetCanonical = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:DC -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
@@ -547,8 +547,9 @@ function Get-AbrADGPO {
                         $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                         $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
                         $OrphanGPOs = @()
-                        $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
                         if ($DCPssSession) {
+                            $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
+
                             Remove-PSSession -Session $DCPssSession
                         }
                         $GPOPoliciesSYSVOL = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object }).Name.Trim("{}")
@@ -558,8 +559,11 @@ function Get-AbrADGPO {
                                 $SYSVOLGPOList += $GPOinSYSVOL
                             }
                         }
-                        $MissingADGPOs = Compare-Object $SYSVOLGPOList $GPOPoliciesADSI -PassThru | Where-Object { $_.SideIndicator -eq '<=' }
-                        $MissingSYSVOLGPOs = Compare-Object $GPOPoliciesADSI $SYSVOLGPOList -PassThru | Where-Object { $_.SideIndicator -eq '<=' }
+                        if ($GPOPoliciesADSI -and $SYSVOLGPOList) {
+                            $MissingADGPOs = Compare-Object $SYSVOLGPOList $GPOPoliciesADSI -PassThru | Where-Object { $_.SideIndicator -eq '<=' }
+                            $MissingSYSVOLGPOs = Compare-Object $GPOPoliciesADSI $SYSVOLGPOList -PassThru | Where-Object { $_.SideIndicator -eq '<=' }
+                        }
+
                         $OrphanGPOs += $MissingADGPOs
                         $OrphanGPOs += $MissingSYSVOLGPOs
                         if ($OrphanGPOs) {
