@@ -125,7 +125,6 @@ function Get-AbrADSiteReplication {
                     } else { $ErrorMessage = $_.Exception.MessageId }
                     Write-PScriboMessage -IsWarning "Replication Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                 }
-                # $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ActiveDirectoryReplicationStatus'
                 if ($DCPssSession) {
                     $RepStatus = Invoke-Command -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }
                 }

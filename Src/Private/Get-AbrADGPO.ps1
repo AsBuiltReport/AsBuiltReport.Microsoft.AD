@@ -202,7 +202,6 @@ function Get-AbrADGPO {
                                 } else {$ErrorMessage = $_.Exception.MessageId}
                                 Write-PScriboMessage -IsWarning "Wmi Filters Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
-                            # $DCPssSession = New-PSSession -ComputerName $DC -Name "WmiFilters" -Credential $Credential -Authentication $Options.PSDefaultAuthentication
                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                             if ($DCPssSession) {
                                 $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
@@ -555,7 +554,6 @@ function Get-AbrADGPO {
                             } else {$ErrorMessage = $_.Exception.MessageId}
                             Write-PScriboMessage -IsWarning "Orphaned GPO Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
-                        # $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO'
                         $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                         $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
                         $OrphanGPOs = @()

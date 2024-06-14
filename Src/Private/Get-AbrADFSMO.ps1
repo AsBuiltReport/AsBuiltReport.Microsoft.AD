@@ -39,7 +39,6 @@ function Get-AbrADFSMO {
                     } else { $ErrorMessage = $_.Exception.MessageId }
                     Write-PScriboMessage -IsWarning "FSMO Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                 }
-                # $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'FSMORoles' -ErrorAction SilentlyContinue
                 Section -Style Heading3 'FSMO Roles' {
                     if ($DCPssSession) { $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog }
                     $OutObj = @()

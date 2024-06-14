@@ -110,7 +110,6 @@ function Get-AbrADDFSHealth {
                     } else {$ErrorMessage = $_.Exception.MessageId}
                     Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                 }
-                # $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth' -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                 if ($DCPssSession) {
                     $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\SYSVOL\' + $using:Domain) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
@@ -178,7 +177,6 @@ function Get-AbrADDFSHealth {
                     } else {$ErrorMessage = $_.Exception.MessageId}
                     Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                 }
-                # $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth' -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                 if ($DCPssSession) {
                     $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {

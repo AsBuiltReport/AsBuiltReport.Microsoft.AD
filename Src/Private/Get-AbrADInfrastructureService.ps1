@@ -35,7 +35,6 @@ function Get-AbrADInfrastructureService {
                 } else { $ErrorMessage = $_.Exception.MessageId }
                 Write-PScriboMessage -IsWarning "Domain Controller Infrastructure Services Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
             }
-            # $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerInfrastructureServices'
             if ($DCPssSession) {
                 $Available = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-Service "W32Time" | Select-Object DisplayName, Name, Status }
             }

@@ -27,8 +27,7 @@ function Get-AbrADSite {
             $Site = Invoke-Command -Session $TempPssSession { Get-ADReplicationSite -Filter * -Properties * }
             if ($Site) {
                 Section -Style Heading3 'Replication' {
-                    Paragraph "Replication is the process of transferring and updating Active Directory objects between
-                    domain controllers in the Active Directory domain and forest. The folowing setion details Active Directory replication and it´s relationships."
+                    Paragraph "Replication is the process of transferring and updating Active Directory objects between domain controllers in the Active Directory domain and forest. The folowing setion details Active Directory replication and it's relationships."
                     BlankLine
                     Section -Style Heading4 'Sites' {
                         $OutObj = @()
@@ -219,7 +218,6 @@ function Get-AbrADSite {
                                                             } else { $ErrorMessage = $_.Exception.MessageId }
                                                             Write-PScriboMessage -IsWarning "Missing Subnet in AD Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                                                         }
-                                                        # $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'MissingSubnetinAD'
                                                         $Path = "\\$DC\admin`$\debug\netlogon.log"
                                                         if ((Invoke-Command -Session $DCPssSession { Test-Path -Path $using:path }) -and (Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0 })) {
                                                             $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path)[-200..-1] }
