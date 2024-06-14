@@ -353,7 +353,7 @@ function Get-AbrADDomainObject {
                                 }
                                 if ($GroupsSID) {
                                     if ($InfoLevel.Domain -eq 1) {
-                                        Paragraph "The following section summarizes the counts of users within the privileged groups. (Empty group are excluded)"
+                                        Paragraph "The following section summarizes the counts of users within the privileged groups."
                                         BlankLine
                                         foreach ($GroupSID in $GroupsSID) {
                                             try {
@@ -604,6 +604,73 @@ function Get-AbrADDomainObject {
 
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Groups Objects Section)"
+                        }
+                    }
+                    if ($HealthCheck.Domain.BestPractice) {
+                        try {
+                            $OutObj = @()
+                            # Loop through each parent group
+                            ForEach ($Parent in $GroupOBj) {
+                                [int]$Len = 0
+                                # Create an array of the group members, limited to sub-groups (not users)
+                                $Children = @(
+                                    Invoke-Command -Session $TempPssSession -ErrorAction SilentlyContinue { Get-ADGroupMember -Server $using:DC -Identity ($using:Parent).Name | Where-Object { $_.objectClass -eq "group" } }
+                                )
+
+                                $Len = @($Children).Count
+
+                                if ($Len -gt 0) {
+                                    ForEach ($Child in $Children) {
+                                        # Now find any member of $Child which is also the childs $Parent
+                                        $nestedGroup = @(
+                                            Invoke-Command -Session $TempPssSession -ErrorAction SilentlyContinue { Get-ADGroupMember -Server $using:DC -Identity ($using:Child).Name | Where-Object { $_.objectClass -eq "group" -and ($_.Name -eq ($using:Parent).Name) } }
+                                        )
+
+                                        $NestCount = @($nestedGroup).Count
+
+                                        if ($NestCount -gt 0) {
+                                            try {
+                                                $inObj = [ordered] @{
+                                                    'Parent Group Name' = $nestedGroup.Name
+                                                    'Child Group Name' = $Child.Name
+                                                }
+                                                $OutObj += [pscustomobject]$inobj
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Circular Group Membership Table)"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if ($OutObj) {
+                                Section -Style Heading5 'Circular Group Membership' {
+                                    Paragraph "If an Active Directory (AD) group has another AD group as both its parent and as a child member you have a circular nested reference."
+                                    BlankLine
+                                    Paragraph "Why would that matter?"
+                                    BlankLine
+                                    Paragraph "There is no technical reason preventing the use of circular references between AD groups, Active Directory can still calculate and grant access. The main reason that circular references are considered harmful is that they tend to make management more difficult."
+                                    BlankLine
+                                    $TableParams = @{
+                                        Name = "Circular Group Membership - $($Domain.ToString().ToUpper())"
+                                        List = $false
+                                        ColumnWidths = 50, 50
+                                    }
+
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Sort-Object -Property 'Parent Group Name' | Table @TableParams
+                                    Paragraph "Health Check:" -Bold -Underline
+                                    BlankLine
+                                    Paragraph {
+                                        Text "Best Practice:" -Bold
+                                        Text "In a well structured Active Directory every group will have a single purpose, ideally with people and resources in separate groups and following a clear hierarchy. If the personnel group is a member of the color_printing group and the color_printing group is also a member of the personnel group, then neither group has a single clear purpose, both groups are now granting two permissions. Circular references are often the cause of unintended privilege escalation."
+                                    }
+                                }
+                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Circular Group Membership Section)"
                         }
                     }
                 }
