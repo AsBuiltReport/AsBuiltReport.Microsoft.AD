@@ -651,6 +651,9 @@ function Get-AbrADDomainObject {
                                     BlankLine
                                     Paragraph "There is no technical reason preventing the use of circular references between AD groups, Active Directory can still calculate and grant access. The main reason that circular references are considered harmful is that they tend to make management more difficult."
                                     BlankLine
+
+                                    $OutObj | Set-Style -Style Warning
+
                                     $TableParams = @{
                                         Name = "Circular Group Membership - $($Domain.ToString().ToUpper())"
                                         List = $false
@@ -942,7 +945,7 @@ function Get-AbrADDomainObject {
                                 }
                                 $OutObj += [pscustomobject]$inobj
 
-                                if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge -gt 90)) {
+                                if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
                                     $OutObj | Set-Style -Style Warning -Property 'Maximun Password Age'
                                 }
 
@@ -956,7 +959,7 @@ function Get-AbrADDomainObject {
                                 }
                                 $OutObj | Table @TableParams
 
-                                if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge -gt 90)) {
+                                if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
                                     Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
                                     Paragraph {
