@@ -774,37 +774,41 @@ function Get-AbrADDomainObject {
                     Write-PScriboMessage -IsWarning $($_.Exception.Message)
                 }
                 try {
-                    $ComputerObjects = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { PasswordNotRequired -eq $true } -Properties Name, DistinguishedName, Enabled }
-                    if ($ComputerObjects) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers with Password-Not-Required Attribute Set' {
-                            $OutObj = @()
-                            try {
-                                foreach ($ComputerObject in $ComputerObjects) {
-                                    $inObj = [ordered] @{
-                                        'Computer Name' = $ComputerObject.Name
-                                        'Distinguished Name' = $ComputerObject.DistinguishedName
-                                        'Enabled' = ConvertTo-TextYN $ComputerObject.Enabled
+                    if ($HealthCheck.Domain.Security) {
+                        $ComputerObjects = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { PasswordNotRequired -eq $true } -Properties Name, DistinguishedName, Enabled }
+                        if ($ComputerObjects) {
+                            Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers with Password-Not-Required Attribute Set' {
+                                $OutObj = @()
+                                try {
+                                    foreach ($ComputerObject in $ComputerObjects) {
+                                        $inObj = [ordered] @{
+                                            'Computer Name' = $ComputerObject.Name
+                                            'Distinguished Name' = $ComputerObject.DistinguishedName
+                                            'Enabled' = ConvertTo-TextYN $ComputerObject.Enabled
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
                                     }
-                                    $OutObj += [pscustomobject]$inobj
-                                }
 
-                                $TableParams = @{
-                                    Name = "Computers with Password-Not-Required - $($Domain.ToString().ToUpper())"
-                                    List = $false
-                                    ColumnWidths = 30, 58, 12
+                                    $OutObj | Set-Style -Style Warning
+
+                                    $TableParams = @{
+                                        Name = "Computers with Password-Not-Required - $($Domain.ToString().ToUpper())"
+                                        List = $false
+                                        ColumnWidths = 30, 58, 12
+                                    }
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Sort-Object -Property 'Computer Name' |  Table @TableParams
+                                    Paragraph "Health Check:" -Bold -Underline
+                                    BlankLine
+                                    Paragraph {
+                                        Text "Security Best Practice:" -Bold
+                                        Text "Ensure there aren't any computer account with weak security posture."
+                                    }
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers with Password-Not-Required table)"
                                 }
-                                if ($Report.ShowTableCaptions) {
-                                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                                }
-                                $OutObj | Sort-Object -Property 'Computer Name' |  Table @TableParams
-                                Paragraph "Health Check:" -Bold -Underline
-                                BlankLine
-                                Paragraph {
-                                    Text "Security Best Practice:" -Bold
-                                    Text "Ensure there aren't any computer account with weak security posture."
-                                }
-                            } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers with Password-Not-Required table)"
                             }
                         }
                     }

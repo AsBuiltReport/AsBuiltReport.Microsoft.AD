@@ -43,9 +43,9 @@ function Get-AbrADDFSHealth {
                                 $inObj = [ordered] @{
                                     'DC Name' = $DCStatus.DomainController
                                     'Replication Status' = Switch ([string]::IsNullOrEmpty($DCStatus.ReplicationState)) {
-                                        $true {"Unknown"}
-                                        $false {$DCStatus.ReplicationState}
-                                        default {"--"}
+                                        $true { "Unknown" }
+                                        $false { $DCStatus.ReplicationState }
+                                        default { "--" }
                                     }
                                     'GPO Count' = $DCStatus.GroupPolicyCount
                                     'Sysvol Count' = $DCStatus.SysvolCount
@@ -104,7 +104,13 @@ function Get-AbrADDFSHealth {
             }
             try {
                 $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
-                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth'
+                $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth' -ErrorAction Stop } catch {
+                    if (-Not $_.Exception.MessageId) {
+                        $ErrorMessage = $_.FullyQualifiedErrorId
+                    } else {$ErrorMessage = $_.Exception.MessageId}
+                    Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                }
+                # $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth' -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                 if ($DCPssSession) {
                     $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\SYSVOL\' + $using:Domain) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
@@ -166,7 +172,13 @@ function Get-AbrADDFSHealth {
             }
             try {
                 $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
-                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth'
+                $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth' -ErrorAction Stop } catch {
+                    if (-Not $_.Exception.MessageId) {
+                        $ErrorMessage = $_.FullyQualifiedErrorId
+                    } else {$ErrorMessage = $_.Exception.MessageId}
+                    Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                }
+                # $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth' -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                 if ($DCPssSession) {
                     $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
