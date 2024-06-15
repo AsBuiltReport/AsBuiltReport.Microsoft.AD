@@ -32,7 +32,7 @@
 
 Microsoft AD As Built Report is a PowerShell module which works in conjunction with [AsBuiltReport.Core](https://github.com/AsBuiltReport/AsBuiltReport.Core).
 
-[AsBuiltReport](https://github.com/AsBuiltReport/AsBuiltReport) is an open-sourced community project which utilises PowerShell to produce as-built documentation in multiple document formats for multiple vendors and technologies.
+[AsBuiltReport](https://github.com/AsBuiltReport/AsBuiltReport) is an open-sourced community project which utilizes PowerShell to produce as-built documentation in multiple document formats for multiple vendors and technologies.
 
 Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for more detailed information about this project.
 
@@ -178,20 +178,22 @@ The **InfoLevel** schema allows configuration of each section of the report at a
 
 There are 4 levels (0-3) of detail granularity for each section as follows;
 
-| Setting | InfoLevel   | Description                                                          |
-| :-----: | ----------- | -------------------------------------------------------------------- |
-|    0    | Disabled    | Does not collect or display any information                          |
-|    1    | Enabled     | Provides summarised information for a collection of objects          |
-|    2    | Adv Summary | Provides condensed, detailed information for a collection of objects |
-|    3    | Detailed    | Provides detailed information for individual objects                 |
+| Setting | InfoLevel    | Description                                                                                         |
+| :-----: | ------------ | --------------------------------------------------------------------------------------------------- |
+|    0    | Disabled     | Does not collect or display any information                                                         |
+|    1    | Enabled      | Provides summarized information for a collection of objects                                         |
+|    2    | Adv Summary  | Provides condensed, detailed information for a collection of objects                                |
+|    3    | Detailed     | Provides detailed information for individual objects                                                |
+|    4    | Adv Detailed | Provides detailed information for individual objects, as well as information for associated objects |
+
 
 The table below outlines the default and maximum **InfoLevel** settings for each section.
 
 | Sub-Schema | Default Setting | Maximum Setting |
 | ---------- | :-------------: | :-------------: |
-| Forest     |        1        |        1        |
-| Domain     |        1        |        3        |
-| DNS        |        0        |        2        |
+| Forest     |        2        |        1        |
+| Domain     |        2        |        4        |
+| DNS        |        1        |        2        |
 | CA         |        0        |        3        |
 
 ### Healthcheck
