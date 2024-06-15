@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -119,8 +119,15 @@ function Get-AbrADSiteReplication {
         try {
             if ($HealthCheck.Site.Replication) {
                 $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
-                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ActiveDirectoryReplicationStatus'
-                $RepStatus = Invoke-Command -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }
+                $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ActiveDirectoryReplicationStatus' -ErrorAction Stop } catch {
+                    if (-Not $_.Exception.MessageId) {
+                        $ErrorMessage = $_.FullyQualifiedErrorId
+                    } else { $ErrorMessage = $_.Exception.MessageId }
+                    Write-PScriboMessage -IsWarning "Replication Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                }
+                if ($DCPssSession) {
+                    $RepStatus = Invoke-Command -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }
+                }
                 if ($RepStatus) {
                     Section -Style Heading4 'Replication Status' {
                         $OutObj = @()

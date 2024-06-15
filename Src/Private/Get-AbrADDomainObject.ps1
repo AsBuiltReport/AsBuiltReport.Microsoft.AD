@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,6 +32,7 @@ function Get-AbrADDomainObject {
             Paragraph "The following section details information about computers, groups and users objects found in $($Domain) "
             try {
                 try {
+                    $script:DomainSID = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).domainsid.Value }
                     $ADLimitedProperties = @("Name", "Enabled", "SAMAccountname", "DisplayName", "Enabled", "LastLogonDate", "PasswordLastSet", "PasswordNeverExpires", "PasswordNotRequired", "PasswordExpired", "SmartcardLogonRequired", "AccountExpirationDate", "AdminCount", "Created", "Modified", "LastBadPasswordAttempt", "badpwdcount", "mail", "CanonicalName", "DistinguishedName", "ServicePrincipalName", "SIDHistory", "PrimaryGroupID", "UserAccountControl", "CannotChangePassword", "PwdLastSet", "LockedOut", "TrustedForDelegation", "TrustedtoAuthForDelegation", "msds-keyversionnumber", "SID", "AccountNotDelegated", "EmailAddress")
                     $script:DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                     $script:Computers = Invoke-Command -Session $TempPssSession { (Get-ADComputer -ResultPageSize 1000 -Server $using:DC -Filter * -Properties Enabled, OperatingSystem, lastlogontimestamp, PasswordLastSet, SIDHistory -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
@@ -39,6 +40,9 @@ function Get-AbrADDomainObject {
                     $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:DC -Filter * -Property $using:ADLimitedProperties -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
                     $script:PrivilegedUsers = $Users | Where-Object { $_.AdminCount -eq 1 }
                     $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
+                    $excludedDomainGroupsBySID = @("$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
+                    $excludedForestGroupsBySID = ($GroupOBj | Where-Object { $_.SID -like 'S-1-5-32-*' }).SID
+                    $AdminGroupsBySID = "S-1-5-32-552", "$DomainSID-527", "$DomainSID-521", "$DomainSID-516", "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
                     $script:DomainController = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter *) | Select-Object name | Measure-Object }
                     $script:GC = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name | Measure-Object }
 
@@ -67,7 +71,7 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-
+                            # Chart Section
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
 
                             $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'UsersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'UsersObject' -ChartTitleText 'User Objects' -ReversePalette $True
@@ -168,7 +172,7 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-
+                            # Chart Section
                             $sampleData = $OutObj
 
                             $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofUsersAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofUsersAccounts' -ChartTitleText 'Status of Users Accounts' -ReversePalette $True
@@ -247,7 +251,7 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-
+                            # Chart Section
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
 
                             $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'GroupCategoryObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'GroupCategoryObject' -ChartTitleText 'Group Categories' -ReversePalette $True
@@ -284,7 +288,7 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-
+                            # Chart Section
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
 
                             $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'GroupCategoryObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'GroupScopesObject' -ChartTitleText 'Group Scopes' -ReversePalette $True
@@ -338,19 +342,18 @@ function Get-AbrADDomainObject {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Groups Objects Section)"
                         }
                     }
-                    Section -Style Heading5 'Privileged Groups' {
+                    Section -Style Heading5 'Privileged Groups (Built-in)' {
                         $OutObj = @()
                         if ($Domain) {
                             try {
-                                $DomainSID = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).domainsid.Value }
                                 if ($Domain -eq $ADSystem.Name) {
-                                    $GroupsSID = "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518"
+                                    $GroupsSID = "", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
                                 } else {
-                                    $GroupsSID = "$DomainSID-512", 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548'
+                                    $GroupsSID = "$DomainSID-512", 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', 'S-1-5-32-578'
                                 }
                                 if ($GroupsSID) {
                                     if ($InfoLevel.Domain -eq 1) {
-                                        Paragraph "The following session summarizes the counts of users within the privileged groups."
+                                        Paragraph "The following section summarizes the counts of users within the privileged groups."
                                         BlankLine
                                         foreach ($GroupSID in $GroupsSID) {
                                             try {
@@ -416,7 +419,7 @@ function Get-AbrADDomainObject {
                                             }
                                         }
                                     } else {
-                                        Paragraph "The following session details the members users within the privilege groups."
+                                        Paragraph "The following section details the members users within the privilege groups. (Empty group are excluded)"
                                         BlankLine
                                         foreach ($GroupSID in $GroupsSID) {
                                             try {
@@ -516,6 +519,163 @@ function Get-AbrADDomainObject {
                             }
                         }
                     }
+                    if ($HealthCheck.Domain.BestPractice) {
+                        try {
+                            $AdminGroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter "admincount -eq '1'" -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
+                            if ($AdminGroupOBj) {
+                                $OutObj = @()
+                                foreach ($Group in $AdminGroupOBj) {
+                                    if ($Group.SID -notin $AdminGroupsBySID) {
+                                        try {
+                                            $inObj = [ordered] @{
+                                                'Group Name' = $Group.Name
+                                                'Group SID' = $Group.SID
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group (Non-Default) Table)"
+                                        }
+                                    }
+                                }
+
+                                $TableParams = @{
+                                    Name = "Privileged Group (Non-Default) - $($Domain.ToString().ToUpper())"
+                                    List = $false
+                                    ColumnWidths = 50, 50
+                                }
+
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                if ($OutObj) {
+                                    Section -Style Heading5 'Privileged Group (Non-Default)' {
+                                        Paragraph "The following section summarizes the privileged groups with AdminCount set to 1 (non-defaults)."
+                                        BlankLine
+                                        $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
+                                        Paragraph "Health Check:" -Bold -Underline
+                                        BlankLine
+                                        Paragraph {
+                                            Text "Best Practice:" -Bold
+                                            Text "Regularly validate and remove unneeded privileged group members in Active Directory."
+                                        }
+                                    }
+                                }
+                            }
+
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group (Non-Default) Section)"
+                        }
+                    }
+                    if ($HealthCheck.Domain.BestPractice -and ($GroupOBj | Where-Object { -Not $_.Members })) {
+                        try {
+                            Section -Style Heading5 'Empty Groups (Non-Default)' {
+                                $OutObj = @()
+                                foreach ($Group in ($GroupOBj | Where-Object { -Not $_.Members }) ) {
+                                    if ($Group.SID -notin $excludedForestGroupsBySID -and $Group.SID -notin $excludedDomainGroupsBySID ) {
+                                        try {
+                                            $inObj = [ordered] @{
+                                                'Group Name' = $Group.Name
+                                                'Group SID' = $Group.SID
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Groups Objects Table)"
+                                        }
+                                    }
+                                }
+
+                                $TableParams = @{
+                                    Name = "Empty Groups - $($Domain.ToString().ToUpper())"
+                                    List = $false
+                                    ColumnWidths = 50, 50
+                                }
+
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
+                                Paragraph "Health Check:" -Bold -Underline
+                                BlankLine
+                                Paragraph {
+                                    Text "Best Practice:" -Bold
+                                    Text "Remove empty or unused Active Directory Groups. An empty Active Directory security group causes two major problems. First, they add unnecessary clutter and make active directory administration difficult, even when paired with user friendly Active Directory tools. The second and most important point to note is that empty groups are a security risk to your network."
+                                }
+                            }
+
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Groups Objects Section)"
+                        }
+                    }
+                    if ($HealthCheck.Domain.BestPractice) {
+                        try {
+                            $OutObj = @()
+                            # Loop through each parent group
+                            ForEach ($Parent in $GroupOBj) {
+                                [int]$Len = 0
+                                # Create an array of the group members, limited to sub-groups (not users)
+                                $Children = @(
+                                    Invoke-Command -Session $TempPssSession -ErrorAction SilentlyContinue { Get-ADGroupMember -Server $using:DC -Identity ($using:Parent).Name | Where-Object { $_.objectClass -eq "group" } }
+                                )
+
+                                $Len = @($Children).Count
+
+                                if ($Len -gt 0) {
+                                    ForEach ($Child in $Children) {
+                                        # Now find any member of $Child which is also the childs $Parent
+                                        $nestedGroup = @(
+                                            Invoke-Command -Session $TempPssSession -ErrorAction SilentlyContinue { Get-ADGroupMember -Server $using:DC -Identity ($using:Child).Name | Where-Object { $_.objectClass -eq "group" -and ($_.Name -eq ($using:Parent).Name) } }
+                                        )
+
+                                        $NestCount = @($nestedGroup).Count
+
+                                        if ($NestCount -gt 0) {
+                                            try {
+                                                $inObj = [ordered] @{
+                                                    'Parent Group Name' = $nestedGroup.Name
+                                                    'Child Group Name' = $Child.Name
+                                                }
+                                                $OutObj += [pscustomobject]$inobj
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Circular Group Membership Table)"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if ($OutObj) {
+                                Section -Style Heading5 'Circular Group Membership' {
+                                    Paragraph "If an Active Directory (AD) group has another AD group as both its parent and as a child member you have a circular nested reference."
+                                    BlankLine
+                                    Paragraph "Why would that matter?"
+                                    BlankLine
+                                    Paragraph "There is no technical reason preventing the use of circular references between AD groups, Active Directory can still calculate and grant access. The main reason that circular references are considered harmful is that they tend to make management more difficult."
+                                    BlankLine
+
+                                    $OutObj | Set-Style -Style Warning
+
+                                    $TableParams = @{
+                                        Name = "Circular Group Membership - $($Domain.ToString().ToUpper())"
+                                        List = $false
+                                        ColumnWidths = 50, 50
+                                    }
+
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Sort-Object -Property 'Parent Group Name' | Table @TableParams
+                                    Paragraph "Health Check:" -Bold -Underline
+                                    BlankLine
+                                    Paragraph {
+                                        Text "Best Practice:" -Bold
+                                        Text "In a well structured Active Directory every group will have a single purpose, ideally with people and resources in separate groups and following a clear hierarchy. If the personnel group is a member of the color_printing group and the color_printing group is also a member of the personnel group, then neither group has a single clear purpose, both groups are now granting two permissions. Circular references are often the cause of unintended privilege escalation."
+                                    }
+                                }
+                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Circular Group Membership Section)"
+                        }
+                    }
                 }
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
@@ -524,8 +684,8 @@ function Get-AbrADDomainObject {
                 try {
                     $OutObj = @()
                     $inObj = [ordered] @{
-                        'Computers' = $Computers.Count
-                        'Servers' = $Servers.Count
+                        'Computers' = ($Computers | Measure-Object).Count
+                        'Servers' = ($Servers | Measure-Object).Count
                     }
                     $OutObj += [pscustomobject]$inobj
 
@@ -538,6 +698,7 @@ function Get-AbrADDomainObject {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     try {
+                        # Chart Section
                         $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
 
                         $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'ComputersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'ComputersObject' -ChartTitleText 'Computers Count' -ReversePalette $True
@@ -614,6 +775,7 @@ function Get-AbrADDomainObject {
                         }
 
                         try {
+                            # Chart Section
                             $sampleData = $OutObj
 
                             $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofComputerAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofComputerAccounts' -ChartTitleText 'Status of Computers Accounts' -ReversePalette $True
@@ -681,6 +843,48 @@ function Get-AbrADDomainObject {
                 } catch {
                     Write-PScriboMessage -IsWarning $($_.Exception.Message)
                 }
+                try {
+                    if ($HealthCheck.Domain.Security) {
+                        $ComputerObjects = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { PasswordNotRequired -eq $true } -Properties Name, DistinguishedName, Enabled }
+                        if ($ComputerObjects) {
+                            Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers with Password-Not-Required Attribute Set' {
+                                $OutObj = @()
+                                try {
+                                    foreach ($ComputerObject in $ComputerObjects) {
+                                        $inObj = [ordered] @{
+                                            'Computer Name' = $ComputerObject.Name
+                                            'Distinguished Name' = $ComputerObject.DistinguishedName
+                                            'Enabled' = ConvertTo-TextYN $ComputerObject.Enabled
+                                        }
+                                        $OutObj += [pscustomobject]$inobj
+                                    }
+
+                                    $OutObj | Set-Style -Style Warning
+
+                                    $TableParams = @{
+                                        Name = "Computers with Password-Not-Required - $($Domain.ToString().ToUpper())"
+                                        List = $false
+                                        ColumnWidths = 30, 58, 12
+                                    }
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Sort-Object -Property 'Computer Name' |  Table @TableParams
+                                    Paragraph "Health Check:" -Bold -Underline
+                                    BlankLine
+                                    Paragraph {
+                                        Text "Security Best Practice:" -Bold
+                                        Text "Ensure there aren't any computer account with weak security posture."
+                                    }
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers with Password-Not-Required table)"
+                                }
+                            }
+                        }
+                    }
+                } catch {
+                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers with Password-Not-Required section)"
+                }
                 if ($InfoLevel.Domain -ge 4) {
                     try {
                         Section -Style Heading4 'Computers Inventory' {
@@ -692,9 +896,9 @@ function Get-AbrADDomainObject {
                                         'DNS HostName' = ConvertTo-EmptyToFiller $Computer.DNSHostName
                                         'Operating System' = ConvertTo-EmptyToFiller $Computer.operatingSystem
                                         'Status' = Switch ($Computer.Enabled) {
-                                            'True' {'Enabled'}
-                                            'False' {'Disabled'}
-                                            default {'Unknown'}
+                                            'True' { 'Enabled' }
+                                            'False' { 'Disabled' }
+                                            default { 'Unknown' }
                                         }
                                     }
                                     $OutObj += [pscustomobject]$inobj
@@ -741,7 +945,7 @@ function Get-AbrADDomainObject {
                                 }
                                 $OutObj += [pscustomobject]$inobj
 
-                                if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge -gt 90)) {
+                                if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
                                     $OutObj | Set-Style -Style Warning -Property 'Maximun Password Age'
                                 }
 
@@ -755,7 +959,7 @@ function Get-AbrADDomainObject {
                                 }
                                 $OutObj | Table @TableParams
 
-                                if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge -gt 90)) {
+                                if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
                                     Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
                                     Paragraph {
@@ -847,24 +1051,24 @@ function Get-AbrADDomainObject {
                     foreach ($Item in $Domain) {
                         $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                         $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
-                        $LAPS = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:DCPDC "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:DomainInfo).DistinguishedName)" } | Sort-Object -Property Name
-                        Section -Style Heading3 'Windows LAPS ' {
+                        $LAPS = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Server $using:DCPDC "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:DomainInfo).DistinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
+                        Section -Style Heading3 'Microsoft LAPS ' {
                             $LAPSInfo = @()
                             try {
                                 $inObj = [ordered] @{
-                                    'Name' = $LAPS.Name
+                                    'Name' = 'Local Administrator Password Solution'
                                     'Domain Name' = $Item
                                     'Enabled' = Switch ($LAPS.Count) {
                                         0 { 'No' }
                                         default { 'Yes' }
                                     }
-                                    'Distinguished Name' = $LAPS.DistinguishedName
+                                    'Distinguished Name' = ConvertTo-EmptyToFiller $LAPS.DistinguishedName
 
                                 }
                                 $LAPSInfo += [pscustomobject]$inobj
 
                                 if ($HealthCheck.Domain.Security) {
-                                    $LAPSInfo | Where-Object { $_.'Enabled' -eq 'No' } | Set-Style -Style Warning
+                                    $LAPSInfo | Where-Object { $_.'Enabled' -eq 'No' } | Set-Style -Style Warning -Property 'Enabled'
                                 }
 
                             } catch {
@@ -874,7 +1078,7 @@ function Get-AbrADDomainObject {
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($LAP in $LAPSInfo) {
                                     $TableParams = @{
-                                        Name = "Windows LAPS - $($Domain.ToString().ToUpper())"
+                                        Name = "Microsoft LAPS - $($Domain.ToString().ToUpper())"
                                         List = $true
                                         ColumnWidths = 40, 60
                                     }
@@ -885,7 +1089,7 @@ function Get-AbrADDomainObject {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Windows LAPS -  $($Domain.ToString().ToUpper())"
+                                    Name = "Microsoft LAPS -  $($Domain.ToString().ToUpper())"
                                     List = $false
                                     Columns = 'Name', 'Domain Name', 'Enabled'
                                     ColumnWidths = 34, 33, 33

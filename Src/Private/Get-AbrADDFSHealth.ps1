@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -43,9 +43,9 @@ function Get-AbrADDFSHealth {
                                 $inObj = [ordered] @{
                                     'DC Name' = $DCStatus.DomainController
                                     'Replication Status' = Switch ([string]::IsNullOrEmpty($DCStatus.ReplicationState)) {
-                                        $true {"Unknown"}
-                                        $false {$DCStatus.ReplicationState}
-                                        default {"--"}
+                                        $true { "Unknown" }
+                                        $false { $DCStatus.ReplicationState }
+                                        default { "--" }
                                     }
                                     'GPO Count' = $DCStatus.GroupPolicyCount
                                     'Sysvol Count' = $DCStatus.SysvolCount
@@ -104,14 +104,21 @@ function Get-AbrADDFSHealth {
             }
             try {
                 $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
-                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth'
+                $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth' -ErrorAction Stop } catch {
+                    if (-Not $_.Exception.MessageId) {
+                        $ErrorMessage = $_.FullyQualifiedErrorId
+                    } else {$ErrorMessage = $_.Exception.MessageId}
+                    Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                }
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
-                $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\SYSVOL\' + $using:Domain) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
-                        New-Object -TypeName PSObject -Property @{
-                            'Extension' = $_.name
-                            'Count' = $_.count
-                            'TotalSize' = '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) / 1MB)
-                        } } | Sort-Object -Descending -Property 'Totalsize' }
+                if ($DCPssSession) {
+                    $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\SYSVOL\' + $using:Domain) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
+                            New-Object -TypeName PSObject -Property @{
+                                'Extension' = $_.name
+                                'Count' = $_.count
+                                'TotalSize' = '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) / 1MB)
+                            } } | Sort-Object -Descending -Property 'Totalsize' }
+                }
                 if ($SYSVOLFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Content Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) sysvol health status."
@@ -164,14 +171,21 @@ function Get-AbrADDFSHealth {
             }
             try {
                 $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
-                $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth'
+                $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth' -ErrorAction Stop } catch {
+                    if (-Not $_.Exception.MessageId) {
+                        $ErrorMessage = $_.FullyQualifiedErrorId
+                    } else {$ErrorMessage = $_.Exception.MessageId}
+                    Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                }
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
-                $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
-                        New-Object -TypeName PSObject -Property @{
-                            'Extension' = $_.name
-                            'Count' = $_.count
-                            'TotalSize' = '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) / 1MB)
-                        } } | Sort-Object -Descending -Property 'Totalsize' }
+                if ($DCPssSession) {
+                    $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
+                            New-Object -TypeName PSObject -Property @{
+                                'Extension' = $_.name
+                                'Count' = $_.count
+                                'TotalSize' = '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) / 1MB)
+                            } } | Sort-Object -Descending -Property 'Totalsize' }
+                }
                 if ($NetlogonFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Netlogon Content Status' {
                         Paragraph "The following section details domain $($Domain.ToString().ToUpper()) netlogon health status."
@@ -220,7 +234,7 @@ function Get-AbrADDFSHealth {
                     Remove-PSSession -Session $DCPssSession
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "Sysvol Health Section: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning "Netlogon Content Status Section: $($_.Exception.Message)"
             }
         }
     }

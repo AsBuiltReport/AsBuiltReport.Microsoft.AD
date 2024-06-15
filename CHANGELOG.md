@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2024-06-15
+
+### Added
+
+- Add Diagrammer.Core to the module RequiredModules list
+
+### Changed
+
+- Improve the code to better handle errors
+- Update the Eomm/why-don-t-you-tweet action to v2.0.0
+- Increase the default InfoLevel for the Forest and Domain section (InfoLevel 2)
+- Enable DNS section by default (InfoLevel 1)
+
+### Fixed
+
+- Fix [#160](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/160)
+- Fix [#168](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/168)
+- Fix [#171](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/171)
+- Fix [#172](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/172)
+- Fix [#174](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/174)
+- Fix [#176](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/176)
+- Fix [#178](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/178)
+- Fix [#180](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/180)
+
 ## [0.8.1] - 2024-05-16
 
 ### Added

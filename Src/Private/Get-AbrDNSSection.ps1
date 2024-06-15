@@ -5,7 +5,7 @@ function Get-AbrDNSSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrDNSSection {
                     Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
                     BlankLine
                 }
-                if (!$Options.ShowDefinitionInfo) {
+                if (-Not $Options.ShowDefinitionInfo) {
                     Paragraph "The following section provides a summary of the Active Directory DNS Infrastructure Information."
                     BlankLine
                 }
@@ -51,11 +51,7 @@ function Get-AbrDNSSection {
                                     $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } }
                                     foreach ($DC in $DCs) {
                                         if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
-                                            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DDNSInfrastructure'
                                             Get-AbrADDNSZone -Domain $Domain -DC $DC
-                                        }
-                                        if ($DCPssSession) {
-                                            Remove-PSSession -Session $DCPssSession
                                         }
                                     }
                                 }

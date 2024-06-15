@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.8.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,12 +29,19 @@ function Get-AbrADDCRoleFeature {
 
     process {
         try {
-            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ADDCRoleFeature'
+            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ADDCRoleFeature' -ErrorAction Stop } catch {
+                if (-Not $_.Exception.MessageId) {
+                    $ErrorMessage = $_.FullyQualifiedErrorId
+                } else {$ErrorMessage = $_.Exception.MessageId}
+                Write-PScriboMessage -IsWarning "Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+            }
             if ($DCPssSession) {
+                $Features = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq "True" -and $_.FeatureType -eq 'Role' } }
+                Remove-PSSession -Session $DCPssSession
+            }
+            if ($Features) {
                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                     $OutObj = @()
-                    $Features = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq "True" -and $_.FeatureType -eq 'Role' } }
-                    Remove-PSSession -Session $DCPssSession
                     foreach ($Feature in $Features) {
                         try {
                             $inObj = [ordered] @{

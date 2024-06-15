@@ -1,10 +1,17 @@
 @{
     ExcludeRules = @(
         'PSUseBOMForUnicodeEncodedFile',
-        'PSUseToExportFieldsInManifest',
-        'PSReviewUnusedParameter',
-        'PSUseDeclaredVarsMoreThanAssignments',
-        'PSAvoidGlobalVars',
-        'PSAvoidUsingEmptyCatchBlock'
+        'PSUseToExportFieldsInManifest'
     )
+    Rules = @{
+        PSAvoidExclaimOperator = @{
+            Enable = $true
+        }
+        AvoidUsingDoubleQuotesForConstantString = @{
+            Enable = $true
+        }
+        UseCorrectCasing = @{
+            Enable = $true
+        }
+    }
 }
