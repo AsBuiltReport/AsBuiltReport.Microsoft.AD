@@ -27,9 +27,9 @@ function Get-AbrADSite {
             $Site = Invoke-Command -Session $TempPssSession { Get-ADReplicationSite -Filter * -Properties * }
             if ($Site) {
                 Section -Style Heading3 'Replication' {
-                    Paragraph "Replication is the process of transferring and updating Active Directory objects between
-                    domain controllers in the Active Directory domain and forest. The folowing setion details Active Directory replication and it´s relationships."
+                    Paragraph 'Replication is the process of transferring and updating Active Directory objects between domain controllers in the Active Directory domain and forest.'
                     BlankLine
+                    Paragraph "The folowing setion details Active Directory replication and it's relationships."
                     Section -Style Heading4 'Sites' {
                         $OutObj = @()
                         foreach ($Item in $Site) {
@@ -213,7 +213,12 @@ function Get-AbrADSite {
                                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
                                                 if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
                                                     try {
-                                                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'MissingSubnetinAD'
+                                                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'MissingSubnetinAD' -ErrorAction Stop } catch {
+                                                            if (-Not $_.Exception.MessageId) {
+                                                                $ErrorMessage = $_.FullyQualifiedErrorId
+                                                            } else { $ErrorMessage = $_.Exception.MessageId }
+                                                            Write-PScriboMessage -IsWarning "Missing Subnet in AD Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                                                        }
                                                         $Path = "\\$DC\admin`$\debug\netlogon.log"
                                                         if ((Invoke-Command -Session $DCPssSession { Test-Path -Path $using:path }) -and (Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0 })) {
                                                             $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path)[-200..-1] }
@@ -302,7 +307,7 @@ function Get-AbrADSite {
                     }
                     try {
                         $DomainDN = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
-                        $InterSiteTransports = try {Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Filter { (objectClass -eq "interSiteTransport") } -SearchBase "CN=Inter-Site Transports,CN=Sites,CN=Configuration,$using:DomainDN" -Properties * }} catch {Out-Null}
+                        $InterSiteTransports = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Filter { (objectClass -eq "interSiteTransport") } -SearchBase "CN=Inter-Site Transports,CN=Sites,CN=Configuration,$using:DomainDN" -Properties * } } catch { Out-Null }
                         if ($InterSiteTransports) {
                             Section -Style Heading4 'Inter-Site Transports' {
                                 Paragraph "Site links in Active Directory represent the inter-site connectivity and method used to transfer replication traffic.There are two transport protocols that can be used for replication via site links. The default protocol used in site link is IP, and it performs synchronous replication between available domain controllers. The SMTP method can be used when the link between sites is not reliable."
@@ -690,47 +695,51 @@ function Get-AbrADSite {
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
-                                if ((Test-Connection -ComputerName $DC -Quiet -Count 2) -and ($DCCIMSession = New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name "SysvolReplication")) {
-                                    $Replication = Get-CimInstance -CimSession $DCCIMSession -Namespace "root/microsoftdfs" -Class "dfsrreplicatedfolderinfo" -Filter "ReplicatedFolderName = 'SYSVOL Share'" -EA 0 -Verbose:$False | Select-Object State
+                                if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                    $DCCIMSession = try { New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name "SysvolReplication" -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "Sysvol Replication Section: New-CimSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
+
                                     if ($DCCIMSession) {
-                                        Remove-CimSession -CimSession $DCCIMSession
-                                    }
-
-                                    try {
-                                        $inObj = [ordered] @{
-                                            'DC Name' = $DC.split(".", 2)[0]
-                                            'Replication Status' = Switch ($Replication.State) {
-                                                0 { 'Uninitialized' }
-                                                1 { 'Initialized' }
-                                                2 { 'Initial synchronization' }
-                                                3 { 'Auto recovery' }
-                                                4 { 'Normal' }
-                                                5 { 'In error state' }
-                                                6 { 'Disabled' }
-                                                7 { 'Unknown' }
-                                            }
-                                            'Domain' = $Domain
+                                        $Replication = Get-CimInstance -CimSession $DCCIMSession -Namespace "root/microsoftdfs" -Class "dfsrreplicatedfolderinfo" -Filter "ReplicatedFolderName = 'SYSVOL Share'" -EA 0 -Verbose:$False | Select-Object State
+                                        if ($DCCIMSession) {
+                                            Remove-CimSession -CimSession $DCCIMSession
                                         }
-                                        $OutObj += [pscustomobject]$inobj
-                                    } catch {
-                                        Write-PScriboMessage -IsWarning "Sysvol Replication Item Section: $($_.Exception.Message)"
-                                    }
 
-                                    if ($HealthCheck.Site.BestPractice) {
-                                        $ReplicationStatusError = @(
-                                            'Uninitialized',
-                                            'Auto recovery',
-                                            'In error state',
-                                            'Disabled',
-                                            'Unknown'
-                                        )
-                                        $ReplicationStatusWarn = @(
-                                            'Initialized',
-                                            'Initial synchronization'
-                                        )
-                                        $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
-                                        $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError } | Set-Style -Style Critical -Property 'Replication Status'
-                                        $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property 'Replication Status'
+                                        try {
+                                            $inObj = [ordered] @{
+                                                'DC Name' = $DC.split(".", 2)[0]
+                                                'Replication Status' = Switch ($Replication.State) {
+                                                    0 { 'Uninitialized' }
+                                                    1 { 'Initialized' }
+                                                    2 { 'Initial synchronization' }
+                                                    3 { 'Auto recovery' }
+                                                    4 { 'Normal' }
+                                                    5 { 'In error state' }
+                                                    6 { 'Disabled' }
+                                                    7 { 'Unknown' }
+                                                }
+                                                'Domain' = $Domain
+                                            }
+                                            $OutObj += [pscustomobject]$inobj
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "Sysvol Replication Item Section: $($_.Exception.Message)"
+                                        }
+
+                                        if ($HealthCheck.Site.BestPractice) {
+                                            $ReplicationStatusError = @(
+                                                'Uninitialized',
+                                                'Auto recovery',
+                                                'In error state',
+                                                'Disabled',
+                                                'Unknown'
+                                            )
+                                            $ReplicationStatusWarn = @(
+                                                'Initialized',
+                                                'Initial synchronization'
+                                            )
+                                            $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
+                                            $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError } | Set-Style -Style Critical -Property 'Replication Status'
+                                            $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property 'Replication Status'
+                                        }
                                     }
                                 }
                             }

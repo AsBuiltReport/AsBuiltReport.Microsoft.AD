@@ -31,7 +31,12 @@ function Get-AbrADDNSZone {
 
     process {
         try {
-            $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DDNSInfrastructure'
+            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DDNSInfrastructure' -ErrorAction Stop } catch {
+                if (-Not $_.Exception.MessageId) {
+                    $ErrorMessage = $_.FullyQualifiedErrorId
+                } else {$ErrorMessage = $_.Exception.MessageId}
+                Write-PScriboMessage -IsWarning "DNS Zones Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+            }
             $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder" }
             if ($DNSSetting) {
                 Section -Style Heading3 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zones" {

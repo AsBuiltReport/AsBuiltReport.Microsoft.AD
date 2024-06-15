@@ -53,6 +53,11 @@ function Get-AbrForestSection {
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
+                        try {
+                            Get-AbrDHCPinAD
+                        } catch {
+                            Write-PScriboMessage -IsWarning $_.Exception.Message
+                        }
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."

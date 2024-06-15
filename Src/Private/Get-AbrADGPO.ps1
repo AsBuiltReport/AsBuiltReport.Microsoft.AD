@@ -196,7 +196,12 @@ function Get-AbrADGPO {
                     if ($InfoLevel.Domain -ge 2) {
                         try {
                             $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
-                            $DCPssSession = New-PSSession -ComputerName $DC -Name "WmiFilters" -Credential $Credential -Authentication $Options.PSDefaultAuthentication
+                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'WmiFilters' -ErrorAction Stop } catch {
+                                if (-Not $_.Exception.MessageId) {
+                                    $ErrorMessage = $_.FullyQualifiedErrorId
+                                } else {$ErrorMessage = $_.Exception.MessageId}
+                                Write-PScriboMessage -IsWarning "Wmi Filters Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                            }
                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                             if ($DCPssSession) {
                                 $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
@@ -543,7 +548,12 @@ function Get-AbrADGPO {
                     # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
                     try {
                         $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
-                        $DCPssSession = New-PSSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO'
+                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO' -ErrorAction Stop } catch {
+                            if (-Not $_.Exception.MessageId) {
+                                $ErrorMessage = $_.FullyQualifiedErrorId
+                            } else {$ErrorMessage = $_.Exception.MessageId}
+                            Write-PScriboMessage -IsWarning "Orphaned GPO Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                        }
                         $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                         $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
                         $OrphanGPOs = @()

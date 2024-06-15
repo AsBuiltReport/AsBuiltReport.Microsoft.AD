@@ -21,9 +21,9 @@
     },
     "InfoLevel": {
         "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",
-        "Forest": 1,
-        "Domain": 1,
-        "DNS": 0,
+        "Forest": 2,
+        "Domain": 2,
+        "DNS": 1,
         "CA": 0
     },
     "HealthCheck": {
