@@ -27,8 +27,9 @@ function Get-AbrADSite {
             $Site = Invoke-Command -Session $TempPssSession { Get-ADReplicationSite -Filter * -Properties * }
             if ($Site) {
                 Section -Style Heading3 'Replication' {
-                    Paragraph "Replication is the process of transferring and updating Active Directory objects between domain controllers in the Active Directory domain and forest. The folowing setion details Active Directory replication and it's relationships."
+                    Paragraph 'Replication is the process of transferring and updating Active Directory objects between domain controllers in the Active Directory domain and forest.'
                     BlankLine
+                    Paragraph "The folowing setion details Active Directory replication and it's relationships."
                     Section -Style Heading4 'Sites' {
                         $OutObj = @()
                         foreach ($Item in $Site) {
