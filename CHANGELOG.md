@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix [#174](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/174)
 - Fix [#176](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/176)
 - Fix [#178](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/178)
+- Fix [#180](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/180)
 
 ## [0.8.1] - 2024-05-16
 
