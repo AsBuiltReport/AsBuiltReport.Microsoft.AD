@@ -93,6 +93,8 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module -Name PSPKI
+Install-Module -Name PSGraph
+Install-Module -Name Diagrammer.Core
 Install-Module -Name Diagrammer.Microsoft.AD
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Install-WindowsFeature -Name RSAT-AD-PowerShell
@@ -105,6 +107,9 @@ Install-WindowsFeature -Name GPMC
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module -Name PSPKI
+Install-Module -Name PSGraph
+Install-Module -Name Diagrammer.Core
+Install-Module -Name Diagrammer.Microsoft.AD
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -Online -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0'
