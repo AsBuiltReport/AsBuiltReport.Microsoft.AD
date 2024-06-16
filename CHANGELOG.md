@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add Diagrammer.Core to the module RequiredModules list
+- Add Health Check to detect circular group membership
+- Add Health Check to find SMBv1 status in Active Directory DCs
+- Add Health Check to find groups with AdminCount set to 1
+- Add Health Check to find empty groups
+- Add Health Check to find Computers with password-not-required attribute set
+- Add basic DHCP Infrastructure information
 
 ### Changed
 
@@ -25,8 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix [#171](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/171)
 - Fix [#172](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/172)
 - Fix [#174](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/174)
-- Fix [#176](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/176)
-- Fix [#178](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/178)
+- Fix the ip address is not displayed in the DC Network Settings section. [#176](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/176)
+- Fix for Zone Transfer section displaying an empty table. [#178](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/178)
 - Fix [#180](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/180)
 
 ## [0.8.1] - 2024-05-16
