@@ -68,6 +68,8 @@ PowerShell 5.1, and the following PowerShell modules are required for generating
 - [AsBuiltReport.Core Module](https://github.com/AsBuiltReport/AsBuiltReport.Core)
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
 - [PScribo Module](https://github.com/iainbrighton/PScribo)
+- [PSGraph Module](https://github.com/KevinMarquette/PSGraph)
+- [Diagrammer.Core Module](https://github.com/rebelinux/Diagrammer.Core)
 - [Diagrammer.Microsoft.AD Module](https://github.com/rebelinux/Diagrammer.Microsoft.AD)
 - [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
