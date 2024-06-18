@@ -28,7 +28,7 @@
     <a href='https://ko-fi.com/F1F8DEV80' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi1.png?v=3'            border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 </p>
 
-# This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
+#### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
 # Microsoft AD As Built Report
 
