@@ -5,7 +5,7 @@ labels: ["change request"]
 assignees:
   - rebelinux
 body:
- - type: markdown
+  - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this enahancement form :)
