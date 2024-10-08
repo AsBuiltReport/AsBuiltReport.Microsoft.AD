@@ -58,7 +58,7 @@
         },
         @{
             ModuleName = 'PSPKI';
-            ModuleVersion = '3.7.2'
+            ModuleVersion = '4.2.0'
         },
         @{
             ModuleName = 'PScriboCharts';
@@ -70,7 +70,7 @@
         },
         @{
             ModuleName = 'Diagrammer.Core';
-            ModuleVersion = '0.2.1'
+            ModuleVersion = '0.2.9'
         }
 
     )

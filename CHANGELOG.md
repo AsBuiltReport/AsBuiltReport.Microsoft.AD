@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Initial support for Server 2025
+
+### Changed
+
+- Increase Diagrammer.Core minumum requirement
+
 ## [0.8.2] - 2024-06-15
 
 ### Added
