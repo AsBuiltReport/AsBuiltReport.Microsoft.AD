@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,7 +30,7 @@ function Get-AbrADDCDiag {
     }
 
     process {
-        if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+        if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
             try {
                 $DCDIAG = Invoke-DcDiag -DomainController $DC
                 if ($DCDIAG) {

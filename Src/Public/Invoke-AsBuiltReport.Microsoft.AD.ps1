@@ -21,6 +21,15 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         [PSCredential] $Credential
     )
 
+    #Requires -Version 5.1
+    #Requires -PSEdition Desktop
+    #Requires -RunAsAdministrator
+
+    if ($psISE) {
+        Write-Error -Message "You cannot run this script inside the PowerShell ISE. Please execute it from the PowerShell Command Window."
+        break
+    }
+
     Write-PScriboMessage -Plugin "Module" -IsWarning "Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project."
     Write-PScriboMessage -Plugin "Module" -IsWarning "Do not forget to update your report configuration file after each new release."
     Write-PScriboMessage -Plugin "Module" -IsWarning "Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
@@ -41,14 +50,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     } Catch {
         Write-PScriboMessage -IsWarning $_.Exception.Message
     }
-
-    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-
-    if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-
-        throw "The requested operation requires elevation: Run PowerShell console as administrator"
-    }
-
 
     #Validate Required Modules and Features
     $OSType = (Get-ComputerInfo).OsProductType
@@ -88,13 +89,29 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     #---------------------------------------------------------------------------------------------#
     foreach ($System in $Target) {
 
+        if (Select-String -InputObject $System -Pattern "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") {
+            throw "Please use the FQDN instead of an IP address to connect to the Domain Controller: $System"
+        }
+
         Try {
-            Write-PScriboMessage "Connecting to Domain Controller Server '$System'."
+            Write-PScriboMessage "Connecting to Domain Controller through PSSession $System"
             $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name "Global:TempPssSession"
-            $script:TempCIMSession = New-CimSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name "Global:TempCIMSession"
+        } Catch {
+            throw "Unable to connect to the Domain Controller through PSSession: $System"
+        }
+
+        Try {
+            Write-PScriboMessage "Connecting to Domain Controller through CimSession '$System'."
+            $script:TempCIMSession = New-CimSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Continue -Name "Global:TempCIMSession"
+        } Catch {
+            Write-PScriboMessage -IsWarning "Unable to connect to the Domain Controller through CimSession: $System"
+        }
+
+        Try {
+            Write-PScriboMessage "Connecting to get Forest information from Domain Controller '$System'."
             $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop }
         } Catch {
-            throw "Unable to connect to the Domain Controller: $System"
+            throw "Unable to get Forest information from Domain Controller: $System"
         }
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
@@ -114,13 +131,18 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         # PKI Section
         Get-AbrPKISection
 
-        # Remove used PSSession
-        Write-PScriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
-        Remove-PSSession -Session $TempPssSession
+        if ($TempPssSession) {
+            # Remove used PSSession
+            Write-PScriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
+            Remove-PSSession -Session $TempPssSession
+        }
 
-        # Remove used CIMSession
-        Write-PScriboMessage "Clearing CIM Session $($TempCIMSession.Id)"
-        Remove-CimSession -CimSession $TempCIMSession
+        if ($TempCIMSession) {
+            # Remove used CIMSession
+            Write-PScriboMessage "Clearing CIM Session $($TempCIMSession.Id)"
+            Remove-CimSession -CimSession $TempCIMSession
+        }
+
 
     }#endregion foreach loop
 }

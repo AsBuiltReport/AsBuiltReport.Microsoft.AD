@@ -5,7 +5,7 @@ function Get-AbrDomainSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -86,7 +86,7 @@ function Get-AbrDomainSection {
 
                                             if ($InfoLevel.Domain -ge 2) {
                                                 $RolesObj = foreach ($DC in $DCs) {
-                                                    $DCStatus = Test-Connection -ComputerName $DC -Quiet -Count 2
+                                                    $DCStatus = Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue
                                                     if (-Not $DCStatus) {
                                                         Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
                                                     }
@@ -104,7 +104,7 @@ function Get-AbrDomainSection {
                                             if ($HealthCheck.DomainController.Diagnostic) {
                                                 try {
                                                     $DCDiagObj = foreach ($DC in $DCs) {
-                                                        if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                                        if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                                                             Get-AbrADDCDiag -Domain $Domain -DC $DC
                                                         }
                                                     }
@@ -122,7 +122,7 @@ function Get-AbrDomainSection {
                                             }
                                             try {
                                                 $ADInfraServices = foreach ($DC in $DCs) {
-                                                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                                                         Get-AbrADInfrastructureService -DC $DC
                                                     }
                                                 }

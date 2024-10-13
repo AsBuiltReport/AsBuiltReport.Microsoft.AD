@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.0] - Unreleased
+## [0.9.0] - 2024-10-13
 
 ### Added
+
+- Initial support for Server 2025
+- Add Dependabot action
+
+### Changed
+
+- Increase Diagrammer.Core minumum requirement
+- Increase Diagrammer.Microsoft.AD minumum requirement
+- Improve detection of Domain Controller availability (Test-WSMan)
 
 ## [0.8.2] - 2024-06-15
 
