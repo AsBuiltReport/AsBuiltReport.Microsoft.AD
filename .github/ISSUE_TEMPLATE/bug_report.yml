@@ -1,9 +1,20 @@
 name: Bug Report
 description: File a bug report
+title: "[Bug]: "
 labels: ["bug"]
 assignees:
   - rebelinux
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report :)
+        - Kindly **DO NOT** ask for instructions.
+        - Use [Discussions](https://github.com/orgs/AsBuiltReport/discussions) section if you have a query or doubts or any other relevant question.
+        - You may join [Slack community](https://the-code-community.slack.com#asbuiltreport) to interact with fellow contributors and users
+        - Read project's [Web Site](https://www.asbuiltreport.com/user-guide/installation/) for detailed documentation.
+        - Read project's [FAQs](https://www.asbuiltreport.com/support/faq/) section for Frequently asked questions.
+        - Search for previous [Issues](https://github.com/AsBuiltReport/AsBuiltReport.NetApp.ONTAP/issues)/[Pull Requests](https://github.com/AsBuiltReport/AsBuiltReport.NetApp.ONTAP/pulls) if this issue is already reported or fix has been created.
   - type: textarea
     id: bug-description
     attributes:
@@ -88,11 +99,4 @@ body:
       options:
         - label: >-
             I have read and followed the [bug reporting guidelines](https://www.asbuiltreport.com/about/contributing/#reporting-issues-and-bugs).
-          required: true
-        - label: >-
-            I have read [the documentation](https://www.asbuiltreport.com/user-guide/new-asbuiltconfig),
-            and referred to the [known issues](https://www.asbuiltreport.com/user-guide/known-issues/) before submitting this bug report.
-          required: true
-        - label: >-
-            I have checked for previously opened & closed [issues](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues) before submitting this bug report.
           required: true

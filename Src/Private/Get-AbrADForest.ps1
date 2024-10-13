@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,6 +32,7 @@ function Get-AbrADForest {
             $ValuedsHeuristics = Invoke-Command -Session $TempPssSession { Get-ADObject -Identity "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$(($using:DomainDN))" -Properties dsHeuristics -ErrorAction SilentlyContinue }
 
             If ($ADVersion -eq '88') { $server = 'Windows Server 2019' }
+            ElseIf ($ADVersion -eq '91') { $server = 'Windows Server 2025' }
             ElseIf ($ADVersion -eq '87') { $server = 'Windows Server 2016' }
             ElseIf ($ADVersion -eq '69') { $server = 'Windows Server 2012 R2' }
             ElseIf ($ADVersion -eq '56') { $server = 'Windows Server 2012' }

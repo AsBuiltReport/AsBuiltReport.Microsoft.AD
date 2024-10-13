@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -211,7 +211,7 @@ function Get-AbrADSite {
                                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
-                                                if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                                                     try {
                                                         $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'MissingSubnetinAD' -ErrorAction Stop } catch {
                                                             if (-Not $_.Exception.MessageId) {
@@ -695,7 +695,7 @@ function Get-AbrADSite {
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
-                                if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                                     $DCCIMSession = try { New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name "SysvolReplication" -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "Sysvol Replication Section: New-CimSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
 
                                     if ($DCCIMSession) {

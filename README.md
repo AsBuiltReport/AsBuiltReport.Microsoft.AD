@@ -28,6 +28,8 @@
     <a href='https://ko-fi.com/F1F8DEV80' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi1.png?v=3'            border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 </p>
 
+#### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
+
 # Microsoft AD As Built Report
 
 Microsoft AD As Built Report is a PowerShell module which works in conjunction with [AsBuiltReport.Core](https://github.com/AsBuiltReport/AsBuiltReport.Core).
@@ -38,7 +40,7 @@ Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for m
 
 # :books: Sample Reports
 
-## Sample Report - Custom Style 1
+## Sample Report - Default Style with EnableHealthCheck
 
 Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/dev/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.html)
 
@@ -68,6 +70,8 @@ PowerShell 5.1, and the following PowerShell modules are required for generating
 - [AsBuiltReport.Core Module](https://github.com/AsBuiltReport/AsBuiltReport.Core)
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
 - [PScribo Module](https://github.com/iainbrighton/PScribo)
+- [PSGraph Module](https://github.com/KevinMarquette/PSGraph)
+- [Diagrammer.Core Module](https://github.com/rebelinux/Diagrammer.Core)
 - [Diagrammer.Microsoft.AD Module](https://github.com/rebelinux/Diagrammer.Microsoft.AD)
 - [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
@@ -93,6 +97,8 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module -Name PSPKI
+Install-Module -Name PSGraph
+Install-Module -Name Diagrammer.Core
 Install-Module -Name Diagrammer.Microsoft.AD
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Install-WindowsFeature -Name RSAT-AD-PowerShell
@@ -105,6 +111,9 @@ Install-WindowsFeature -Name GPMC
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
 Install-Module -Name PSPKI
+Install-Module -Name PSGraph
+Install-Module -Name Diagrammer.Core
+Install-Module -Name Diagrammer.Microsoft.AD
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -Online -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0'
