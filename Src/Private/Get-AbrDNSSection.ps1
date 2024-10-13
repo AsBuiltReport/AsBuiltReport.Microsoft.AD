@@ -5,7 +5,7 @@ function Get-AbrDNSSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -47,10 +47,12 @@ function Get-AbrDNSSection {
                                 Section -Style Heading2 "$($Domain.ToString().ToUpper())" {
                                     Paragraph "The following section provides a configuration summary of the DNS service."
                                     BlankLine
-                                    Get-AbrADDNSInfrastructure -Domain $Domain
+                                    if ($TempCIMSession) {
+                                        Get-AbrADDNSInfrastructure -Domain $Domain
+                                    }
                                     $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } }
                                     foreach ($DC in $DCs) {
-                                        if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                                        if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                                             Get-AbrADDNSZone -Domain $Domain -DC $DC
                                         }
                                     }

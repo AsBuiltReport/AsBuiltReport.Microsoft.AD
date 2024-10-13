@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrADSiteReplication {
             try {
                 $ReplInfo = @()
                 foreach ($DC in $DCs) {
-                    if (Test-Connection -ComputerName $DC -Quiet -Count 2) {
+                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                         $Replication = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Server $using:DC -Properties * }
                         if ($Replication) {
                             try {
