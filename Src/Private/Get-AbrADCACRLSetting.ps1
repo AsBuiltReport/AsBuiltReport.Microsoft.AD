@@ -5,7 +5,7 @@ function Get-AbrADCACRLSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -45,7 +45,7 @@ function Get-AbrADCACRLSetting {
                                     'Delta CRL' = $VP.DeltaCRL
                                     'Delta CRL Overlap' = $VP.DeltaCRLOverlap
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
                                 Write-PScriboMessage -IsWarning "CRL Validity Period $($VP.Name) Section: $($_.Exception.Message)"
                             }
@@ -77,7 +77,7 @@ function Get-AbrADCACRLSetting {
                                         'Server Name' = $Flag.ComputerName.ToString().ToUpper().Split(".")[0]
                                         'CRL Flags' = $Flag.CRLFlags
                                     }
-                                    $OutObj += [pscustomobject]$inobj
+                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                 } catch {
                                     Write-PScriboMessage -IsWarning "CRL Validity Period $($Flag.Name) Section: $($_.Exception.Message)"
                                 }
@@ -114,14 +114,14 @@ function Get-AbrADCACRLSetting {
                                         'Config URI' = $URI.ConfigURI
                                         'Url Scheme' = $URI.UrlScheme
                                         'ProjectedURI' = $URI.ProjectedURI
-                                        'Flags' = ConvertTo-EmptyToFiller ($URI.Flags -join ", ")
-                                        'CRL Publish' = ConvertTo-TextYN $URI.IncludeToExtension
-                                        'Delta CRL Publish' = ConvertTo-TextYN $URI.DeltaCRLPublish
-                                        'Add To Cert CDP' = ConvertTo-TextYN $URI.AddToCertCDP
-                                        'Add To Fresh est CRL' = ConvertTo-TextYN $URI.AddToFreshestCRL
-                                        'Add To Crl cdp' = ConvertTo-TextYN $URI.AddToCrlcdp
+                                        'Flags' = ($URI.Flags -join ", ")
+                                        'CRL Publish' = $URI.IncludeToExtension
+                                        'Delta CRL Publish' = $URI.DeltaCRLPublish
+                                        'Add To Cert CDP' = $URI.AddToCertCDP
+                                        'Add To Fresh est CRL' = $URI.AddToFreshestCRL
+                                        'Add To Crl cdp' = $URI.AddToCrlcdp
                                     }
-                                    $OutObj = [pscustomobject]$inobj
+                                    $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                     $TableParams = @{
                                         Name = "CRL Distribution Point - $($CA.Name)"
@@ -162,7 +162,7 @@ function Get-AbrADCACRLSetting {
                                 'Childs' = ($Health.Childs).Name
                                 'Health' = $Health.Status
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }

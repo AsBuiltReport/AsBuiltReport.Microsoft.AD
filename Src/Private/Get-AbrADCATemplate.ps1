@@ -5,7 +5,7 @@ function Get-AbrADCATemplate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -40,9 +40,9 @@ function Get-AbrADCATemplate {
                                 'Template Name' = $Template.DisplayName
                                 'Schema Version' = $Template.SchemaVersion
                                 'Supported CA' = $Template.SupportedCA
-                                'Autoenrollment' = ConvertTo-TextYN $Template.AutoenrollmentAllowed
+                                'Autoenrollment' = $Template.AutoenrollmentAllowed
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (CA Certificate Templates table)"
                         }
@@ -74,9 +74,9 @@ function Get-AbrADCATemplate {
                                                             'Identity' = $Right.IdentityReference
                                                             'Access Control Type' = $Right.AccessControlType
                                                             'Rights' = $Right.Rights
-                                                            'Inherited' = ConvertTo-TextYN $Right.IsInherited
+                                                            'Inherited' = $Right.IsInherited
                                                         }
-                                                        $OutObj += [pscustomobject]$inobj
+                                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                                     } catch {
                                                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Templates ACL Item)"
                                                     }
@@ -115,9 +115,9 @@ function Get-AbrADCATemplate {
                                                 'Template Name' = $Template.DisplayName
                                                 'Schema Version' = $Template.SchemaVersion
                                                 'Supported CA' = $Template.SupportedCA
-                                                'Autoenrollment' = ConvertTo-TextYN $Template.AutoenrollmentAllowed
+                                                'Autoenrollment' = $Template.AutoenrollmentAllowed
                                             }
-                                            $OutObj += [pscustomobject]$inobj
+                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         } catch {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Template In Active Directory Item)"
                                         }

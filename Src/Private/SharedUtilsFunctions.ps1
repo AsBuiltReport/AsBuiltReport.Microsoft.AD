@@ -1,7 +1,7 @@
 ﻿function ConvertTo-TextYN {
     <#
     .SYNOPSIS
-    Used by As Built Report to convert true or false automatically to Yes or No.
+        Used by As Built Report to convert true or false automatically to Yes or No.
     .DESCRIPTION
 
     .NOTES
@@ -15,18 +15,17 @@
     #>
     [CmdletBinding()]
     [OutputType([String])]
-    Param
-    (
+    Param (
         [Parameter (
             Position = 0,
             Mandatory)]
         [AllowEmptyString()]
-        [string]
-        $TEXT
+        [string] $TEXT
     )
 
     switch ($TEXT) {
         "" { "--"; break }
+        " " { "--"; break }
         $Null { "--"; break }
         "True" { "Yes"; break }
         "False" { "No"; break }
@@ -39,15 +38,11 @@ function ConvertTo-FileSizeString {
     .SYNOPSIS
     Used by As Built Report to convert bytes automatically to GB or TB based on size.
     .DESCRIPTION
-
     .NOTES
-        Version:        0.4.0
-        Author:         LEE DAILEY
-
+        Version:        0.1.0
+        Author:         Jonathan Colon
     .EXAMPLE
-
     .LINK
-
     #>
     [CmdletBinding()]
     [OutputType([String])]
@@ -60,23 +55,15 @@ function ConvertTo-FileSizeString {
         $Size
     )
 
-    switch ($Size) {
-        { $_ -gt 1TB }
-        { [string]::Format("{0:0.00} TB", $Size / 1TB); break }
-        { $_ -gt 1GB }
-        { [string]::Format("{0:0.00} GB", $Size / 1GB); break }
-        { $_ -gt 1MB }
-        { [string]::Format("{0:0.00} MB", $Size / 1MB); break }
-        { $_ -gt 1KB }
-        { [string]::Format("{0:0.00} KB", $Size / 1KB); break }
-        { $_ -gt 0 }
-        { [string]::Format("{0} B", $Size); break }
-        { $_ -eq 0 }
-        { "0 KB"; break }
-        default
-        { "0 KB" }
+    $Unit = Switch ($Size) {
+        { $Size -gt 1PB } { 'PB' ; Break }
+        { $Size -gt 1TB } { 'TB' ; Break }
+        { $Size -gt 1GB } { 'GB' ; Break }
+        { $Size -gt 1Mb } { 'MB' ; Break }
+        Default { 'KB' }
     }
-} # end >> function Format-FileSize
+    return "$([math]::Round(($Size / $("1" + $Unit)), 0)) $Unit"
+} # end
 
 function Invoke-DcDiag {
     <#
@@ -1049,6 +1036,7 @@ function Get-WinADForestDetail {
     .LINK
 
     #>
+    [OutputType('System.Collections.Specialized.OrderedDictionary')]
     [CmdletBinding()]
     param(
         [alias('ForestName')][string] $Forest,
@@ -2180,3 +2168,39 @@ function Get-ADObjectList {
     $searcher.Dispose()
     return $adObjects
 }
+
+function ConvertTo-HashToYN {
+    <#
+    .SYNOPSIS
+        Used by As Built Report to convert array content true or false automatically to Yes or No.
+    .DESCRIPTION
+
+    .NOTES
+        Version:        0.1.0
+        Author:         Jonathan Colon
+
+    .EXAMPLE
+
+    .LINK
+
+    #>
+    [CmdletBinding()]
+    [OutputType([Hashtable])]
+    Param (
+        [Parameter (Position = 0, Mandatory)]
+        [AllowEmptyString()]
+        [Hashtable] $TEXT
+    )
+
+    $result = [ordered] @{}
+    foreach ($i in $inObj.GetEnumerator()) {
+        try {
+            $result.add($i.Key, (ConvertTo-TextYN $i.Value))
+        } catch {
+            $result.add($i.Key, ($i.Value))
+        }
+    }
+    if ($result) {
+        return $result
+    } else { return $TEXT }
+} # end

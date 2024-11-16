@@ -5,7 +5,7 @@ function Get-AbrADDuplicateObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -44,7 +44,7 @@ function Get-AbrADDuplicateObject {
                                     'Changed' = $Object.WhenChanged.ToString("yyyy:MM:dd")
                                     'Conflict Changed' = $Object.ConflictWhenChanged.ToString("yyyy:MM:dd")
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                 if ($HealthCheck.Domain.DuplicateObject) {
                                     $OutObj | Set-Style -Style Warning

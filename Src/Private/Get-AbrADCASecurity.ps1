@@ -5,7 +5,7 @@ function Get-AbrADCASecurity {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -41,7 +41,7 @@ function Get-AbrADCASecurity {
                                 'Server Name' = $CFP.ComputerName
                                 'Validity Period' = $CFP.ValidityPeriod
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Validity Period Table)"
                         }
@@ -73,7 +73,7 @@ function Get-AbrADCASecurity {
                                         'Owner' = $ACL.Owner
                                         'Group' = $ACL.Group
                                     }
-                                    $OutObj += [pscustomobject]$inobj
+                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
@@ -101,7 +101,7 @@ function Get-AbrADCASecurity {
                                             'Access Control Type' = $ACL.AccessControlType
                                             'Rights' = $ACL.Rights
                                         }
-                                        $OutObj += [pscustomobject]$inobj
+                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                     } catch {
                                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Access Control List Rights table)"
                                     }

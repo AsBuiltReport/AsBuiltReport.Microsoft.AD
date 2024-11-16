@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -53,7 +53,7 @@ function Get-AbrADGPO {
                                         }
                                         'Links Count' = $Links.GPO.LinksTo.SOMPath.Count
                                     }
-                                    $OutObj += [pscustomobject]$inobj
+                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                 } catch {
                                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Policy Objects)"
                                 }
@@ -137,10 +137,10 @@ function Get-AbrADGPO {
                                                 'False' { $Links.GPO.LinksTo.SOMPath }
                                                 default { 'Unknown' }
                                             }
-                                            'Description' = ConvertTo-EmptyToFiller $GPO.Description
+                                            'Description' = $GPO.Description
                                         }
 
-                                        $OutObj = [pscustomobject]$inobj
+                                        $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                         if ($HealthCheck.Domain.GPO) {
                                             $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
@@ -215,9 +215,9 @@ function Get-AbrADGPO {
                                             'Name' = $WmiFilter.'msWMI-Name'
                                             'Author' = $WmiFilter.'msWMI-Author'
                                             'Query' = $WmiFilter.'msWMI-Parm2'
-                                            'Description' = ConvertTo-EmptyToFiller $WmiFilter.'msWMI-Parm1'
+                                            'Description' = $WmiFilter.'msWMI-Parm1'
                                         }
-                                        $OutObj = [pscustomobject]$inobj
+                                        $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                         if ($HealthCheck.Domain.GPO) {
                                             $OutObj | Where-Object { $_.'Description' -eq "--" } | Set-Style -Style Warning -Property 'Description'
@@ -250,10 +250,10 @@ function Get-AbrADGPO {
                                 $OutObj = @()
                                 $inObj = [ordered] @{
                                     'Domain' = $Domain.ToString().ToUpper()
-                                    'Configured' = ConvertTo-TextYN $CentralStore
+                                    'Configured' = $CentralStore
                                     'Central Store Path' = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
                                 }
-                                $OutObj = [pscustomobject]$inobj
+                                $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.'Configured' -eq 'No' } | Set-Style -Style Warning -Property 'Configured'
@@ -300,7 +300,7 @@ function Get-AbrADGPO {
                                                     'Type' = $Script.Type
                                                     'Script' = $Script.command
                                                 }
-                                                $OutObj += [pscustomobject]$inobj
+                                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                             } catch {
                                                 Write-PScriboMessage -IsWarning $_.Exception.Message
                                             }
@@ -350,7 +350,7 @@ function Get-AbrADGPO {
                                                     'Type' = $Script.Type
                                                     'Script' = $Script.command
                                                 }
-                                                $OutObj += [pscustomobject]$inobj
+                                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                             } catch {
                                                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Item)"
                                             }
@@ -398,10 +398,10 @@ function Get-AbrADGPO {
                                             'GPO Name' = $Gpoxml.GPO.Name
                                             'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split("T")[0]
                                             'Modified' = ($Gpoxml.GPO.ModifiedTime).ToString().split("T")[0]
-                                            'Computer Enabled' = ConvertTo-TextYN $gpoxml.GPO.Computer.Enabled
-                                            'User Enabled' = ConvertTo-TextYN $gpoxml.GPO.User.Enabled
+                                            'Computer Enabled' = $gpoxml.GPO.Computer.Enabled
+                                            'User Enabled' = $gpoxml.GPO.User.Enabled
                                         }
-                                        $OutObj += [pscustomobject]$inobj
+                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                     }
                                 } catch {
                                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Item)"
@@ -448,9 +448,9 @@ function Get-AbrADGPO {
                                             'GPO Name' = $Gpoxml.GPO.Name
                                             'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split("T")[0]
                                             'Modified' = ($Gpoxml.GPO.ModifiedTime).ToString().split("T")[0]
-                                            'Description' = ConvertTo-EmptyToFiller $Gpoxml.GPO.Description
+                                            'Description' = $Gpoxml.GPO.Description
                                         }
-                                        $OutObj += [pscustomobject]$inobj
+                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                     }
                                 } catch {
                                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Item)"
@@ -505,7 +505,7 @@ function Get-AbrADGPO {
                                                 'GPO Name' = $GpoEnforced.DisplayName
                                                 'Target' = $TargetCanonical
                                             }
-                                            $OutObj += [pscustomobject]$inobj
+                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         }
                                     }
                                 } catch {
@@ -609,7 +609,7 @@ function Get-AbrADGPO {
                                             } else { "\\$Domain\SYSVOL\$Domain\Policies\{$($OrphanGPO)} (Valid)" }
                                         }
                                     }
-                                    $OutObj = [pscustomobject]$inobj
+                                    $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                     if ($HealthCheck.Domain.GPO) {
                                         $OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing' } | Set-Style -Style Warning -Property 'AD DN Database', 'AD DN Path'

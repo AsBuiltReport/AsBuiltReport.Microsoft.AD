@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -57,7 +57,7 @@ function Get-AbrADSecurityAssessment {
                             'Does Not Require Pre Auth' = $DomainUserDoesNotRequirePreAuthArray.Count
                             'Users With SID History' = $DomainUsersWithSIDHistoryArray.Count
                         }
-                        $OutObj += [pscustomobject]$inobj
+                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Item)"
                     }
@@ -140,7 +140,7 @@ function Get-AbrADSecurityAssessment {
                                             default { "Unknown" }
                                         }
                                     }
-                                    $OutObj += [pscustomobject]$inobj
+                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                 } catch {
                                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Users Assessment Item)"
                                 }
@@ -218,7 +218,7 @@ function Get-AbrADSecurityAssessment {
                                             default { $InactivePrivilegedUser.LastLogonDate.ToShortDateString() }
                                         }
                                     }
-                                    $OutObj += [pscustomobject]$inobj
+                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                 } catch {
                                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Inactive Privileged Accounts Item)"
                                 }
@@ -263,7 +263,7 @@ function Get-AbrADSecurityAssessment {
                                 try {
                                     $inObj = [ordered] @{
                                         'Username' = $UserSPN.SamAccountName
-                                        'Enabled' = ConvertTo-TextYN $UserSPN.Enabled
+                                        'Enabled' = $UserSPN.Enabled
                                         'Password Last Set' = Switch ($UserSPN.PasswordLastSet) {
                                             $Null { '--' }
                                             default { $UserSPN.PasswordLastSet.ToShortDateString() }
@@ -274,7 +274,7 @@ function Get-AbrADSecurityAssessment {
                                         }
                                         'Service Principal Name' = $UserSPN.ServicePrincipalName
                                     }
-                                    $OutObj += [pscustomobject]$inobj
+                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                 } catch {
                                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Service Accounts Assessment Item)"
                                 }

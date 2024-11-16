@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -45,11 +45,11 @@ function Get-AbrADDomain {
                         'NetBIOS Name' = $DomainInfo.NetBIOSName
                         'Domain SID' = $DomainInfo.DomainSID
                         'Domain Functional Level' = $DomainInfo.DomainMode
-                        'Domains' = ConvertTo-EmptyToFiller $DomainInfo.Domains
+                        'Domains' = $DomainInfo.Domains
                         'Forest' = $DomainInfo.Forest
-                        'Parent Domain' = ConvertTo-EmptyToFiller $DomainInfo.ParentDomain
+                        'Parent Domain' = $DomainInfo.ParentDomain
                         'Replica Directory Servers' = $DomainInfo.ReplicaDirectoryServers
-                        'Child Domains' = ConvertTo-EmptyToFiller $DomainInfo.ChildDomains
+                        'Child Domains' = $DomainInfo.ChildDomains
                         'Domain Path' = ConvertTo-ADCanonicalName -DN $DomainInfo.DistinguishedName -Domain $Domain
                         'Computers Container' = $DomainInfo.ComputersContainer
                         'Domain Controllers Container' = $DomainInfo.DomainControllersContainer
@@ -59,11 +59,11 @@ function Get-AbrADDomain {
                         'Foreign Security Principals Container' = $DomainInfo.ForeignSecurityPrincipalsContainer
                         'Lost And Found Container' = $DomainInfo.LostAndFoundContainer
                         'Quotas Container' = $DomainInfo.QuotasContainer
-                        'ReadOnly Replica Directory Servers' = ConvertTo-EmptyToFiller $DomainInfo.ReadOnlyReplicaDirectoryServers
+                        'ReadOnly Replica Directory Servers' = $DomainInfo.ReadOnlyReplicaDirectoryServers
                         'ms-DS-MachineAccountQuota' = Invoke-Command -Session $TempPssSession { (Get-ADObject -Server $using:DC -Identity (($using:DomainInfo).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota' }
                         'RID Issued/Available' = try { "$($RIDsIssued) / $($RIDsRemaining) ($([math]::Truncate($CompleteSIDS / $RIDsRemaining))% Issued)" } catch { "$($RIDsIssued)/$($RIDsRemaining)" }
                     }
-                    $OutObj += [pscustomobject]$inobj
+                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                     if ($HealthCheck.Domain.BestPractice) {
                         if ([math]::Truncate($CompleteSIDS / $RIDsRemaining) -gt 80) {
