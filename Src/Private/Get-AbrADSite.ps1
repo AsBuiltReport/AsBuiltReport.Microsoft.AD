@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.0
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -42,7 +42,7 @@ function Get-AbrADSite {
                                 }
                                 $inObj = [ordered] @{
                                     'Site Name' = $Item.Name
-                                    'Description' = ConvertTo-EmptyToFiller $Item.Description
+                                    'Description' = $Item.Description
                                     'Subnets' = Switch (($SubnetArray).count) {
                                         0 { "No subnet assigned" }
                                         default { $SubnetArray }
@@ -59,7 +59,7 @@ function Get-AbrADSite {
                                         } else { 'No DC assigned' }
                                     }
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                 if ($HealthCheck.Site.BestPractice) {
                                     $OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' } | Set-Style -Style Warning -Property 'Subnets'
@@ -116,7 +116,7 @@ function Get-AbrADSite {
                                             'To Server' = $Repl.ReplicateToDirectoryServer.Split(",")[0].SubString($Repl.ReplicateToDirectoryServer.Split(",")[0].IndexOf("=") + 1)
                                             'From Site' = $Repl.fromserver.Split(",")[3].SubString($Repl.fromserver.Split(",")[3].IndexOf("=") + 1)
                                         }
-                                        $OutObj += [pscustomobject]$inobj
+                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                         if ($HealthCheck.Site.Replication) {
                                             $OutObj | Where-Object { $_.'Name' -ne '<automatically generated>' } | Set-Style -Style Warning -Property 'Name'
@@ -161,7 +161,7 @@ function Get-AbrADSite {
                                     try {
                                         $inObj = [ordered] @{
                                             'Subnet' = $Item.Name
-                                            'Description' = ConvertTo-EmptyToFiller $Item.Description
+                                            'Description' = $Item.Description
                                             'Sites' = Switch ([string]::IsNullOrEmpty($Item.Site)) {
                                                 $true { "No site assigned" }
                                                 $false { $Item.Site.Split(",")[0].SubString($Item.Site.Split(",")[0].IndexOf("=") + 1) }
@@ -229,7 +229,7 @@ function Get-AbrADSite {
                                                                         'IP' = $Line.Split(":")[4].trim(" ").Split(" ")[1]
                                                                     }
 
-                                                                    $OutObj += [pscustomobject]$inobj
+                                                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                                                 }
 
                                                                 if ($HealthCheck.Site.BestPractice) {
@@ -348,7 +348,7 @@ function Get-AbrADSite {
                                             'Bridge All Site Links' = $BridgeAlSiteLinks
                                             'Ignore Schedules' = $IgnoreSchedules
                                         }
-                                        $OutObj += [pscustomobject]$inobj
+                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                     }
 
                                     $TableParams = @{
@@ -396,10 +396,10 @@ function Get-AbrADSite {
                                                                     Default { "Unknown siteLink option: $($Item.Options)" }
                                                                 }
                                                                 'Sites' = $SiteArray -join "; "
-                                                                'Protected From Accidental Deletion' = ConvertTo-TextYN $Item.ProtectedFromAccidentalDeletion
-                                                                'Description' = ConvertTo-EmptyToFiller $Item.Description
+                                                                'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
+                                                                'Description' = $Item.Description
                                                             }
-                                                            $OutObj = [pscustomobject]$inobj
+                                                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                                             if ($HealthCheck.Site.BestPractice) {
                                                                 $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -470,10 +470,10 @@ function Get-AbrADSite {
                                                                 'Site Link Bridges Name' = $Item.Name
                                                                 'Transport Protocol' = $Item.InterSiteTransportProtocol
                                                                 'Site Links' = $SiteArray -join "; "
-                                                                'Protected From Accidental Deletion' = ConvertTo-TextYN $Item.ProtectedFromAccidentalDeletion
-                                                                'Description' = ConvertTo-EmptyToFiller $Item.Description
+                                                                'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
+                                                                'Description' = $Item.Description
                                                             }
-                                                            $OutObj = [pscustomobject]$inobj
+                                                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                                             if ($HealthCheck.Site.BestPractice) {
                                                                 $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -557,10 +557,10 @@ function Get-AbrADSite {
                                                                     Default { "Unknown siteLink option: $($Item.Options)" }
                                                                 }
                                                                 'Sites' = $SiteArray -join "; "
-                                                                'Protected From Accidental Deletion' = ConvertTo-TextYN $Item.ProtectedFromAccidentalDeletion
-                                                                'Description' = ConvertTo-EmptyToFiller $Item.Description
+                                                                'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
+                                                                'Description' = $Item.Description
                                                             }
-                                                            $OutObj = [pscustomobject]$inobj
+                                                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                                             if ($HealthCheck.Site.BestPractice) {
                                                                 $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -628,10 +628,10 @@ function Get-AbrADSite {
                                                                     'Site Link Bridges Name' = $Item.Name
                                                                     'Transport Protocol' = $Item.InterSiteTransportProtocol
                                                                     'Site Links' = $SiteArray -join "; "
-                                                                    'Protected From Accidental Deletion' = ConvertTo-TextYN $Item.ProtectedFromAccidentalDeletion
-                                                                    'Description' = ConvertTo-EmptyToFiller $Item.Description
+                                                                    'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
+                                                                    'Description' = $Item.Description
                                                                 }
-                                                                $OutObj = [pscustomobject]$inobj
+                                                                $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                                                 if ($HealthCheck.Site.BestPractice) {
                                                                     $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -719,7 +719,7 @@ function Get-AbrADSite {
                                                 }
                                                 'Domain' = $Domain
                                             }
-                                            $OutObj += [pscustomobject]$inobj
+                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         } catch {
                                             Write-PScriboMessage -IsWarning "Sysvol Replication Item Section: $($_.Exception.Message)"
                                         }

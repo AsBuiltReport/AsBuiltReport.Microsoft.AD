@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.0
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,7 +35,7 @@ function Get-AbrADDomainController {
                 'Domain Controller' = ($DomainController | Measure-Object).Count
                 'Global Catalog' = ($GC | Measure-Object).Count
             }
-            $OutObj += [pscustomobject]$inobj
+            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
             $TableParams = @{
                 Name = "Domain Controller Counts - $($Domain.ToString().ToUpper())"
@@ -92,15 +92,15 @@ function Get-AbrADDomainController {
                                     $false { $DCInfo.Site }
                                     default { "Unknown" }
                                 }
-                                'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
-                                'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
+                                'Global Catalog' = $DCInfo.IsGlobalCatalog
+                                'Read Only' = $DCInfo.IsReadOnly
                                 'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
                                     $true { "--" }
                                     $false { $DCInfo.IPv4Address }
                                     default { "Unknown" }
                                 }
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
                         }
@@ -115,7 +115,7 @@ function Get-AbrADDomainController {
                                 'Read Only' = "--"
                                 'IP Address' = "--"
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
                         }
@@ -179,15 +179,15 @@ function Get-AbrADDomainController {
                                         $false { $DCInfo.Site }
                                         default { "Unknown" }
                                     }
-                                    'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
-                                    'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
+                                    'Global Catalog' = $DCInfo.IsGlobalCatalog
+                                    'Read Only' = $DCInfo.IsReadOnly
                                     'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
                                         $true { "--" }
                                         $false { $DCInfo.IPv4Address }
                                         default { "Unknown" }
                                     }
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
                                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
                             }
@@ -231,16 +231,16 @@ function Get-AbrADDomainController {
                                                     $false { $DCInfo.Site }
                                                     default { "Unknown" }
                                                 }
-                                                'Global Catalog' = ConvertTo-TextYN $DCInfo.IsGlobalCatalog
-                                                'Read Only' = ConvertTo-TextYN $DCInfo.IsReadOnly
-                                                'Operation Master Roles' = ConvertTo-EmptyToFiller ($DCInfo.OperationMasterRoles -join ', ')
-                                                'Location' = ConvertTo-EmptyToFiller $DCComputerObject.Location
+                                                'Global Catalog' = $DCInfo.IsGlobalCatalog
+                                                'Read Only' = $DCInfo.IsReadOnly
+                                                'Operation Master Roles' = ($DCInfo.OperationMasterRoles -join ', ')
+                                                'Location' = $DCComputerObject.Location
                                                 'Computer Object SID' = $DCComputerObject.SID
                                                 'Operating System' = $DCInfo.OperatingSystem
                                                 'SMB1 Status' = $DCNetSMBv1Setting.State
-                                                'Description' = ConvertTo-EmptyToFiller $DCComputerObject.Description
+                                                'Description' = $DCComputerObject.Description
                                             }
-                                            $OutObj = [pscustomobject]$inobj
+                                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                             if ($HealthCheck.DomainController.BestPractice) {
                                                 $OutObj | Where-Object { $_.'SMB1 Status' -eq 'Enabled' } | Set-Style -Style Critical -Property 'SMB1 Status'
@@ -273,7 +273,7 @@ function Get-AbrADDomainController {
                                                 'Default Partition' = $DCInfo.DefaultPartition
                                                 'Partitions' = $DCInfo.Partitions
                                             }
-                                            $OutObj = [pscustomobject]$inobj
+                                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
 
                                             $TableParams = @{
@@ -306,7 +306,7 @@ function Get-AbrADDomainController {
                                                     "LDAP Port" = $DCInfo.LdapPort
                                                     "LDAPS Port" = $DCInfo.SslPort
                                                 }
-                                                $OutObj = [pscustomobject]$inobj
+                                                $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                                 if ($HealthCheck.DomainController.BestPractice) {
                                                     $OutObj | Where-Object { $_.'IPv4 Addresses'.Split(",").Count -gt 1 } | Set-Style -Style Warning -Property 'IPv4 Addresses'
@@ -377,7 +377,7 @@ function Get-AbrADDomainController {
                                                         } catch { '0.00 GB' }
                                                     }
                                                 }
-                                                $DCHWInfo += [pscustomobject]$inobj
+                                                $DCHWInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
                                             }
 
                                             if ($HealthCheck.DomainController.Diagnostic) {
@@ -458,12 +458,12 @@ function Get-AbrADDomainController {
                                 $inObj = [ordered] @{
                                     'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
                                     'Interface' = $DNSSetting.InterfaceAlias
-                                    'Prefered DNS' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[0]
-                                    'Alternate DNS' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[1]
-                                    'DNS 3' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[2]
-                                    'DNS 4' = ConvertTo-EmptyToFiller $DNSSetting.ServerAddresses[3]
+                                    'Prefered DNS' = $DNSSetting.ServerAddresses[0]
+                                    'Alternate DNS' = $DNSSetting.ServerAddresses[1]
+                                    'DNS 3' = $DNSSetting.ServerAddresses[2]
+                                    'DNS 4' = $DNSSetting.ServerAddresses[3]
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
                                 Write-PScriboMessage -IsWarning "$($DC.ToString().ToUpper().Split(".")[0]) DNS IP Configuration Section: $($_.Exception.Message)"
                             }
@@ -562,7 +562,7 @@ function Get-AbrADDomainController {
                                 'Log Path' = $LogFiles
                                 'SysVol Path' = $SYSVOL
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
@@ -618,7 +618,7 @@ function Get-AbrADDomainController {
                                         default { $SourceType }
                                     }
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
                                 Write-PScriboMessage -IsWarning  "$($_.Exception.Message) (Time Source Item)"
                             }
@@ -717,7 +717,7 @@ function Get-AbrADDomainController {
                                             default { 'OK' }
                                         }
                                     }
-                                    $OutObj += [pscustomobject]$inobj
+                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                 } catch {
                                     Write-PScriboMessage -IsWarning  "$($_.Exception.Message) (SRV Records Status Item)"
                                 }
@@ -783,9 +783,9 @@ function Get-AbrADDomainController {
                                         $inObj = [ordered] @{
                                             'Name' = $Share.Name
                                             'Path' = $Share.Path
-                                            'Description' = ConvertTo-EmptyToFiller $Share.Description
+                                            'Description' = $Share.Description
                                         }
-                                        $FSObj += [pscustomobject]$inobj
+                                        $FSObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                     }
 
                                     if ($HealthCheck.DomainController.BestPractice) {
@@ -862,10 +862,10 @@ function Get-AbrADDomainController {
                                         try {
                                             $inObj = [ordered] @{
                                                 'Name' = $APP.DisplayName
-                                                'Publisher' = ConvertTo-EmptyToFiller $APP.Publisher
-                                                'Install Date' = ConvertTo-EmptyToFiller $APP.InstallDate
+                                                'Publisher' = $APP.Publisher
+                                                'Install Date' = $APP.InstallDate
                                             }
-                                            $OutObj += [pscustomobject]$inobj
+                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                             if ($HealthCheck.DomainController.Software) {
                                                 $OutObj | Set-Style -Style Warning
@@ -934,7 +934,7 @@ function Get-AbrADDomainController {
                                                 'KB Article' = "KB$($Update.KBArticleIDs)"
                                                 'Name' = $Update.Title
                                             }
-                                            $OutObj += [pscustomobject]$inobj
+                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                             if ($HealthCheck.DomainController.Software) {
                                                 $OutObj | Set-Style -Style Warning

@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -61,16 +61,16 @@ function Get-AbrADTrust {
                                             3 { "Bidirectional (two-way trust)" }
                                             default { $Trust.TrustDirection }
                                         }
-                                        'IntraForest' = ConvertTo-TextYN $Trust.IntraForest
-                                        'Selective Authentication' = ConvertTo-TextYN $Trust.SelectiveAuthentication
-                                        'SID Filtering Forest Aware' = ConvertTo-TextYN $Trust.SIDFilteringForestAware
-                                        'SID Filtering Quarantined' = ConvertTo-TextYN $Trust.SIDFilteringQuarantined
-                                        'TGT Delegation' = ConvertTo-TextYN $Trust.TGTDelegation
-                                        'Kerberos AES Encryption' = ConvertTo-TextYN $Trust.UsesAESKeys
-                                        'Kerberos RC4 Encryption' = ConvertTo-TextYN $Trust.UsesRC4Encryption
-                                        'Uplevel Only' = ConvertTo-TextYN $Trust.UplevelOnly
+                                        'IntraForest' = $Trust.IntraForest
+                                        'Selective Authentication' = $Trust.SelectiveAuthentication
+                                        'SID Filtering Forest Aware' = $Trust.SIDFilteringForestAware
+                                        'SID Filtering Quarantined' = $Trust.SIDFilteringQuarantined
+                                        'TGT Delegation' = $Trust.TGTDelegation
+                                        'Kerberos AES Encryption' = $Trust.UsesAESKeys
+                                        'Kerberos RC4 Encryption' = $Trust.UsesRC4Encryption
+                                        'Uplevel Only' = $Trust.UplevelOnly
                                     }
-                                    $TrustInfo += [pscustomobject]$inobj
+                                    $TrustInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
                                 } catch {
                                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Item)"
                                 }

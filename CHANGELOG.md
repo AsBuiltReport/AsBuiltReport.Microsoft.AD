@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.1] - 2024-11-15
+
+### Added
+
+- Improve detection of empty fields in tables
+- Improve detection of true/false elements in tables
+- Update GitHub release workflow to add post to Bluesky social platform
+
+### Changed
+
+- Increase Diagrammer.Core minimum requirement
+- Increase Diagrammer.Microsoft.AD minumum requirement
+
 ## [0.9.0] - 2024-10-13
 
 ### Added
@@ -16,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Increase Diagrammer.Core minumum requirement
+- Increase Diagrammer.Core minimum requirement
 - Increase Diagrammer.Microsoft.AD minumum requirement
 - Improve detection of Domain Controller availability (Test-WSMan)
 

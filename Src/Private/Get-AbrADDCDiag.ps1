@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.0
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -68,7 +68,7 @@ function Get-AbrADDCDiag {
                                     'Impact' = $Description[$Result.TestName][1]
                                     'Description' = $Description[$Result.TestName][0]
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
                                 Write-PScriboMessage -IsWarning "Active Directory DCDiag $($Result.TestName) Section: $($_.Exception.Message)"
                             }

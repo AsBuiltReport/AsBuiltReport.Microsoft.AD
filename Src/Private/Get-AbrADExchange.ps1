@@ -5,7 +5,7 @@ function Get-AbrADExchange {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -38,7 +38,7 @@ function Get-AbrADExchange {
                                 'Server Roles' = $EXServer.ServerRoles -join ", "
                                 'Version' = $EXServer.Version
                             }
-                            $EXInfo += [pscustomobject]$inobj
+                            $EXInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Exchange Item)"
                         }
