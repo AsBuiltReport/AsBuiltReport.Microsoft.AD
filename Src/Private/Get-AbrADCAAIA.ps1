@@ -5,7 +5,7 @@ function Get-AbrADCAAIA {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -40,12 +40,12 @@ function Get-AbrADCAAIA {
                             $inObj = [ordered] @{
                                 'Reg URI' = $URI.RegURI
                                 'Config URI' = $URI.ConfigURI
-                                'Flags' = ConvertTo-EmptyToFiller ($URI.Flags -join ", ")
-                                'Server Publish' = ConvertTo-TextYN $URI.ServerPublish
-                                'Include To Extension' = ConvertTo-TextYN $URI.IncludeToExtension
-                                'OCSP' = ConvertTo-TextYN $URI.OCSP
+                                'Flags' = ($URI.Flags -join ", ")
+                                'Server Publish' = $URI.ServerPublish
+                                'Include To Extension' = $URI.IncludeToExtension
+                                'OCSP' = $URI.OCSP
                             }
-                            $OutObj = [pscustomobject]$inobj
+                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                             $TableParams = @{
                                 Name = "Authority Information Access - $($CA.Name)"

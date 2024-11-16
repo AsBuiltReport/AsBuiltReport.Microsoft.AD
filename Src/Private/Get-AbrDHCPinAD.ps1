@@ -5,7 +5,7 @@ function Get-AbrDHCPinAD {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -50,7 +50,7 @@ function Get-AbrDHCPinAD {
                                     default {'Unknown'}
                                 }
                             }
-                            $DCHPInfo += [pscustomobject]$inobj
+                            $DCHPInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DHCP Item)"
                         }

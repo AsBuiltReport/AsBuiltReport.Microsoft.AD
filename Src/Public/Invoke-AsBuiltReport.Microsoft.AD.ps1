@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.0
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -67,7 +67,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Get-RequiredFeature -Name GPMC -OSType $OSType
     }
 
-    Get-RequiredModule -Name PSPKI -Version '3.7.2'
+    Get-RequiredModule -Name PSPKI -Version '4.2.0'
 
     # Import Report Configuration
     $script:Report = $ReportConfig.Report

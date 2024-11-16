@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.0
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -56,8 +56,8 @@ function Get-AbrADForest {
                             'Sites Count' = $Item.Sites.Count
                             'Application Partitions' = $Item.ApplicationPartitions
                             'PartitionsContainer' = [string]$Item.PartitionsContainer
-                            'SPN Suffixes' = ConvertTo-EmptyToFiller $Item.SPNSuffixes
-                            'UPN Suffixes' = ConvertTo-EmptyToFiller ($Item.UPNSuffixes -join ', ')
+                            'SPN Suffixes' = $Item.SPNSuffixes
+                            'UPN Suffixes' = ($Item.UPNSuffixes -join ', ')
                             'Anonymous Access (dsHeuristics)' = & {
                                 if (($ValuedsHeuristics.dsHeuristics -eq "") -or ($ValuedsHeuristics.dsHeuristics.Length -lt 7)) {
                                     "Disabled"
@@ -66,7 +66,7 @@ function Get-AbrADForest {
                                 }
                             }
                         }
-                        $OutObj += [pscustomobject]$inobj
+                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                     } catch {
                         Write-PScriboMessage -IsWarning $_.Exception.Message
                     }
@@ -149,7 +149,7 @@ function Get-AbrADForest {
                                     'Name' = $Item.Name
                                     'Distinguished Name' = $Item.DistinguishedName
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
                                 Write-PScriboMessage -IsWarning $_.Exception.Message
                             }
@@ -191,7 +191,7 @@ function Get-AbrADForest {
                                     'Name' = $Item.Name
                                     'DNS Name' = $Item.dNSHostName
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
                                 Write-PScriboMessage -IsWarning $_.Exception.Message
                             }
@@ -229,7 +229,7 @@ function Get-AbrADForest {
                                     default { 'Yes' }
                                 }
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }

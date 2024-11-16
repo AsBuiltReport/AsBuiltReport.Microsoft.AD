@@ -5,7 +5,7 @@ function Get-AbrADCACryptographyConfig {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -41,10 +41,10 @@ function Get-AbrADCACryptographyConfig {
                             'PublicKey Algorithm' = $CryptoConfig.PublicKeyAlgorithm | Select-Object -ExpandProperty FriendlyName
                             'Hashing Algorithm' = ($CryptoConfig.HashingAlgorithm | Select-Object -ExpandProperty FriendlyName).ToUpper()
                             'Provider Name' = $CryptoConfig.ProviderName
-                            'Alternate Signature Algorithm' = ConvertTo-TextYN $CryptoConfig.AlternateSignatureAlgorithm
-                            'Provider Is CNG' = ConvertTo-TextYN $CryptoConfig.ProviderIsCNG
+                            'Alternate Signature Algorithm' = $CryptoConfig.AlternateSignatureAlgorithm
+                            'Provider Is CNG' = $CryptoConfig.ProviderIsCNG
                         }
-                        $OutObj = [pscustomobject]$inobj
+                        $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                         $TableParams = @{
                             Name = "Cryptography Configuration - $($ForestInfo.ToString().ToUpper())"

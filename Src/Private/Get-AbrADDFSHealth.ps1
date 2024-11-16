@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -49,11 +49,11 @@ function Get-AbrADDFSHealth {
                                     }
                                     'GPO Count' = $DCStatus.GroupPolicyCount
                                     'Sysvol Count' = $DCStatus.SysvolCount
-                                    'Identical Count' = ConvertTo-TextYN $DCStatus.IdenticalCount
-                                    'Stop Replication On AutoRecovery' = ConvertTo-TextYN $DCStatus.StopReplicationOnAutoRecovery
+                                    'Identical Count' = $DCStatus.IdenticalCount
+                                    'Stop Replication On AutoRecovery' = $DCStatus.StopReplicationOnAutoRecovery
 
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
                                 Write-PScriboMessage -IsWarning "Sysvol Replication Status Iten Section: $($_.Exception.Message)"
                             }
@@ -131,7 +131,7 @@ function Get-AbrADDFSHealth {
                                     'File Count' = $Extension.Count
                                     'Size' = "$($Extension.TotalSize) MB"
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
                                 Write-PScriboMessage -IsWarning "Sysvol Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }
@@ -198,7 +198,7 @@ function Get-AbrADDFSHealth {
                                     'File Count' = $Extension.Count
                                     'Size' = "$($Extension.TotalSize) MB"
                                 }
-                                $OutObj += [pscustomobject]$inobj
+                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
                                 Write-PScriboMessage -IsWarning "Netlogon Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }

@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -50,10 +50,10 @@ function Get-AbrADOU {
                             }
                             $inObj = [ordered] @{
                                 'Name' = ((ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Domain $Domain -DC $DC).split('/') | Select-Object -Skip 1) -join "/"
-                                'Linked GPO' = ConvertTo-EmptyToFiller ($GPOArray -join ", ")
-                                'Protected' = ConvertTo-TextYN $OU.ProtectedFromAccidentalDeletion
+                                'Linked GPO' = ($GPOArray -join ", ")
+                                'Protected' = $OU.ProtectedFromAccidentalDeletion
                             }
-                            $OutObj += [pscustomobject]$inobj
+                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit Item)"
                         }
@@ -93,10 +93,10 @@ function Get-AbrADOU {
                                             $inObj = [ordered] @{
                                                 'OU Name' = $GpoInheritance.Name
                                                 'Container Type' = $GpoInheritance.ContainerType
-                                                'Inheritance Blocked' = ConvertTo-TextYN $GpoInheritance.GpoInheritanceBlocked
+                                                'Inheritance Blocked' = $GpoInheritance.GpoInheritanceBlocked
                                                 'Path' = ConvertTo-ADCanonicalName -DN $GpoInheritance.Path -Domain $Domain -DC $DC
                                             }
-                                            $OutObj += [pscustomobject]$inobj
+                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         }
                                     } catch {
                                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Blocked Inheritance GPO Item)"
