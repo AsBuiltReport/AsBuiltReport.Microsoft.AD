@@ -168,7 +168,7 @@ function Get-AbrADSite {
                                                 default { 'Unknown' }
                                             }
                                         }
-                                        $OutObj += [pscustomobject]$inObj
+                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                         if ($HealthCheck.Site.BestPractice) {
                                             $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'

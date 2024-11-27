@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,7 +30,17 @@ function Get-AbrADKerberosAudit {
     process {
         if ($HealthCheck.Domain.Security) {
             try {
-                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
+
+                $DC = foreach ($TestedDC in $DCList) {
+                    if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
+                        Write-PScriboMessage "Using $TestedDC to retreive Kerberos Audit information on $Domain."
+                        $TestedDC
+                        break
+                    } else {
+                        Write-PScriboMessage "Unable to connect to $TestedDC to retreive Kerberos Audit information on $Domain."
+                    }
+                }
                 $Unconstrained = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:DC -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
                 if ($Unconstrained) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Unconstrained Kerberos Delegation' {

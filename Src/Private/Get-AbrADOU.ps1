@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -83,7 +83,17 @@ function Get-AbrADOU {
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
-                            $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                            $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
+
+                            $DC = foreach ($TestedDC in $DCList) {
+                                if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
+                                    Write-PScriboMessage "Using $TestedDC to retreive Blocked Inheritance GPO information on $Domain."
+                                    $TestedDC
+                                    break
+                                } else {
+                                    Write-PScriboMessage "Unable to connect to $TestedDC to retreive Blocked Inheritance GPO information on $Domain."
+                                }
+                            }
                             # $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName }
                             if ($OUs) {
                                 foreach ($OU in $OUs) {

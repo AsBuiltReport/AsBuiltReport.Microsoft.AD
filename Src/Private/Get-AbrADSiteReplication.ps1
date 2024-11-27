@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -118,7 +118,17 @@ function Get-AbrADSiteReplication {
         }
         try {
             if ($HealthCheck.Site.Replication) {
-                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
+
+                $DC = foreach ($TestedDC in $DCList) {
+                    if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
+                        Write-PScriboMessage "Using $TestedDC to retreive Replication Connection information on $Domain."
+                        $TestedDC
+                        break
+                    } else {
+                        Write-PScriboMessage "Unable to connect to $TestedDC to retreive Replication Connection information on $Domain."
+                    }
+                }
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ActiveDirectoryReplicationStatus' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId

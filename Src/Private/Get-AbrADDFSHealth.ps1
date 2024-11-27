@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -103,11 +103,22 @@ function Get-AbrADDFSHealth {
                 Write-PScriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
             }
             try {
-                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
+
+                $DC = foreach ($TestedDC in $DCList) {
+                    if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
+                        Write-PScriboMessage "Using $TestedDC to retreive AD Domain DFS Health information on $Domain."
+                        $TestedDC
+                        break
+                    } else {
+                        Write-PScriboMessage "Unable to connect to $TestedDC to retreive AD Domain DFS Health information on $Domain."
+                    }
+                }
+
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
-                    } else {$ErrorMessage = $_.Exception.MessageId}
+                    } else { $ErrorMessage = $_.Exception.MessageId }
                     Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                 }
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
@@ -170,11 +181,21 @@ function Get-AbrADDFSHealth {
                 Write-PScriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
             }
             try {
-                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
+
+                $DC = foreach ($TestedDC in $DCList) {
+                    if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
+                        Write-PScriboMessage "Using $TestedDC to retreive AD Domain DFS Health information on $Domain."
+                        $TestedDC
+                        break
+                    } else {
+                        Write-PScriboMessage "Unable to connect to $TestedDC to retreive AD Domain DFS Health information on $Domain."
+                    }
+                }
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
-                    } else {$ErrorMessage = $_.Exception.MessageId}
+                    } else { $ErrorMessage = $_.Exception.MessageId }
                     Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                 }
                 # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)

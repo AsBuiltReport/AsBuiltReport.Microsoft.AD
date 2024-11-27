@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,17 @@ function Get-AbrADTrust {
         try {
             if ($Domain) {
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                    $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
+
+                    $DC = foreach ($TestedDC in $DCList) {
+                        if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
+                            Write-PScriboMessage "Using $TestedDC to retreive AD Trust information on $Domain."
+                            $TestedDC
+                            break
+                        } else {
+                            Write-PScriboMessage "Unable to connect to $TestedDC to retreive AD Trust information on $Domain."
+                        }
+                    }
                     $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:DC }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {
