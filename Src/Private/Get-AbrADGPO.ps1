@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -195,7 +195,8 @@ function Get-AbrADGPO {
                     }
                     if ($InfoLevel.Domain -ge 2) {
                         try {
-                            $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                            $DC = Get-ValidDCfromDomain -Domain $Domain
+
                             $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'WmiFilters' -ErrorAction Stop } catch {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
@@ -489,7 +490,17 @@ function Get-AbrADGPO {
                     try {
                         $OutObj = @()
                         $DM = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain }
-                        $DC = $DM.ReplicaDirectoryServers | Select-Object -First 1
+                        $DCList = $DM.ReplicaDirectoryServers | Select-Object -First 1
+
+                        $DC = foreach ($TestedDC in $DCList) {
+                            if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
+                                Write-PScriboMessage "Using $TestedDC to retreive Enforced Group Policy Objects information on $Domain."
+                                $TestedDC
+                                break
+                            } else {
+                                Write-PScriboMessage "Unable to connect to $TestedDC to retreive Enforced Group Policy Objects information on $Domain."
+                            }
+                        }
                         $OUs = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * }).DistinguishedName
                         if ($OUs) {
                             $OUs += $DM.DistinguishedName
@@ -547,7 +558,8 @@ function Get-AbrADGPO {
                     # Code taken from Jeremy Saunders
                     # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
                     try {
-                        $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                        $DC = Get-ValidDCfromDomain -Domain $Domain
+
                         $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO' -ErrorAction Stop } catch {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId

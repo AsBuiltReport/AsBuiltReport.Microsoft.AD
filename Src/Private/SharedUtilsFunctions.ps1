@@ -2130,16 +2130,16 @@ function Get-ADObjectList {
     $ConstructedDomainName = $ConstructedDomainName -replace " ", ",DC="
 
     if ($Server) {
-        $searcher.SearchRoot = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$Server/$ConstructedDomainName",$Credential.UserName,$Credential.GetNetworkCredential().Password)
+        $searcher.SearchRoot = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$Server/$ConstructedDomainName", $Credential.UserName, $Credential.GetNetworkCredential().Password)
     } else {
         $searcher.SearchRoot = "LDAP://$ConstructedDomainName"
     }
 
     $searcher.PageSize = 1000
-	$searcher.PropertiesToLoad.Add("*") | Out-Null
+    $searcher.PropertiesToLoad.Add("*") | Out-Null
     $searcher.SearchScope = "Subtree"
 
-	# Construct the LDAP filter based on the -Collect parameter
+    # Construct the LDAP filter based on the -Collect parameter
     $filters = @()
     foreach ($item in $Object) {
         switch ($item) {
@@ -2204,3 +2204,42 @@ function ConvertTo-HashToYN {
         return $result
     } else { return $TEXT }
 } # end
+
+function Get-ValidDCfromDomainfromDomain {
+    <#
+    .SYNOPSIS
+        Used by As Built Report to get a valid Domain Controller from Domain.
+    .DESCRIPTION
+        Function to get a valid DC from a Active Directory Domain string.
+        It use Test-WsMan to test WinRM status from DC.
+    .NOTES
+        Version:        0.1.0
+        Author:         Jonathan Colon
+    .EXAMPLE
+        PS C:\Users\JohnDoe> Get-ValidDCfromDomainfromDomain -Domain 'pharmax.local'
+            Server-DC-01V.pharmax.local
+    #>
+    [CmdletBinding()]
+    [OutputType([String])]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Domain
+    )
+
+    $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
+
+    if ($DCList) {
+        foreach ($TestedDC in $DCList) {
+            if (Test-WSMan -ComputerName $TestedDC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction SilentlyContinue) {
+                Write-PScriboMessage "Using $TestedDC to retreive $Domain information."
+                $TestedDC
+                break
+            } else {
+                Write-PScriboMessage "Unable to connect to $TestedDC to retreive $Domain information."
+            }
+        }
+    } else {
+        Write-PScriboMessage "Unable to connect to $Domain to get a valid Domain Controller list."
+    }
+}# end

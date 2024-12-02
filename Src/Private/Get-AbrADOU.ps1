@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -83,8 +83,7 @@ function Get-AbrADOU {
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
-                            $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
-                            # $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName }
+                            $DC = Get-ValidDCfromDomain -Domain $Domain
                             if ($OUs) {
                                 foreach ($OU in $OUs) {
                                     try {
