@@ -2205,7 +2205,7 @@ function ConvertTo-HashToYN {
     } else { return $TEXT }
 } # end
 
-function Get-ValidDCfromDomainfromDomain {
+function Get-ValidDCfromDomain {
     <#
     .SYNOPSIS
         Used by As Built Report to get a valid Domain Controller from Domain.
