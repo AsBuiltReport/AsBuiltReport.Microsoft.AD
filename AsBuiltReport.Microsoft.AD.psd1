@@ -54,7 +54,7 @@
     RequiredModules = @(
         @{
             ModuleName = 'AsBuiltReport.Core';
-            ModuleVersion = '1.4.0'
+            ModuleVersion = '1.4.1'
         },
         @{
             ModuleName = 'PSPKI';
