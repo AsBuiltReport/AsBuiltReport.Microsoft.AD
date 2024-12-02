@@ -2185,7 +2185,7 @@ function ConvertTo-HashToYN {
 
     #>
     [CmdletBinding()]
-    [OutputType([Hashtable])]
+    [OutputType([Hashtable],[OrderedDictionary])]
     Param (
         [Parameter (Position = 0, Mandatory)]
         [AllowEmptyString()]
