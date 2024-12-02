@@ -2176,7 +2176,7 @@ function ConvertTo-HashToYN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.1.0
+        Version:        0.2.0
         Author:         Jonathan Colon
 
     .EXAMPLE
@@ -2185,15 +2185,15 @@ function ConvertTo-HashToYN {
 
     #>
     [CmdletBinding()]
-    [OutputType([Hashtable],[OrderedDictionary])]
+    [OutputType([System.Collections.Specialized.OrderedDictionary])]
     Param (
         [Parameter (Position = 0, Mandatory)]
         [AllowEmptyString()]
-        [Hashtable] $TEXT
+        [System.Collections.Specialized.OrderedDictionary] $TEXT
     )
 
     $result = [ordered] @{}
-    foreach ($i in $inObj.GetEnumerator()) {
+    foreach ($i in $TEXT.GetEnumerator()) {
         try {
             $result.add($i.Key, (ConvertTo-TextYN $i.Value))
         } catch {
