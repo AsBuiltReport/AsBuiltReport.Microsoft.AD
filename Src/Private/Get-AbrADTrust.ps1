@@ -31,7 +31,7 @@ function Get-AbrADTrust {
         try {
             if ($Domain) {
                 try {
-                    $DC = Get-ValidDC -Domain $Domain
+                    $DC = Get-ValidDCfromDomain -Domain $Domain
                     $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:DC }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {

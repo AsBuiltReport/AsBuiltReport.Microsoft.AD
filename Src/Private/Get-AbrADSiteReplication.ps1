@@ -118,7 +118,7 @@ function Get-AbrADSiteReplication {
         }
         try {
             if ($HealthCheck.Site.Replication) {
-                $DC = Get-ValidDC -Domain $Domain
+                $DC = Get-ValidDCfromDomain -Domain $Domain
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ActiveDirectoryReplicationStatus' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId

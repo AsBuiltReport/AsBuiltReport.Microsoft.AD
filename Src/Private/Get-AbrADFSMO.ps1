@@ -32,7 +32,7 @@ function Get-AbrADFSMO {
             $DomainData = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator }
             $ForestData = Invoke-Command -Session $TempPssSession { Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster }
             if ($DomainData -and $ForestData) {
-                $DC = Get-ValidDC -Domain $Domain
+                $DC = Get-ValidDCfromDomain -Domain $Domain
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'FSMORoles' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId

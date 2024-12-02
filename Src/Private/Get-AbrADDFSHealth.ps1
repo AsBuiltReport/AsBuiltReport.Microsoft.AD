@@ -103,7 +103,7 @@ function Get-AbrADDFSHealth {
                 Write-PScriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
             }
             try {
-                $DC = Get-ValidDC -Domain $Domain
+                $DC = Get-ValidDCfromDomain -Domain $Domain
 
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
@@ -171,8 +171,7 @@ function Get-AbrADDFSHealth {
                 Write-PScriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
             }
             try {
-                $DC = Get-ValidDC -Domain $Domain
-                
+                $DC = Get-ValidDCfromDomain -Domain $Domain
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId

@@ -195,7 +195,7 @@ function Get-AbrADGPO {
                     }
                     if ($InfoLevel.Domain -ge 2) {
                         try {
-                            $DC = Get-ValidDC -Domain $Domain
+                            $DC = Get-ValidDCfromDomain -Domain $Domain
 
                             $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'WmiFilters' -ErrorAction Stop } catch {
                                 if (-Not $_.Exception.MessageId) {
@@ -558,7 +558,7 @@ function Get-AbrADGPO {
                     # Code taken from Jeremy Saunders
                     # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
                     try {
-                        $DC = Get-ValidDC -Domain $Domain
+                        $DC = Get-ValidDCfromDomain -Domain $Domain
 
                         $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO' -ErrorAction Stop } catch {
                             if (-Not $_.Exception.MessageId) {

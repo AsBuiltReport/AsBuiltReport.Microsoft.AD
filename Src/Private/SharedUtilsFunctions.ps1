@@ -2130,16 +2130,16 @@ function Get-ADObjectList {
     $ConstructedDomainName = $ConstructedDomainName -replace " ", ",DC="
 
     if ($Server) {
-        $searcher.SearchRoot = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$Server/$ConstructedDomainName",$Credential.UserName,$Credential.GetNetworkCredential().Password)
+        $searcher.SearchRoot = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$Server/$ConstructedDomainName", $Credential.UserName, $Credential.GetNetworkCredential().Password)
     } else {
         $searcher.SearchRoot = "LDAP://$ConstructedDomainName"
     }
 
     $searcher.PageSize = 1000
-	$searcher.PropertiesToLoad.Add("*") | Out-Null
+    $searcher.PropertiesToLoad.Add("*") | Out-Null
     $searcher.SearchScope = "Subtree"
 
-	# Construct the LDAP filter based on the -Collect parameter
+    # Construct the LDAP filter based on the -Collect parameter
     $filters = @()
     foreach ($item in $Object) {
         switch ($item) {
@@ -2205,7 +2205,7 @@ function ConvertTo-HashToYN {
     } else { return $TEXT }
 } # end
 
-function Get-ValidDCfromDomain {
+function Get-ValidDCfromDomainfromDomain {
     <#
     .SYNOPSIS
         Used by As Built Report to get a valid Domain Controller from Domain.
@@ -2216,7 +2216,7 @@ function Get-ValidDCfromDomain {
         Version:        0.1.0
         Author:         Jonathan Colon
     .EXAMPLE
-        PS C:\Users\JohnDoe> Get-ValidDC -Domain 'pharmax.local'
+        PS C:\Users\JohnDoe> Get-ValidDCfromDomainfromDomain -Domain 'pharmax.local'
             Server-DC-01V.pharmax.local
     #>
     [CmdletBinding()]

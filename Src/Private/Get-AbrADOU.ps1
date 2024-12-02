@@ -83,7 +83,7 @@ function Get-AbrADOU {
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
-                            $DC = Get-ValidDC -Domain $Domain
+                            $DC = Get-ValidDCfromDomain -Domain $Domain
                             if ($OUs) {
                                 foreach ($OU in $OUs) {
                                     try {
