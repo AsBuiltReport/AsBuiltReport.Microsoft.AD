@@ -103,17 +103,7 @@ function Get-AbrADDFSHealth {
                 Write-PScriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
             }
             try {
-                $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
-
-                $DC = foreach ($TestedDC in $DCList) {
-                    if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
-                        Write-PScriboMessage "Using $TestedDC to retreive AD Domain DFS Health information on $Domain."
-                        $TestedDC
-                        break
-                    } else {
-                        Write-PScriboMessage "Unable to connect to $TestedDC to retreive AD Domain DFS Health information on $Domain."
-                    }
-                }
+                $DC = Get-ValidDC -Domain $Domain
 
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
@@ -181,17 +171,8 @@ function Get-AbrADDFSHealth {
                 Write-PScriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
             }
             try {
-                $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
-
-                $DC = foreach ($TestedDC in $DCList) {
-                    if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
-                        Write-PScriboMessage "Using $TestedDC to retreive AD Domain DFS Health information on $Domain."
-                        $TestedDC
-                        break
-                    } else {
-                        Write-PScriboMessage "Unable to connect to $TestedDC to retreive AD Domain DFS Health information on $Domain."
-                    }
-                }
+                $DC = Get-ValidDC -Domain $Domain
+                
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId

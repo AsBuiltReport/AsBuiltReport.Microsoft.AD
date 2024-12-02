@@ -83,18 +83,7 @@ function Get-AbrADOU {
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
-                            $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
-
-                            $DC = foreach ($TestedDC in $DCList) {
-                                if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
-                                    Write-PScriboMessage "Using $TestedDC to retreive Blocked Inheritance GPO information on $Domain."
-                                    $TestedDC
-                                    break
-                                } else {
-                                    Write-PScriboMessage "Unable to connect to $TestedDC to retreive Blocked Inheritance GPO information on $Domain."
-                                }
-                            }
-                            # $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName }
+                            $DC = Get-ValidDC -Domain $Domain
                             if ($OUs) {
                                 foreach ($OU in $OUs) {
                                     try {

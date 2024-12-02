@@ -31,17 +31,7 @@ function Get-AbrADTrust {
         try {
             if ($Domain) {
                 try {
-                    $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
-
-                    $DC = foreach ($TestedDC in $DCList) {
-                        if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
-                            Write-PScriboMessage "Using $TestedDC to retreive AD Trust information on $Domain."
-                            $TestedDC
-                            break
-                        } else {
-                            Write-PScriboMessage "Unable to connect to $TestedDC to retreive AD Trust information on $Domain."
-                        }
-                    }
+                    $DC = Get-ValidDC -Domain $Domain
                     $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:DC }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {

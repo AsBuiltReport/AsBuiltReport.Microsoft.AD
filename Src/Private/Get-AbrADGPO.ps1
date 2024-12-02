@@ -195,17 +195,8 @@ function Get-AbrADGPO {
                     }
                     if ($InfoLevel.Domain -ge 2) {
                         try {
-                            $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
+                            $DC = Get-ValidDC -Domain $Domain
 
-                            $DC = foreach ($TestedDC in $DCList) {
-                                if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
-                                    Write-PScriboMessage "Using $TestedDC to retreive Active Directory Group Policy Objects information on $Domain."
-                                    $TestedDC
-                                    break
-                                } else {
-                                    Write-PScriboMessage "Unable to connect to $TestedDC to retreive Active Directory Group Policy Objects information on $Domain."
-                                }
-                            }
                             $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'WmiFilters' -ErrorAction Stop } catch {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
@@ -567,17 +558,8 @@ function Get-AbrADGPO {
                     # Code taken from Jeremy Saunders
                     # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
                     try {
-                        $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
+                        $DC = Get-ValidDC -Domain $Domain
 
-                        $DC = foreach ($TestedDC in $DCList) {
-                            if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
-                                Write-PScriboMessage "Using $TestedDC to retreive Orphaned GPO information on $Domain."
-                                $TestedDC
-                                break
-                            } else {
-                                Write-PScriboMessage "Unable to connect to $TestedDC to retreive Orphaned GPO information on $Domain."
-                            }
-                        }
                         $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO' -ErrorAction Stop } catch {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId

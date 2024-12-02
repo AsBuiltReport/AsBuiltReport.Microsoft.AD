@@ -32,17 +32,7 @@ function Get-AbrADFSMO {
             $DomainData = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator }
             $ForestData = Invoke-Command -Session $TempPssSession { Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster }
             if ($DomainData -and $ForestData) {
-                $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
-
-                $DC = foreach ($TestedDC in $DCList) {
-                    if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
-                        Write-PScriboMessage "Using $TestedDC to retreive Active Directory FSMO information on $Domain."
-                        $TestedDC
-                        break
-                    } else {
-                        Write-PScriboMessage "Unable to connect to $TestedDC to retreive Active Directory FSMO information on $Domain."
-                    }
-                }
+                $DC = Get-ValidDC -Domain $Domain
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'FSMORoles' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
@@ -55,8 +45,8 @@ function Get-AbrADFSMO {
                     try {
                         $inObj = [ordered] @{
                             'Infrastructure Master' = $DomainData.InfrastructureMaster
-                            'RID Master' = $DomainData.RIDMaster
                             'PDC Emulator Name' = $DomainData.PDCEmulator
+                            'RID Master' = $DomainData.RIDMaster
                             'Domain Naming Master' = $ForestData.DomainNamingMaster
                             'Schema Master' = $ForestData.SchemaMaster
                         }
