@@ -2211,7 +2211,7 @@ function Get-ValidDCfromDomain {
         Used by As Built Report to get a valid Domain Controller from Domain.
     .DESCRIPTION
         Function to get a valid DC from a Active Directory Domain string.
-        It use Test-WsMan to test WinRM status from DC.
+        It use Test-WsMan to test WinRM status of the machine.
     .NOTES
         Version:        0.1.0
         Author:         Jonathan Colon
