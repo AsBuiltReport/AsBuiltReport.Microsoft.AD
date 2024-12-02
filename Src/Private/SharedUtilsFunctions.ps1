@@ -1036,7 +1036,7 @@ function Get-WinADForestDetail {
     .LINK
 
     #>
-    [OutputType('System.Collections.Specialized.OrderedDictionary')]
+    [OutputType([OrderedDictionary])]
     [CmdletBinding()]
     param(
         [alias('ForestName')][string] $Forest,
@@ -2176,7 +2176,7 @@ function ConvertTo-HashToYN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.1.0
+        Version:        0.2.0
         Author:         Jonathan Colon
 
     .EXAMPLE
@@ -2185,15 +2185,15 @@ function ConvertTo-HashToYN {
 
     #>
     [CmdletBinding()]
-    [OutputType([Hashtable])]
+    [OutputType([System.Collections.Specialized.OrderedDictionary])]
     Param (
         [Parameter (Position = 0, Mandatory)]
         [AllowEmptyString()]
-        [Hashtable] $TEXT
+        [System.Collections.Specialized.OrderedDictionary] $TEXT
     )
 
     $result = [ordered] @{}
-    foreach ($i in $inObj.GetEnumerator()) {
+    foreach ($i in $TEXT.GetEnumerator()) {
         try {
             $result.add($i.Key, (ConvertTo-TextYN $i.Value))
         } catch {
@@ -2211,7 +2211,7 @@ function Get-ValidDCfromDomain {
         Used by As Built Report to get a valid Domain Controller from Domain.
     .DESCRIPTION
         Function to get a valid DC from a Active Directory Domain string.
-        It use Test-WsMan to test WinRM status from DC.
+        It use Test-WsMan to test WinRM status of the machine.
     .NOTES
         Version:        0.1.0
         Author:         Jonathan Colon
