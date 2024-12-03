@@ -1036,7 +1036,7 @@ function Get-WinADForestDetail {
     .LINK
 
     #>
-    [OutputType([OrderedDictionary])]
+    [OutputType([System.Collections.Specialized.OrderedDictionary])]
     [CmdletBinding()]
     param(
         [alias('ForestName')][string] $Forest,
