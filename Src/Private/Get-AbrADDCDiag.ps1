@@ -26,7 +26,7 @@ function Get-AbrADDCDiag {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory $DC DCDiag information for domain $Domain."
+        Write-PScriboMessage "Collecting Active Directory $DC DCDiag information for domain $Domain. Script Get-AbrADDCDiag."
     }
 
     process {

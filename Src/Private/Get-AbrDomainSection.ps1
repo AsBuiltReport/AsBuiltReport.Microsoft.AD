@@ -19,7 +19,7 @@ function Get-AbrDomainSection {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Domain information from $ForestInfo."
+        Write-PScriboMessage "Collecting Domain information from $ForestInfo. Script Get-AbrDomainSection."
     }
 
     process {
@@ -30,7 +30,7 @@ function Get-AbrDomainSection {
                     BlankLine
                 }
                 if (-Not $Options.ShowDefinitionInfo) {
-                    Paragraph "The following section provides a summary of the Active Directory Domain Information."
+                    Paragraph "The following section provides a summary of the Active Directory Domain Information. Please note, if you excluded DCs in the configuration file, these sections could provide inaccurate DC summaries."
                     BlankLine
                 }
 
@@ -46,7 +46,7 @@ function Get-AbrDomainSection {
                         try {
                             if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain })) {
                                 Section -Style Heading2 "$($Domain.ToString().ToUpper())" {
-                                    Paragraph "The following section provides a summary of the Active Directory Domain Information."
+                                    Paragraph "The following section provides a summary of the Active Directory Domain Information. Please note, if you excluded DCs in the configuration file, these sections could provide inaccurate DC summaries."
                                     BlankLine
                                     Get-AbrADDomain -Domain $Domain
                                     Get-AbrADFSMO -Domain $Domain
@@ -71,10 +71,10 @@ function Get-AbrDomainSection {
                                         }
                                         if (-Not $Options.ShowDefinitionInfo) {
                                             if ($InfoLevel.Domain -ge 2) {
-                                                Paragraph "The following section provides detailed information about Active Directory domain controllers."
+                                                Paragraph "The following section provides detailed information about Active Directory domain controllers. Please note, if you excluded DCs in the configuration file, these sections could provide inaccurate DC summaries."
                                                 BlankLine
                                             } else {
-                                                Paragraph "The following section provides an overview of Active Directory domain controllers."
+                                                Paragraph "The following section provides an overview of Active Directory domain controllers. Please note, if you excluded DCs in the configuration file, these sections could provide inaccurate DC summaries."
                                                 BlankLine
                                             }
                                         }
@@ -96,7 +96,7 @@ function Get-AbrDomainSection {
                                                 }
                                                 if ($RolesObj) {
                                                     Section -Style Heading4 "Roles" {
-                                                        Paragraph "The following section provides a summary of installed role & features on $Domain DCs."
+                                                        Paragraph "The following section provides a summary of installed role & features on $Domain DCs. Please note, if you excluded DCs in the configuration file, these sections could provide inaccurate DC summaries."
                                                         $RolesObj
                                                     }
                                                 }
@@ -110,7 +110,7 @@ function Get-AbrDomainSection {
                                                     }
                                                     if ($DCDiagObj) {
                                                         Section -Style Heading4 'DC Diagnostic' {
-                                                            Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                                                            Paragraph "The following section provides a summary of the Active Directory DC Diagnostic. Please note, if you excluded DCs in the configuration file, these sections could provide inaccurate DC summaries."
                                                             BlankLine
                                                             $DCDiagObj
                                                         }
@@ -128,7 +128,7 @@ function Get-AbrDomainSection {
                                                 }
                                                 if ($ADInfraServices) {
                                                     Section -Style Heading4 "Infrastructure Services" {
-                                                        Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
+                                                        Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status. Please note, if you excluded DCs in the configuration file, these sections could provide inaccurate DC summaries."
                                                         $ADInfraServices
                                                     }
                                                 }

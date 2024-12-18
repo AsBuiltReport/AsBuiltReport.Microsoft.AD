@@ -23,7 +23,7 @@ function Get-AbrADCATemplate {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Templates information from $($CA.ComputerName)."
+        Write-PScriboMessage "Collecting AD Certification Authority Templates information from $($CA.ComputerName). Script Get-AbrADCATemplate."
     }
 
     process {

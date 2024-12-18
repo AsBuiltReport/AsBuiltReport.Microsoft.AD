@@ -24,7 +24,7 @@ function Get-AbrADDCRoleFeature {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory DC Role & Features information of $DC."
+        Write-PScriboMessage "Collecting Active Directory DC Role & Features information of $DC. Script Get-AbrADDCRoleFeature."
     }
 
     process {

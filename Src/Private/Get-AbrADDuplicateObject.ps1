@@ -24,7 +24,7 @@ function Get-AbrADDuplicateObject {
     )
 
     begin {
-        Write-PScriboMessage "Collecting duplicate Objects information on $Domain."
+        Write-PScriboMessage "Collecting duplicate Objects information on $Domain. Script Get-AbrADDuplicateObject."
     }
 
     process {

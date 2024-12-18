@@ -23,7 +23,7 @@ function Get-AbrADCACryptographyConfig {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Cryptography Config information."
+        Write-PScriboMessage "Collecting AD Certification Authority Cryptography Config information. Script Get-AbrADCACryptographyConfig."
     }
 
     process {

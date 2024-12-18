@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADFSMO {
             $DomainData = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator }
             $ForestData = Invoke-Command -Session $TempPssSession { Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster }
             if ($DomainData -and $ForestData) {
-                $DC = Get-ValidDCfromDomain -Domain $Domain
+                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'FSMORoles' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
@@ -45,8 +45,8 @@ function Get-AbrADFSMO {
                     try {
                         $inObj = [ordered] @{
                             'Infrastructure Master' = $DomainData.InfrastructureMaster
-                            'PDC Emulator Name' = $DomainData.PDCEmulator
                             'RID Master' = $DomainData.RIDMaster
+                            'PDC Emulator Name' = $DomainData.PDCEmulator
                             'Domain Naming Master' = $ForestData.DomainNamingMaster
                             'Schema Master' = $ForestData.SchemaMaster
                         }

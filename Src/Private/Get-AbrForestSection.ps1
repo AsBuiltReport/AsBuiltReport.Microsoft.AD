@@ -39,22 +39,50 @@ function Get-AbrForestSection {
                             BlankLine
                         }
                         try {
+                            Write-Host "Beginning AD Forest section" -ForegroundColor Cyan
+                            $SectionStartTime = Get-Date
+
                             Get-AbrADForest
+
+                            $SectionEndTime = Get-Date
+                            $elapsedTime = New-TimeSpan -Start $SectionStartTime -End $SectionEndTime
+                            Write-Output "AD Forest Section execution time: $($elapsedTime.Hour) Hours $($elapsedTime.Minute) Minutes"
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                         try {
+                            Write-Host "Beginning AD Site section" -ForegroundColor Cyan
+                            $SectionStartTime = Get-Date
+
                             Get-AbrADSite
+
+                            $SectionEndTime = Get-Date
+                            $elapsedTime = New-TimeSpan -Start $SectionStartTime -End $SectionEndTime
+                            Write-Output "AD Site Section execution time: $($elapsedTime.Hour) Hours $($elapsedTime.Minute) Minutes"
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                         try {
+                            Write-Host "Beginning Exchange section" -ForegroundColor Cyan
+                            $SectionStartTime = Get-Date
+
                             Get-AbrADExchange
+
+                            $SectionEndTime = Get-Date
+                            $elapsedTime = New-TimeSpan -Start $SectionStartTime -End $SectionEndTime
+                            Write-Output "Exchange Section execution time: $($elapsedTime.Hour) Hours $($elapsedTime.Minute) Minutes"
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                         try {
+                            Write-Host "Beginning DHCP section" -ForegroundColor Cyan
+                            $SectionStartTime = Get-Date
+
                             Get-AbrDHCPinAD
+
+                            $SectionEndTime = Get-Date
+                            $elapsedTime = New-TimeSpan -Start $SectionStartTime -End $SectionEndTime
+                            Write-Output "DHCP Section execution time: $($elapsedTime.Hour) Hours $($elapsedTime.Minute) Minutes"
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }

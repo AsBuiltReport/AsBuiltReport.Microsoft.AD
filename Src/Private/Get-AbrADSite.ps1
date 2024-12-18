@@ -19,7 +19,7 @@ function Get-AbrADSite {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory Sites information of forest $ForestInfo"
+        Write-PScriboMessage "Collecting Active Directory Sites information of forest $ForestInfo. Site Get-AbrADSite."
     }
 
     process {
@@ -168,7 +168,7 @@ function Get-AbrADSite {
                                                 default { 'Unknown' }
                                             }
                                         }
-                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $OutObj += [pscustomobject]$inObj
 
                                         if ($HealthCheck.Site.BestPractice) {
                                             $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -209,8 +209,10 @@ function Get-AbrADSite {
                                     try {
                                         $OutObj = @()
                                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
+                                            Write-PScriboMessage "Building Domain object for domain $Domain."
                                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
+                                                Write-PScriboMessage "Peforming Remote test query against DC $DC (WSMan, PSSession) for domain $Domain."
                                                 if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                                                     try {
                                                         $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'MissingSubnetinAD' -ErrorAction Stop } catch {
@@ -220,7 +222,9 @@ function Get-AbrADSite {
                                                             Write-PScriboMessage -IsWarning "Missing Subnet in AD Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                                                         }
                                                         $Path = "\\$DC\admin`$\debug\netlogon.log"
+                                                        Write-PScriboMessage "Checking for path $Path against DC $DC for domain $Domain."
                                                         if ((Invoke-Command -Session $DCPssSession { Test-Path -Path $using:path }) -and (Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0 })) {
+                                                            Write-PScriboMessage "Getting content from netlogon file against DC $DC for domain $Domain."
                                                             $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path)[-200..-1] }
                                                             foreach ($Line in $NetLogonContents) {
                                                                 if ($Line -match "NO_CLIENT_SITE") {

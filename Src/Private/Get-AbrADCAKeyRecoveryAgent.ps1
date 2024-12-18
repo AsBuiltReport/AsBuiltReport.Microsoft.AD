@@ -23,7 +23,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Key Recovery Agent information."
+        Write-PScriboMessage "Collecting AD Certification Authority Key Recovery Agent information. Script Get-AbrADCAKeyRecoveryAgent."
     }
 
     process {

@@ -40,7 +40,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $InstalledVersion = Get-Module -ListAvailable -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
 
         if ($InstalledVersion) {
-            Write-PScriboMessage -IsWarning "AsBuiltReport.Microsoft.AD $($InstalledVersion.ToString()) is currently installed."
+            Write-PScriboMessage -IsWarning "AsBuiltReport.Microsoft.AD $($InstalledVersion.ToString()) is currently installed. With HoTfIx"
             $LatestVersion = Find-Module -Name AsBuiltReport.Microsoft.AD -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
             if ($LatestVersion -gt $InstalledVersion) {
                 Write-PScriboMessage -IsWarning "AsBuiltReport.Microsoft.AD $($LatestVersion.ToString()) is available."
@@ -52,19 +52,29 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     }
 
     #Validate Required Modules and Features
-    $OSType = (Get-ComputerInfo).OsProductType
+    $CompInfo = Get-ComputerInfo
+    $OSType = $CompInfo.OsProductType
+    $OSName = $CompInfo.OSName
+
+    Write-Host "Precheck OSName $OSName OSType $OSType"
+    if ($OSType -eq 'Server' -or $OSType -eq 'DomainController') {
+        # Win10 and 11 multisession reports as a Server on OSType. This works around that for now.
+        If (($OSName -like "*Windows 10*") -OR ($OSName -like "*Windows 11*")) {
+            $OSType = 'WorkStation'
+        }
+        Else {
+            Get-RequiredFeature -Name RSAT-AD-PowerShell -OSType $OSType
+            Get-RequiredFeature -Name RSAT-ADCS -OSType $OSType
+            Get-RequiredFeature -Name RSAT-ADCS-mgmt -OSType $OSType
+            Get-RequiredFeature -Name RSAT-DNS-Server -OSType $OSType
+            Get-RequiredFeature -Name GPMC -OSType $OSType
+        }
+    }
     if ($OSType -eq 'WorkStation') {
         Get-RequiredFeature -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.GroupPolicy.Management.Tools~~~~0.0.1.0' -OSType $OSType
         Get-RequiredFeature -Name 'Rsat.Dns.Tools~~~~0.0.1.0' -OSType $OSType
-    }
-    if ($OSType -eq 'Server' -or $OSType -eq 'DomainController') {
-        Get-RequiredFeature -Name RSAT-AD-PowerShell -OSType $OSType
-        Get-RequiredFeature -Name RSAT-ADCS -OSType $OSType
-        Get-RequiredFeature -Name RSAT-ADCS-mgmt -OSType $OSType
-        Get-RequiredFeature -Name RSAT-DNS-Server -OSType $OSType
-        Get-RequiredFeature -Name GPMC -OSType $OSType
     }
 
     Get-RequiredModule -Name PSPKI -Version '4.2.0'

@@ -24,7 +24,7 @@ function Get-AbrADSecurityAssessment {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Account Security Assessment information on $Domain."
+        Write-PScriboMessage "Collecting Account Security Assessment information on $Domain. Script Get-AbrADSecurityAssessment."
     }
 
     process {

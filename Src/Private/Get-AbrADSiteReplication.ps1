@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADSiteReplication {
     process {
         $DCs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers }
         if ($DCs) {
-            Write-PScriboMessage "Collecting Active Directory Sites Replication information on $Domain. (Sites Replication)"
+            Write-PScriboMessage "Collecting Active Directory Sites Replication information on $Domain. Script Get-AbrADSiteReplication."
             try {
                 $ReplInfo = @()
                 foreach ($DC in $DCs) {
@@ -118,7 +118,7 @@ function Get-AbrADSiteReplication {
         }
         try {
             if ($HealthCheck.Site.Replication) {
-                $DC = Get-ValidDCfromDomain -Domain $Domain
+                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                 $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ActiveDirectoryReplicationStatus' -ErrorAction Stop } catch {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId

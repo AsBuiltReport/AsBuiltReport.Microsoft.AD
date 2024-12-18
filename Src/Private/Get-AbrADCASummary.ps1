@@ -19,7 +19,7 @@ function Get-AbrADCASummary {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Certification Authority information."
+        Write-PScriboMessage "Collecting Certification Authority information. Script Get-AbrADCASummary."
     }
 
     process {

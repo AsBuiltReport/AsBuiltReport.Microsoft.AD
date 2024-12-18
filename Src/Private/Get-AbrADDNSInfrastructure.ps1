@@ -24,7 +24,7 @@ function Get-AbrADDNSInfrastructure {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory Domain Name System Infrastructure information for $Domain"
+        Write-PScriboMessage "Collecting Active Directory Domain Name System Infrastructure information for $Domain. Script Get-AbrADDNSInfrastructure."
     }
 
     process {

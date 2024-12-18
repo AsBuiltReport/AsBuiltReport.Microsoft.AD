@@ -19,7 +19,7 @@ function Get-AbrDHCPinAD {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD DHCP Servers information of $($ForestInfo.toUpper())."
+        Write-PScriboMessage "Collecting AD DHCP Servers information of $($ForestInfo.toUpper()). Script Get-AbrDHCPinAD."
     }
 
     process {

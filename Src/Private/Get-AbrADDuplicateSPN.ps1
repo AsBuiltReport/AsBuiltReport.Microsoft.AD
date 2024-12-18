@@ -24,7 +24,7 @@ function Get-AbrADDuplicateSPN {
     )
 
     begin {
-        Write-PScriboMessage "Collecting duplicate SPN information on $Domain."
+        Write-PScriboMessage "Collecting duplicate SPN information on $Domain. Script Get-AbrADDuplicateSPN."
     }
 
     process {

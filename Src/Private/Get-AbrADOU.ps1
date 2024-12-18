@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,7 +24,7 @@ function Get-AbrADOU {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory Organizational Unit information on domain $Domain"
+        Write-PScriboMessage "Collecting Active Directory Organizational Unit information on domain $Domain. Script Get-AbrADOU."
     }
 
     process {
@@ -83,7 +83,8 @@ function Get-AbrADOU {
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
-                            $DC = Get-ValidDCfromDomain -Domain $Domain
+                            $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                            # $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * | Select-Object -Property DistinguishedName }
                             if ($OUs) {
                                 foreach ($OU in $OUs) {
                                     try {

@@ -19,7 +19,7 @@ function Get-AbrADCARoot {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Per Domain information."
+        Write-PScriboMessage "Collecting AD Certification Authority Per Domain information. Script Get-AbrADCARoot."
     }
 
     process {

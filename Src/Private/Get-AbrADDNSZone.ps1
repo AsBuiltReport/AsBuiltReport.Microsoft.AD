@@ -26,7 +26,7 @@ function Get-AbrADDNSZone {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Actve Directory Domain Name System Zone information on $Domain."
+        Write-PScriboMessage "Collecting Actve Directory Domain Name System Zone information on $Domain. Script Get-AbrADDNSZone."
     }
 
     process {

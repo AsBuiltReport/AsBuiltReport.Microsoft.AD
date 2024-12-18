@@ -19,7 +19,7 @@ function Get-AbrADExchange {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Exchange information of $($ForestInfo.toUpper())."
+        Write-PScriboMessage "Collecting AD Exchange information of $($ForestInfo.toUpper()). Script Get-AbrADExchange."
     }
 
     process {

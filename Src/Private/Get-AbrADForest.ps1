@@ -19,7 +19,7 @@ function Get-AbrADForest {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory forest information."
+        Write-PScriboMessage "Collecting Active Directory forest information. Script Get-AbrADForest."
     }
 
     process {

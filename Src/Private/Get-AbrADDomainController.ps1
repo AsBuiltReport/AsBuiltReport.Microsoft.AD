@@ -25,7 +25,7 @@ function Get-AbrADDomainController {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain Controller information."
+        Write-PScriboMessage "Collecting AD Domain Controller information. Script Get-AbrADDomainController."
     }
 
     process {

@@ -24,7 +24,7 @@ function Get-AbrADDomain {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain information on forest $Forestinfo."
+        Write-PScriboMessage "Collecting AD Domain information on forest $Forestinfo. Script Get-AbrADDomain."
     }
 
     process {

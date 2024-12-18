@@ -24,7 +24,7 @@ function Get-AbrADDomainLastBackup {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain last backup information on $Domain."
+        Write-PScriboMessage "Collecting AD Domain last backup information on $Domain. Script Get-AbrADDomainLastBackup."
     }
 
     process {

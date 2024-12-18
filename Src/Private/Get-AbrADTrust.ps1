@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,14 +24,14 @@ function Get-AbrADTrust {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Trust information of $($Domain.ToString().ToUpper())."
+        Write-PScriboMessage "Collecting AD Trust information of $($Domain.ToString().ToUpper()). Script Get-AbrADTrust."
     }
 
     process {
         try {
             if ($Domain) {
                 try {
-                    $DC = Get-ValidDCfromDomain -Domain $Domain
+                    $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
                     $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:DC }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {

@@ -23,7 +23,7 @@ function Get-AbrADCAAIA {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Authority Information Access information."
+        Write-PScriboMessage "Collecting AD Certification Authority Authority Information Access information. Script Get-AbrADCAAIA."
     }
 
     process {

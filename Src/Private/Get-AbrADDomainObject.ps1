@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,7 +24,7 @@ function Get-AbrADDomainObject {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain Objects information on forest $Forestinfo."
+        Write-PScriboMessage "Collecting AD Domain Objects information on forest $Forestinfo. Script Get-AbrADDomainObject."
     }
 
     process {
@@ -32,18 +32,33 @@ function Get-AbrADDomainObject {
             Paragraph "The following section details information about computers, groups and users objects found in $($Domain) "
             try {
                 try {
-                    $script:DomainSID = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).domainsid.Value }
+                    Write-PScriboMessage "Building variable with Get-ADDomain query for $Forestinfo."
+                    $script:DomainQueryVar = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain) }
+                    $script:DomainSID = $DomainQueryVar.domainsid.Value
+                    $script:DomainDistName = $DomainQueryVar.distinguishedName
+                    # Currently only used in the User query
                     $ADLimitedProperties = @("Name", "Enabled", "SAMAccountname", "DisplayName", "Enabled", "LastLogonDate", "PasswordLastSet", "PasswordNeverExpires", "PasswordNotRequired", "PasswordExpired", "SmartcardLogonRequired", "AccountExpirationDate", "AdminCount", "Created", "Modified", "LastBadPasswordAttempt", "badpwdcount", "mail", "CanonicalName", "DistinguishedName", "ServicePrincipalName", "SIDHistory", "PrimaryGroupID", "UserAccountControl", "CannotChangePassword", "PwdLastSet", "LockedOut", "TrustedForDelegation", "TrustedtoAuthForDelegation", "msds-keyversionnumber", "SID", "AccountNotDelegated", "EmailAddress")
-                    $DC = Get-ValidDCfromDomain -Domain $Domain
-                    $script:Computers = Invoke-Command -Session $TempPssSession { (Get-ADComputer -ResultPageSize 1000 -Server $using:DC -Filter * -Properties Enabled, OperatingSystem, lastlogontimestamp, PasswordLastSet, SIDHistory -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
-                    $Servers = $Computers | Where-Object { $_.OperatingSystem -like "Windows Ser*" } | Measure-Object
-                    $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:DC -Filter * -Property $using:ADLimitedProperties -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
+                    Write-PScriboMessage "Getting DC to use for all queries against $Forestinfo."
+                    $script:DC = Invoke-Command -Session $TempPssSession { $using:DomainQueryVar.ReplicaDirectoryServers | Select-Object -First 1 }
+                    Write-PScriboMessage "Using DC $DC for forest queries against $Forestinfo."
+                    Write-PScriboMessage "Getting all Computer objects for $Forestinfo."
+                    $script:Computers = Invoke-Command -Session $TempPssSession { (Get-ADComputer -ResultPageSize 1000 -Server $using:DC -Filter * -Properties Enabled, OperatingSystem, lastlogontimestamp, PasswordLastSet, SIDHistory, PasswordNotRequired -SearchBase $using:DomainDistName) }
+                    $Servers = $Computers | Where-Object { $_.OperatingSystem -like "*Serv*" }
+                    Write-PScriboMessage "Getting all User objects for $Forestinfo."
+                    $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:DC -Filter * -Property $using:ADLimitedProperties -SearchBase $using:DomainDistName }
+                    Write-PScriboMessage "Getting all Foreign Security Principals (FSPs) for $Forestinfo."
+                    $script:FSP = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:DC -Filter { ObjectClass -eq "foreignSecurityPrincipal" } -Properties msds-principalname }
                     $script:PrivilegedUsers = $Users | Where-Object { $_.AdminCount -eq 1 }
-                    $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
+                    Write-PScriboMessage "Getting all Group objects for $Forestinfo."
+                    $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter * -properties members -SearchBase $using:DomainDistName) }
+                    $script:EmptyGroupOBj = $GroupOBj | Where-Object {(!$_.Members )}
                     $excludedDomainGroupsBySID = @("$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
+                    Write-PScriboMessage "Creating Excluded Forest Groups by SID variable for $Forestinfo."
                     $excludedForestGroupsBySID = ($GroupOBj | Where-Object { $_.SID -like 'S-1-5-32-*' }).SID
                     $AdminGroupsBySID = "S-1-5-32-552", "$DomainSID-527", "$DomainSID-521", "$DomainSID-516", "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
+                    Write-PScriboMessage "Getting all Domain Controllers for $Forestinfo."
                     $script:DomainController = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter *) | Select-Object name | Measure-Object }
+                    Write-PScriboMessage "Getting all Global Catalog DCs for $Forestinfo."
                     $script:GC = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name | Measure-Object }
 
                 } catch {
@@ -55,10 +70,12 @@ function Get-AbrADDomainObject {
             try {
                 Section -Style Heading4 'User Objects' {
                     try {
+                        Write-PScriboMessage "Building User Object summary chart for $Forestinfo."
                         $OutObj = @()
                         $inObj = [ordered] @{
                             'Users' = ($Users | Measure-Object).Count
                             'Privileged Users' = ($PrivilegedUsers | Measure-Object).Count
+                            'Foreign Security Principals' = ($FSP | Measure-Object).Count
                         }
                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
@@ -94,20 +111,33 @@ function Get-AbrADDomainObject {
 
                     $OutObj = @()
                     $dormanttime = ((Get-Date).AddDays(-90)).Date
-                    $passwordtime = (Get-Date).Adddays(-42)
+                    $passwordtime = (Get-Date).Adddays(-180)
+                    Write-PScriboMessage "Setting variable for all users who cannot change password for $Forestinfo."
                     $CannotChangePassword = $Users | Where-Object { $_.CannotChangePassword }
+                    Write-PScriboMessage "Setting variable for all users who must change password at sign-in for $Forestinfo."
                     $PasswordNextLogon = $Users | Where-Object { $_.PasswordLastSet -eq 0 -or $_.PwdLastSet -eq 0 }
+                    Write-PScriboMessage "Setting variable for all users whos password never expires for $Forestinfo."
                     $passwordNeverExpires = $Users | Where-Object { $_.passwordNeverExpires -eq "true" }
+                    Write-PScriboMessage "Setting variable for all users who require smartcardlogon $Forestinfo."
                     $SmartcardLogonRequired = $Users | Where-Object { $_.SmartcardLogonRequired -eq $True }
-                    $SidHistory = $Users | Select-Object -ExpandProperty SIDHistory
+                    # Original version of script had this select object. It messed up the other Value logic. If this needs to be used, it needs to be expanded and added back to the original object.
+                    Write-PScriboMessage "Setting variable for all users who have SID history for $Forestinfo."
+                    $SidHistory = $Users | Where-Object {$_.SIDHistory} #| Select-Object -ExpandProperty SIDHistory
+                    Write-PScriboMessage "Setting variable for all users whos password does expire and require a password to sign-in for $Forestinfo."
                     $PasswordLastSet = $Users | Where-Object { $_.PasswordNeverExpires -eq $false -and $_.PasswordNotRequired -eq $false }
+                    Write-PScriboMessage "Setting variable for all users who haver never logged in for $Forestinfo."
                     $NeverloggedIn = $Users | Where-Object { -not $_.LastLogonDate }
+                    Write-PScriboMessage "Setting variable for dormant users for $Forestinfo."
                     $Dormant = $Users | Where-Object { ($_.LastLogonDate) -lt $dormanttime }
+                    Write-PScriboMessage "Setting variable for all users who do not require a password for $Forestinfo."
                     $PasswordNotRequired = $Users | Where-Object { $_.PasswordNotRequired -eq $true }
+                    Write-PScriboMessage "Setting variable for all expired accounts for $Forestinfo."
                     $AccountExpired = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:DC -AccountExpired }
+                    Write-PScriboMessage "Setting variable for all locked out accounts for $Forestinfo."
                     $AccountLockout = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:DC -LockedOut }
-                    $Categories = @('Total Users', 'Cannot Change Password', 'Password Never Expires', 'Must Change Password at Logon', 'Password Age (> 42 days)', 'SmartcardLogonRequired', 'SidHistory', 'Never Logged in', 'Dormant (> 90 days)', 'Password Not Required', 'Account Expired', 'Account Lockout')
+                    $Categories = @('Total Users', 'Cannot Change Password', 'Password Never Expires', 'Must Change Password at Logon', 'Password Age (> 180 days)', 'SmartcardLogonRequired', 'SidHistory', 'Never Logged in', 'Dormant (> 90 days)', 'Password Not Required', 'Account Expired', 'Account Lockout')
                     if ($Categories) {
+                        Write-PScriboMessage "Building user object summary chart for $Forestinfo."
                         foreach ($Category in $Categories) {
                             try {
                                 if ($Category -eq 'Total Users') {
@@ -118,7 +148,7 @@ function Get-AbrADDomainObject {
                                     $Values = $PasswordNextLogon
                                 } elseif ($Category -eq 'Password Never Expires') {
                                     $Values = $passwordNeverExpires
-                                } elseif ($Category -eq 'Password Age (> 42 days)') {
+                                } elseif ($Category -eq 'Password Age (> 180 days)') {
                                     $Values = $PasswordLastSet | Where-Object { $_.PasswordLastSet -le $passwordtime }
                                 } elseif ($Category -eq 'SmartcardLogonRequired') {
                                     $Values = $SmartcardLogonRequired
@@ -191,6 +221,7 @@ function Get-AbrADDomainObject {
                     }
 
                     if ($InfoLevel.Domain -ge 4) {
+                        Write-PScriboMessage "Building User Inventory table for $Forestinfo."
                         try {
                             Section -Style Heading4 'Users Inventory' {
                                 $OutObj = @()
@@ -233,6 +264,7 @@ function Get-AbrADDomainObject {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
             }
             try {
+                Write-PScriboMessage "Building Group Objects section for $Forestinfo."
                 Section -Style Heading4 'Group Objects' {
                     try {
                         $OutObj = @()
@@ -309,11 +341,14 @@ function Get-AbrADDomainObject {
                     }
                     if ($InfoLevel.Domain -ge 4) {
                         try {
+                            Write-PScriboMessage "Building Groups Inventory section for $Forestinfo."
                             Section -Style Heading4 'Groups Inventory' {
                                 $OutObj = @()
                                 foreach ($Group in $GroupOBj) {
                                     try {
-                                        $UserCount = Invoke-Command -Session $TempPssSession { (Get-ADGroupMember  -Server $using:DC  -Identity ($using:Group).Name  | Measure-Object).Count }
+                                        # Edited to more efficiently grab group membership
+                                        #$UserCount = Invoke-Command -Session $TempPssSession { (Get-ADGroupMember  -Server $using:DC  -Identity ($using:Group).Name  | Measure-Object).Count }
+                                        $UserCount = ($Group.Members | Measure-Object).Count 
                                         $inObj = [ordered] @{
                                             'Name' = $Group.Name
                                             'Category' = $Group.GroupCategory
@@ -342,6 +377,7 @@ function Get-AbrADDomainObject {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Groups Objects Section)"
                         }
                     }
+                    Write-PScriboMessage "Building Privileged Groups (built-in) section for $Forestinfo."
                     Section -Style Heading5 'Privileged Groups (Built-in)' {
                         $OutObj = @()
                         if ($Domain) {
@@ -521,8 +557,10 @@ function Get-AbrADDomainObject {
                     }
                     if ($HealthCheck.Domain.BestPractice) {
                         try {
+                            Write-PScriboMessage "Setting variable for all Admin Groups for $Forestinfo."
                             $AdminGroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter "admincount -eq '1'" -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
                             if ($AdminGroupOBj) {
+                                Write-PScriboMessage "Building Privileged Group table for $Forestinfo."
                                 $OutObj = @()
                                 foreach ($Group in $AdminGroupOBj) {
                                     if ($Group.SID -notin $AdminGroupsBySID) {
@@ -566,11 +604,12 @@ function Get-AbrADDomainObject {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group (Non-Default) Section)"
                         }
                     }
-                    if ($HealthCheck.Domain.BestPractice -and ($GroupOBj | Where-Object { -Not $_.Members })) {
+                    if ($HealthCheck.Domain.BestPractice -and ($EmptyGroupOBj)) {
                         try {
+                            Write-PScriboMessage "Building Empty Groups (non-default) section for $Forestinfo."
                             Section -Style Heading5 'Empty Groups (Non-Default)' {
                                 $OutObj = @()
-                                foreach ($Group in ($GroupOBj | Where-Object { -Not $_.Members }) ) {
+                                foreach ($Group in $EmptyGroupOBj) {
                                     if ($Group.SID -notin $excludedForestGroupsBySID -and $Group.SID -notin $excludedDomainGroupsBySID ) {
                                         try {
                                             $inObj = [ordered] @{
@@ -608,6 +647,7 @@ function Get-AbrADDomainObject {
                     }
                     if ($HealthCheck.Domain.BestPractice) {
                         try {
+                            Write-PScriboMessage "Building array of Group objects that are members of groups for $Forestinfo."
                             $OutObj = @()
                             # Loop through each parent group
                             ForEach ($Parent in $GroupOBj) {
@@ -620,6 +660,7 @@ function Get-AbrADDomainObject {
                                 $Len = @($Children).Count
 
                                 if ($Len -gt 0) {
+                                    Write-PScriboMessage "Checking for any member who is both a Child of a group as well as its Parent for $Forestinfo."
                                     ForEach ($Child in $Children) {
                                         # Now find any member of $Child which is also the childs $Parent
                                         $nestedGroup = @(
@@ -644,6 +685,7 @@ function Get-AbrADDomainObject {
                             }
 
                             if ($OutObj) {
+                                Write-PScriboMessage "Building Circular Group Membership section for $Forestinfo."
                                 Section -Style Heading5 'Circular Group Membership' {
                                     Paragraph "If an Active Directory (AD) group has another AD group as both its parent and as a child member you have a circular nested reference."
                                     BlankLine
@@ -680,6 +722,7 @@ function Get-AbrADDomainObject {
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
             }
+            Write-PScriboMessage "Building Computer Objects section for $Forestinfo."
             Section -Style Heading4 'Computer Objects' {
                 try {
                     $OutObj = @()
@@ -718,13 +761,16 @@ function Get-AbrADDomainObject {
                     Write-PScriboMessage -IsWarning $($_.Exception.Message)
                 }
                 try {
+                    Write-PScriboMessage "Building several variables around Computer Objects related to AD health and best practices for $Forestinfo."
                     $OutObj = @()
                     $dormanttime = (Get-Date).Adddays(-90)
                     $passwordtime = (Get-Date).Adddays(-30)
                     $Dormant = $Computers | Where-Object { [datetime]::FromFileTime($_.lastlogontimestamp) -lt $dormanttime }
                     $PasswordAge = $Computers | Where-Object { $_.PasswordLastSet -le $passwordtime }
                     $SidHistory = $Computers.SIDHistory
-                    $Categories = @('Total Computers', 'Dormant (> 90 days)', 'Password Age (> 30 days)', 'SidHistory')
+                    $PasswordNotRequired = $Computers | Where-Object { $_.PasswordNotRequired -eq $true }
+                    Write-PScriboMessage "Building computer object summary chart for identified objects for $Forestinfo."
+                    $Categories = @('Total Computers', 'Dormant (> 90 days)', 'Password Age (> 30 days)', 'SidHistory', 'Password Not Required')
                     if ($Categories) {
                         foreach ($Category in $Categories) {
                             try {
@@ -736,6 +782,8 @@ function Get-AbrADDomainObject {
                                     $Values = $PasswordAge
                                 } elseif ($Category -eq 'SidHistory') {
                                     $Values = $SidHistory
+                                } elseif ($Category -eq 'Password Not Required') {
+                                    $Values = $PasswordNotRequired
                                 }
                                 $inObj = [ordered] @{
                                     'Category' = $Category
@@ -797,6 +845,7 @@ function Get-AbrADDomainObject {
                     Write-PScriboMessage -IsWarning $($_.Exception.Message)
                 }
                 try {
+                    Write-PScriboMessage "Building Computer Object OS section for $Forestinfo."
                     Section -Style Heading5 'Operating Systems Count' {
                         $OutObj = @()
                         if ($Domain) {
@@ -843,6 +892,8 @@ function Get-AbrADDomainObject {
                 } catch {
                     Write-PScriboMessage -IsWarning $($_.Exception.Message)
                 }
+                # Commented out since I added it to the computer object summary chart. Most objects are not output line by line in this script - it should only do this if the detail level is high, something like 4 for better alignment to the rest
+                <#
                 try {
                     if ($HealthCheck.Domain.Security) {
                         $ComputerObjects = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { PasswordNotRequired -eq $true } -Properties Name, DistinguishedName, Enabled }
@@ -885,8 +936,10 @@ function Get-AbrADDomainObject {
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers with Password-Not-Required section)"
                 }
+                #>
                 if ($InfoLevel.Domain -ge 4) {
                     try {
+                        Write-PScriboMessage "Building Computer Inventory section for $Forestinfo."
                         Section -Style Heading4 'Computers Inventory' {
                             $OutObj = @()
                             foreach ($Computer in $Computers) {
@@ -925,6 +978,7 @@ function Get-AbrADDomainObject {
                 }
             }
             try {
+                Write-PScriboMessage "Building Default Domain Password Policy section for $Forestinfo."
                 Section -Style Heading3 'Default Domain Password Policy' {
                     $OutObj = @()
                     if ($Domain) {
@@ -978,6 +1032,7 @@ function Get-AbrADDomainObject {
             }
             try {
                 if ($Domain) {
+                    Write-PScriboMessage "Querying for PDC, getting fine grained password policies, and making FGPP section for $Forestinfo."
                     foreach ($Item in $Domain) {
                         $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
                         $PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADFineGrainedPasswordPolicy -Server $using:DCPDC -Filter { Name -like "*" } -Properties * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName } | Sort-Object -Property Name
@@ -1048,6 +1103,7 @@ function Get-AbrADDomainObject {
 
             try {
                 if ($Domain -eq $ADSystem.RootDomain) {
+                    Write-PScriboMessage "Getting LAPS information for $Forestinfo."
                     foreach ($Item in $Domain) {
                         $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                         $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
@@ -1118,8 +1174,10 @@ function Get-AbrADDomainObject {
             try {
                 if ($Domain) {
                     try {
+                        Write-PScriboMessage "Setting variable for gMSAs for $Forestinfo."
                         $GMSA = Invoke-Command -Session $TempPssSession { Get-ADServiceAccount -Server $using:DC -Filter * -Properties * }
                         if ($GMSA) {
+                            Write-PScriboMessage "Completing section for gMSA identities for $Forestinfo."
                             Section -Style Heading3 'gMSA Identities' {
                                 $GMSAInfo = @()
                                 foreach ($Account in $GMSA) {
@@ -1249,6 +1307,9 @@ function Get-AbrADDomainObject {
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
             }
+            # This is unnecessary to list out each object, especially if a higher detail setting was not set
+            # For this, the number of FSPs has been added to the User table and this section has been commented out
+            <#
             try {
                 if ($Domain) {
                     try {
@@ -1293,6 +1354,7 @@ function Get-AbrADDomainObject {
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
             }
+            #>
         }
     }
 

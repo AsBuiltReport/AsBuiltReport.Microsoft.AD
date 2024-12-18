@@ -23,7 +23,7 @@ function Get-AbrADCASecurity {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Security information."
+        Write-PScriboMessage "Collecting AD Certification Authority Security information. Script Get-AbrADCASecurity."
     }
 
     process {

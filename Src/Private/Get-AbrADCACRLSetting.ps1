@@ -23,7 +23,7 @@ function Get-AbrADCACRLSetting {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Certificate Revocation List information from $($CA.Name)."
+        Write-PScriboMessage "Collecting AD Certification Authority Certificate Revocation List information from $($CA.Name). Script Get-AbrADCACRLSetting."
     }
 
     process {
