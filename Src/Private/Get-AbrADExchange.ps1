@@ -23,7 +23,7 @@ function Get-AbrADExchange {
     }
 
     process {
-        $EXServers = try {Get-ADExchangeServer} catch {Out-Null}
+        $EXServers = try { Get-ADExchangeServer } catch { Out-Null }
         try {
             if ($EXServers ) {
                 Section -Style Heading3 'Exchange Infrastructure' {

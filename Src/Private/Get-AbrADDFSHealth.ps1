@@ -105,20 +105,20 @@ function Get-AbrADDFSHealth {
             try {
                 $DC = Get-ValidDCfromDomain -Domain $Domain
 
-                $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainSysvolHealth' -ErrorAction Stop } catch {
-                    if (-Not $_.Exception.MessageId) {
-                        $ErrorMessage = $_.FullyQualifiedErrorId
-                    } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                }
-                # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
+                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'DomainSysvolHealth'
                 if ($DCPssSession) {
+                    # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                     $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\SYSVOL\' + $using:Domain) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
                             New-Object -TypeName PSObject -Property @{
                                 'Extension' = $_.name
                                 'Count' = $_.count
                                 'TotalSize' = '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) / 1MB)
                             } } | Sort-Object -Descending -Property 'Totalsize' }
+                } else {
+                    if (-Not $_.Exception.MessageId) {
+                        $ErrorMessage = $_.FullyQualifiedErrorId
+                    } else { $ErrorMessage = $_.Exception.MessageId }
+                    Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                 }
                 if ($SYSVOLFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Content Status' {
@@ -172,20 +172,20 @@ function Get-AbrADDFSHealth {
             }
             try {
                 $DC = Get-ValidDCfromDomain -Domain $Domain
-                $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NetlogonHealth' -ErrorAction Stop } catch {
-                    if (-Not $_.Exception.MessageId) {
-                        $ErrorMessage = $_.FullyQualifiedErrorId
-                    } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                }
-                # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
+                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'NetlogonHealth'
                 if ($DCPssSession) {
+                    # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                     $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
                             New-Object -TypeName PSObject -Property @{
                                 'Extension' = $_.name
                                 'Count' = $_.count
                                 'TotalSize' = '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) / 1MB)
                             } } | Sort-Object -Descending -Property 'Totalsize' }
+                } else {
+                    if (-Not $_.Exception.MessageId) {
+                        $ErrorMessage = $_.FullyQualifiedErrorId
+                    } else { $ErrorMessage = $_.Exception.MessageId }
+                    Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                 }
                 if ($NetlogonFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Netlogon Content Status' {

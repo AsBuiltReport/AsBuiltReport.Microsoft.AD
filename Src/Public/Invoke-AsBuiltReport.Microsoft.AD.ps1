@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -94,17 +94,15 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         Try {
-            Write-PScriboMessage "Connecting to Domain Controller through PSSession $System"
-            $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name "Global:TempPssSession"
+            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'Global:TempPssSession'
         } Catch {
-            throw "Unable to connect to the Domain Controller through PSSession: $System"
+            throw "Unable to connect to the Domain Controller '$System' through PSSession: $($_.Exception.Message)"
         }
 
         Try {
-            Write-PScriboMessage "Connecting to Domain Controller through CimSession '$System'."
-            $script:TempCIMSession = New-CimSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Continue -Name "Global:TempCIMSession"
+            $script:TempCIMSession = Get-ValidCIMSession -ComputerName $System -SessionName "Global:TempCIMSession"
         } Catch {
-            Write-PScriboMessage -IsWarning "Unable to connect to the Domain Controller through CimSession: $System"
+            Write-PScriboMessage -IsWarning "Unable to connect to the Domain Controller '$System' through CimSession."
         }
 
         Try {

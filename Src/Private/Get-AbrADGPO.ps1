@@ -197,17 +197,21 @@ function Get-AbrADGPO {
                         try {
                             $DC = Get-ValidDCfromDomain -Domain $Domain
 
-                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'WmiFilters' -ErrorAction Stop } catch {
+                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'WmiFilters'
+
+                            if ($DCPssSession) {
+                                $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
+
+                                $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
+
+                                Remove-PSSession -Session $DCPssSession
+                            } else {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else {$ErrorMessage = $_.Exception.MessageId}
                                 Write-PScriboMessage -IsWarning "Wmi Filters Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
-                            $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
-                            if ($DCPssSession) {
-                                $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
-                                Remove-PSSession -Session $DCPssSession
-                            }
+
                             if ($WmiFilters) {
                                 Section -Style Heading5 "WMI Filters" {
                                     $OutObj = @()
@@ -560,20 +564,21 @@ function Get-AbrADGPO {
                     try {
                         $DC = Get-ValidDCfromDomain -Domain $Domain
 
-                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO' -ErrorAction Stop } catch {
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'OrphanedGPO'
+                        $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
+
+                        if ($DCPssSession) {
+                            $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
+
+                            Remove-PSSession -Session $DCPssSession
+                        } else {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
                             } else {$ErrorMessage = $_.Exception.MessageId}
                             Write-PScriboMessage -IsWarning "Orphaned GPO Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
-                        $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                         $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
                         $OrphanGPOs = @()
-                        if ($DCPssSession) {
-                            $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
-
-                            Remove-PSSession -Session $DCPssSession
-                        }
                         $GPOPoliciesSYSVOL = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object }).Name.Trim("{}")
                         $SYSVOLGPOList = @()
                         ForEach ($GPOinSYSVOL in $GPOPoliciesSYSVOL) {

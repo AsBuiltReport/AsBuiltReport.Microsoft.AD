@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Improve DC selection logic
+- Add support for WinRM over SSL
+- Add option to set the WinRM tcp port used for PSSession connection setup
 
 ### Changed
 

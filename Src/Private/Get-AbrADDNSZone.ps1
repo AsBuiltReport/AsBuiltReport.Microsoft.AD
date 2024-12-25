@@ -5,7 +5,7 @@ function Get-AbrADDNSZone {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,12 +31,8 @@ function Get-AbrADDNSZone {
 
     process {
         try {
-            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DDNSInfrastructure' -ErrorAction Stop } catch {
-                if (-Not $_.Exception.MessageId) {
-                    $ErrorMessage = $_.FullyQualifiedErrorId
-                } else {$ErrorMessage = $_.Exception.MessageId}
-                Write-PScriboMessage -IsWarning "DNS Zones Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-            }
+            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'DDNSInfrastructure'
+
             $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder" }
             if ($DNSSetting) {
                 Section -Style Heading3 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zones" {
@@ -125,6 +121,11 @@ function Get-AbrADDNSZone {
                             if ($DCPssSession) {
                                 $DNSSetting = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object { $_ -match 'SecondaryServers' } }
                                 Remove-PSSession -Session $DCPssSession
+                            } else {
+                                if (-Not $_.Exception.MessageId) {
+                                    $ErrorMessage = $_.FullyQualifiedErrorId
+                                } else {$ErrorMessage = $_.Exception.MessageId}
+                                Write-PScriboMessage -IsWarning "DNS Zones Transfers Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
                             if ($DNSSetting) {
                                 Section -Style Heading4 "Zone Transfers" {

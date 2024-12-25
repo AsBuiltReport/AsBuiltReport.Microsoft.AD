@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -69,15 +69,16 @@ function Get-AbrADDomainController {
                 foreach ($DC in $DCs) {
                     if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
-                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DCNetSettings' -ErrorAction Stop } catch {
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'DCNetSettings'
+
+                        if ($DCPssSession ) {
+                            $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Write-PScriboMessage -IsWarning "Unable to get $DC network interfaces information" }
+                            Remove-PSSession -Session $DCPssSession
+                        } else {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
                             } else { $ErrorMessage = $_.Exception.MessageId }
                             Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                        }
-                        if ($DCPssSession ) {
-                            $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Write-PScriboMessage -IsWarning "Unable to get $DC network interfaces information" }
-                            Remove-PSSession -Session $DCPssSession
                         }
                         try {
                             $inObj = [ordered] @{
@@ -154,16 +155,16 @@ function Get-AbrADDomainController {
                     if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
                         $DCComputerObject = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADComputer ($using:DCInfo).ComputerObjectDN -Properties * -Server $using:DC } } catch { Out-Null }
-                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DCNetSettings' -ErrorAction Stop } catch {
-                            if (-Not $_.Exception.MessageId) {
-                                $ErrorMessage = $_.FullyQualifiedErrorId
-                            } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                        }
+                        $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DCNetSettings'
                         if ($DCPssSession) {
                             $DCNetSettings = try { Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-NetIPAddress } } catch { Out-Null }
                             $DCNetSMBv1Setting = try { Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol } } catch { Out-Null }
                             Remove-PSSession -Session $DCPssSession
+                        } else {
+                            if (-Not $_.Exception.MessageId) {
+                                $ErrorMessage = $_.FullyQualifiedErrorId
+                            } else { $ErrorMessage = $_.Exception.MessageId }
+                            Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         if ($InfoLevel.Domain -eq 1) {
                             try {
@@ -338,13 +339,8 @@ function Get-AbrADDomainController {
                                     try {
                                         $DCHWInfo = @()
                                         try {
-                                            $CimSession = try { New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware' -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "Hardware Inventory Section: New-CimSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
-                                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware' -ErrorAction Stop } catch {
-                                                if (-Not $_.Exception.MessageId) {
-                                                    $ErrorMessage = $_.FullyQualifiedErrorId
-                                                } else { $ErrorMessage = $_.Exception.MessageId }
-                                                Write-PScriboMessage -IsWarning "Domain Controller Hardware Inventory Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                                            }
+                                            $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "DomainControllerHardware"
+                                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName "DomainControllerHardware"
                                             if ($DCPssSession) {
                                                 $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
                                                 $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
@@ -432,17 +428,17 @@ function Get-AbrADDomainController {
             $OutObj = @()
             foreach ($DC in $DCs) {
                 if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
-                    $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DNSIPConfiguration' -ErrorAction Stop } catch {
-                        if (-Not $_.Exception.MessageId) {
-                            $ErrorMessage = $_.FullyQualifiedErrorId
-                        } else { $ErrorMessage = $_.Exception.MessageId }
-                        Write-PScriboMessage -IsWarning "DNS IP Configuration Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                    }
+                    $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DNSIPConfiguration'
                     try {
                         if ($DCPssSession) {
                             $DCIPAddress = Invoke-Command -Session $DCPssSession { [System.Net.Dns]::GetHostAddresses($using:DC).IPAddressToString }
                             $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4 }
                             $PrimaryDNSSoA = Invoke-Command -Session $DCPssSession { (Get-DnsServerResourceRecord -RRType Soa -ZoneName $using:Domain).RecordData.PrimaryServer }
+                        } else {
+                            if (-Not $_.Exception.MessageId) {
+                                $ErrorMessage = $_.FullyQualifiedErrorId
+                            } else { $ErrorMessage = $_.Exception.MessageId }
+                            Write-PScriboMessage -IsWarning "DNS IP Configuration Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         $UnresolverDNS = @()
                         foreach ($DNSServer in $DNSSettings.ServerAddresses) {
@@ -541,18 +537,19 @@ function Get-AbrADDomainController {
             foreach ($DC in $DCs) {
                 if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                     try {
-                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NTDS' -ErrorAction Stop } catch {
-                            if (-Not $_.Exception.MessageId) {
-                                $ErrorMessage = $_.FullyQualifiedErrorId
-                            } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "NTDS Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                        }
+                        $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'NTDS'
+
                         if ($DCPssSession) {
                             $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File' }
                             $size = Invoke-Command -Session $DCPssSession -ScriptBlock { (Get-ItemProperty -Path $using:NTDS).Length }
                             $LogFiles = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'Database log files path' }
                             $SYSVOL = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters | Select-Object -ExpandProperty 'SysVol' }
                             Remove-PSSession -Session $DCPssSession
+                        } else {
+                            if (-Not $_.Exception.MessageId) {
+                                $ErrorMessage = $_.FullyQualifiedErrorId
+                            } else { $ErrorMessage = $_.Exception.MessageId }
+                            Write-PScriboMessage -IsWarning "NTDS Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         if ( $NTDS -and $size ) {
                             $inObj = [ordered] @{
@@ -591,16 +588,17 @@ function Get-AbrADDomainController {
             foreach ($DC in $DCs) {
                 if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                     try {
-                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'TimeSource' -ErrorAction Stop } catch {
-                            if (-Not $_.Exception.MessageId) {
-                                $ErrorMessage = $_.FullyQualifiedErrorId
-                            } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "Time Source Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                        }
+                        $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'TimeSource'
+
                         if ($DCPssSession) {
                             $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer' }
                             $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type' }
                             Remove-PSSession -Session $DCPssSession
+                        } else {
+                            if (-Not $_.Exception.MessageId) {
+                                $ErrorMessage = $_.FullyQualifiedErrorId
+                            } else { $ErrorMessage = $_.Exception.MessageId }
+                            Write-PScriboMessage -IsWarning "Time Source Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         if ( $NtpServer -and $SourceType ) {
                             try {
@@ -652,7 +650,7 @@ function Get-AbrADDomainController {
                 foreach ($DC in $DCs) {
                     if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                         try {
-                            $CimSession = try { New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication  -Name 'SRVRecordsStatus' -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "SRV Records Status Section: New-CimSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
+                            $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "SRVRecordsStatus"
                             $PDCEmulator = Invoke-Command -Session $TempPssSession { (Get-ADDomain $using:Domain -ErrorAction Stop).PDCEmulator }
                             if ($CimSession -and ($Domain -eq $ADSystem.RootDomain)) {
                                 $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName _msdcs.$Domain -RRType Srv
@@ -767,14 +765,15 @@ function Get-AbrADDomainController {
                 $OutObj = foreach ($DC in $DCs) {
                     if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                         try {
-                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllersFileShares' -ErrorAction Stop } catch {
+                            $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'TimeSource'
+
+                            if ($DCPssSession) {
+                                $Shares = Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-SmbShare | Where-Object { $_.Description -ne 'Default share' -and $_.Description -notmatch 'Remote' -and $_.Name -ne 'NETLOGON' -and $_.Name -ne 'SYSVOL' } }
+                            } else {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
                                 Write-PScriboMessage -IsWarning "Domain Controllers File Shares Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                            }
-                            if ($DCPssSession) {
-                                $Shares = Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-SmbShare | Where-Object { $_.Description -ne 'Default share' -and $_.Description -notmatch 'Remote' -and $_.Name -ne 'NETLOGON' -and $_.Name -ne 'SYSVOL' } }
                             }
                             if ($Shares) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
@@ -836,16 +835,17 @@ function Get-AbrADDomainController {
                     if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                         try {
                             $Software = @()
-                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerInstalledSoftware' -ErrorAction Stop } catch {
-                                if (-Not $_.Exception.MessageId) {
-                                    $ErrorMessage = $_.FullyQualifiedErrorId
-                                } else { $ErrorMessage = $_.Exception.MessageId }
-                                Write-PScriboMessage -IsWarning "Domain Controller Installed Software Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                            }
+                            $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DomainControllerInstalledSoftware'
+
                             if ($DCPssSession) {
                                 $SoftwareX64 = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { ($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName) } | Select-Object -Property DisplayName, Publisher, InstallDate | Sort-Object -Property DisplayName }
                                 $SoftwareX86 = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { ($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName) } | Select-Object -Property DisplayName, Publisher, InstallDate | Sort-Object -Property DisplayName }
                                 Remove-PSSession -Session $DCPssSession
+                            } else {
+                                if (-Not $_.Exception.MessageId) {
+                                    $ErrorMessage = $_.FullyQualifiedErrorId
+                                } else { $ErrorMessage = $_.Exception.MessageId }
+                                Write-PScriboMessage -IsWarning "Domain Controller Installed Software Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
 
                             If ($SoftwareX64) {
@@ -914,15 +914,16 @@ function Get-AbrADDomainController {
                     if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
                         try {
                             $Software = @()
-                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerPendingMissingPatch' -ErrorAction Stop } catch {
+                            $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DomainControllerPendingMissingPatch'
+
+                            if ($DCPssSession ) {
+                                $Updates = Invoke-Command -Session $DCPssSession -ScriptBlock { (New-Object -ComObject Microsoft.Update.Session).CreateupdateSearcher().Search("IsHidden=0 and IsInstalled=0").Updates | Select-Object Title, KBArticleIDs }
+                                Remove-PSSession -Session $DCPssSession
+                            } else {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
                                 Write-PScriboMessage -IsWarning "Domain Controller Pending Missing Patch Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                            }
-                            if ($DCPssSession ) {
-                                $Updates = Invoke-Command -Session $DCPssSession -ScriptBlock { (New-Object -ComObject Microsoft.Update.Session).CreateupdateSearcher().Search("IsHidden=0 and IsInstalled=0").Updates | Select-Object Title, KBArticleIDs }
-                                Remove-PSSession -Session $DCPssSession
                             }
 
                             if ( $Updates ) {

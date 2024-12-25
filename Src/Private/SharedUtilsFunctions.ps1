@@ -582,7 +582,7 @@ function Get-WinADDFSHealth {
                 $DomainSummary['Availability'] = $false
             }
             try {
-                [Array] $Events = Get-Events -LogName "DFS Replication" -Level Error -ComputerName $Hostname -DateFrom $Yesterday -DateTo $Today
+                [Array] $Events = 0
                 $DomainSummary['DFSErrors'] = $Events.Count
                 $DomainSummary['DFSEvents'] = $Events
             } catch {
@@ -2241,5 +2241,85 @@ function Get-ValidDCfromDomain {
         }
     } else {
         Write-PScriboMessage "Unable to connect to $Domain to get a valid Domain Controller list."
+    }
+}# end
+
+function Get-ValidPSSession {
+    <#
+    .SYNOPSIS
+        Used by As Built Report to get generate a valid WinRM session.
+    .DESCRIPTION
+        Function to generate a valid WinRM session from a computer string.
+    .NOTES
+        Version:        0.1.0
+        Author:         Jonathan Colon
+    .EXAMPLE
+        PS C:\Users\JohnDoe> Get-ValidPSSession -ComputerName 'server-dc-01v.pharmax.local'
+            Server-DC-01V.pharmax.local
+    #>
+    [CmdletBinding()]
+    [OutputType([String])]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ComputerName,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$SessionName
+
+    )
+
+    if ($Options.WinRMSSL) {
+        try {
+            Write-PScriboMessage "Connecting to '$ComputerName' through PSSession with SSL."
+            New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -UseSSL -Port $Options.WinRMSSLPort
+        } catch {
+            Write-PScriboMessage -IsWarning "Unable to Connect to '$ComputerName' through PSSession with SSL. Reverting to WinRM without SSL!"
+            New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort
+            Write-PScriboMessage "Connected to '$ComputerName' through PSSession."
+        }
+    } else {
+        Write-PScriboMessage "Connecting to '$ComputerName' through PSSession."
+        New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort
+    }
+}# end
+
+function Get-ValidCIMSession {
+    <#
+    .SYNOPSIS
+        Used by As Built Report to get generate a valid CIM session.
+    .DESCRIPTION
+        Function to generate a valid CIM session from a computer string.
+    .NOTES
+        Version:        0.1.0
+        Author:         Jonathan Colon
+    .EXAMPLE
+        PS C:\Users\JohnDoe> Get-ValidCIMSession -ComputerName 'server-dc-01v.pharmax.local'
+            Server-DC-01V.pharmax.local
+    #>
+    [CmdletBinding()]
+    [OutputType([String])]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ComputerName,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$SessionName
+    )
+
+    if ($Options.WinRMSSL) {
+        try {
+            $CimSessionOptions = New-CimSessionOption -ProxyAuthentication $Options.PSDefaultAuthentication -ProxyCredential $Credential -SkipCACheck -SkipCNCheck -UseSsl
+            Write-PScriboMessage "Connecting to '$ComputerName' through CimSession with SSL."
+            New-CimSession $System -SessionOption $CimSessionOptions -ErrorAction Continue -Port $Options.WinRMSSLPort -Name $SessionName
+        } catch {
+            Write-PScriboMessage -IsWarning "Unable to Connect to '$ComputerName' through CimSession with SSL. Reverting to Cim without SSL!"
+            New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Continue -Name $SessionName -Port $Options.WinRMPort
+            Write-PScriboMessage "Connected to '$ComputerName' through CimSession with SSL."
+        }
+    } else {
+        Write-PScriboMessage "Connecting to '$ComputerName' through CimSession with SSL."
+        New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Continue -Name $SessionName -Port $Options.WinRMPort
     }
 }# end

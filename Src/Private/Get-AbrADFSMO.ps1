@@ -33,14 +33,17 @@ function Get-AbrADFSMO {
             $ForestData = Invoke-Command -Session $TempPssSession { Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster }
             if ($DomainData -and $ForestData) {
                 $DC = Get-ValidDCfromDomain -Domain $Domain
-                $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'FSMORoles' -ErrorAction Stop } catch {
-                    if (-Not $_.Exception.MessageId) {
-                        $ErrorMessage = $_.FullyQualifiedErrorId
-                    } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning "FSMO Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                }
+                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'FSMORoles'
+
                 Section -Style Heading3 'FSMO Roles' {
-                    if ($DCPssSession) { $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog }
+                    if ($DCPssSession) {
+                        $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
+                    } else {
+                        if (-Not $_.Exception.MessageId) {
+                            $ErrorMessage = $_.FullyQualifiedErrorId
+                        } else { $ErrorMessage = $_.Exception.MessageId }
+                        Write-PScriboMessage -IsWarning "FSMO Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                    }
                     $OutObj = @()
                     try {
                         $inObj = [ordered] @{

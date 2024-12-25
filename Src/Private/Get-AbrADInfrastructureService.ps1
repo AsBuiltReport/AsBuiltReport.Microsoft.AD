@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,14 +29,14 @@ function Get-AbrADInfrastructureService {
 
     process {
         try {
-            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerInfrastructureServices' -ErrorAction Stop } catch {
+            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'DomainControllerInfrastructureServices'
+            if ($DCPssSession) {
+                $Available = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-Service "W32Time" | Select-Object DisplayName, Name, Status }
+            } else {
                 if (-Not $_.Exception.MessageId) {
                     $ErrorMessage = $_.FullyQualifiedErrorId
                 } else { $ErrorMessage = $_.Exception.MessageId }
                 Write-PScriboMessage -IsWarning "Domain Controller Infrastructure Services Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-            }
-            if ($DCPssSession) {
-                $Available = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-Service "W32Time" | Select-Object DisplayName, Name, Status }
             }
             if ($Available) {
                 $OutObj = @()

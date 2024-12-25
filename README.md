@@ -174,12 +174,16 @@ The **Options** schema allows certain options within the report to be toggled on
 
 | Sub-Schema              | Setting            | Default   | Description                                                                                                               |
 | ----------------------- | ------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------- |
-| ShowDefinitionInfo      | true/false         | false     | Toggle to enable/disable Microsoft AD term explanations                                                                   |
+| ShowDefinitionInfo      | true/false         | False     | Toggle to enable/disable Microsoft AD term explanations                                                                   |
 | PSDefaultAuthentication | Negotiate/Kerberos | Negotiate | Allow to set the value of the PSRemoting authentication method. For Workgroup authentication Negotiate value is required. |
 | Exclude.Domains         | Array List         | Empty     | Allow to filter on AD Domain FQDN                                                                                         |
 | Exclude.DCs             | Array List         | Empty     | Allow to filter on AD Domain Controller Server FQDN.                                                                      |
 | Include.Domains         | Array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.                                                 |
 | Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                                                            |
+| WinRMSSL                | Bool               | True      | Allow to enable SSL for WINRM connection                                                                                  |
+| WinRMSSLPort            | Int                | 5986      | Allow to set tcp port for WinRM over SSL                                                                                  |
+| WinRMPort               | Int                | 5985      | Allow to set tcp port for WinRM                                                                                           |
+
 
 ### InfoLevel
 
