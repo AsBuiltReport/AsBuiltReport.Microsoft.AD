@@ -33,7 +33,9 @@ function Get-AbrADDNSZone {
         try {
             $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'DDNSInfrastructure'
 
-            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder" }
+            if ($TempCIMSession) {
+                $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder" }
+            }
             if ($DNSSetting) {
                 Section -Style Heading3 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zones" {
                     $OutObj = @()
@@ -86,14 +88,14 @@ function Get-AbrADDNSZone {
                                                 }
                                             }
                                         } else {
-                                            Write-PScriboMessage -IsWarning "DNS Zones $($Zone) Section: No Zone Delegation information found, disabling the section."
+                                            Write-PScriboMessage "DNS Zones $($Zone) Section: No Zone Delegation information found, Disabling this section."
                                         }
                                     } catch {
                                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Delegation Item)"
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage -IsWarning "DNS Zones Section: No Zone Delegation information found in $DC, disabling the section."
+                                Write-PScriboMessage "DNS Zones Section: No Zone Delegation information found in $DC, Disabling this section."
                             }
 
                             if ($OutObj) {
@@ -124,7 +126,7 @@ function Get-AbrADDNSZone {
                             } else {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
-                                } else {$ErrorMessage = $_.Exception.MessageId}
+                                } else { $ErrorMessage = $_.Exception.MessageId }
                                 Write-PScriboMessage -IsWarning "DNS Zones Transfers Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
                             if ($DNSSetting) {
@@ -168,12 +170,12 @@ function Get-AbrADDNSZone {
                                         BlankLine
                                         Paragraph {
                                             Text "Best Practices:" -Bold
-                                            Text "Configure all DNS zones only to allow zone transfers from Trusted IP addresses."
+                                            Text "Configure all DNS zones only to allow zone transfers from Trusted IP addresses. This ensures that only authorized DNS servers can receive zone data, reducing the risk of unauthorized access or data leakage. It is a best practice to specify the IP addresses of the secondary DNS servers that are allowed to receive zone transfers."
                                         }
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage -IsWarning "DNS Zones Section: No Zone Transfer information found in $DC, disabling the section."
+                                Write-PScriboMessage "DNS Zones Section: No Zone Transfer information found in $DC, Disabling this section."
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers Table)"
@@ -212,7 +214,7 @@ function Get-AbrADDNSZone {
                                 $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "DNS Zones Section: No Reverse lookup zone information found in $DC, disabling the section."
+                            Write-PScriboMessage "DNS Zones Section: No Reverse lookup zone information found in $DC, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Reverse Lookup Zone Configuration Table)"
@@ -248,7 +250,7 @@ function Get-AbrADDNSZone {
                                 $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "DNS Zones Section: No Conditional forwarder zone information found in $DC, disabling the section."
+                            Write-PScriboMessage "DNS Zones Section: No Conditional forwarder zone information found in $DC, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Conditional Forwarder Table)"
@@ -301,7 +303,7 @@ function Get-AbrADDNSZone {
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage -IsWarning "DNS Zones Section: No Zone Aging property information found in $DC, disabling the section."
+                                Write-PScriboMessage "DNS Zones Section: No Zone Aging property information found in $DC, Disabling this section."
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Aging Table)"

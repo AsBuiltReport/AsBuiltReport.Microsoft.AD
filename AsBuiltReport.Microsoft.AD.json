@@ -19,6 +19,7 @@
             "Domains": []
         },
         "WinRMSSL": false,
+        "WinRMAutoRecoverToNoSSL": true,
         "WinRMSSLPort": 5986,
         "WinRMPort": 5985
     },

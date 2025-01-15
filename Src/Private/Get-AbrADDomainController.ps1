@@ -67,7 +67,7 @@ function Get-AbrADDomainController {
             try {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
                         $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'DCNetSettings'
 
@@ -142,7 +142,7 @@ function Get-AbrADDomainController {
                     BlankLine
                     Paragraph {
                         Text "Best Practice:" -Bold
-                        Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
+                        Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources. This ensures high availability and fault tolerance within the domain infrastructure."
                     }
                 }
             } catch {
@@ -152,7 +152,7 @@ function Get-AbrADDomainController {
             try {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
                         $DCComputerObject = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADComputer ($using:DCInfo).ComputerObjectDN -Properties * -Server $using:DC } } catch { Out-Null }
                         $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DCNetSettings'
@@ -212,7 +212,7 @@ function Get-AbrADDomainController {
                                 BlankLine
                                 Paragraph {
                                     Text "Best Practice:" -Bold
-                                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
+                                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources. This ensures high availability and fault tolerance within the domain infrastructure."
                                 }
                             }
                         } else {
@@ -261,7 +261,7 @@ function Get-AbrADDomainController {
                                                 BlankLine
                                                 Paragraph {
                                                     Text "Best Practice:" -Bold
-                                                    Text "Disable SMB v1: SMB v1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems."
+                                                    Text "Disable SMB v1: SMB v1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems to enhance security and reduce the risk of exploitation. SMB v1 has been deprecated and replaced by SMB v2 and SMB v3, which offer improved performance and security features."
                                                 }
                                             }
                                         }
@@ -398,7 +398,7 @@ function Get-AbrADDomainController {
                                                             BlankLine
                                                             Paragraph {
                                                                 Text "Best Practice:" -Bold
-                                                                Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
+                                                                Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on. Insufficient memory can lead to performance issues and slow response times, which can affect the overall health and efficiency of the domain controller. Ensuring adequate memory helps maintain optimal performance and reliability of the Active Directory services."
                                                             }
                                                         }
                                                     }
@@ -427,7 +427,7 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             foreach ($DC in $DCs) {
-                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                if (Get-DCWinRMState -ComputerName $DC) {
                     $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DNSIPConfiguration'
                     try {
                         if ($DCPssSession) {
@@ -501,21 +501,21 @@ function Get-AbrADDomainController {
                         if ($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1" }) {
                             Paragraph {
                                 Text "Best Practices:" -Bold
-                                Text "DNS configuration on network adapter should include the loopback address, but not as the first entry."
+                                Text "DNS configuration on network adapter should include the loopback address (127.0.0.1), but it should not be the first entry."
                             }
                         }
                         if ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) {
                             BlankLine
                             Paragraph {
                                 Text "Best Practices:" -Bold
-                                Text "DNS configuration on network adapter shouldn't include the Domain Controller own IP address as the first entry."
+                                Text "DNS configuration on the network adapter should not include the Domain Controller's own IP address as the first entry."
                             }
                         }
                         if ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--" }) {
                             BlankLine
                             Paragraph {
                                 Text "Best Practices:" -Bold
-                                Text "For redundancy reasons, the DNS configuration on the network adapter should include an Alternate DNS address."
+                                Text "For redundancy reasons, the DNS configuration on the network adapter should include an Alternate DNS address. This ensures that if the primary DNS server becomes unavailable, the system can still resolve domain names using the alternate DNS server, maintaining network stability and connectivity."
                             }
                         }
                         if ($OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS -or $_.'Alternate DNS' -in $UnresolverDNS -or $_.'DNS 3' -in $UnresolverDNS -or $_.'DNS 4' -in $UnresolverDNS }) {
@@ -535,7 +535,7 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             foreach ($DC in $DCs) {
-                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                if (Get-DCWinRMState -ComputerName $DC) {
                     try {
                         $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'NTDS'
 
@@ -586,7 +586,7 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             foreach ($DC in $DCs) {
-                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                if (Get-DCWinRMState -ComputerName $DC) {
                     try {
                         $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'TimeSource'
 
@@ -648,7 +648,7 @@ function Get-AbrADDomainController {
             try {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         try {
                             $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "SRVRecordsStatus"
                             $PDCEmulator = Invoke-Command -Session $TempPssSession { (Get-ADDomain $using:Domain -ErrorAction Stop).PDCEmulator }
@@ -751,7 +751,7 @@ function Get-AbrADDomainController {
                             BlankLine
                             Paragraph {
                                 Text "Best Practice:" -Bold
-                                Text "The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory."
+                                Text "The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory. These records are essential for the proper functioning of Active Directory as they allow clients to locate domain controllers and other critical services within the network. Ensuring that these records are correctly configured and available is crucial for maintaining the health and accessibility of the Active Directory environment."
                             }
                         }
                     }
@@ -763,7 +763,7 @@ function Get-AbrADDomainController {
         try {
             if ($HealthCheck.DomainController.BestPractice) {
                 $OutObj = foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         try {
                             $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'TimeSource'
 
@@ -820,7 +820,7 @@ function Get-AbrADDomainController {
                         BlankLine
                         Paragraph {
                             Text "Best Practice:" -Bold
-                            Text "Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non default file shares should be moved to another server, preferably a dedicated file server."
+                            Text "Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non-default file shares should be moved to another server, preferably a dedicated file server. This helps to minimize the attack surface and ensures that the Domain Controller is dedicated to its primary role of managing security and authentication within the domain. Additionally, it reduces the risk of performance degradation and potential conflicts that can arise from running multiple services on a single server."
                         }
                     }
                 }
@@ -832,7 +832,7 @@ function Get-AbrADDomainController {
             try {
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         try {
                             $Software = @()
                             $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DomainControllerInstalledSoftware'
@@ -888,7 +888,7 @@ function Get-AbrADDomainController {
                                         BlankLine
                                         Paragraph {
                                             Text "Best Practices:" -Bold
-                                            Text "Do not run other software or services on a Domain Controller."
+                                            Text "Do not run other software or services on a Domain Controller. Running additional software or services on a Domain Controller can introduce security vulnerabilities, increase the attack surface, and potentially degrade the performance of critical domain services. It is recommended to keep Domain Controllers dedicated to their primary role of managing security and authentication within the domain. If additional services are required, consider deploying them on separate, dedicated servers."
                                         }
                                     }
                                 }
@@ -911,7 +911,7 @@ function Get-AbrADDomainController {
             try {
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         try {
                             $Software = @()
                             $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DomainControllerPendingMissingPatch'
@@ -958,7 +958,7 @@ function Get-AbrADDomainController {
                                         BlankLine
                                         Paragraph {
                                             Text "Security Best Practices:" -Bold
-                                            Text "It is critical to install security updates to protect your systems from malicious attacks. In the long run, it is also important to install software updates, not only to access new features, but also to be on the safe side in terms of security loop holes being discovered in outdated programs. And it is in your own best interest to install all other updates, which may potentially cause your system to become vulnerable to attack."
+                                            Text "It is critical to install security updates to protect your systems from malicious attacks. Regularly applying updates ensures that your systems are safeguarded against newly discovered vulnerabilities. Additionally, installing software updates provides access to new features and improvements, enhancing overall system performance and stability. Neglecting updates can leave your systems exposed to potential threats and exploitation. Therefore, it is in your best interest to maintain an up-to-date environment by promptly installing all recommended updates."
                                         }
                                     }
                                 }

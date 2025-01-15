@@ -5,7 +5,7 @@ function Get-AbrADCAAIA {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,13 +23,13 @@ function Get-AbrADCAAIA {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Authority Information Access information."
+        Write-PScriboMessage "Collecting Active Directory Certification Authority Information Access details."
     }
 
     process {
         if ($CA) {
             Section -Style Heading3 "Authority Information Access (AIA)" {
-                Paragraph "The following section provides the Certification Authority Authority Information Access information."
+                Paragraph "The following section provides the Certification Authority Information Access details."
                 BlankLine
                 try {
                     $OutObj = @()

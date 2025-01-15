@@ -1906,40 +1906,103 @@ function Get-PieChart {
     <#
     .SYNOPSIS
     Used by As Built Report to generate PScriboChart pie charts.
+
     .DESCRIPTION
-    .NOTES
-        Version:        0.1.0
-        Author:         Jonathan Colon
+    The Get-PieChart function generates a pie chart using the PScriboChart module. It accepts various parameters to customize the chart, such as sample data, chart name, fields for the X and Y axes, legend name and alignment, chart title, dimensions, and palette options. The function returns the pie chart as a Base64-encoded string.
+
+    .PARAMETER SampleData
+    An array of data to be used for generating the pie chart.
+
+    .PARAMETER ChartName
+    The name of the chart.
+
+    .PARAMETER XField
+    The field to be used for the X-axis.
+
+    .PARAMETER YField
+    The field to be used for the Y-axis.
+
+    .PARAMETER ChartLegendName
+    The name of the chart legend.
+
+    .PARAMETER ChartLegendAlignment
+    The alignment of the chart legend. Default is 'Center'.
+
+    .PARAMETER ChartTitleName
+    The name of the chart title. Default is a space character.
+
+    .PARAMETER ChartTitleText
+    The text of the chart title. Default is a space character.
+
+    .PARAMETER Width
+    The width of the chart in pixels. Default is 600.
+
+    .PARAMETER Height
+    The height of the chart in pixels. Default is 400.
+
+    .PARAMETER ReversePalette
+    A boolean indicating whether to reverse the color palette. Default is $false.
+
     .EXAMPLE
+    $sampleData = @(
+        @{ Category = 'A'; Value = 10 },
+        @{ Category = 'B'; Value = 20 },
+        @{ Category = 'C'; Value = 30 }
+    )
+    Get-PieChart -SampleData $sampleData -ChartName 'ExampleChart' -XField 'Category' -YField 'Value' -ChartLegendName 'Legend'
+
     .LINK
+    https://github.com/iainbrighton/PScriboCharts
     #>
+
     [CmdletBinding()]
     [OutputType([System.String])]
     Param
     (
         [Parameter (
             Position = 0,
-            Mandatory)]
+            Mandatory,
+            HelpMessage = 'An array of data to be used for generating the pie chart.')]
         [System.Array]
         $SampleData,
+        [Parameter (
+            HelpMessage = 'The name of the chart.')]
         [String]
         $ChartName,
+        [Parameter (
+            HelpMessage = 'The field to be used for the X-axis.')]
         [String]
         $XField,
+        [Parameter (
+            HelpMessage = 'The field to be used for the Y-axis.')]
         [String]
         $YField,
+        [Parameter (
+            HelpMessage = 'The name of the chart legend.')]
         [String]
         $ChartLegendName,
+        [Parameter (
+            HelpMessage = 'The alignment of the chart legend. Default is Center.')]
         [String]
         $ChartLegendAlignment = 'Center',
+        [Parameter (
+            HelpMessage = 'The name of the chart title. Default is a space character.')]
         [String]
         $ChartTitleName = ' ',
+        [Parameter (
+            HelpMessage = 'The text of the chart title. Default is a space character.')]
         [String]
         $ChartTitleText = ' ',
+        [Parameter (
+            HelpMessage = 'The width of the chart in pixels. Default is 600.')]
         [int]
         $Width = 600,
+        [Parameter (
+            HelpMessage = 'The height of the chart in pixels. Default is 400.')]
         [int]
         $Height = 400,
+        [Parameter (
+            HelpMessage = 'A boolean indicating whether to reverse the color palette. Default is $false.')]
         [bool]
         $ReversePalette = $false
     )
@@ -2005,46 +2068,116 @@ function Get-PieChart {
 
 } # end
 
+
 function Get-ColumnChart {
     <#
     .SYNOPSIS
-    Used by As Built Report to generate PScriboChart column charts.
+        Generates a column chart based on the provided sample data.
+
     .DESCRIPTION
-    .NOTES
-        Version:        0.1.0
-        Author:         Jonathan Colon
+        The Get-ColumnChart function creates a column chart using the provided sample data array.
+        You can specify the chart name, X-axis title, and Y-axis title.
+
+    .PARAMETER SampleData
+        An array of sample data to be used for generating the column chart. This parameter is mandatory.
+
+    .PARAMETER ChartName
+        The name of the chart. This parameter is optional.
+
+    .PARAMETER AxisXTitle
+        The title for the X-axis of the chart. This parameter is optional.
+
+    .PARAMETER AxisYTitle
+        The title for the Y-axis of the chart. This parameter is optional.
+
+    .OUTPUTS
+        System.String
+        Returns a string representation of the generated column chart.
+
     .EXAMPLE
-    .LINK
+        $data = @(1, 2, 3, 4, 5)
+        Get-ColumnChart -SampleData $data -ChartName "Sample Chart" -AxisXTitle "X Axis" -AxisYTitle "Y Axis"
+
+    .NOTES
+        Author: Your Name
+        Date: Today's Date
     #>
+
     [CmdletBinding()]
     [OutputType([System.String])]
     Param
     (
         [Parameter (
             Position = 0,
-            Mandatory)]
+            Mandatory,
+            HelpMessage = "Provide the sample data as an array."
+        )]
         [System.Array]
         $SampleData,
+
+        [Parameter (
+            HelpMessage = "Specify the name of the chart."
+        )]
         [String]
         $ChartName,
+
+        [Parameter (
+            HelpMessage = "Specify the title for the X axis."
+        )]
         [String]
         $AxisXTitle,
+
+        [Parameter (
+            HelpMessage = "Specify the title for the Y axis."
+        )]
         [String]
         $AxisYTitle,
+
+        [Parameter (
+            HelpMessage = "Specify the field for the X axis."
+        )]
         [String]
         $XField,
+
+        [Parameter (
+            HelpMessage = "Specify the field for the Y axis."
+        )]
         [String]
         $YField,
+
+        [Parameter (
+            HelpMessage = "Specify the name of the chart area."
+        )]
         [String]
         $ChartAreaName,
+
+        [Parameter (
+            HelpMessage = "Specify the name of the chart title."
+        )]
         [String]
-        $ChartTitleName = ' ',
+        $ChartTitleName = '',
+
+        [Parameter (
+            HelpMessage = "Specify the text for the chart title."
+        )]
         [String]
         $ChartTitleText = ' ',
+
+        [Parameter (
+            HelpMessage = "Specify the width of the chart."
+        )]
         [int]
         $Width = 600,
+
+        [Parameter (
+            HelpMessage = "Specify the height of the chart."
+        )]
         [int]
         $Height = 400,
+
+        [Parameter (
+            HelpMessage = "Specify whether to reverse the color palette."
+        )]
         [bool]
         $ReversePalette = $false
     )
@@ -2231,7 +2364,7 @@ function Get-ValidDCfromDomain {
 
     if ($DCList) {
         foreach ($TestedDC in $DCList) {
-            if (Test-WSMan -ComputerName $TestedDC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction SilentlyContinue) {
+            if (Get-DCWinRMState -ComputerName $TestedDC) {
                 Write-PScriboMessage "Using $TestedDC to retreive $Domain information."
                 $TestedDC
                 break
@@ -2241,6 +2374,83 @@ function Get-ValidDCfromDomain {
         }
     } else {
         Write-PScriboMessage "Unable to connect to $Domain to get a valid Domain Controller list."
+    }
+}# end
+
+function Get-DCWinRMState {
+    <#
+    .SYNOPSIS
+        Checks the WinRM status of a specified domain controller.
+
+    .DESCRIPTION
+        The Get-DCWinRMState function checks if the Windows Remote Management (WinRM) service is available and accessible on a specified domain controller.
+
+    .PARAMETER ComputerName
+        The name of the computer (domain controller) to check the WinRM status for.
+
+    .OUTPUTS
+        [Bool]
+        Returns $true if WinRM is accessible on the specified computer, otherwise returns $false.
+
+    .EXAMPLE
+        PS C:\> Get-DCWinRMState -ComputerName "DC01"
+        Checks the WinRM status on the domain controller named "DC01".
+
+    .NOTES
+        This function requires the PScribo module for logging messages.
+        Ensure that the $Credential and $Options variables are properly set in the calling scope.
+    #>
+    [CmdletBinding()]
+    [OutputType([Bool])]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$ComputerName,
+        [string]$ErrorCategory
+    )
+
+    # build the connection to the DC
+    $ConnectionParams = @{
+        ComputerName = $ComputerName
+        Credential = $Credential
+        Authentication = $Options.PSDefaultAuthentication
+        ErrorAction = 'SilentlyContinue'
+    }
+
+    if ($Options.WinRMSSL) {
+        $ConnectionParams.Add('UseSSL', $true)
+        $ConnectionParams.Add('Port', $Options.WinRMSSLPort)
+        $WinRMType = "WinRM with SSL"
+    } else {
+        $ConnectionParams.Add('Port', $Options.WinRMPort)
+        $WinRMType = "WinRM"
+    }
+
+    if (Test-WSMan @ConnectionParams) {
+        Write-PScriboMessage "WinRM status in $ComputerName is OK."
+        return $true
+    } elseif ($Options.WinRMAutoRecoverToNoSSL) {
+        $ConnectionParams['UseSSL'] = $false
+        $ConnectionParams['Port'] = $Options.WinRMPort
+        if (Test-WSMan @ConnectionParams) {
+            Write-PScriboMessage "WinRM status in $ComputerName is OK."
+            return $true
+        } else {
+            if ($ErrorCategory) {
+                Write-PScriboMessage "Unable to connect to $ComputerName through $WinRMType, ($ErrorCategory)"
+            } else {
+                Write-PScriboMessage "Unable to connect to $ComputerName through $WinRMType."
+            }
+            return $false
+        }
+
+    } else {
+        if ($ErrorCategory) {
+            Write-PScriboMessage "Unable to connect to $ComputerName through $WinRMType, ($ErrorCategory)"
+        } else {
+            Write-PScriboMessage "Unable to connect to $ComputerName through $WinRMType."
+        }
+        return $false
     }
 }# end
 
@@ -2274,9 +2484,13 @@ function Get-ValidPSSession {
             Write-PScriboMessage "Connecting to '$ComputerName' through PSSession with SSL."
             New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -UseSSL -Port $Options.WinRMSSLPort
         } catch {
-            Write-PScriboMessage -IsWarning "Unable to Connect to '$ComputerName' through PSSession with SSL. Reverting to WinRM without SSL!"
-            New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort
-            Write-PScriboMessage "Connected to '$ComputerName' through PSSession."
+            if ($Options.WinRMAutoRecoverToNoSSL) {
+                Write-PScriboMessage "Unable to Connect to '$ComputerName' through PSSession with SSL. Reverting to WinRM without SSL!"
+                New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort
+                Write-PScriboMessage "Connected to '$ComputerName' through PSSession."
+            } else {
+                throw
+            }
         }
     } else {
         Write-PScriboMessage "Connecting to '$ComputerName' through PSSession."
@@ -2312,14 +2526,18 @@ function Get-ValidCIMSession {
         try {
             $CimSessionOptions = New-CimSessionOption -ProxyAuthentication $Options.PSDefaultAuthentication -ProxyCredential $Credential -SkipCACheck -SkipCNCheck -UseSsl
             Write-PScriboMessage "Connecting to '$ComputerName' through CimSession with SSL."
-            New-CimSession $System -SessionOption $CimSessionOptions -ErrorAction Continue -Port $Options.WinRMSSLPort -Name $SessionName
+            New-CimSession $ComputerName -SessionOption $CimSessionOptions -Port $Options.WinRMSSLPort -Name $SessionName -ErrorAction Stop
         } catch {
-            Write-PScriboMessage -IsWarning "Unable to Connect to '$ComputerName' through CimSession with SSL. Reverting to Cim without SSL!"
-            New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Continue -Name $SessionName -Port $Options.WinRMPort
-            Write-PScriboMessage "Connected to '$ComputerName' through CimSession with SSL."
+            if ($Options.WinRMAutoRecoverToNoSSL) {
+                Write-PScriboMessage "Unable to Connect to '$ComputerName' through CimSession with SSL. Reverting to Cim without SSL!"
+                New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name $SessionName -Port $Options.WinRMPort -ErrorAction Continue
+                Write-PScriboMessage "Connected to '$ComputerName' through CimSession with SSL."
+            } else {
+                throw
+            }
         }
     } else {
         Write-PScriboMessage "Connecting to '$ComputerName' through CimSession with SSL."
-        New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Continue -Name $SessionName -Port $Options.WinRMPort
+        New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name $SessionName -Port $Options.WinRMPort -ErrorAction Continue
     }
 }# end

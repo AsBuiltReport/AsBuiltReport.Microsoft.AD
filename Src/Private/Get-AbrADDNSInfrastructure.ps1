@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -36,7 +36,7 @@ function Get-AbrADDNSInfrastructure {
                     BlankLine
                     $OutObj = @()
                     foreach ($DC in $DCs) {
-                        if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                        if (Get-DCWinRMState -ComputerName $DC) {
                             try {
                                 $DNSSetting = Get-DnsServerSetting -CimSession $TempCIMSession -ComputerName $DC
                                 $inObj = [ordered] @{
@@ -74,7 +74,7 @@ function Get-AbrADDNSInfrastructure {
                                 Paragraph "The following section provides Directory Partition information."
                                 BlankLine
                                 foreach ($DC in $DCs) {
-                                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                                    if (Get-DCWinRMState -ComputerName $DC) {
                                         try {
                                             Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                                                 $OutObj = @()
@@ -129,7 +129,7 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading4 "Response Rate Limiting (RRL)" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
-                                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                                    if (Get-DCWinRMState -ComputerName $DC) {
                                         try {
                                             $DNSSetting = Get-DnsServerResponseRateLimiting -CimSession $TempCIMSession -ComputerName $DC
                                             $inObj = [ordered] @{
@@ -173,7 +173,7 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading4 "Scavenging Options" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
-                                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                                    if (Get-DCWinRMState -ComputerName $DC) {
                                         try {
                                             $DNSSetting = Get-DnsServerScavenging -CimSession $TempCIMSession -ComputerName $DC
                                             $inObj = [ordered] @{
@@ -234,7 +234,7 @@ function Get-AbrADDNSInfrastructure {
                         Section -Style Heading4 "Forwarder Options" {
                             $OutObj = @()
                             foreach ($DC in $DCs) {
-                                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                                if (Get-DCWinRMState -ComputerName $DC) {
                                     try {
                                         $DNSSetting = Get-DnsServerForwarder -CimSession $TempCIMSession -ComputerName $DC
                                         $Recursion = Get-DnsServerRecursion -CimSession $TempCIMSession -ComputerName $DC | Select-Object -ExpandProperty Enable
@@ -275,7 +275,7 @@ function Get-AbrADDNSInfrastructure {
 
                                     Paragraph {
                                         Text "Best Practices:" -Bold
-                                        Text "Configure the servers to use no more than two external DNS servers as Forwarders."
+                                        Text "Configure the servers to use no more than two external DNS servers as Forwarders. Using more than two forwarders can lead to increased resolution times and potential issues with DNS query load balancing. It is recommended to use two reliable and geographically diverse DNS servers to ensure redundancy and optimal performance."
                                     }
                                     BlankLine
                                     Paragraph {
@@ -304,7 +304,7 @@ function Get-AbrADDNSInfrastructure {
                                 Paragraph "The following section provides Root Hints information from domain $($Domain)."
                                 BlankLine
                                 foreach ($DC in $DCs) {
-                                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                                    if (Get-DCWinRMState -ComputerName $DC) {
                                         try {
                                             Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
                                                 $OutObj = @()
@@ -409,7 +409,7 @@ function Get-AbrADDNSInfrastructure {
                             Section -Style Heading4 "Zone Scope Recursion" {
                                 $OutObj = @()
                                 foreach ($DC in $DCs) {
-                                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                                    if (Get-DCWinRMState -ComputerName $DC) {
                                         try {
                                             $DNSSetting = Get-DnsServerRecursionScope -CimSession $TempCIMSession -ComputerName $DC
                                             $inObj = [ordered] @{

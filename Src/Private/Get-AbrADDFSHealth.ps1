@@ -97,7 +97,7 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No DFS information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No DFS information found in $Domain, Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
@@ -157,12 +157,12 @@ function Get-AbrADDFSHealth {
                             BlankLine
                             Paragraph {
                                 Text "Corrective Actions:" -Bold
-                                Text "Make sure Sysvol folder has no malicious extensions or unnecessary content."
+                                Text "Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Sysvol folder to maintain a healthy and secure Active Directory environment."
                             }
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No SYSVOL folder information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No SYSVOL folder information found in $Domain, Disabling this section."
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession
@@ -224,12 +224,12 @@ function Get-AbrADDFSHealth {
                             BlankLine
                             Paragraph {
                                 Text "Corrective Actions:" -Bold
-                                Text "Make sure Netlogon folder has no malicious extensions or unnecessary content."
+                                Text "Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Netlogon folder to maintain a healthy and secure Active Directory environment."
                             }
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No NETLOGON folder information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No NETLOGON folder information found in $Domain, Disabling this section."
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession

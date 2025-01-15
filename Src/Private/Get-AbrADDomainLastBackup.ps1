@@ -5,7 +5,7 @@ function Get-AbrADDomainLastBackup {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -72,11 +72,13 @@ function Get-AbrADDomainLastBackup {
                             Paragraph {
                                 Text "Corrective Actions:" -Bold
                                 Text "Ensure there is a recent (<180 days) Active Directory backup."
+                                Text "Regular backups are crucial for disaster recovery and maintaining the integrity of your Active Directory environment."
+                                Text "Consider setting up automated backup schedules and regularly verifying the backup status to prevent data loss."
                             }
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Naming context last backup information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No Naming context last backup information found in $Domain, Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup Table)"

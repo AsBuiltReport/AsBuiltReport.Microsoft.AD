@@ -77,7 +77,7 @@ function Get-AbrADOU {
                         BlankLine
                         Paragraph {
                             Text "Best Practice:" -Bold
-                            Text "If the Organizational Units in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion."
+                            Text "If the Organizational Units (OUs) in your Active Directory are not protected from accidental deletion, your environment can experience disruptions caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion."
                         }
                     }
                     if ($HealthCheck.Domain.GPO) {
@@ -122,7 +122,7 @@ function Get-AbrADOU {
                                     BlankLine
                                     Paragraph {
                                         Text "Corrective Actions:" -Bold
-                                        Text "Review use of enforcement and blocked policy inheritance in Active Directory."
+                                        Text "Review the use of enforced policies and blocked policy inheritance in Active Directory. Enforced policies ensure that specific Group Policy Objects (GPOs) are applied and cannot be overridden by other GPOs. Blocked policy inheritance prevents GPOs from parent containers from being applied to the Organizational Unit (OU). While these settings can be useful for maintaining strict policy application, they can also lead to unexpected results and complicate troubleshooting. Ensure that the use of these settings aligns with your organization's policy management strategy and does not inadvertently cause issues."
                                     }
                                 }
                             }
@@ -133,7 +133,7 @@ function Get-AbrADOU {
                     }
                 }
             } else {
-                Write-PScriboMessage -IsWarning "No Organizational Units information found in $Domain, disabling the section."
+                Write-PScriboMessage "No Organizational Units information found in $Domain, Disabling this section."
             }
         } catch {
             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit Section)"

@@ -52,7 +52,7 @@ function Get-AbrDNSSection {
                                     }
                                     $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } }
                                     foreach ($DC in $DCs) {
-                                        if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                                        if (Get-DCWinRMState -ComputerName $DC) {
                                             Get-AbrADDNSZone -Domain $Domain -DC $DC
                                         }
                                     }

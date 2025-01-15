@@ -72,7 +72,7 @@ function Get-AbrADExchange {
                     }
                 }
             } else {
-                Write-PScriboMessage -IsWarning "No Exchange Infrastructure information found in $($ForestInfo.toUpper()), disabling the section."
+                Write-PScriboMessage "No Exchange Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
             }
         } catch {
             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Exchabge Table)"

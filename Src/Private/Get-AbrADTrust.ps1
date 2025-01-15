@@ -124,7 +124,7 @@ function Get-AbrADTrust {
                             }
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning "No Domain Trust information found in $Domain, disabling the section."
+                        Write-PScriboMessage "No Domain Trust information found in $Domain, Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Table)"

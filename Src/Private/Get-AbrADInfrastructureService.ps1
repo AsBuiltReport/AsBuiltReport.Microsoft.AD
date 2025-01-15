@@ -81,13 +81,13 @@ function Get-AbrADInfrastructureService {
                             BlankLine
                             Paragraph {
                                 Text "Corrective Actions:" -Bold
-                                Text "Disable Print Spooler service on DCs and all servers that do not perform Print services."
+                                Text "The Print Spooler service has been known to have vulnerabilities that can be exploited by attackers to gain unauthorized access or execute malicious code. Disabling this service on Domain Controllers and other critical servers that do not require print services can help reduce the attack surface and improve the overall security posture of your Active Directory environment."
                             }
                         }
                     }
                 }
             } else {
-                Write-PScriboMessage -IsWarning "No Infrastructure Services Status information found in $DC, disabling the section."
+                Write-PScriboMessage "No Infrastructure Services Status information found in $DC, Disabling this section."
             }
             if ($DCPssSession) {
                 Remove-PSSession -Session $DCPssSession

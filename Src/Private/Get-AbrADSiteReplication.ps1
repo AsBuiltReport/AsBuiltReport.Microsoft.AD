@@ -33,7 +33,7 @@ function Get-AbrADSiteReplication {
             try {
                 $ReplInfo = @()
                 foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         $Replication = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Server $using:DC -Properties * }
                         if ($Replication) {
                             try {
@@ -110,7 +110,7 @@ function Get-AbrADSiteReplication {
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Replication Connection information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No Replication Connection information found in $Domain, Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Replication Connection)"
@@ -167,13 +167,13 @@ function Get-AbrADSiteReplication {
                             BlankLine
                             Paragraph {
                                 Text "Best Practices:" -Bold
-                                Text "Replication failure can lead to object inconsistencies and major problems in Active Directory."
+                                Text "Replication failure can lead to object inconsistencies and significant issues in Active Directory."
                             }
                             BlankLine
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Replication Status information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No Replication Status information found in $Domain, Disabling this section."
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession

@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -92,7 +92,7 @@ function Get-AbrADForest {
                     if ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled' }) {
                         Paragraph {
                             Text "Best Practice:" -Bold
-                            Text "Anonymous Access to Active Directory forest data above the rootDSE level must be disabled."
+                            Text "Anonymous access to Active Directory forest data above the rootDSE level must be disabled. This is to ensure that unauthorized users cannot access sensitive directory information, which could potentially be exploited for malicious purposes."
                         }
                         BlankLine
                         Paragraph "Reference:" -Bold
@@ -102,7 +102,7 @@ function Get-AbrADForest {
                     if ($OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 }) {
                         Paragraph {
                             Text "Best Practice:" -Bold
-                            Text "Change the Tombstone Lifetime to 180 days, at a minimum."
+                            Text "Set the Tombstone Lifetime to a minimum of 180 days to ensure that deleted objects are retained for a sufficient period before being permanently removed from the directory. This allows for recovery of accidentally deleted objects and helps in maintaining the integrity of the Active Directory environment."
                         }
                     }
                 }
@@ -173,12 +173,12 @@ function Get-AbrADForest {
                             BlankLine
                             Paragraph {
                                 Text "Best Practice:" -Bold
-                                Text "In most PKI implementations, it is not typical to have multiple Root CAs. Its recommended a detailed review of the current PKI infrastructure and Root CA requirements."
+                                Text "In most PKI (Public Key Infrastructure) implementations, it is not typical to have multiple Root CAs (Certificate Authorities). The Root CA is the top-most authority in a PKI hierarchy and is responsible for issuing certificates to subordinate CAs and end entities. Having multiple Root CAs can complicate the trust relationships and management of certificates. It is recommended to conduct a detailed review of the current PKI infrastructure and Root CA requirements to ensure proper security and management practices are followed."
                             }
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Certificate Authority Root information found in $ForestInfo, disabling the section."
+                    Write-PScriboMessage "No Certificate Authority Root information found in $ForestInfo, Disabling this section."
                 }
                 $ConfigNCDN = $Data.PartitionsContainer.Split(',') | Select-Object -Skip 1
                 $subordinateCA = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq "pKIEnrollmentService" } -Properties "*" -SelectPrty 'dNSHostName', 'Name' -Session $TempPssSession
@@ -208,7 +208,7 @@ function Get-AbrADForest {
                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Certificate Authority Issuer information found, disabling the section."
+                    Write-PScriboMessage "No Certificate Authority Issuer information found, Disabling this section."
                 }
             }
         } catch {
@@ -253,7 +253,7 @@ function Get-AbrADForest {
                         BlankLine
                         Paragraph {
                             Text "Best Practice:" -Bold
-                            Text "Accidental deletion of Active Directory objects is common for Active Directory Domain Services (AD DS) users. With the Recycle Bin Feature, one could recover accidentally deleted objects in Active Directory. Enable the Recycle Bin feature for the forest."
+                            Text "Accidental deletion of Active Directory objects is a common issue for AD DS users. Enabling the Recycle Bin feature allows for the recovery of these accidentally deleted objects, helping to maintain the integrity and continuity of the Active Directory environment."
                         }
                         BlankLine
                         Paragraph {
@@ -264,7 +264,7 @@ function Get-AbrADForest {
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Optional Feature information found in $ForestInfo, disabling the section."
+                    Write-PScriboMessage "No Optional Feature information found in $ForestInfo, Disabling this section."
                 }
             }
         } catch {
