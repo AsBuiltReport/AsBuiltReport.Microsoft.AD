@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: zentered/bluesky-post-action@v0.1.0
         with:
-          post: "[New Release] ${{ github.event.repository.name }} ${{ github.event.release.tag_name }}! Check out what's new! ${{ github.event.release.html_url }} #Veeam #AsBuiltReport #PowerShell #VeeamVanguard #VeeamLegend"
+          post: "[New Release] ${{ github.event.repository.name }} ${{ github.event.release.tag_name }}! Check out what's new! ${{ github.event.release.html_url }} #Microsoft #ActiveDirectory #AsBuiltReport #PowerShell #MicrosoftMVP #MVPBuzz #cybersecurity #infosec"
         env:
           BSKY_IDENTIFIER: ${{ secrets.BSKY_IDENTIFIER }}
           BSKY_PASSWORD: ${{ secrets.BSKY_PASSWORD }}

@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,15 +29,15 @@ function Get-AbrADDCRoleFeature {
 
     process {
         try {
-            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ADDCRoleFeature' -ErrorAction Stop } catch {
-                if (-Not $_.Exception.MessageId) {
-                    $ErrorMessage = $_.FullyQualifiedErrorId
-                } else {$ErrorMessage = $_.Exception.MessageId}
-                Write-PScriboMessage -IsWarning "Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-            }
+            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'ADDCRoleFeature'
             if ($DCPssSession) {
                 $Features = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq "True" -and $_.FeatureType -eq 'Role' } }
                 Remove-PSSession -Session $DCPssSession
+            } else {
+                if (-Not $_.Exception.MessageId) {
+                    $ErrorMessage = $_.FullyQualifiedErrorId
+                } else { $ErrorMessage = $_.Exception.MessageId }
+                Write-PScriboMessage -IsWarning "Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
             }
             if ($Features) {
                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
@@ -82,7 +82,5 @@ function Get-AbrADDCRoleFeature {
             Write-PScriboMessage -IsWarning "Roles Section: $($_.Exception.Message)"
         }
     }
-
     end {}
-
 }

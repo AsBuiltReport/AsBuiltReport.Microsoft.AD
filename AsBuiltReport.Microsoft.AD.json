@@ -17,7 +17,11 @@
         },
         "Include": {
             "Domains": []
-        }
+        },
+        "WinRMSSL": false,
+        "WinRMFallbackToNoSSL": true,
+        "WinRMSSLPort": 5986,
+        "WinRMPort": 5985
     },
     "InfoLevel": {
         "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",

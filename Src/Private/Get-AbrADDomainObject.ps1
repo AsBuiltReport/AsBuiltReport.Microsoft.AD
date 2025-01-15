@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,7 +34,7 @@ function Get-AbrADDomainObject {
                 try {
                     $script:DomainSID = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).domainsid.Value }
                     $ADLimitedProperties = @("Name", "Enabled", "SAMAccountname", "DisplayName", "Enabled", "LastLogonDate", "PasswordLastSet", "PasswordNeverExpires", "PasswordNotRequired", "PasswordExpired", "SmartcardLogonRequired", "AccountExpirationDate", "AdminCount", "Created", "Modified", "LastBadPasswordAttempt", "badpwdcount", "mail", "CanonicalName", "DistinguishedName", "ServicePrincipalName", "SIDHistory", "PrimaryGroupID", "UserAccountControl", "CannotChangePassword", "PwdLastSet", "LockedOut", "TrustedForDelegation", "TrustedtoAuthForDelegation", "msds-keyversionnumber", "SID", "AccountNotDelegated", "EmailAddress")
-                    $script:DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                    $DC = Get-ValidDCfromDomain -Domain $Domain
                     $script:Computers = Invoke-Command -Session $TempPssSession { (Get-ADComputer -ResultPageSize 1000 -Server $using:DC -Filter * -Properties Enabled, OperatingSystem, lastlogontimestamp, PasswordLastSet, SIDHistory -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
                     $Servers = $Computers | Where-Object { $_.OperatingSystem -like "Windows Ser*" } | Measure-Object
                     $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:DC -Filter * -Property $using:ADLimitedProperties -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
@@ -414,7 +414,7 @@ function Get-AbrADDomainObject {
                                             if ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 }) {
                                                 BlankLine
                                                 Paragraph {
-                                                    Text "***Microsoft recommends that Domain Admins contain no more than five members."
+                                                    Text "***Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access."
                                                 }
                                             }
                                         }
@@ -489,19 +489,19 @@ function Get-AbrADDomainObject {
                                                                 if (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) {
                                                                     BlankLine
                                                                     Paragraph {
-                                                                        Text "Microsoft recommends that the Domain Admins group contain no more than five members."
+                                                                        Text "Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access."
                                                                     }
                                                                 }
                                                                 if ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) {
                                                                     BlankLine
                                                                     Paragraph {
-                                                                        Text "**Ensure there aren't any account with weak security posture."
+                                                                        Text "**Accounts with passwords set to never expire were found in the environment. Ensure there are no accounts with weak security postures. Accounts with passwords that never expire can pose a significant security risk as they may not be updated regularly. It is recommended to enforce password expiration policies to enhance security."
                                                                     }
                                                                 }
                                                                 if ($OutObj | Where-Object { $_.'Last Logon Date' -match "\*" }) {
                                                                     BlankLine
                                                                     Paragraph {
-                                                                        Text "*Regularly check for and remove inactive privileged user accounts in Active Directory."
+                                                                        Text "*Regularly check for and remove inactive privileged user accounts in Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts have privileged access helps maintain a secure environment."
                                                                     }
                                                                 }
                                                             }
@@ -556,7 +556,7 @@ function Get-AbrADDomainObject {
                                         BlankLine
                                         Paragraph {
                                             Text "Best Practice:" -Bold
-                                            Text "Regularly validate and remove unneeded privileged group members in Active Directory."
+                                            Text "Regularly validate and remove unneeded privileged group members in Active Directory. Ensuring that only necessary accounts have privileged access helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation. Regular audits and reviews of group memberships can help identify and mitigate potential security risks."
                                         }
                                     }
                                 }
@@ -874,7 +874,7 @@ function Get-AbrADDomainObject {
                                     BlankLine
                                     Paragraph {
                                         Text "Security Best Practice:" -Bold
-                                        Text "Ensure there aren't any computer account with weak security posture."
+                                        Text "Computers with Password-Not-Required attribute set can pose a significant security risk. This setting allows computer accounts to have no password, which can be exploited by malicious actors to gain unauthorized access to the network. It is recommended to review and update these accounts to ensure they comply with security policies and have strong, complex passwords set."
                                     }
                                 } catch {
                                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Computers with Password-Not-Required table)"
@@ -1200,7 +1200,7 @@ function Get-AbrADDomainObject {
                                                 if ($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '*--') }) {
                                                     BlankLine
                                                     Paragraph {
-                                                        Text "*Regularly check for and remove inactive group managed service accounts from Active Directory."
+                                                        Text "*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation."
                                                     }
                                                 }
                                                 if ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) {
@@ -1235,7 +1235,7 @@ function Get-AbrADDomainObject {
                                         if ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq "*--" }) {
                                             Paragraph {
                                                 Text "Security Best Practice:" -Bold
-                                                Text "*Regularly check for and remove inactive group managed service accounts from Active Directory."
+                                                Text "*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation."
                                             }
                                         }
                                     }

@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,7 @@ function Get-AbrADTrust {
         try {
             if ($Domain) {
                 try {
-                    $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                    $DC = Get-ValidDCfromDomain -Domain $Domain
                     $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:DC }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {
@@ -124,7 +124,7 @@ function Get-AbrADTrust {
                             }
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning "No Domain Trust information found in $Domain, disabling the section."
+                        Write-PScriboMessage "No Domain Trust information found in $Domain, Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Table)"

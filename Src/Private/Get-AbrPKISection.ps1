@@ -5,7 +5,7 @@ function Get-AbrPKISection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,7 @@ function Get-AbrPKISection {
                 Write-PScriboMessage -IsWarning $_.Exception.Message
             }
             if ($CurrentMachineADDomain.Name -in $ADSystem.Domains) {
-                Write-PScriboMessage "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forrest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
+                Write-PScriboMessage "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
                 try {
                     $script:CAs = Get-CertificationAuthority -Enterprise
                 } catch {
@@ -106,7 +106,7 @@ function Get-AbrPKISection {
                     }
                 }
             } else {
-                Write-PScriboMessage -IsWarning "Current PC Domain $($CurrentMachineADDomain.Name) is not in the Forrest Domain list of $($ADSystem.Name). Disabling Certificate Authority section"
+                Write-PScriboMessage -IsWarning "Current PC Domain $($CurrentMachineADDomain.Name) is not in the Forest Domain list of $($ADSystem.Name). Disabling Certificate Authority section"
             }
         }
     }

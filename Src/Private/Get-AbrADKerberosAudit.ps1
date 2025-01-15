@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,7 +30,7 @@ function Get-AbrADKerberosAudit {
     process {
         if ($HealthCheck.Domain.Security) {
             try {
-                $DC = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers | Select-Object -First 1 }
+                $DC = Get-ValidDCfromDomain -Domain $Domain
                 $Unconstrained = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:DC -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
                 if ($Unconstrained) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Unconstrained Kerberos Delegation' {
@@ -67,11 +67,11 @@ function Get-AbrADKerberosAudit {
                         BlankLine
                         Paragraph {
                             Text "Corrective Actions:" -Bold
-                            Text "Ensure there aren't any unconstrained kerberos delegation in Active Directory."
+                            Text "Ensure there are no instances of unconstrained Kerberos delegation in Active Directory, as it poses a security risk by allowing any service to impersonate users."
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Unconstrained Kerberos Delegation information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No Unconstrained Kerberos Delegation information found in $Domain, Disabling this section."
                 }
                 try {
                     $KRBTGT = $Users | Where-Object { $_.Name -eq 'krbtgt' }
@@ -110,11 +110,11 @@ function Get-AbrADKerberosAudit {
                             BlankLine
                             Paragraph {
                                 Text "Best Practice:" -Bold
-                                Text "Microsoft advises changing the krbtgt account password at regular intervals to keep the environment more secure."
+                                Text "Microsoft recommends changing the krbtgt account password regularly to enhance security and protect the environment."
                             }
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning "No KRBTGT Account Audit information found in $Domain, disabling the section."
+                        Write-PScriboMessage "No KRBTGT Account Audit information found in $Domain, Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
@@ -158,11 +158,11 @@ function Get-AbrADKerberosAudit {
                             BlankLine
                             Paragraph {
                                 Text "Best Practice:" -Bold
-                                Text "Microsoft advises changing the administrator account password at regular intervals to keep the environment more secure."
+                                Text "Microsoft recommends changing the Administrator account password regularly to enhance security and protect the environment."
                             }
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning "No Administrator Account Audit information found in $Domain, disabling the section."
+                        Write-PScriboMessage "No Administrator Account Audit information found in $Domain, Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"

@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -67,17 +67,18 @@ function Get-AbrADDomainController {
             try {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
-                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DCNetSettings' -ErrorAction Stop } catch {
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'DCNetSettings'
+
+                        if ($DCPssSession ) {
+                            $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Write-PScriboMessage -IsWarning "Unable to get $DC network interfaces information" }
+                            Remove-PSSession -Session $DCPssSession
+                        } else {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
                             } else { $ErrorMessage = $_.Exception.MessageId }
                             Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                        }
-                        if ($DCPssSession ) {
-                            $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Write-PScriboMessage -IsWarning "Unable to get $DC network interfaces information" }
-                            Remove-PSSession -Session $DCPssSession
                         }
                         try {
                             $inObj = [ordered] @{
@@ -141,7 +142,7 @@ function Get-AbrADDomainController {
                     BlankLine
                     Paragraph {
                         Text "Best Practice:" -Bold
-                        Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
+                        Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources. This ensures high availability and fault tolerance within the domain infrastructure."
                     }
                 }
             } catch {
@@ -151,19 +152,19 @@ function Get-AbrADDomainController {
             try {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
                         $DCComputerObject = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADComputer ($using:DCInfo).ComputerObjectDN -Properties * -Server $using:DC } } catch { Out-Null }
-                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DCNetSettings' -ErrorAction Stop } catch {
-                            if (-Not $_.Exception.MessageId) {
-                                $ErrorMessage = $_.FullyQualifiedErrorId
-                            } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                        }
+                        $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DCNetSettings'
                         if ($DCPssSession) {
                             $DCNetSettings = try { Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-NetIPAddress } } catch { Out-Null }
                             $DCNetSMBv1Setting = try { Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol } } catch { Out-Null }
                             Remove-PSSession -Session $DCPssSession
+                        } else {
+                            if (-Not $_.Exception.MessageId) {
+                                $ErrorMessage = $_.FullyQualifiedErrorId
+                            } else { $ErrorMessage = $_.Exception.MessageId }
+                            Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         if ($InfoLevel.Domain -eq 1) {
                             try {
@@ -211,7 +212,7 @@ function Get-AbrADDomainController {
                                 BlankLine
                                 Paragraph {
                                     Text "Best Practice:" -Bold
-                                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources."
+                                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources. This ensures high availability and fault tolerance within the domain infrastructure."
                                 }
                             }
                         } else {
@@ -260,7 +261,7 @@ function Get-AbrADDomainController {
                                                 BlankLine
                                                 Paragraph {
                                                     Text "Best Practice:" -Bold
-                                                    Text "Disable SMB v1: SMB v1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems."
+                                                    Text "Disable SMB v1: SMB v1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems to enhance security and reduce the risk of exploitation. SMB v1 has been deprecated and replaced by SMB v2 and SMB v3, which offer improved performance and security features."
                                                 }
                                             }
                                         }
@@ -338,13 +339,8 @@ function Get-AbrADDomainController {
                                     try {
                                         $DCHWInfo = @()
                                         try {
-                                            $CimSession = try { New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware' -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "Hardware Inventory Section: New-CimSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
-                                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerHardware' -ErrorAction Stop } catch {
-                                                if (-Not $_.Exception.MessageId) {
-                                                    $ErrorMessage = $_.FullyQualifiedErrorId
-                                                } else { $ErrorMessage = $_.Exception.MessageId }
-                                                Write-PScriboMessage -IsWarning "Domain Controller Hardware Inventory Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                                            }
+                                            $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "DomainControllerHardware"
+                                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName "DomainControllerHardware"
                                             if ($DCPssSession) {
                                                 $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
                                                 $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
@@ -402,7 +398,7 @@ function Get-AbrADDomainController {
                                                             BlankLine
                                                             Paragraph {
                                                                 Text "Best Practice:" -Bold
-                                                                Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on."
+                                                                Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on. Insufficient memory can lead to performance issues and slow response times, which can affect the overall health and efficiency of the domain controller. Ensuring adequate memory helps maintain optimal performance and reliability of the Active Directory services."
                                                             }
                                                         }
                                                     }
@@ -431,18 +427,18 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             foreach ($DC in $DCs) {
-                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
-                    $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DNSIPConfiguration' -ErrorAction Stop } catch {
-                        if (-Not $_.Exception.MessageId) {
-                            $ErrorMessage = $_.FullyQualifiedErrorId
-                        } else { $ErrorMessage = $_.Exception.MessageId }
-                        Write-PScriboMessage -IsWarning "DNS IP Configuration Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                    }
+                if (Get-DCWinRMState -ComputerName $DC) {
+                    $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DNSIPConfiguration'
                     try {
                         if ($DCPssSession) {
                             $DCIPAddress = Invoke-Command -Session $DCPssSession { [System.Net.Dns]::GetHostAddresses($using:DC).IPAddressToString }
                             $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4 }
                             $PrimaryDNSSoA = Invoke-Command -Session $DCPssSession { (Get-DnsServerResourceRecord -RRType Soa -ZoneName $using:Domain).RecordData.PrimaryServer }
+                        } else {
+                            if (-Not $_.Exception.MessageId) {
+                                $ErrorMessage = $_.FullyQualifiedErrorId
+                            } else { $ErrorMessage = $_.Exception.MessageId }
+                            Write-PScriboMessage -IsWarning "DNS IP Configuration Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         $UnresolverDNS = @()
                         foreach ($DNSServer in $DNSSettings.ServerAddresses) {
@@ -505,21 +501,21 @@ function Get-AbrADDomainController {
                         if ($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1" }) {
                             Paragraph {
                                 Text "Best Practices:" -Bold
-                                Text "DNS configuration on network adapter should include the loopback address, but not as the first entry."
+                                Text "DNS configuration on network adapter should include the loopback address (127.0.0.1), but it should not be the first entry."
                             }
                         }
                         if ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) {
                             BlankLine
                             Paragraph {
                                 Text "Best Practices:" -Bold
-                                Text "DNS configuration on network adapter shouldn't include the Domain Controller own IP address as the first entry."
+                                Text "DNS configuration on the network adapter should not include the Domain Controller's own IP address as the first entry."
                             }
                         }
                         if ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--" }) {
                             BlankLine
                             Paragraph {
                                 Text "Best Practices:" -Bold
-                                Text "For redundancy reasons, the DNS configuration on the network adapter should include an Alternate DNS address."
+                                Text "For redundancy reasons, the DNS configuration on the network adapter should include an Alternate DNS address. This ensures that if the primary DNS server becomes unavailable, the system can still resolve domain names using the alternate DNS server, maintaining network stability and connectivity."
                             }
                         }
                         if ($OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS -or $_.'Alternate DNS' -in $UnresolverDNS -or $_.'DNS 3' -in $UnresolverDNS -or $_.'DNS 4' -in $UnresolverDNS }) {
@@ -539,20 +535,21 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             foreach ($DC in $DCs) {
-                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                if (Get-DCWinRMState -ComputerName $DC) {
                     try {
-                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'NTDS' -ErrorAction Stop } catch {
-                            if (-Not $_.Exception.MessageId) {
-                                $ErrorMessage = $_.FullyQualifiedErrorId
-                            } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "NTDS Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                        }
+                        $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'NTDS'
+
                         if ($DCPssSession) {
                             $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File' }
                             $size = Invoke-Command -Session $DCPssSession -ScriptBlock { (Get-ItemProperty -Path $using:NTDS).Length }
                             $LogFiles = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'Database log files path' }
                             $SYSVOL = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters | Select-Object -ExpandProperty 'SysVol' }
                             Remove-PSSession -Session $DCPssSession
+                        } else {
+                            if (-Not $_.Exception.MessageId) {
+                                $ErrorMessage = $_.FullyQualifiedErrorId
+                            } else { $ErrorMessage = $_.Exception.MessageId }
+                            Write-PScriboMessage -IsWarning "NTDS Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         if ( $NTDS -and $size ) {
                             $inObj = [ordered] @{
@@ -589,18 +586,19 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             foreach ($DC in $DCs) {
-                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                if (Get-DCWinRMState -ComputerName $DC) {
                     try {
-                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'TimeSource' -ErrorAction Stop } catch {
-                            if (-Not $_.Exception.MessageId) {
-                                $ErrorMessage = $_.FullyQualifiedErrorId
-                            } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "Time Source Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                        }
+                        $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'TimeSource'
+
                         if ($DCPssSession) {
                             $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer' }
                             $SourceType = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'Type' }
                             Remove-PSSession -Session $DCPssSession
+                        } else {
+                            if (-Not $_.Exception.MessageId) {
+                                $ErrorMessage = $_.FullyQualifiedErrorId
+                            } else { $ErrorMessage = $_.Exception.MessageId }
+                            Write-PScriboMessage -IsWarning "Time Source Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         if ( $NtpServer -and $SourceType ) {
                             try {
@@ -650,9 +648,9 @@ function Get-AbrADDomainController {
             try {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         try {
-                            $CimSession = try { New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication  -Name 'SRVRecordsStatus' -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "SRV Records Status Section: New-CimSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
+                            $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "SRVRecordsStatus"
                             $PDCEmulator = Invoke-Command -Session $TempPssSession { (Get-ADDomain $using:Domain -ErrorAction Stop).PDCEmulator }
                             if ($CimSession -and ($Domain -eq $ADSystem.RootDomain)) {
                                 $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName _msdcs.$Domain -RRType Srv
@@ -753,7 +751,7 @@ function Get-AbrADDomainController {
                             BlankLine
                             Paragraph {
                                 Text "Best Practice:" -Bold
-                                Text "The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory."
+                                Text "The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory. These records are essential for the proper functioning of Active Directory as they allow clients to locate domain controllers and other critical services within the network. Ensuring that these records are correctly configured and available is crucial for maintaining the health and accessibility of the Active Directory environment."
                             }
                         }
                     }
@@ -765,16 +763,17 @@ function Get-AbrADDomainController {
         try {
             if ($HealthCheck.DomainController.BestPractice) {
                 $OutObj = foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         try {
-                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllersFileShares' -ErrorAction Stop } catch {
+                            $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'TimeSource'
+
+                            if ($DCPssSession) {
+                                $Shares = Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-SmbShare | Where-Object { $_.Description -ne 'Default share' -and $_.Description -notmatch 'Remote' -and $_.Name -ne 'NETLOGON' -and $_.Name -ne 'SYSVOL' } }
+                            } else {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
                                 Write-PScriboMessage -IsWarning "Domain Controllers File Shares Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                            }
-                            if ($DCPssSession) {
-                                $Shares = Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-SmbShare | Where-Object { $_.Description -ne 'Default share' -and $_.Description -notmatch 'Remote' -and $_.Name -ne 'NETLOGON' -and $_.Name -ne 'SYSVOL' } }
                             }
                             if ($Shares) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
@@ -821,7 +820,7 @@ function Get-AbrADDomainController {
                         BlankLine
                         Paragraph {
                             Text "Best Practice:" -Bold
-                            Text "Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non default file shares should be moved to another server, preferably a dedicated file server."
+                            Text "Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non-default file shares should be moved to another server, preferably a dedicated file server. This helps to minimize the attack surface and ensures that the Domain Controller is dedicated to its primary role of managing security and authentication within the domain. Additionally, it reduces the risk of performance degradation and potential conflicts that can arise from running multiple services on a single server."
                         }
                     }
                 }
@@ -833,19 +832,20 @@ function Get-AbrADDomainController {
             try {
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         try {
                             $Software = @()
-                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerInstalledSoftware' -ErrorAction Stop } catch {
-                                if (-Not $_.Exception.MessageId) {
-                                    $ErrorMessage = $_.FullyQualifiedErrorId
-                                } else { $ErrorMessage = $_.Exception.MessageId }
-                                Write-PScriboMessage -IsWarning "Domain Controller Installed Software Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                            }
+                            $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DomainControllerInstalledSoftware'
+
                             if ($DCPssSession) {
                                 $SoftwareX64 = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { ($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName) } | Select-Object -Property DisplayName, Publisher, InstallDate | Sort-Object -Property DisplayName }
                                 $SoftwareX86 = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { ($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName) } | Select-Object -Property DisplayName, Publisher, InstallDate | Sort-Object -Property DisplayName }
                                 Remove-PSSession -Session $DCPssSession
+                            } else {
+                                if (-Not $_.Exception.MessageId) {
+                                    $ErrorMessage = $_.FullyQualifiedErrorId
+                                } else { $ErrorMessage = $_.Exception.MessageId }
+                                Write-PScriboMessage -IsWarning "Domain Controller Installed Software Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
 
                             If ($SoftwareX64) {
@@ -888,7 +888,7 @@ function Get-AbrADDomainController {
                                         BlankLine
                                         Paragraph {
                                             Text "Best Practices:" -Bold
-                                            Text "Do not run other software or services on a Domain Controller."
+                                            Text "Do not run other software or services on a Domain Controller. Running additional software or services on a Domain Controller can introduce security vulnerabilities, increase the attack surface, and potentially degrade the performance of critical domain services. It is recommended to keep Domain Controllers dedicated to their primary role of managing security and authentication within the domain. If additional services are required, consider deploying them on separate, dedicated servers."
                                         }
                                     }
                                 }
@@ -911,18 +911,19 @@ function Get-AbrADDomainController {
             try {
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         try {
                             $Software = @()
-                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'DomainControllerPendingMissingPatch' -ErrorAction Stop } catch {
+                            $DCPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'DomainControllerPendingMissingPatch'
+
+                            if ($DCPssSession ) {
+                                $Updates = Invoke-Command -Session $DCPssSession -ScriptBlock { (New-Object -ComObject Microsoft.Update.Session).CreateupdateSearcher().Search("IsHidden=0 and IsInstalled=0").Updates | Select-Object Title, KBArticleIDs }
+                                Remove-PSSession -Session $DCPssSession
+                            } else {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
                                 Write-PScriboMessage -IsWarning "Domain Controller Pending Missing Patch Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                            }
-                            if ($DCPssSession ) {
-                                $Updates = Invoke-Command -Session $DCPssSession -ScriptBlock { (New-Object -ComObject Microsoft.Update.Session).CreateupdateSearcher().Search("IsHidden=0 and IsInstalled=0").Updates | Select-Object Title, KBArticleIDs }
-                                Remove-PSSession -Session $DCPssSession
                             }
 
                             if ( $Updates ) {
@@ -957,7 +958,7 @@ function Get-AbrADDomainController {
                                         BlankLine
                                         Paragraph {
                                             Text "Security Best Practices:" -Bold
-                                            Text "It is critical to install security updates to protect your systems from malicious attacks. In the long run, it is also important to install software updates, not only to access new features, but also to be on the safe side in terms of security loop holes being discovered in outdated programs. And it is in your own best interest to install all other updates, which may potentially cause your system to become vulnerable to attack."
+                                            Text "It is critical to install security updates to protect your systems from malicious attacks. Regularly applying updates ensures that your systems are safeguarded against newly discovered vulnerabilities. Additionally, installing software updates provides access to new features and improvements, enhancing overall system performance and stability. Neglecting updates can leave your systems exposed to potential threats and exploitation. Therefore, it is in your best interest to maintain an up-to-date environment by promptly installing all recommended updates."
                                         }
                                     }
                                 }
