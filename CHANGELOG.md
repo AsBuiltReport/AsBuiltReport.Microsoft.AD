@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increase Diagrammer.Core minimum requirement
 - Increase AsBuiltReport.Core to v1.4.1
 - Improve DC selection logic
-- Improve HealthCheck best practice recommendations (Copilot)
+- Improve HealthCheck best practice recommendations (@Copilot)
 
 ### Fixed
 
