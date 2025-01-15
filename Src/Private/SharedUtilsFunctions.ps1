@@ -2429,7 +2429,7 @@ function Get-DCWinRMState {
     if (Test-WSMan @ConnectionParams) {
         Write-PScriboMessage "WinRM status in $ComputerName is OK."
         return $true
-    } elseif ($Options.WinRMAutoRecoverToNoSSL) {
+    } elseif ($Options.WinRMFallbackToNoSSL) {
         $ConnectionParams['UseSSL'] = $false
         $ConnectionParams['Port'] = $Options.WinRMPort
         if (Test-WSMan @ConnectionParams) {
@@ -2484,7 +2484,7 @@ function Get-ValidPSSession {
             Write-PScriboMessage "Connecting to '$ComputerName' through PSSession with SSL."
             New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -UseSSL -Port $Options.WinRMSSLPort
         } catch {
-            if ($Options.WinRMAutoRecoverToNoSSL) {
+            if ($Options.WinRMFallbackToNoSSL) {
                 Write-PScriboMessage "Unable to Connect to '$ComputerName' through PSSession with SSL. Reverting to WinRM without SSL!"
                 New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort
                 Write-PScriboMessage "Connected to '$ComputerName' through PSSession."
@@ -2528,7 +2528,7 @@ function Get-ValidCIMSession {
             Write-PScriboMessage "Connecting to '$ComputerName' through CimSession with SSL."
             New-CimSession $ComputerName -SessionOption $CimSessionOptions -Port $Options.WinRMSSLPort -Name $SessionName -ErrorAction Stop
         } catch {
-            if ($Options.WinRMAutoRecoverToNoSSL) {
+            if ($Options.WinRMFallbackToNoSSL) {
                 Write-PScriboMessage "Unable to Connect to '$ComputerName' through CimSession with SSL. Reverting to Cim without SSL!"
                 New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name $SessionName -Port $Options.WinRMPort -ErrorAction Continue
                 Write-PScriboMessage "Connected to '$ComputerName' through CimSession with SSL."

@@ -181,6 +181,7 @@ The **Options** schema allows certain options within the report to be toggled on
 | Include.Domains         | Array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.                                                 |
 | Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                                                            |
 | WinRMSSL                | Bool               | True      | Allow to enable SSL for WINRM connection                                                                                  |
+| WinRMFallbackToNoSSL | Bool               | True      | Allow to fallback to WINRM without SSL                                                                                    |
 | WinRMSSLPort            | Int                | 5986      | Allow to set tcp port for WinRM over SSL                                                                                  |
 | WinRMPort               | Int                | 5985      | Allow to set tcp port for WinRM                                                                                           |
 
