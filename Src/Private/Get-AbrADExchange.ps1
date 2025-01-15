@@ -23,7 +23,7 @@ function Get-AbrADExchange {
     }
 
     process {
-        $EXServers = try {Get-ADExchangeServer} catch {Out-Null}
+        $EXServers = try { Get-ADExchangeServer } catch { Out-Null }
         try {
             if ($EXServers ) {
                 Section -Style Heading3 'Exchange Infrastructure' {
@@ -72,7 +72,7 @@ function Get-AbrADExchange {
                     }
                 }
             } else {
-                Write-PScriboMessage -IsWarning "No Exchange Infrastructure information found in $($ForestInfo.toUpper()), disabling the section."
+                Write-PScriboMessage "No Exchange Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
             }
         } catch {
             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Exchabge Table)"

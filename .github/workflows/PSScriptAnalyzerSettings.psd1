@@ -1,6 +1,5 @@
 @{
     ExcludeRules = @(
-        'PSUseBOMForUnicodeEncodedFile',
         'PSUseToExportFieldsInManifest'
     )
     Rules = @{

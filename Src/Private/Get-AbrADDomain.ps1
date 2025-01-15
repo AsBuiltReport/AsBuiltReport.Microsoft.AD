@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -85,7 +85,7 @@ function Get-AbrADDomain {
                         BlankLine
                         Paragraph {
                             Text "Best Practice:" -Bold
-                            Text "The RID Issued is greater than 80%, a thorough evaluation of their utilization is recommended to prevent RIDs from being exhausted."
+                            Text "The RID Issued percentage exceeds 80%. It is recommended to evaluate the utilization of RIDs to prevent potential exhaustion and ensure the stability of the domain. The Relative Identifier (RID) is a crucial component in the SID (Security Identifier) for objects within the domain. Exhaustion of the RID pool can lead to the inability to create new security principals, such as user or computer accounts. Regular monitoring and proactive management of the RID pool are essential to maintain domain health and avoid disruptions."
                         }
                         BlankLine
                         Paragraph {

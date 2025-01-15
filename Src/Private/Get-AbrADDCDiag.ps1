@@ -30,7 +30,7 @@ function Get-AbrADDCDiag {
     }
 
     process {
-        if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+        if (Get-DCWinRMState -ComputerName $DC) {
             try {
                 $DCDIAG = Invoke-DcDiag -DomainController $DC
                 if ($DCDIAG) {
@@ -87,7 +87,7 @@ function Get-AbrADDCDiag {
                         $OutObj | Sort-Object -Property 'Entity' | Table @TableParams
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No DCDiag information found in $DC, disabling the section."
+                    Write-PScriboMessage "No DCDiag information found in $DC, Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "Active Directory DCDiag Section: $($_.Exception.Message)"

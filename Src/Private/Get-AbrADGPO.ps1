@@ -81,21 +81,21 @@ function Get-AbrADGPO {
                                 if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' })) {
                                     Paragraph {
                                         Text "Best Practices:" -Bold
-                                        Text "Ensure 'All Settings Disabled' GPOs are removed from Active Directory."
+                                        Text "Ensure 'All Settings Disabled' Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause confusion or clutter in the environment."
                                     }
                                     BlankLine
                                 }
                                 if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' })) {
                                     Paragraph {
                                         Text "Corrective Actions:" -Bold
-                                        Text "Determine which 'No Security Filtering' GPOs should be deleted and delete them."
+                                        Text "Identify 'No Security Filtering' Group Policy Objects (GPOs) that are not linked to any security groups or users. Determine which of these GPOs should be deleted to reduce clutter and improve manageability in Active Directory."
                                     }
                                     BlankLine
                                 }
                                 if ($OutObj | Where-Object { $_.'Links Count' -eq '0' }) {
                                     Paragraph {
                                         Text "Corrective Actions:" -Bold
-                                        Text "Ensure unused or unlinked GPOs are removed from Active Directory."
+                                        Text "Ensure unused or unlinked Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause unnecessary complexity and potential confusion in the environment. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory structure."
                                     }
                                     BlankLine
                                 }
@@ -165,21 +165,21 @@ function Get-AbrADGPO {
                                             if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' })) {
                                                 Paragraph {
                                                     Text "Best Practices:" -Bold
-                                                    Text "Ensure 'All Settings Disabled' GPO are removed from Active Directory."
+                                                    Text "Ensure 'All Settings Disabled' Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause confusion or clutter in the environment."
                                                 }
                                                 BlankLine
                                             }
                                             if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' })) {
                                                 Paragraph {
                                                     Text "Corrective Actions:" -Bold
-                                                    Text "Determine which 'No Security Filtering' Group Policies should be deleted and delete them."
+                                                    Text "Identify 'No Security Filtering' Group Policy Objects (GPOs) that are not linked to any security groups or users. Determine which of these GPOs should be deleted to reduce clutter and improve manageability in Active Directory."
                                                 }
                                                 BlankLine
                                             }
                                             if ($OutObj | Where-Object { $_.'Linked Target' -eq '--' }) {
                                                 Paragraph {
                                                     Text "Corrective Actions:" -Bold
-                                                    Text "Ensure unused or unlinked GPOs are removed from Active Directory."
+                                                    Text "Ensure unused or unlinked Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause unnecessary complexity and potential confusion in the environment. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory structure."
                                                 }
                                                 BlankLine
                                             }
@@ -197,17 +197,21 @@ function Get-AbrADGPO {
                         try {
                             $DC = Get-ValidDCfromDomain -Domain $Domain
 
-                            $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'WmiFilters' -ErrorAction Stop } catch {
+                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'WmiFilters'
+
+                            if ($DCPssSession) {
+                                $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
+
+                                $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
+
+                                Remove-PSSession -Session $DCPssSession
+                            } else {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
-                                } else {$ErrorMessage = $_.Exception.MessageId}
+                                } else { $ErrorMessage = $_.Exception.MessageId }
                                 Write-PScriboMessage -IsWarning "Wmi Filters Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
-                            $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
-                            if ($DCPssSession) {
-                                $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
-                                Remove-PSSession -Session $DCPssSession
-                            }
+
                             if ($WmiFilters) {
                                 Section -Style Heading5 "WMI Filters" {
                                     $OutObj = @()
@@ -237,7 +241,7 @@ function Get-AbrADGPO {
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage -IsWarning "No WMI Filter information found in $Domain, disabling the section."
+                                Write-PScriboMessage "No WMI Filter information found in $Domain, Disabling this section."
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (WMI Filters)"
@@ -275,12 +279,12 @@ function Get-AbrADGPO {
                                     BlankLine
                                     Paragraph {
                                         Text "Best Practices:" -Bold
-                                        Text "The group policy central store is a central location to store all the group policy template files. This eliminates the need for admins to load and open group policy template files on systems used to manage group policy. Ensure Central Store is deployed to centralized GPO repository."
+                                        Text "The Group Policy Central Store is a central location to store all the Group Policy template files (ADMX/ADML files). This eliminates the need for administrators to load and open Group Policy template files on each system used to manage Group Policy. Ensure the Central Store is deployed to a centralized GPO repository to streamline management and ensure consistency across the environment."
                                     }
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No GPO Central Store information found in $Domain, disabling the section."
+                            Write-PScriboMessage "No GPO Central Store information found in $Domain, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO Central Store)"
@@ -330,7 +334,7 @@ function Get-AbrADGPO {
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No GPO Logon/Logoff script information found in $Domain, disabling the section."
+                            Write-PScriboMessage "No GPO Logon/Logoff script information found in $Domain, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO with Logon/Logoff Script Section)"
@@ -381,7 +385,7 @@ function Get-AbrADGPO {
                             }
 
                         } else {
-                            Write-PScriboMessage -IsWarning "No GPO Computer Startup/Shutdown script information found in $Domain, disabling the section."
+                            Write-PScriboMessage "No GPO Computer Startup/Shutdown script information found in $Domain, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Section)"
@@ -429,11 +433,11 @@ function Get-AbrADGPO {
                                 BlankLine
                                 Paragraph {
                                     Text "Corrective Actions:" -Bold
-                                    Text "Remove Unused GPO from Active Directory."
+                                    Text "Remove unused Group Policy Objects (GPOs) from Active Directory. Unused GPOs can create unnecessary complexity and potential confusion. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory environment."
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Unlinked Group Policy Objects information found in $Domain, disabling the section."
+                            Write-PScriboMessage "No Unlinked Group Policy Objects information found in $Domain, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Section)"
@@ -478,29 +482,20 @@ function Get-AbrADGPO {
                                 BlankLine
                                 Paragraph {
                                     Text "Corrective Actions:" -Bold
-                                    Text "No User and Computer parameters are set: Remove Unused GPO in Active Directory."
+                                    Text "No user or computer parameters are set in this GPO. Remove unused GPOs in Active Directory to reduce clutter and improve manageability."
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Empty GPO information found in $Domain, disabling the section."
+                            Write-PScriboMessage "No Empty GPO information found in $Domain, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Section)"
                     }
                     try {
+                        $DM = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}
                         $OutObj = @()
-                        $DM = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain }
-                        $DCList = $DM.ReplicaDirectoryServers | Select-Object -First 1
 
-                        $DC = foreach ($TestedDC in $DCList) {
-                            if (Test-WSMan -ComputerName $TestedDC -ErrorAction SilentlyContinue) {
-                                Write-PScriboMessage "Using $TestedDC to retreive Enforced Group Policy Objects information on $Domain."
-                                $TestedDC
-                                break
-                            } else {
-                                Write-PScriboMessage "Unable to connect to $TestedDC to retreive Enforced Group Policy Objects information on $Domain."
-                            }
-                        }
+                        $DC = Get-ValidDCfromDomain -Domain $Domain
                         $OUs = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * }).DistinguishedName
                         if ($OUs) {
                             $OUs += $DM.DistinguishedName
@@ -520,7 +515,7 @@ function Get-AbrADGPO {
                                         }
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Enforced Group Policy Objects Item)"
+                                    Write-PScriboMessage -IsWarning "OU: $($OU): $($_.Exception.Message) (Enforced Group Policy Objects Item)"
                                 }
                             }
                         }
@@ -545,12 +540,12 @@ function Get-AbrADGPO {
                                 BlankLine
                                 Paragraph {
                                     Text "Corrective Actions:" -Bold
-                                    Text "Review use of enforcement and blocked policy inheritance in Active Directory."
+                                    Text "Review the use of enforcement and blocked policy inheritance in Active Directory. Enforced policies ensure that critical settings are applied consistently across the organization, while blocked policy inheritance can prevent higher-level policies from affecting specific organizational units. Proper use of these settings is essential for maintaining a secure and well-managed environment."
                                 }
 
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Enforced GPO information found in $Domain, disabling the section."
+                            Write-PScriboMessage "No Enforced GPO information found in $Domain, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Enforced Group Policy Objects Table)"
@@ -560,20 +555,21 @@ function Get-AbrADGPO {
                     try {
                         $DC = Get-ValidDCfromDomain -Domain $Domain
 
-                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'OrphanedGPO' -ErrorAction Stop } catch {
-                            if (-Not $_.Exception.MessageId) {
-                                $ErrorMessage = $_.FullyQualifiedErrorId
-                            } else {$ErrorMessage = $_.Exception.MessageId}
-                            Write-PScriboMessage -IsWarning "Orphaned GPO Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                        }
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'OrphanedGPO'
                         $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
-                        $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
-                        $OrphanGPOs = @()
+
                         if ($DCPssSession) {
                             $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
 
                             Remove-PSSession -Session $DCPssSession
+                        } else {
+                            if (-Not $_.Exception.MessageId) {
+                                $ErrorMessage = $_.FullyQualifiedErrorId
+                            } else { $ErrorMessage = $_.Exception.MessageId }
+                            Write-PScriboMessage -IsWarning "Orphaned GPO Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
+                        $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
+                        $OrphanGPOs = @()
                         $GPOPoliciesSYSVOL = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object }).Name.Trim("{}")
                         $SYSVOLGPOList = @()
                         ForEach ($GPOinSYSVOL in $GPOPoliciesSYSVOL) {
@@ -644,14 +640,14 @@ function Get-AbrADGPO {
                                         if ($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing' }) {
                                             Paragraph {
                                                 Text "Corrective Actions:" -Bold
-                                                Text "Evaluate orphaned group policies objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and bandwidth during replication."
+                                                Text "Evaluate orphaned group policies objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment."
                                             }
                                             BlankLine
                                         }
                                         if ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing' }) {
                                             Paragraph {
                                                 Text "Corrective Actions:" -Bold
-                                                Text "Evaluate orphaned group policies folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and bandwidth during replication."
+                                                Text "Evaluate orphaned group policies folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment."
                                             }
                                             BlankLine
                                         }
@@ -659,7 +655,7 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Orphaned GPO information found in $Domain, disabling the section."
+                            Write-PScriboMessage "No Orphaned GPO information found in $Domain, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Orphaned GPO)"

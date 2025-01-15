@@ -5,7 +5,7 @@ function Get-AbrForestSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.8.2
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -13,7 +13,7 @@ function Get-AbrForestSection {
 
     .LINK
 
-    #>
+#>
     [CmdletBinding()]
     param (
     )
@@ -24,14 +24,14 @@ function Get-AbrForestSection {
 
     process {
         Section -Style Heading1 "$($ForestInfo.toUpper())" {
-            Paragraph "The following section provides a summary of the Active Directory Infrastructure configuration for $($ForestInfo)."
+            Paragraph "The following section provides a summary of the Active Directory infrastructure configuration for $($ForestInfo)."
             BlankLine
             Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -ge 1) {
                 try {
-                    Section -Style Heading2 "Forest Configuration." {
+                    Section -Style Heading2 "Forest Configuration" {
                         if ($Options.ShowDefinitionInfo) {
-                            Paragraph "The Active Directory framework that holds the objects can be viewed at a number of levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest. A forest is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are accessible."
+                            Paragraph "The Active Directory framework that holds the objects can be viewed at several levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest, which is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are contained."
                             BlankLine
                         }
                         if (-Not $Options.ShowDefinitionInfo) {

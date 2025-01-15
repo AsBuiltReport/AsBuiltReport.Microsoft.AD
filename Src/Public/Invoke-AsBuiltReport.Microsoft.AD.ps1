@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -26,7 +26,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     #Requires -RunAsAdministrator
 
     if ($psISE) {
-        Write-Error -Message "You cannot run this script inside the PowerShell ISE. Please execute it from the PowerShell Command Window."
+        Write-Error -Message "This script cannot be run inside the PowerShell ISE. Please execute it from the PowerShell Command Window."
         break
     }
 
@@ -79,7 +79,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
     if ($Healthcheck) {
         Section -Style TOC -ExcludeFromTOC 'DISCLAIMER' {
-            Paragraph "The information contained in this report has been obtained through automation and observations. Opinions, recommendations and conclusions are disseminated using insight, knowledge, training and experience. This assessment was not intended to be exhaustive. However, we have done our best to capture the most relevant opportunities for improvement. It is expected that responsibility for the implementation of these recommendations will be reviewed and implemented by a person with the necessary knowledge, experience or expertise. In no event shall the author(s) be liable for damages of any kind (including, but not limited to, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss) arising out of the use or inability to use these recommendations or the statements made in this documentation."
+            Paragraph "The information in this report has been gathered through automation and observations. Opinions, recommendations, and conclusions are provided based on insight, knowledge, training, and experience. This assessment is not exhaustive, but we have aimed to capture the most relevant opportunities for improvement. It is expected that the implementation of these recommendations will be reviewed and carried out by someone with the necessary knowledge, experience, or expertise. The author(s) shall not be liable for any damages (including, but not limited to, loss of business profits, business interruption, loss of business information, or other financial loss) arising from the use or inability to use these recommendations or the statements made in this documentation."
         }
         PageBreak
     }
@@ -90,28 +90,33 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     foreach ($System in $Target) {
 
         if (Select-String -InputObject $System -Pattern "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") {
-            throw "Please use the FQDN instead of an IP address to connect to the Domain Controller: $System"
+            throw "Please use the Fully Qualified Domain Name (FQDN) instead of an IP address when connecting to the Domain Controller: $System"
+        }
+
+        if ($Options.WinRMSSL) {
+            $WinRMType = "WinRM with SSL"
+            $CIMType = "CIM with SSL"
+        } else {
+            $CIMType = "CIM"
         }
 
         Try {
-            Write-PScriboMessage "Connecting to Domain Controller through PSSession $System"
-            $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name "Global:TempPssSession"
+            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'Global:TempPssSession'
         } Catch {
-            throw "Unable to connect to the Domain Controller through PSSession: $System"
+            throw "Failed to establish a PSSession ($WinRMType) with the Domain Controller '$System': $($_.Exception.Message)"
         }
 
         Try {
-            Write-PScriboMessage "Connecting to Domain Controller through CimSession '$System'."
-            $script:TempCIMSession = New-CimSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Continue -Name "Global:TempCIMSession"
+            $script:TempCIMSession = Get-ValidCIMSession -ComputerName $System -SessionName "Global:TempCIMSession"
         } Catch {
-            Write-PScriboMessage -IsWarning "Unable to connect to the Domain Controller through CimSession: $System"
+            Write-PScriboMessage -IsWarning "Unable to establish a CimSession ($CIMType) with the Domain Controller '$System'."
         }
 
         Try {
-            Write-PScriboMessage "Connecting to get Forest information from Domain Controller '$System'."
+            Write-PScriboMessage "Connecting to retrieve Forest information from Domain Controller '$System'."
             $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop }
         } Catch {
-            throw "Unable to get Forest information from Domain Controller: $System"
+            throw "Unable to retrieve Forest information from Domain Controller '$System'."
         }
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
@@ -133,16 +138,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         if ($TempPssSession) {
             # Remove used PSSession
-            Write-PScriboMessage "Clearing PowerShell Session $($TempPssSession.Id)"
+            Write-PScriboMessage "Clearing PowerShell session with ID $($TempPssSession.Id)."
             Remove-PSSession -Session $TempPssSession
         }
 
         if ($TempCIMSession) {
             # Remove used CIMSession
-            Write-PScriboMessage "Clearing CIM Session $($TempCIMSession.Id)"
+            Write-PScriboMessage "Clearing CIM Session with ID $($TempCIMSession.Id)"
             Remove-CimSession -CimSession $TempCIMSession
         }
-
-
     }#endregion foreach loop
 }

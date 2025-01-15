@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -100,11 +100,11 @@ function Get-AbrADSecurityAssessment {
                             BlankLine
                             Paragraph {
                                 Text "Corrective Actions:" -Bold
-                                Text "Ensure there aren't any account with weak security posture." }
+                                Text "Ensure there are no accounts with a weak security posture." }
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Domain users information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No Domain users information found in $Domain, Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
@@ -175,7 +175,7 @@ function Get-AbrADSecurityAssessment {
                                 BlankLine
                                 if ($OutObj | Where-Object { $_.'Email Enabled?' -eq "* Yes" }) {
                                     Paragraph {
-                                        Text "* Privileged accounts such as those belonging to any of the administrator groups must not have configured email."
+                                        Text "* Privileged accounts such as those belonging to any of the Administrators groups must not have configured email."
                                     }
                                     BlankLine
                                 }
@@ -189,7 +189,7 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning "No Privileged User Assessment information found in $Domain, disabling the section."
+                        Write-PScriboMessage "No Privileged User Assessment information found in $Domain, Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Users Table)"
@@ -246,7 +246,7 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning "No Inactive Privileged Accounts information found in $Domain, disabling the section."
+                        Write-PScriboMessage "No Inactive Privileged Accounts information found in $Domain, Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Inactive Privileged Accounts Table)"
@@ -302,12 +302,12 @@ function Get-AbrADSecurityAssessment {
                                 Paragraph {
                                     Text "Security Best Practice:" -Bold
 
-                                    Text "**Attackers are most interested in Service Accounts that are members of highly privileged groups like Domain Admins. A quick way to check for this is to enumerate all user accounts with the attribute AdminCount equal to 1. This means an attacker may just ask AD for all user accounts with a SPN and with AdminCount=1. Ensure that there are no privileged accounts that have SPNs assigned to them."
+                                    Text "** Attackers are most interested in Service Accounts that are members of highly privileged groups like Domain Admins. A quick way to check for this is to enumerate all user accounts with the attribute AdminCount equal to 1. This means an attacker may just ask Active Directory for all user accounts with an SPN and with AdminCount=1. Ensure that there are no privileged accounts that have SPNs assigned to them."
                                 }
                             }
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning "No Service Accounts Assessment information found in $Domain, disabling the section."
+                        Write-PScriboMessage "No Service Accounts Assessment information found in $Domain, Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Service Accounts Assessment Table)"

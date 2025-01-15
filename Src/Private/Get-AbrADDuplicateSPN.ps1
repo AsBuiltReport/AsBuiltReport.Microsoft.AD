@@ -5,7 +5,7 @@ function Get-AbrADDuplicateSPN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -68,12 +68,12 @@ function Get-AbrADDuplicateSPN {
                             BlankLine
                             Paragraph {
                                 Text "Corrective Actions:" -Bold
-                                Text "Ensure there aren't any duplicate SPNs (other than krbtgt)."
+                                Text "Ensure there aren't any duplicate SPNs (other than krbtgt). Duplicate SPNs can cause authentication issues and should be resolved promptly. Use the `setspn -X` command to identify duplicate SPNs. Remove or reassign duplicate SPNs as necessary to maintain a healthy AD environment."
                             }
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Duplicate SPN information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No Duplicate SPN information found in $Domain, Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SPN Table)"

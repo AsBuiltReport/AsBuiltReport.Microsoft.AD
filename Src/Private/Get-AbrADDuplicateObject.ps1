@@ -5,7 +5,7 @@ function Get-AbrADDuplicateObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -68,11 +68,11 @@ function Get-AbrADDuplicateObject {
                         BlankLine
                         Paragraph {
                             Text "Corrective Actions:" -Bold
-                            Text "Ensure there aren't any duplicate object."
+                            Text "Ensure there aren't any duplicate objects in the Active Directory. Duplicate objects can cause various issues such as authentication problems, replication conflicts, and administrative overhead. It is recommended to regularly audit and clean up any duplicate objects to maintain a healthy and efficient Active Directory environment."
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Duplicate object information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No Duplicate object information found in $Domain, Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Duplicate Object Table)"

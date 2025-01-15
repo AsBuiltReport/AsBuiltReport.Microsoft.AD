@@ -33,7 +33,7 @@ function Get-AbrADSiteReplication {
             try {
                 $ReplInfo = @()
                 foreach ($DC in $DCs) {
-                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                    if (Get-DCWinRMState -ComputerName $DC) {
                         $Replication = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Server $using:DC -Properties * }
                         if ($Replication) {
                             try {
@@ -110,7 +110,7 @@ function Get-AbrADSiteReplication {
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Replication Connection information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No Replication Connection information found in $Domain, Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Replication Connection)"
@@ -119,14 +119,15 @@ function Get-AbrADSiteReplication {
         try {
             if ($HealthCheck.Site.Replication) {
                 $DC = Get-ValidDCfromDomain -Domain $Domain
-                $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'ActiveDirectoryReplicationStatus' -ErrorAction Stop } catch {
+                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'ActiveDirectoryReplicationStatus'
+
+                if ($DCPssSession) {
+                    $RepStatus = Invoke-Command -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }
+                } else {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
                     Write-PScriboMessage -IsWarning "Replication Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                }
-                if ($DCPssSession) {
-                    $RepStatus = Invoke-Command -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }
                 }
                 if ($RepStatus) {
                     Section -Style Heading4 'Replication Status' {
@@ -166,13 +167,13 @@ function Get-AbrADSiteReplication {
                             BlankLine
                             Paragraph {
                                 Text "Best Practices:" -Bold
-                                Text "Replication failure can lead to object inconsistencies and major problems in Active Directory."
+                                Text "Replication failure can lead to object inconsistencies and significant issues in Active Directory."
                             }
                             BlankLine
                         }
                     }
                 } else {
-                    Write-PScriboMessage -IsWarning "No Replication Status information found in $Domain, disabling the section."
+                    Write-PScriboMessage "No Replication Status information found in $Domain, Disabling this section."
                 }
                 if ($DCPssSession) {
                     Remove-PSSession -Session $DCPssSession

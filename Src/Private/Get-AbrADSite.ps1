@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -92,7 +92,7 @@ function Get-AbrADSite {
                                 BlankLine
                                 Paragraph {
                                     Text "Best Practice:" -Bold
-                                    Text "It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment."
+                                    Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
                                 }
                             }
                         }
@@ -147,7 +147,7 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Connection Objects information found in $ForestInfo, disabling the section."
+                            Write-PScriboMessage "No Connection Objects information found in $ForestInfo, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Connection Objects)"
@@ -194,7 +194,7 @@ function Get-AbrADSite {
                                     if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                         Paragraph {
                                             Text "Best Practice:" -Bold
-                                            Text "It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment."
+                                            Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
                                         }
                                         BlankLine
                                     }
@@ -211,36 +211,38 @@ function Get-AbrADSite {
                                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
-                                                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                                                if (Get-DCWinRMState -ComputerName $DC) {
                                                     try {
-                                                        $DCPssSession = try { New-PSSession -ComputerName $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name 'MissingSubnetinAD' -ErrorAction Stop } catch {
+                                                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'MissingSubnetinAD'
+                                                        if ($DCPssSession) {
+                                                            $Path = "\\$DC\admin`$\debug\netlogon.log"
+                                                            if ((Invoke-Command -Session $DCPssSession { Test-Path -Path $using:path }) -and (Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0 })) {
+                                                                $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path)[-200..-1] }
+                                                                foreach ($Line in $NetLogonContents) {
+                                                                    if ($Line -match "NO_CLIENT_SITE") {
+                                                                        $inObj = [ordered] @{
+                                                                            'DC' = $DC
+                                                                            'IP' = $Line.Split(":")[4].trim(" ").Split(" ")[1]
+                                                                        }
+
+                                                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                                    }
+
+                                                                    if ($HealthCheck.Site.BestPractice) {
+                                                                        $OutObj | Set-Style -Style Warning -Property 'IP'
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                Write-PScriboMessage "Unable to read $Path on $DC"
+                                                            }
+                                                            if ($DCPssSession) {
+                                                                Remove-PSSession -Session $DCPssSession
+                                                            }
+                                                        } else {
                                                             if (-Not $_.Exception.MessageId) {
                                                                 $ErrorMessage = $_.FullyQualifiedErrorId
                                                             } else { $ErrorMessage = $_.Exception.MessageId }
                                                             Write-PScriboMessage -IsWarning "Missing Subnet in AD Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                                                        }
-                                                        $Path = "\\$DC\admin`$\debug\netlogon.log"
-                                                        if ((Invoke-Command -Session $DCPssSession { Test-Path -Path $using:path }) -and (Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0 })) {
-                                                            $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path)[-200..-1] }
-                                                            foreach ($Line in $NetLogonContents) {
-                                                                if ($Line -match "NO_CLIENT_SITE") {
-                                                                    $inObj = [ordered] @{
-                                                                        'DC' = $DC
-                                                                        'IP' = $Line.Split(":")[4].trim(" ").Split(" ")[1]
-                                                                    }
-
-                                                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
-                                                                }
-
-                                                                if ($HealthCheck.Site.BestPractice) {
-                                                                    $OutObj | Set-Style -Style Warning -Property 'IP'
-                                                                }
-                                                            }
-                                                        } else {
-                                                            Write-PScriboMessage "Unable to read $Path on $DC"
-                                                        }
-                                                        if ($DCPssSession) {
-                                                            Remove-PSSession -Session $DCPssSession
                                                         }
                                                     } catch {
                                                         Write-PScriboMessage -IsWarning "Missing Subnet in AD Item table: $($_.Exception.Message)"
@@ -250,7 +252,7 @@ function Get-AbrADSite {
                                         }
                                         if ($OutObj) {
                                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Missing Subnets in AD' {
-                                                Paragraph "The following table list the NO_CLIENT_SITE entries found in the netlogon.log file at each DC in the forest."
+                                                Paragraph "The following table lists the NO_CLIENT_SITE entries found in the netlogon.log file at each Domain Controller in the forest."
                                                 BlankLine
                                                 $TableParams = @{
                                                     Name = "Missing Subnets - $($ForestInfo)"
@@ -268,13 +270,13 @@ function Get-AbrADSite {
                                                     BlankLine
                                                     Paragraph {
                                                         Text "Corrective Actions:" -Bold
-                                                        Text "Make sure that all the subnets at each Site are properly defined. Missing subnets can cause clients to not use the site's local DCs."
+                                                        Text "Ensure that all subnets at each site are properly defined. Missing subnets can cause clients to not use the site's local Domain Controllers."
                                                     }
                                                     BlankLine
                                                 }
                                             }
                                         } else {
-                                            Write-PScriboMessage -IsWarning "No Missing Subnets in AD information found in $ForestInfo, disabling the section."
+                                            Write-PScriboMessage "No Missing Subnets in AD information found in $ForestInfo, Disabling this section."
                                         }
                                     } catch {
                                         Write-PScriboMessage -IsWarning "Missing Subnet in AD Item Section: $($_.Exception.Message)"
@@ -282,7 +284,7 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Site Subnets information found in $ForestInfo, disabling the section."
+                            Write-PScriboMessage "No Site Subnets information found in $ForestInfo, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
@@ -422,14 +424,14 @@ function Get-AbrADSite {
                                                                 if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                                                     Paragraph {
                                                                         Text "Best Practice:" -Bold
-                                                                        Text "It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment."
+                                                                        Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
                                                                     }
                                                                     BlankLine
                                                                 }
                                                                 if ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' }) {
                                                                     Paragraph {
                                                                         Text "Best Practice:" -Bold
-                                                                        Text "Enabling change notification treats an INTER-site replication connection like an INTRA-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an Option number value of 5 (Change Notification is Enabled without Compression)."
+                                                                        Text "Enabling change notification treats an inter-site replication connection like an intra-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an option number value of 5 (Change Notification is Enabled without Compression)."
                                                                     }
                                                                     BlankLine
                                                                 }
@@ -448,7 +450,7 @@ function Get-AbrADSite {
                                                     }
                                                 }
                                             } else {
-                                                Write-PScriboMessage -IsWarning "No IP Site Links information found in $ForestInfo, disabling the section."
+                                                Write-PScriboMessage "No IP Site Links information found in $ForestInfo, Disabling this section."
                                             }
                                         } catch {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IP Site Links Section)"
@@ -495,7 +497,7 @@ function Get-AbrADSite {
                                                                 if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                                                     Paragraph {
                                                                         Text "Best Practice:" -Bold
-                                                                        Text "It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment."
+                                                                        Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
                                                                     }
                                                                     BlankLine
                                                                 }
@@ -514,7 +516,7 @@ function Get-AbrADSite {
                                                     }
                                                 }
                                             } else {
-                                                Write-PScriboMessage -IsWarning "No IP Site Links Bridges information found in $ForestInfo, disabling the section."
+                                                Write-PScriboMessage "No IP Site Links Bridges information found in $ForestInfo, Disabling this section."
                                             }
                                         } catch {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IP Site Links Section)"
@@ -583,7 +585,7 @@ function Get-AbrADSite {
                                                                 if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                                                     Paragraph {
                                                                         Text "Best Practice:" -Bold
-                                                                        Text "It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment."
+                                                                        Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
                                                                     }
                                                                     BlankLine
                                                                 }
@@ -653,7 +655,7 @@ function Get-AbrADSite {
                                                                     if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                                                         Paragraph {
                                                                             Text "Best Practice:" -Bold
-                                                                            Text "It is a general rule of good practice to establish well-defined descriptions. This helps to speed up the fault identification process, as well as enabling better documentation of the environment."
+                                                                            Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
                                                                         }
                                                                         BlankLine
                                                                     }
@@ -671,21 +673,21 @@ function Get-AbrADSite {
                                                         }
                                                     }
                                                 } else {
-                                                    Write-PScriboMessage -IsWarning "No SMTP Site Links Bridges information found in $ForestInfo, disabling the section."
+                                                    Write-PScriboMessage "No SMTP Site Links Bridges information found in $ForestInfo, Disabling this section."
                                                 }
                                             } catch {
                                                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SMTP Site Links Section)"
                                             }
                                         }
                                     } else {
-                                        Write-PScriboMessage -IsWarning "No SMTP Site Links information found in $ForestInfo, disabling the section."
+                                        Write-PScriboMessage "No SMTP Site Links information found in $ForestInfo, Disabling this section."
                                     }
                                 } catch {
                                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SMTP)"
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No SMTP Site Links information found in $ForestInfo, disabling the section."
+                            Write-PScriboMessage "No SMTP Site Links information found in $ForestInfo, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
@@ -695,8 +697,8 @@ function Get-AbrADSite {
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
-                                if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
-                                    $DCCIMSession = try { New-CimSession $DC -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name "SysvolReplication" -ErrorAction Stop } catch { Write-PScriboMessage -IsWarning "Sysvol Replication Section: New-CimSession: Unable to connect to $($DC): $($_.Exception.MessageId)" }
+                                if (Get-DCWinRMState -ComputerName $DC) {
+                                    $DCCIMSession = Get-ValidCIMSession -ComputerName $DC -SessionName "SysvolReplication"
 
                                     if ($DCCIMSession) {
                                         $Replication = Get-CimInstance -CimSession $DCCIMSession -Namespace "root/microsoftdfs" -Class "dfsrreplicatedfolderinfo" -Filter "ReplicatedFolderName = 'SYSVOL Share'" -EA 0 -Verbose:$False | Select-Object State
@@ -768,14 +770,14 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -IsWarning "No Sysvol Replication information found in $ForestInfo, disabling the section."
+                            Write-PScriboMessage "No Sysvol Replication information found in $ForestInfo, Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "Sysvol Replication Table Section: $($_.Exception.Message)"
                     }
                 }
             } else {
-                Write-PScriboMessage -IsWarning "No Sites information found in $ForestInfo, disabling the section."
+                Write-PScriboMessage "No Sites information found in $ForestInfo, Disabling this section."
             }
         } catch {
             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Site Global)"

@@ -5,7 +5,7 @@ function Get-AbrDomainSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.0
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -26,11 +26,11 @@ function Get-AbrDomainSection {
         if ($InfoLevel.Domain -ge 1) {
             Section -Style Heading1 "AD Domain Configuration" {
                 if ($Options.ShowDefinitionInfo) {
-                    Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user or a group or it can be a hardware component, such as a computer or printer.Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain or an alternate version (which may end in .local)."
+                    Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user, a group, or a hardware component such as a computer or printer. Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain, or an alternate version (which may end in .local)."
                     BlankLine
                 }
                 if (-Not $Options.ShowDefinitionInfo) {
-                    Paragraph "The following section provides a summary of the Active Directory Domain Information."
+                    Paragraph "The following section provides a summary of the Active Directory domain information."
                     BlankLine
                 }
 
@@ -86,9 +86,9 @@ function Get-AbrDomainSection {
 
                                             if ($InfoLevel.Domain -ge 2) {
                                                 $RolesObj = foreach ($DC in $DCs) {
-                                                    $DCStatus = Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue
+                                                    $DCStatus = Get-DCWinRMState -ComputerName $DC
                                                     if (-Not $DCStatus) {
-                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report"
+                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report."
                                                     }
                                                     if ($DCStatus) {
                                                         Get-AbrADDCRoleFeature -DC $DC
@@ -104,7 +104,7 @@ function Get-AbrDomainSection {
                                             if ($HealthCheck.DomainController.Diagnostic) {
                                                 try {
                                                     $DCDiagObj = foreach ($DC in $DCs) {
-                                                        if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                                                        if (Get-DCWinRMState -ComputerName $DC) {
                                                             Get-AbrADDCDiag -Domain $Domain -DC $DC
                                                         }
                                                     }
@@ -122,7 +122,7 @@ function Get-AbrDomainSection {
                                             }
                                             try {
                                                 $ADInfraServices = foreach ($DC in $DCs) {
-                                                    if (Test-WSMan -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ComputerName $DC -ErrorAction SilentlyContinue) {
+                                                    if (Get-DCWinRMState -ComputerName $DC) {
                                                         Get-AbrADInfrastructureService -DC $DC
                                                     }
                                                 }

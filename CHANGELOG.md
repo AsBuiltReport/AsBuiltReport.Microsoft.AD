@@ -11,18 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Improve DC selection logic
+- Add support for WinRM over SSL
+- Add option to set the WinRM tcp port used for PSSession connection setup
 
 ### Changed
 
 - Increase Diagrammer.Core minimum requirement
 - Increase AsBuiltReport.Core to v1.4.1
+- Improve DC selection logic
+- Improve HealthCheck best practice recommendations (Copilot)
 
 ### Fixed
 
 - Fix [#190](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/190)
 - Fix [#191](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/191)
 - Fix ConvertTo-HashToYN cmdlet not generating an ordereddictionary output
+
+### Removed
+
+- Remove dependabot action (Not supported in Abr Organization)
 
 ## [0.9.1] - 2024-11-15
 

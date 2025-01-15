@@ -5,7 +5,7 @@ function Get-AbrDHCPinAD {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,7 +34,7 @@ function Get-AbrDHCPinAD {
                 try {
                     $DCServersinAD = @(foreach ($Domain in $ADSystem.Domains) {
                         (Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
-                    })
+                        })
                 } catch { Out-Null }
                 Section -Style Heading3 'DHCP Infrastructure' {
                     Paragraph "The following section provides a summary of the DHCP infrastructure configured on Active Directory."
@@ -45,9 +45,9 @@ function Get-AbrDHCPinAD {
                             $inObj = [ordered] @{
                                 'Server Name' = $DHCPServer.Name
                                 'Is Domain Controller?' = Switch ($DHCPServer.Name -in $DCServersinAD) {
-                                    $True {'Yes'}
-                                    $false {'No'}
-                                    default {'Unknown'}
+                                    $True { 'Yes' }
+                                    $false { 'No' }
+                                    default { 'Unknown' }
                                 }
                             }
                             $DCHPInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
@@ -67,7 +67,7 @@ function Get-AbrDHCPinAD {
                     $DCHPInfo | Sort-Object -Property 'Server Name' | Table @TableParams
                 }
             } else {
-                Write-PScriboMessage -IsWarning "No DHCP Infrastructure information found in $($ForestInfo.toUpper()), disabling the section."
+                Write-PScriboMessage "No DHCP Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
             }
         } catch {
             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DHCP Table)"
