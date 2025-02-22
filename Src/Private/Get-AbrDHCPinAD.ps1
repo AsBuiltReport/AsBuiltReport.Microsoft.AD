@@ -5,7 +5,7 @@ function Get-AbrDHCPinAD {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,8 +33,11 @@ function Get-AbrDHCPinAD {
             if ($DHCPServers ) {
                 try {
                     $DCServersinAD = @(foreach ($Domain in $ADSystem.Domains) {
+                            try {
                         (Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
-                        })
+                            } catch { Out-Null }
+                        }
+                    )
                 } catch { Out-Null }
                 Section -Style Heading3 'DHCP Infrastructure' {
                     Paragraph "The following section provides a summary of the DHCP infrastructure configured on Active Directory."

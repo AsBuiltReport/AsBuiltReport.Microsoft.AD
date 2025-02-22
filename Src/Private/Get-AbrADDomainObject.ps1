@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -606,7 +606,7 @@ function Get-AbrADDomainObject {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Groups Objects Section)"
                         }
                     }
-                    if ($HealthCheck.Domain.BestPractice) {
+                    if ($HealthCheck.Domain.BestPractice -and $InfoLevel.Domain -ge 4) {
                         try {
                             $OutObj = @()
                             # Loop through each parent group
@@ -937,9 +937,9 @@ function Get-AbrADDomainObject {
                                     'Lockout Duration' = $PasswordPolicy.LockoutDuration.toString("mm' minutes'")
                                     'Lockout Threshold' = $PasswordPolicy.LockoutThreshold
                                     'Lockout Observation Window' = $PasswordPolicy.LockoutObservationWindow.toString("mm' minutes'")
-                                    'Maximun Password Age' = $PasswordPolicy.MaxPasswordAge.toString("dd' days'")
-                                    'Minimun Password Age' = $PasswordPolicy.MinPasswordAge.toString("dd' days'")
-                                    'Minimun Password Length' = $PasswordPolicy.MinPasswordLength
+                                    'Maximum Password Age' = $PasswordPolicy.MaxPasswordAge.toString("dd' days'")
+                                    'Minimum Password Age' = $PasswordPolicy.MinPasswordAge.toString("dd' days'")
+                                    'Minimum Password Length' = $PasswordPolicy.MinPasswordLength
                                     'Enforce Password History' = $PasswordPolicy.PasswordHistoryCount
                                     'Store Password using Reversible Encryption' = $PasswordPolicy.ReversibleEncryptionEnabled
                                 }

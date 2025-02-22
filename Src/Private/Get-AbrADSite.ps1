@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,25 @@ function Get-AbrADSite {
                 Section -Style Heading3 'Replication' {
                     Paragraph 'Replication is the process of transferring and updating Active Directory objects between domain controllers in the Active Directory domain and forest.'
                     BlankLine
-                    Paragraph "The folowing setion details Active Directory replication and it's relationships."
+                    Paragraph "The following section details Active Directory replication and its relationships."
+                    try {
+                        try {
+                            $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType SitesInventory
+                        } catch {
+                            Write-PScriboMessage -IsWarning "Site Inventory Diagram Graph: $($_.Exception.Message)"
+                        }
+
+                        if ($Graph) {
+                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 20 } else { $ImagePrty = 50 }
+                            Section -Style Heading4 "Site Inventory Diagram." {
+                                Image -Base64 $Graph -Text "Site Inventory Diagram" -Percent $ImagePrty -Align Center
+                                Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                            }
+                            BlankLine -Count 2
+                        }
+                    } catch {
+                        Write-PScriboMessage -IsWarning "Site Inventory Diagram Section: $($_.Exception.Message)"
+                    }
                     Section -Style Heading4 'Sites' {
                         $OutObj = @()
                         foreach ($Item in $Site) {
@@ -201,7 +219,7 @@ function Get-AbrADSite {
                                     if ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }) {
                                         Paragraph {
                                             Text "Corrective Actions:" -Bold
-                                            Text "Ensure Subnet have an associated site. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller."
+                                            Text "Ensure Subnet have an associated site. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication. This can lead to increased latency and potential performance issues for users authenticating against a domain controller that is not local to their site."
                                         }
                                     }
                                 }
@@ -312,7 +330,7 @@ function Get-AbrADSite {
                         $InterSiteTransports = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Filter { (objectClass -eq "interSiteTransport") } -SearchBase "CN=Inter-Site Transports,CN=Sites,CN=Configuration,$using:DomainDN" -Properties * } } catch { Out-Null }
                         if ($InterSiteTransports) {
                             Section -Style Heading4 'Inter-Site Transports' {
-                                Paragraph "Site links in Active Directory represent the inter-site connectivity and method used to transfer replication traffic.There are two transport protocols that can be used for replication via site links. The default protocol used in site link is IP, and it performs synchronous replication between available domain controllers. The SMTP method can be used when the link between sites is not reliable."
+                                Paragraph "Site links in Active Directory represent the inter-site connectivity and method used to transfer replication traffic. There are two transport protocols that can be used for replication via site links. The default protocol used in site link is IP, and it performs synchronous replication between available domain controllers. The SMTP method can be used when the link between sites is not reliable."
                                 BlankLine
                                 try {
                                     $OutObj = @()
@@ -387,14 +405,14 @@ function Get-AbrADSite {
                                                                 'Transport Protocol' = $Item.InterSiteTransportProtocol
                                                                 'Options' = Switch ($Item.Options) {
                                                                     $null { 'Change Notification is Disabled' }
-                                                                    '0' { '(0)Change Notification is Disabled' }
-                                                                    '1' { '(1)Change Notification is Enabled with Compression' }
-                                                                    '2' { '(2)Force sync in opposite direction at end of sync' }
-                                                                    '3' { '(3)Change Notification is Enabled with Compression and Force sync in opposite direction at end of sync' }
-                                                                    '4' { '(4)Disable compression of Change Notification messages' }
-                                                                    '5' { '(5)Change Notification is Enabled without Compression' }
-                                                                    '6' { '(6)Force sync in opposite direction at end of sync and Disable compression of Change Notification messages' }
-                                                                    '7' { '(7)Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync' }
+                                                                    '0' { '(0) Change Notification is Disabled' }
+                                                                    '1' { '(1) Change Notification is Enabled with Compression' }
+                                                                    '2' { '(2) Force sync in opposite direction at end of sync' }
+                                                                    '3' { '(3) Change Notification is Enabled with Compression and Force sync in opposite direction at end of sync' }
+                                                                    '4' { '(4) Disable compression of Change Notification messages' }
+                                                                    '5' { '(5) Change Notification is Enabled without Compression' }
+                                                                    '6' { '(6) Force sync in opposite direction at end of sync and Disable compression of Change Notification messages' }
+                                                                    '7' { '(7) Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync' }
                                                                     Default { "Unknown siteLink option: $($Item.Options)" }
                                                                 }
                                                                 'Sites' = $SiteArray -join "; "

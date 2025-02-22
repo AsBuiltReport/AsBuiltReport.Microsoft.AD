@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -139,7 +139,7 @@ function Get-AbrADDFSHealth {
                         }
 
                         if ($HealthCheck.Domain.DFS) {
-                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') } | Set-Style -Style Warning -Property 'Extension'
+                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico', '.cmtx') } | Set-Style -Style Warning -Property 'Extension'
                         }
 
                         $TableParams = @{
@@ -206,7 +206,7 @@ function Get-AbrADDFSHealth {
                         }
 
                         if ($HealthCheck.Domain.DFS) {
-                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') } | Set-Style -Style Warning -Property 'Extension'
+                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico', '.cmtx') } | Set-Style -Style Warning -Property 'Extension'
                         }
 
                         $TableParams = @{

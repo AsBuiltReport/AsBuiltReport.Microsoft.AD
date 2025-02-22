@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -39,9 +39,9 @@ function Get-AbrADDCDiag {
                         $Description = @{
                             "Advertising" = "Validates this Domain Controller can be correctly located through the KDC service. It does not validate the Kerberos tickets answer or the communication through the TCP and UDP port 88.", 'High'
                             "Connectivity" = "Initial connection validation, checks if the DC can be located in the DNS, validates the ICMP ping (1 hop), checks LDAP binding and also the RPC connection. This initial test requires ICMP, LDAP, DNS and RPC connectivity to work properly.", 'Medium'
-                            'VerifyReferences' = 'Validates that several attributes are present for the domain in the countainer and subcontainers in the DC objetcs. This test will fail if any attribute is missing.', 'High'
-                            'FrsEvent' = 'Checks if theres any errors in the event logs regarding FRS replication. If running Windows Server 2008 R2 or newer on all Domain Controllers is possible SYSVOL were already migrated to DFSR, in this case errors found here can be ignored.', 'Medium'
-                            'DFSREvent' = 'Checks if theres any errors in the event logs regarding DFSR replication. If running Windows Server 2008 or older on all Domain Controllers is possible SYSVOL is still using FRS, and in this case errors found here can be ignored. Obs. is highly recommended to migrate SYSVOL to DFSR.', 'Medium'
+                            'VerifyReferences' = 'Validates that several attributes are present for the domain in the container and subcontainers in the DC objects. This test will fail if any attribute is missing.', 'High'
+                            'FrsEvent' = 'Checks if there any errors in the event logs regarding FRS replication. If running Windows Server 2008 R2 or newer on all Domain Controllers is possible SYSVOL were already migrated to DFSR, in this case errors found here can be ignored.', 'Medium'
+                            'DFSREvent' = 'Checks if there any errors in the event logs regarding DFSR replication. If running Windows Server 2008 or older on all Domain Controllers is possible SYSVOL is still using FRS, and in this case errors found here can be ignored. Obs. is highly recommended to migrate SYSVOL to DFSR.', 'Medium'
                             'SysVolCheck' = 'Validates if the registry key HKEY_Local_Machine\System\CurrentControlSet\Services\Netlogon\Parameters\SysvolReady=1 exist. This registry has to exist with value 1 for the DCs SYSVOL to be advertised.', 'High'
                             'KccEvent' = 'Validates through KCC there were no errors in the Event Viewer > Applications and Services Logs > Directory Services event log in the past 15 minutes (default time).', 'High'
                             'KnowsOfRoleHolders' = 'Checks if this Domain Controller is aware of which DC (or DCs) hold the FSMOs.', 'High'
@@ -52,7 +52,7 @@ function Get-AbrADDCDiag {
                             'Replications' = 'Makes a deep validation to check the main replication for all naming contexts in this Domain Controller.', 'High'
                             'RidManager' = 'Validates this Domain Controller can locate and contact the RID Master FSMO role holder. This test is skipped in RODCs.', 'High'
                             'Services' = 'Validates if the core Active Directory services are running in this Domain Controller. The services verified are: RPCSS, EVENTSYSTEM, DNSCACHE, ISMSERV, KDC, SAMSS, WORKSTATION, W32TIME, NETLOGON, NTDS (in case Windows Server 2008 or newer) and DFSR (if SYSVOL is using DFSR).', 'High'
-                            'SystemLog' = 'Checks if there is any erros in the Event Viewer > System event log in the past 60 minutes. Since the System event log records data from many places, errors reported here may lead to false positive and must be investigated further. The impact of this validation is marked as Low.', 'Low'
+                            'SystemLog' = 'Checks if there is any errors in the Event Viewer > System event log in the past 60 minutes. Since the System event log records data from many places, errors reported here may lead to false positive and must be investigated further. The impact of this validation is marked as Low.', 'Low'
                             'Topology' = 'Topology Checks that the KCC has generated a fully connected topology for all domain controllers.', 'Medium'
                             'VerifyReplicas' = 'Checks that all application directory partitions are fully instantiated on all replica servers.', 'High'
                             'CutoffServers' = 'Checks for any server that is not receiving replications because its partners are not running', 'Medium'

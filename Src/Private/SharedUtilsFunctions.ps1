@@ -358,18 +358,19 @@ function Get-WinADLastBackup {
             $Forest = $ADSystem
             $Domains = $Forest.Domains
         } catch {
-            Write-Warning "Get-WinADLastBackup - Failed to gather Forest Domains $($_.Exception.Message)"
+            Write-PScriboMessage "Get-WinADLastBackup - Failed to gather Forest Domains $($_.Exception.Message)"
             break
         }
     }
     foreach ($Domain in $Domains) {
         try {
-            [string[]]$Partitions = (Get-ADRootDSE -Credential $Credential -Server $Domain -ErrorAction Stop).namingContexts
+            $DCServer = Get-ValidDCfromDomain -Domain $Domain
+            [string[]]$Partitions = (Get-ADRootDSE -Credential $Credential -Server $DCServer -ErrorAction Stop).namingContexts
             [System.DirectoryServices.ActiveDirectory.DirectoryContextType] $contextType = [System.DirectoryServices.ActiveDirectory.DirectoryContextType]::Domain
             [System.DirectoryServices.ActiveDirectory.DirectoryContext] $context = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext($contextType, $Domain, $Credential.UserName, $Credential.GetNetworkCredential().Password)
             [System.DirectoryServices.ActiveDirectory.DomainController] $domainController = [System.DirectoryServices.ActiveDirectory.DomainController]::FindOne($context)
         } catch {
-            Write-Warning "Get-WinADLastBackup - Failed to gather partitions information for $Domain with error: $($_.Exception.Message)"
+            Write-PScriboMessage "Get-WinADLastBackup - Failed to gather partitions information for $Domain with error: $($_.Exception.Message)"
             break
         }
         $Output = ForEach ($Name in $Partitions) {
@@ -427,7 +428,7 @@ function Get-WinADDFSHealth {
         $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExcludeDomainControllers $ExcludeDomainControllers -IncludeDomainControllers $IncludeDomainControllers -SkipRODC:$SkipRODC -ExtendedForestInformation $ExtendedForestInformation -Extended -Credential $Credential
     } else {
         if (-not $IncludeDomains) {
-            Write-Warning "Get-WinADDFSHealth - You need to specify domain when using SkipAutodetection."
+            Write-PScriboMessage "Get-WinADDFSHealth - You need to specify domain when using SkipAutodetection."
             return
         }
         # This is for case when Get-ADDomainController -Filter * is broken
@@ -443,14 +444,14 @@ function Get-WinADDFSHealth {
                     Add-Member -InputObject $DCInformation -MemberType NoteProperty -Value $DCInformation.ComputerObjectDN -Name 'DistinguishedName' -Force
                     $ForestInformation['DomainDomainControllers'][$Domain].Add($DCInformation)
                 } catch {
-                    Write-Warning "Get-WinADDFSHealth - Can't get DC details. Skipping with error: $($_.Exception.Message)"
+                    Write-PScriboMessage "Get-WinADDFSHealth - Can't get DC details. Skipping with error: $($_.Exception.Message)"
                     continue
                 }
             }
         }
     }
     [Array] $Table = foreach ($Domain in $ForestInformation.Domains) {
-        Write-Verbose "Get-WinADDFSHealth - Processing $Domain"
+        Write-PScriboMessage "Get-WinADDFSHealth - Processing $Domain"
         [Array] $DomainControllersFull = $ForestInformation['DomainDomainControllers']["$Domain"]
         if ($DomainControllersFull.Count -eq 0) {
             continue
@@ -480,7 +481,7 @@ function Get-WinADDFSHealth {
         }
 
         foreach ($DC in $DomainControllersFull) {
-            Write-Verbose "Get-WinADDFSHealth - Processing $($DC.Name) $($DC.HostName) for $Domain"
+            Write-PScriboMessage "Get-WinADDFSHealth - Processing $($DC.Name) $($DC.HostName) for $Domain"
             $DCName = $DC.Name
             $Hostname = $DC.Hostname
             $DN = $DC.DistinguishedName
@@ -819,9 +820,9 @@ function Get-WinADDuplicateSPN {
     $SPNCache = [ordered] @{}
     $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation -Credential $Credential
     foreach ($Domain in $ForestInformation.Domains) {
-        Write-Verbose -Message "Get-WinADDuplicateSPN - Processing $Domain"
+        Write-PScriboMessage "Get-WinADDuplicateSPN - Processing $Domain"
         $Objects = (Get-ADObject -Credential $Credential -LDAPFilter "ServicePrincipalName=*" -Properties ServicePrincipalName -Server $ForestInformation['QueryServers'][$domain]['HostName'][0])
-        Write-Verbose -Message "Get-WinADDuplicateSPN - Found $($Objects.Count) objects. Processing..."
+        Write-PScriboMessage "Get-WinADDuplicateSPN - Found $($Objects.Count) objects. Processing..."
         foreach ($Object in $Objects) {
             foreach ($SPN in $Object.ServicePrincipalName) {
                 if (-not $SPNCache[$SPN]) {
@@ -841,7 +842,7 @@ function Get-WinADDuplicateSPN {
             }
         }
     }
-    Write-Verbose -Message "Get-WinADDuplicateSPN - Finalizing output. Processing..."
+    Write-PScriboMessage "Get-WinADDuplicateSPN - Finalizing output. Processing..."
     foreach ($SPN in $SPNCache.Values) {
         if ($SPN.Count -gt 1 -and $SPN.Excluded -ne $true) {
             $SPN.Duplicate = $true
@@ -1071,7 +1072,7 @@ function Get-WinADForestDetail {
             }
 
         } catch {
-            Write-Warning "Get-WinADForestDetail - Error discovering DC for Forest - $($_.Exception.Message)"
+            Write-PScriboMessage "Get-WinADForestDetail - Error discovering DC for Forest - $($_.Exception.Message)"
             return
         }
         if (-not $ForestInformation) {
@@ -1109,7 +1110,7 @@ function Get-WinADForestDetail {
                 }
 
             } catch {
-                Write-Warning "Get-WinADForestDetail - Error discovering DC for domain $Domain - $($_.Exception.Message)"
+                Write-PScriboMessage "Get-WinADForestDetail - Error discovering DC for domain $Domain - $($_.Exception.Message)"
                 continue
             }
             if ($Domain -eq $Findings['Forest']['Name']) {
@@ -1123,7 +1124,7 @@ function Get-WinADForestDetail {
         # we need to make sure to remove domains that don't have DCs for some reason
         [Array] $Findings['Domains'] = foreach ($Domain in $Findings['Domains']) {
             if ($Domain -notin $DomainsActive) {
-                Write-Warning "Get-WinADForestDetail - Domain $Domain doesn't seem to be active (no DCs). Skipping."
+                Write-PScriboMessage "Get-WinADForestDetail - Domain $Domain doesn't seem to be active (no DCs). Skipping."
                 continue
             }
             $Domain
@@ -1136,7 +1137,7 @@ function Get-WinADForestDetail {
                 try {
                     $DomainControllers = Get-ADDomainController -Filter $Filter -Server $QueryServer -ErrorAction Stop -Credential $Credential
                 } catch {
-                    Write-Warning "Get-WinADForestDetail - Error listing DCs for domain $Domain - $($_.Exception.Message)"
+                    Write-PScriboMessage "Get-WinADForestDetail - Error listing DCs for domain $Domain - $($_.Exception.Message)"
                     continue
                 }
                 foreach ($S in $DomainControllers) {
@@ -1284,7 +1285,7 @@ function Get-WinADForestDetail {
                     $NetBios = $Findings['DomainsExtended'][$DomainEx]['NetBIOSName']
                     $Findings['DomainsExtendedNetBIOS'][$NetBios] = $Findings['DomainsExtended'][$DomainEx]
                 } catch {
-                    Write-Warning "Get-WinADForestDetail - Error gathering Domain Information for domain $DomainEx - $($_.Exception.Message)"
+                    Write-PScriboMessage "Get-WinADForestDetail - Error gathering Domain Information for domain $DomainEx - $($_.Exception.Message)"
                     continue
                 }
             }
@@ -1426,27 +1427,31 @@ function Get-CimData {
         $Computers = $ComputersSplit[1]
         if ($Computers.Count -gt 0) {
             if ($Protocol -eq 'Default') {
-                Get-CimInstance -ClassName $Class -ComputerName $Computers -ErrorAction SilentlyContinue -Property $PropertiesOnly -Namespace $NameSpace -Verbose:$false -ErrorVariable ErrorsToProcess | Select-Object -Property $Properties -ExcludeProperty $ExcludeProperties
+                $CimSession = Get-ValidCIMSession -ComputerName $Computers[0] -SessionName "Get-CimData"
+                Get-CimInstance -CimSession $CimSession -ClassName $Class -ErrorAction SilentlyContinue -Property $PropertiesOnly -Namespace $NameSpace -Verbose:$false -ErrorVariable ErrorsToProcess | Select-Object -Property $Properties -ExcludeProperty $ExcludeProperties
+                if ($CimSession) {
+                    Remove-CimSession -CimSession $CimSession -ErrorAction SilentlyContinue
+                }
             } else {
                 $Option = New-CimSessionOption -Protocol $Protocol
-                $Session = New-CimSession -ComputerName $Computers -SessionOption $Option -ErrorAction SilentlyContinue
+                $Session = New-CimSession -ComputerName $Computers -SessionOption $Option -ErrorAction SilentlyContinue -Credential $Credential
                 $Info = Get-CimInstance -ClassName $Class -CimSession $Session -ErrorAction SilentlyContinue -Property $PropertiesOnly -Namespace $NameSpace -Verbose:$false -ErrorVariable ErrorsToProcess | Select-Object -Property $Properties -ExcludeProperty $ExcludeProperties
                 $null = Remove-CimSession -CimSession $Session -ErrorAction SilentlyContinue
                 $Info
             }
         }
         foreach ($E in $ErrorsToProcess) {
-            Write-Warning -Message "Get-CimData - No data for computer $($E.OriginInfo.PSComputerName). Failed with errror: $($E.Exception.Message)"
+            Write-PScriboMessage -Message "Get-CimData - No data for computer $($E.OriginInfo.PSComputerName). Failed with errror: $($E.Exception.Message)"
         }
         # Process local computer
         $Computers = $ComputersSplit[0]
         if ($Computers.Count -gt 0) {
-            $Info = Get-CimInstance -ClassName $Class -ErrorAction SilentlyContinue -Property $PropertiesOnly -Namespace $NameSpace -Verbose:$false -ErrorVariable ErrorsLocal | Select-Object -Property $Properties -ExcludeProperty $ExcludeProperties
+            $Info = Get-CimInstance  -CimSession $CimSession  -ClassName $Class -ErrorAction SilentlyContinue -Property $PropertiesOnly -Namespace $NameSpace -Verbose:$false -ErrorVariable ErrorsLocal | Select-Object -Property $Properties -ExcludeProperty $ExcludeProperties
             $Info | Add-Member -Name 'PSComputerName' -Value $Computers -MemberType NoteProperty -Force
             $Info
         }
         foreach ($E in $ErrorsLocal) {
-            Write-Warning -Message "Get-CimData - No data for computer $($Env:COMPUTERNAME). Failed with errror: $($E.Exception.Message)"
+            Write-PScriboMessage -Message "Get-CimData - No data for computer $($Env:COMPUTERNAME). Failed with errror: $($E.Exception.Message)"
         }
     )
     $CimObject
@@ -1705,7 +1710,7 @@ function Get-ComputerADDomain {
     [OutputType([System.DirectoryServices.ActiveDirectory.Domain])]
     Param
     ()
-    Write-Verbose -Message 'Calling GetCurrentDomain()'
+    Write-PScriboMessage 'Calling GetCurrentDomain()'
     ([DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain())
 }
 
@@ -1833,7 +1838,7 @@ function get-Severity {
                 return 'Critical'
             }
         } catch {
-            Write-Error 'Could not determine issue severity'
+            Write-PScriboMessage -IsWarning 'Could not determine issue severity'
         }
     }
 }
@@ -1897,7 +1902,7 @@ Function Get-ADExchangeServer {
                 ServerRoles = $roles;
             }
         } Catch {
-            Write-Error "ExchangeServer: [$($server.Name)]. $($_.Exception.Message)"
+            Write-PScriboMessage -IsWarning "ExchangeServer: [$($server.Name)]. $($_.Exception.Message)"
         }
     }
 }
@@ -2349,7 +2354,7 @@ function Get-ValidDCfromDomain {
         Version:        0.1.0
         Author:         Jonathan Colon
     .EXAMPLE
-        PS C:\Users\JohnDoe> Get-ValidDCfromDomainfromDomain -Domain 'pharmax.local'
+        PS C:\Users\JohnDoe> Get-ValidDCfromDomain -Domain 'pharmax.local'
             Server-DC-01V.pharmax.local
     #>
     [CmdletBinding()]
@@ -2537,7 +2542,7 @@ function Get-ValidCIMSession {
             }
         }
     } else {
-        Write-PScriboMessage "Connecting to '$ComputerName' through CimSession with SSL."
+        Write-PScriboMessage "Connecting to '$ComputerName' through CimSession."
         New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name $SessionName -Port $Options.WinRMPort -ErrorAction Continue
     }
 }# end

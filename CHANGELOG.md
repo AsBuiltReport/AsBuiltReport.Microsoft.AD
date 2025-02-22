@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.3] - 2025-02-21
+
+### Added
+
+- Add Site Inventory diagram to the Replication section
+- Add Certificate Authority diagram
+
+
+### Changed
+
+- Move Circular Group Membership section to $InfoLevel.Domain level 4
+- Increase AsBuiltReport.Core to v1.4.2
+- Increase Diagrammer.Core minimum requirement
+- Increase Diagrammer.Microsoft.AD minumum requirement
+
+### Fixed
+
+- Fix error message during DC discovery and WinRM connection
+- Fix Get-WinADLastBackup cmdlet not returning AD partitions when the report generation machine is not part of the same domain or forest as the target domain controller
+- Fix Certificate Authority section displaying content when no data is available
+- Fix DHCP Infrastructure section not identifying if the server is a Domain Controller
+- Fix Enterprise Root Certificate Authority section not displaying table descriptions
+
 ## [0.9.2] - 2025-01-14
 
 ### Added
