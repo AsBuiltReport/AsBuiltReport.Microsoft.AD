@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -61,7 +61,7 @@ function Get-AbrADTrust {
                                             3 { "Bidirectional (two-way trust)" }
                                             default { $Trust.TrustDirection }
                                         }
-                                        'IntraForest' = $Trust.IntraForest
+                                        'Intra Forest' = $Trust.IntraForest
                                         'Selective Authentication' = $Trust.SelectiveAuthentication
                                         'SID Filtering Forest Aware' = $Trust.SIDFilteringForestAware
                                         'SID Filtering Quarantined' = $Trust.SIDFilteringQuarantined

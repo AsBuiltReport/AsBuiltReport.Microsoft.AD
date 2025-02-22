@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -261,7 +261,7 @@ function Get-AbrADDomainController {
                                                 BlankLine
                                                 Paragraph {
                                                     Text "Best Practice:" -Bold
-                                                    Text "Disable SMB v1: SMB v1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems to enhance security and reduce the risk of exploitation. SMB v1 has been deprecated and replaced by SMB v2 and SMB v3, which offer improved performance and security features."
+                                                    Text "Disable SMBv1: SMBv1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems to enhance security and reduce the risk of exploitation. SMB v1 has been deprecated and replaced by SMB v2 and SMB v3, which offer improved performance and security features."
                                                 }
                                             }
                                         }

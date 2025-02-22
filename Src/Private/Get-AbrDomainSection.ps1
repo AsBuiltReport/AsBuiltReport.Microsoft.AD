@@ -5,7 +5,7 @@ function Get-AbrDomainSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -51,6 +51,7 @@ function Get-AbrDomainSection {
                                     Get-AbrADDomain -Domain $Domain
                                     Get-AbrADFSMO -Domain $Domain
                                     Get-AbrADTrust -Domain $Domain
+                                    Get-AbrADHardening -Domain $Domain
                                     Get-AbrADDomainObject -Domain $Domain
                                     if ($HealthCheck.Domain.Backup -or $HealthCheck.Domain.DFS -or $HealthCheck.Domain.SPN -or $HealthCheck.Domain.Security -or $HealthCheck.Domain.DuplicateObject) {
                                         Section -Style Heading3 'Health Checks' {

@@ -5,7 +5,7 @@ function Get-AbrADCARoot {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -42,23 +42,23 @@ function Get-AbrADCARoot {
                             }
                             'Status' = $CA.ServiceStatus
                         }
-                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
-                    }
+                        $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
-                    if ($HealthCheck.CA.Status) {
-                        $OutObj | Where-Object { $_.'Service Status' -notlike 'Running' } | Set-Style -Style Critical -Property 'Service Status'
-                        $OutObj | Where-Object { $_.'Auditing' -notlike 'Running' } | Set-Style -Style Critical -Property 'Auditing'
-                    }
+                        if ($HealthCheck.CA.Status) {
+                            $OutObj | Where-Object { $_.'Service Status' -notlike 'Running' } | Set-Style -Style Critical -Property 'Service Status'
+                            $OutObj | Where-Object { $_.'Auditing' -notlike 'Running' } | Set-Style -Style Critical -Property 'Auditing'
+                        }
 
-                    $TableParams = @{
-                        Name = "Enterprise Root CA - $($ForestInfo.ToString().ToUpper())"
-                        List = $true
-                        ColumnWidths = 40, 60
+                        $TableParams = @{
+                            Name = "Enterprise Root CA - $($ForestInfo.ToString().ToUpper())"
+                            List = $true
+                            ColumnWidths = 40, 60
+                        }
+                        if ($Report.ShowTableCaptions) {
+                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                        }
+                        $OutObj | Table @TableParams
                     }
-                    if ($Report.ShowTableCaptions) {
-                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                    }
-                    $OutObj | Table @TableParams
                 }
             }
         } catch {
