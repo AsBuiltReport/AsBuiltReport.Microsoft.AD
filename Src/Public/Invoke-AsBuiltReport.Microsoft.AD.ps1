@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.3
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -97,6 +97,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $WinRMType = "WinRM with SSL"
             $CIMType = "CIM with SSL"
         } else {
+            $WinRMType = "WinRM"
             $CIMType = "CIM"
         }
 
