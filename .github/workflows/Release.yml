@@ -61,7 +61,7 @@ jobs:
     needs: publish-to-gallery
     runs-on: ubuntu-latest
     steps:
-      - uses: zentered/bluesky-post-action@v0.1.0
+      - uses: zentered/bluesky-post-action@v0.2.0
         with:
           post: "[New Release] ${{ github.event.repository.name }} ${{ github.event.release.tag_name }}! Check out what's new! ${{ github.event.release.html_url }} #Microsoft #ActiveDirectory #AsBuiltReport #PowerShell #MicrosoftMVP #MVPBuzz #cybersecurity #infosec"
         env:
