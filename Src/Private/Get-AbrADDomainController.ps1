@@ -429,7 +429,7 @@ function Get-AbrADDomainController {
                     try {
                         if ($DCPssSession) {
                             $DCIPAddress = Invoke-Command -Session $DCPssSession { [System.Net.Dns]::GetHostAddresses($using:DC).IPAddressToString }
-                            $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Get-DnsClientServerAddress -AddressFamily IPv4 }
+                            $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Where-Object { $_.ifOperStatus -eq "Up"} | Get-DnsClientServerAddress -AddressFamily IPv4 }
                             $PrimaryDNSSoA = Invoke-Command -Session $DCPssSession { (Get-DnsServerResourceRecord -RRType Soa -ZoneName $using:Domain).RecordData.PrimaryServer }
                         } else {
                             if (-Not $_.Exception.MessageId) {
