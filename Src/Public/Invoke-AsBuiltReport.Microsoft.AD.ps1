@@ -108,7 +108,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         Try {
-            $script:TempCIMSession = Get-ValidCIMSession -ComputerName $System -SessionName $System
+            # By default, SSL is not used with New-CimSession. WsMan encrypts all content that is transmitted over the network, even when using HTTP.
+            $script:TempCIMSession = New-CimSession $System -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name "Global:TempCIMSession"
         } Catch {
             Write-PScriboMessage -IsWarning "Unable to establish a CimSession ($CIMType) with the Domain Controller '$System'."
         }

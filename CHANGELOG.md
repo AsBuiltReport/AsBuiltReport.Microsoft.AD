@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increase AsBuiltReport.Core to v1.4.3
 - Increase Diagrammer.Core minimum requirement
 - Increase Diagrammer.Microsoft.AD minumum requirement
+- Improve Get-ValidCIMSession to detect current connected DC (WIP)
+- Improve Get-DCWinRMState to detect current connected DC (WIP)
 
 ### Fixed
 
