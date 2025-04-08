@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -105,7 +105,7 @@ function Get-AbrADDFSHealth {
             try {
                 $DC = Get-ValidDCfromDomain -Domain $Domain
 
-                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'DomainSysvolHealth'
+                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
                 if ($DCPssSession) {
                     # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                     $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\SYSVOL\' + $using:Domain) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
@@ -164,15 +164,12 @@ function Get-AbrADDFSHealth {
                 } else {
                     Write-PScriboMessage "No SYSVOL folder information found in $Domain, Disabling this section."
                 }
-                if ($DCPssSession) {
-                    Remove-PSSession -Session $DCPssSession
-                }
             } catch {
                 Write-PScriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
             }
             try {
                 $DC = Get-ValidDCfromDomain -Domain $Domain
-                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'NetlogonHealth'
+                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
                 if ($DCPssSession) {
                     # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                     $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
@@ -230,9 +227,6 @@ function Get-AbrADDFSHealth {
                     }
                 } else {
                     Write-PScriboMessage "No NETLOGON folder information found in $Domain, Disabling this section."
-                }
-                if ($DCPssSession) {
-                    Remove-PSSession -Session $DCPssSession
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "Netlogon Content Status Section: $($_.Exception.Message)"

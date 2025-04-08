@@ -5,7 +5,7 @@ function Get-AbrADDNSZone {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,7 @@ function Get-AbrADDNSZone {
 
     process {
         try {
-            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'DDNSInfrastructure'
+            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
 
             if ($TempCIMSession) {
                 $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder" }
@@ -122,7 +122,6 @@ function Get-AbrADDNSZone {
                             $DNSSetting = $Null
                             if ($DCPssSession) {
                                 $DNSSetting = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object { $_ -match 'SecondaryServers' } }
-                                Remove-PSSession -Session $DCPssSession
                             } else {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId

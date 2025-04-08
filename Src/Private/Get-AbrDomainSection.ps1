@@ -5,7 +5,7 @@ function Get-AbrDomainSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -102,25 +102,26 @@ function Get-AbrDomainSection {
                                                     }
                                                 }
                                             }
-                                            if ($HealthCheck.DomainController.Diagnostic) {
-                                                try {
-                                                    $DCDiagObj = foreach ($DC in $DCs) {
-                                                        if (Get-DCWinRMState -ComputerName $DC) {
-                                                            Get-AbrADDCDiag -Domain $Domain -DC $DC
-                                                        }
-                                                    }
-                                                    if ($DCDiagObj) {
-                                                        Section -Style Heading4 'DC Diagnostic' {
-                                                            Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
-                                                            BlankLine
-                                                            $DCDiagObj
-                                                        }
-                                                    }
-                                                } catch {
-                                                    Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
-                                                    Write-PScriboMessage -IsWarning $_.Exception.Message
-                                                }
-                                            }
+                                            # Disable function for now, as it is not working properly.
+                                            # if ($HealthCheck.DomainController.Diagnostic) {
+                                            #     try {
+                                            #         $DCDiagObj = foreach ($DC in $DCs) {
+                                            #             if (Get-DCWinRMState -ComputerName $DC) {
+                                            #                 Get-AbrADDCDiag -Domain $Domain -DC $DC
+                                            #             }
+                                            #         }
+                                            #         if ($DCDiagObj) {
+                                            #             Section -Style Heading4 'DC Diagnostic' {
+                                            #                 Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
+                                            #                 BlankLine
+                                            #                 $DCDiagObj
+                                            #             }
+                                            #         }
+                                            #     } catch {
+                                            #         Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
+                                            #         Write-PScriboMessage -IsWarning $_.Exception.Message
+                                            #     }
+                                            # }
                                             try {
                                                 $ADInfraServices = foreach ($DC in $DCs) {
                                                     if (Get-DCWinRMState -ComputerName $DC) {

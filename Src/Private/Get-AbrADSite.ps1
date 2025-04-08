@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -231,7 +231,7 @@ function Get-AbrADSite {
                                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
                                                 if (Get-DCWinRMState -ComputerName $DC) {
                                                     try {
-                                                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'MissingSubnetinAD'
+                                                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
                                                         if ($DCPssSession) {
                                                             $Path = "\\$DC\admin`$\debug\netlogon.log"
                                                             if ((Invoke-Command -Session $DCPssSession { Test-Path -Path $using:path }) -and (Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0 })) {
@@ -252,9 +252,6 @@ function Get-AbrADSite {
                                                                 }
                                                             } else {
                                                                 Write-PScriboMessage "Unable to read $Path on $DC"
-                                                            }
-                                                            if ($DCPssSession) {
-                                                                Remove-PSSession -Session $DCPssSession
                                                             }
                                                         } else {
                                                             if (-Not $_.Exception.MessageId) {

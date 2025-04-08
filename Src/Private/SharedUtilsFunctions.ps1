@@ -65,36 +65,46 @@ function ConvertTo-FileSizeString {
     return "$([math]::Round(($Size / $("1" + $Unit)), 0)) $Unit"
 } # end
 
-function Invoke-DcDiag {
-    <#
-    .SYNOPSIS
-    Used by As Built Report to get the dcdiag tests for a Domain Controller.
-    .DESCRIPTION
+# Disabled function Invoke-DcDiag for now, as it is not working properly.
+# function Invoke-DcDiag {
+#     <#
+#     .SYNOPSIS
+#     Used by As Built Report to get the dcdiag tests for a Domain Controller.
+#     .DESCRIPTION
 
-    .NOTES
-        Version:        0.4.0
-        Author:         Adam Bertram
+#     .NOTES
+#         Version:        0.4.0
+#         Author:         Adam Bertram
 
-    .EXAMPLE
+#     .EXAMPLE
 
-    .LINK
+#     .LINK
 
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [string]$DomainController
-    )
-    $result = Invoke-Command -Session $TempPssSession { dcdiag /c /s:$using:DomainController }
-    $result | Select-String -Pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
-        $obj = @{
-            TestName = $_.Matches.Groups[3].Value
-            TestResult = $_.Matches.Groups[2].Value
-            Entity = $_.Matches.Groups[1].Value
-        }
-        [pscustomobject]$obj
-    }
-}# end
+#     #>
+#     param(
+#         [Parameter(Mandatory)]
+#         [ValidateNotNullOrEmpty()]
+#         [string]$DomainController
+#     )
+#     $DCPssSessionDCDiag = Get-ValidPSSession -ComputerName $DomainController -SessionName 'DCDiag'
+#     try {
+#         $result = Invoke-Command -Session $DCPssSessionDCDiag { dcdiag /c /s:$using:DomainController }
+#     } catch {
+#         if ($DCPssSessionDCDiag) {
+#             Remove-PSSession -Session $DCPssSessionDCDiag -ErrorAction SilentlyContinue
+#         }
+#         Write-PScriboMessage "Invoke-DcDiag - Failed to get DCDiag for $DomainController with error: $($_.Exception.Message)"
+#         return
+#     }
+#     $result | Select-String -Pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
+#         $obj = @{
+#             TestName = $_.Matches.Groups[3].Value
+#             TestResult = $_.Matches.Groups[2].Value
+#             Entity = $_.Matches.Groups[1].Value
+#         }
+#         [pscustomobject]$obj
+#     }
+# }# end
 
 function ConvertTo-EmptyToFiller {
     <#
@@ -481,145 +491,150 @@ function Get-WinADDFSHealth {
         }
 
         foreach ($DC in $DomainControllersFull) {
-            Write-PScriboMessage "Get-WinADDFSHealth - Processing $($DC.Name) $($DC.HostName) for $Domain"
-            $DCName = $DC.Name
-            $Hostname = $DC.Hostname
-            $DN = $DC.DistinguishedName
-
-            $LocalSettings = "CN=DFSR-LocalSettings,$DN"
-            $Subscriber = "CN=Domain System Volume,$LocalSettings"
-            $Subscription = "CN=SYSVOL Subscription,$Subscriber"
-
-            $ReplicationStatus = @{
-                '0' = 'Uninitialized'
-                '1' = 'Initialized'
-                '2' = 'Initial synchronization'
-                '3' = 'Auto recovery'
-                '4' = 'Normal'
-                '5' = 'In error state'
-                '6' = 'Disabled'
-                '7' = 'Unknown'
-            }
-
-            $DomainSummary = [ordered] @{
-                "DomainController" = $DCName
-                "Domain" = $Domain
-                "Status" = $false
-                "ReplicationState" = 'Unknown'
-                "IsPDC" = $DC.OperationMasterRoles -contains 'PDCEmulator'
-                'GroupPolicyOutput' = $null -ne $GPOs # This shows whether output was on Get-GPO
-                "GroupPolicyCount" = if ($GPOs) { $GPOs.Count } else { 0 };
-                "SYSVOLCount" = 0
-                'CentralRepository' = $CentralRepositoryDomain
-                'CentralRepositoryDC' = $false
-                'IdenticalCount' = $false
-                "Availability" = $false
-                "MemberReference" = $false
-                "DFSErrors" = 0
-                "DFSEvents" = $null
-                "DFSLocalSetting" = $false
-                "DomainSystemVolume" = $false
-                "SYSVOLSubscription" = $false
-                "StopReplicationOnAutoRecovery" = $false
-                "DFSReplicatedFolderInfo" = $null
-            }
-            if ($SkipGPO) {
-                $DomainSummary.Remove('GroupPolicyOutput')
-                $DomainSummary.Remove('GroupPolicyCount')
-                $DomainSummary.Remove('SYSVOLCount')
-            }
-
-            $WarningVar = $null
-            $DFSReplicatedFolderInfoAll = Get-CimData -NameSpace "root\microsoftdfs" -Class 'dfsrreplicatedfolderinfo' -ComputerName $Hostname -WarningAction SilentlyContinue -WarningVariable WarningVar -Verbose:$false
-            $DFSReplicatedFolderInfo = $DFSReplicatedFolderInfoAll | Where-Object { $_.ReplicationGroupName -eq 'Domain System Volume' }
-            if ($WarningVar) {
-                $DomainSummary['ReplicationState'] = 'Unknown'
-                #$DomainSummary['ReplicationState'] = $WarningVar -join ', '
-            } else {
-                $DomainSummary['ReplicationState'] = $ReplicationStatus["$($DFSReplicatedFolderInfo.State)"]
-            }
             try {
-                $CentralRepositoryDC = Get-ChildItem -Path "\\$Hostname\SYSVOL\$Domain\policies\PolicyDefinitions" -ErrorAction Stop
-                $DomainSummary['CentralRepositoryDC'] = if ($CentralRepositoryDC) { $true } else { $false }
-            } catch {
-                $DomainSummary['CentralRepositoryDC'] = $false
-            }
-            try {
-                $MemberReference = (Get-ADObject -Credential $Credential -Identity $Subscriber -Properties msDFSR-MemberReference -Server $QueryServer -ErrorAction Stop).'msDFSR-MemberReference' -like "CN=$DCName,*"
-                $DomainSummary['MemberReference'] = if ($MemberReference) { $true } else { $false }
-            } catch {
-                $DomainSummary['MemberReference'] = $false
-            }
-            try {
-                $DFSLocalSetting = Get-ADObject -Credential $Credential -Identity $LocalSettings -Server $QueryServer -ErrorAction Stop
-                $DomainSummary['DFSLocalSetting'] = if ($DFSLocalSetting) { $true } else { $false }
-            } catch {
-                $DomainSummary['DFSLocalSetting'] = $false
-            }
+                Write-PScriboMessage "Get-WinADDFSHealth - Processing $($DC.Name) $($DC.HostName) for $Domain"
+                $DCName = $DC.Name
+                $Hostname = $DC.Hostname
+                $DN = $DC.DistinguishedName
 
-            try {
-                $DomainSystemVolume = Get-ADObject -Credential $Credential -Identity $Subscriber -Server $QueryServer -ErrorAction Stop
-                $DomainSummary['DomainSystemVolume'] = if ($DomainSystemVolume) { $true } else { $false }
-            } catch {
-                $DomainSummary['DomainSystemVolume'] = $false
-            }
-            try {
-                $SysVolSubscription = Get-ADObject -Credential $Credential -Identity $Subscription -Server $QueryServer -ErrorAction Stop
-                $DomainSummary['SYSVOLSubscription'] = if ($SysVolSubscription) { $true } else { $false }
-            } catch {
-                $DomainSummary['SYSVOLSubscription'] = $false
-            }
-            if (-not $SkipGPO) {
+                $LocalSettings = "CN=DFSR-LocalSettings,$DN"
+                $Subscriber = "CN=Domain System Volume,$LocalSettings"
+                $Subscription = "CN=SYSVOL Subscription,$Subscriber"
+
+                $ReplicationStatus = @{
+                    '0' = 'Uninitialized'
+                    '1' = 'Initialized'
+                    '2' = 'Initial synchronization'
+                    '3' = 'Auto recovery'
+                    '4' = 'Normal'
+                    '5' = 'In error state'
+                    '6' = 'Disabled'
+                    '7' = 'Unknown'
+                }
+
+                $DomainSummary = [ordered] @{
+                    "DomainController" = $DCName
+                    "Domain" = $Domain
+                    "Status" = $false
+                    "ReplicationState" = 'Unknown'
+                    "IsPDC" = $DC.OperationMasterRoles -contains 'PDCEmulator'
+                    'GroupPolicyOutput' = $null -ne $GPOs # This shows whether output was on Get-GPO
+                    "GroupPolicyCount" = if ($GPOs) { $GPOs.Count } else { 0 };
+                    "SYSVOLCount" = 0
+                    'CentralRepository' = $CentralRepositoryDomain
+                    'CentralRepositoryDC' = $false
+                    'IdenticalCount' = $false
+                    "Availability" = $false
+                    "MemberReference" = $false
+                    "DFSErrors" = 0
+                    "DFSEvents" = $null
+                    "DFSLocalSetting" = $false
+                    "DomainSystemVolume" = $false
+                    "SYSVOLSubscription" = $false
+                    "StopReplicationOnAutoRecovery" = $false
+                    "DFSReplicatedFolderInfo" = $null
+                }
+                if ($SkipGPO) {
+                    $DomainSummary.Remove('GroupPolicyOutput')
+                    $DomainSummary.Remove('GroupPolicyCount')
+                    $DomainSummary.Remove('SYSVOLCount')
+                }
+
+                $WarningVar = $null
+                $DFSReplicatedFolderInfoAll = Get-CimData -NameSpace "root\microsoftdfs" -Class 'dfsrreplicatedfolderinfo' -ComputerName $Hostname -WarningAction SilentlyContinue -WarningVariable WarningVar -Verbose:$false
+                $DFSReplicatedFolderInfo = $DFSReplicatedFolderInfoAll | Where-Object { $_.ReplicationGroupName -eq 'Domain System Volume' }
+                if ($WarningVar) {
+                    $DomainSummary['ReplicationState'] = 'Unknown'
+                    #$DomainSummary['ReplicationState'] = $WarningVar -join ', '
+                } else {
+                    $DomainSummary['ReplicationState'] = $ReplicationStatus["$($DFSReplicatedFolderInfo.State)"]
+                }
                 try {
-                    [Array] $SYSVOL = Get-ChildItem -Path "\\$Hostname\SYSVOL\$Domain\Policies" -Exclude "PolicyDefinitions*" -ErrorAction Stop
-                    $DomainSummary['SysvolCount'] = $SYSVOL.Count
+                    $CentralRepositoryDC = Get-ChildItem -Path "\\$Hostname\SYSVOL\$Domain\policies\PolicyDefinitions" -ErrorAction Stop
+                    $DomainSummary['CentralRepositoryDC'] = if ($CentralRepositoryDC) { $true } else { $false }
                 } catch {
-                    $DomainSummary['SysvolCount'] = 0
+                    $DomainSummary['CentralRepositoryDC'] = $false
                 }
-            }
-            if (Test-Connection $Hostname -ErrorAction SilentlyContinue) {
-                $DomainSummary['Availability'] = $true
-            } else {
-                $DomainSummary['Availability'] = $false
-            }
-            try {
-                [Array] $Events = 0
-                $DomainSummary['DFSErrors'] = $Events.Count
-                $DomainSummary['DFSEvents'] = $Events
-            } catch {
-                $DomainSummary['DFSErrors'] = $null
-            }
-            $DomainSummary['IdenticalCount'] = $DomainSummary['GroupPolicyCount'] -eq $DomainSummary['SYSVOLCount']
+                try {
+                    $MemberReference = (Get-ADObject -Credential $Credential -Identity $Subscriber -Properties msDFSR-MemberReference -Server $QueryServer -ErrorAction Stop).'msDFSR-MemberReference' -like "CN=$DCName,*"
+                    $DomainSummary['MemberReference'] = if ($MemberReference) { $true } else { $false }
+                } catch {
+                    $DomainSummary['MemberReference'] = $false
+                }
+                try {
+                    $DFSLocalSetting = Get-ADObject -Credential $Credential -Identity $LocalSettings -Server $QueryServer -ErrorAction Stop
+                    $DomainSummary['DFSLocalSetting'] = if ($DFSLocalSetting) { $true } else { $false }
+                } catch {
+                    $DomainSummary['DFSLocalSetting'] = $false
+                }
 
-            try {
-                $Registry = Get-PSRegistry -RegistryPath "HKLM\SYSTEM\CurrentControlSet\Services\DFSR\Parameters" -ComputerName $Hostname -ErrorAction Stop
-            } catch {
-                #$ErrorMessage = $_.Exception.Message
-                $Registry = $null
-            }
-            if ($null -ne $Registry.StopReplicationOnAutoRecovery) {
-                $DomainSummary['StopReplicationOnAutoRecovery'] = [bool] $Registry.StopReplicationOnAutoRecovery
-            } else {
-                $DomainSummary['StopReplicationOnAutoRecovery'] = $null
-                # $DomainSummary['StopReplicationOnAutoRecovery'] = $ErrorMessage
-            }
-            $DomainSummary['DFSReplicatedFolderInfo'] = $DFSReplicatedFolderInfoAll
-
-            $All = @(
+                try {
+                    $DomainSystemVolume = Get-ADObject -Credential $Credential -Identity $Subscriber -Server $QueryServer -ErrorAction Stop
+                    $DomainSummary['DomainSystemVolume'] = if ($DomainSystemVolume) { $true } else { $false }
+                } catch {
+                    $DomainSummary['DomainSystemVolume'] = $false
+                }
+                try {
+                    $SysVolSubscription = Get-ADObject -Credential $Credential -Identity $Subscription -Server $QueryServer -ErrorAction Stop
+                    $DomainSummary['SYSVOLSubscription'] = if ($SysVolSubscription) { $true } else { $false }
+                } catch {
+                    $DomainSummary['SYSVOLSubscription'] = $false
+                }
                 if (-not $SkipGPO) {
-                    $DomainSummary['GroupPolicyOutput']
+                    try {
+                        [Array] $SYSVOL = Get-ChildItem -Path "\\$Hostname\SYSVOL\$Domain\Policies" -Exclude "PolicyDefinitions*" -ErrorAction Stop
+                        $DomainSummary['SysvolCount'] = $SYSVOL.Count
+                    } catch {
+                        $DomainSummary['SysvolCount'] = 0
+                    }
                 }
-                $DomainSummary['SYSVOLSubscription']
-                $DomainSummary['ReplicationState'] -eq 'Normal'
-                $DomainSummary['DomainSystemVolume']
-                $DomainSummary['DFSLocalSetting']
-                $DomainSummary['MemberReference']
-                $DomainSummary['Availability']
-                $DomainSummary['IdenticalCount']
-                $DomainSummary['DFSErrors'] -eq 0
-            )
-            $DomainSummary['Status'] = $All -notcontains $false
-            [PSCustomObject] $DomainSummary
+                if (Test-Connection $Hostname -ErrorAction SilentlyContinue) {
+                    $DomainSummary['Availability'] = $true
+                } else {
+                    $DomainSummary['Availability'] = $false
+                }
+                try {
+                    [Array] $Events = 0
+                    $DomainSummary['DFSErrors'] = $Events.Count
+                    $DomainSummary['DFSEvents'] = $Events
+                } catch {
+                    $DomainSummary['DFSErrors'] = $null
+                }
+                $DomainSummary['IdenticalCount'] = $DomainSummary['GroupPolicyCount'] -eq $DomainSummary['SYSVOLCount']
+
+                try {
+                    $Registry = Get-PSRegistry -RegistryPath "HKLM\SYSTEM\CurrentControlSet\Services\DFSR\Parameters" -ComputerName $Hostname -ErrorAction Stop
+                } catch {
+                    #$ErrorMessage = $_.Exception.Message
+                    $Registry = $null
+                }
+                if ($null -ne $Registry.StopReplicationOnAutoRecovery) {
+                    $DomainSummary['StopReplicationOnAutoRecovery'] = [bool] $Registry.StopReplicationOnAutoRecovery
+                } else {
+                    $DomainSummary['StopReplicationOnAutoRecovery'] = $null
+                    # $DomainSummary['StopReplicationOnAutoRecovery'] = $ErrorMessage
+                }
+                $DomainSummary['DFSReplicatedFolderInfo'] = $DFSReplicatedFolderInfoAll
+
+                $All = @(
+                    if (-not $SkipGPO) {
+                        $DomainSummary['GroupPolicyOutput']
+                    }
+                    $DomainSummary['SYSVOLSubscription']
+                    $DomainSummary['ReplicationState'] -eq 'Normal'
+                    $DomainSummary['DomainSystemVolume']
+                    $DomainSummary['DFSLocalSetting']
+                    $DomainSummary['MemberReference']
+                    $DomainSummary['Availability']
+                    $DomainSummary['IdenticalCount']
+                    $DomainSummary['DFSErrors'] -eq 0
+                )
+                $DomainSummary['Status'] = $All -notcontains $false
+                [PSCustomObject] $DomainSummary
+            } catch {
+                Write-PScriboMessage "Get-WinADDFSHealth - Failed to gather DFS Health for $Domain $($DC.Name) with error: $($_.Exception.Message)"
+                continue
+            }
         }
     }
     $Table
@@ -2470,7 +2485,9 @@ function Get-ValidPSSession {
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidPSSession -ComputerName 'server-dc-01v.pharmax.local'
-            Server-DC-01V.pharmax.local
+            Id Name            ComputerName    ComputerType    State         ConfigurationName     Availability
+            -- ----            ------------    ------------    -----         -----------------     ------------
+            9 Global:TempP... server-dc-01... RemoteMachine   Opened        Microsoft.PowerShell     Available
     #>
     [CmdletBinding()]
     [OutputType([String])]
@@ -2485,21 +2502,44 @@ function Get-ValidPSSession {
     )
 
     if ($Options.WinRMSSL) {
-        try {
-            Write-PScriboMessage "Connecting to '$ComputerName' through PSSession with SSL."
-            New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -UseSSL -Port $Options.WinRMSSLPort
-        } catch {
-            if ($Options.WinRMFallbackToNoSSL) {
-                Write-PScriboMessage "Unable to Connect to '$ComputerName' through PSSession with SSL. Reverting to WinRM without SSL!"
-                New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort
-                Write-PScriboMessage "Connected to '$ComputerName' through PSSession."
-            } else {
-                throw
+        if ($PSessionObj = Get-PSSession | Where-Object { $_.ComputerName -eq $SessionName -and $_.Availability -eq 'Available' -and $_.State -eq 'Opened' -and $_.Runspace.ConnectionInfo.Scheme -eq 'https' }) {
+            Write-PScriboMessage "Using available '$ComputerName' PSSession id: $($PSessionObj.Id)."
+            $PSessionObj
+        } else {
+            try {
+                Write-PScriboMessage "Connecting to '$ComputerName' through PSSession with SSL."
+                New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -UseSSL -Port $Options.WinRMSSLPort
+            } catch {
+                if ($Options.WinRMFallbackToNoSSL) {
+                    if ($PSessionObj = Get-PSSession | Where-Object { $_.ComputerName -eq $ComputerName -and $_.Availability -eq 'Available' -and $_.State -eq 'Opened' -and $_.Runspace.ConnectionInfo.Scheme -eq 'http' }) {
+                        Write-PScriboMessage "Unable to Connect to '$ComputerName' through PSSession with SSL. Reverting to WinRM without SSL!"
+                        Write-PScriboMessage "Using available '$ComputerName' PSSession id: $($PSessionObj.Id)"
+                        $PSessionObj
+                    } else {
+                        Write-PScriboMessage "Generating a PSSession to '$ComputerName'."
+                        if ($SessionObject = New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
+                            $SessionObject
+                        } else {
+                            Write-PScriboMessage "Unable to Connect to '$ComputerName' through PSSession."
+                        }
+                    }
+                } else {
+                    throw
+                }
             }
         }
     } else {
-        Write-PScriboMessage "Connecting to '$ComputerName' through PSSession."
-        New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort
+        if ($PSessionObj = Get-PSSession | Where-Object { $_.ComputerName -eq $ComputerName -and $_.Availability -eq 'Available' -and $_.State -eq 'Opened' -and $_.Runspace.ConnectionInfo.Scheme -eq 'http' }) {
+            Write-PScriboMessage "Using available '$ComputerName' PSSession id: $($PSessionObj.Id)"
+            $PSessionObj
+        } else {
+            Write-PScriboMessage "Generating a PSSession to '$ComputerName'."
+            if ($SessionObject = New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
+                $SessionObject
+            } else {
+                Write-PScriboMessage "Unable to Connect to '$ComputerName' through PSSession."
+            }
+        }
     }
 }# end
 

@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -281,6 +281,8 @@ function Get-AbrADSecurityAssessment {
                             }
 
                             if ($HealthCheck.Domain.Security) {
+                                $OutObj | Where-Object { $_.'Username' -in $AdminCount } | Set-Style -Style Critical
+
                                 foreach ( $OBJ in ($OutObj | Where-Object { $_.'Username' -in $AdminCount })) {
                                     $OBJ.Username = "** $($OBJ.Username)"
                                 }

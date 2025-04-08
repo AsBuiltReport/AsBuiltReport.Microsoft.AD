@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -119,7 +119,7 @@ function Get-AbrADSiteReplication {
         try {
             if ($HealthCheck.Site.Replication) {
                 $DC = Get-ValidDCfromDomain -Domain $Domain
-                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'ActiveDirectoryReplicationStatus'
+                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
 
                 if ($DCPssSession) {
                     $RepStatus = Invoke-Command -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }
@@ -174,9 +174,6 @@ function Get-AbrADSiteReplication {
                     }
                 } else {
                     Write-PScriboMessage "No Replication Status information found in $Domain, Disabling this section."
-                }
-                if ($DCPssSession) {
-                    Remove-PSSession -Session $DCPssSession
                 }
             }
         } catch {

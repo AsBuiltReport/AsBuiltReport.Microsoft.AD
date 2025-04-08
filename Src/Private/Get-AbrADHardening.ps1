@@ -5,7 +5,7 @@ function Get-AbrADHardening {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,7 @@ function Get-AbrADHardening {
 
         $DC = Get-ValidDCfromDomain -Domain $Domain
 
-        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'ADHardening'
+        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
 
 
         $NTLMversion = Invoke-Command -Session $DCPssSession -ScriptBlock {
@@ -190,9 +190,6 @@ function Get-AbrADHardening {
     }
 
     end {
-        if ($DCPssSession) {
-            Remove-PSSession -Session $DCPssSession
-        }
     }
 
 }
