@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADInfrastructureService {
 
     process {
         try {
-            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'DomainControllerInfrastructureServices'
+            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
             if ($DCPssSession) {
                 $Available = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-Service "W32Time" | Select-Object DisplayName, Name, Status }
             } else {
@@ -88,9 +88,6 @@ function Get-AbrADInfrastructureService {
                 }
             } else {
                 Write-PScriboMessage "No Infrastructure Services Status information found in $DC, Disabling this section."
-            }
-            if ($DCPssSession) {
-                Remove-PSSession -Session $DCPssSession
             }
         } catch {
             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Section)"

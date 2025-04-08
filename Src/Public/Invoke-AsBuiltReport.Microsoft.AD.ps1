@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -102,13 +102,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         Try {
-            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName 'Global:TempPssSession'
+            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System
         } Catch {
             throw "Failed to establish a PSSession ($WinRMType) with the Domain Controller '$System': $($_.Exception.Message)"
         }
 
         Try {
-            $script:TempCIMSession = Get-ValidCIMSession -ComputerName $System -SessionName "Global:TempCIMSession"
+            $script:TempCIMSession = Get-ValidCIMSession -ComputerName $System -SessionName $System
         } Catch {
             Write-PScriboMessage -IsWarning "Unable to establish a CimSession ($CIMType) with the Domain Controller '$System'."
         }
@@ -141,6 +141,13 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             # Remove used PSSession
             Write-PScriboMessage "Clearing PowerShell session with ID $($TempPssSession.Id)."
             Remove-PSSession -Session $TempPssSession
+        }
+        if ($DCPssSessions = Get-PSSession | Where-Object { $_.Runspace.ConnectionInfo.Credential.Username -eq $Credential.UserName }) {
+            foreach ($DCPssSession in $DCPssSessions) {
+                # Remove used PSSession
+                Write-PScriboMessage "Clearing PowerShell session: $($DCPssSession.Id)."
+                Remove-PSSession -Session $DCPssSession
+            }
         }
 
         if ($TempCIMSession) {

@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrADFSMO {
             $ForestData = Invoke-Command -Session $TempPssSession { Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster }
             if ($DomainData -and $ForestData) {
                 if ($DC = Get-ValidDCfromDomain -Domain $Domain) {
-                    if ($DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'FSMORoles') {
+                    if ($DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)) {
                         Section -Style Heading3 'FSMO Roles' {
                             $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
                             $OutObj = @()
@@ -78,7 +78,6 @@ function Get-AbrADFSMO {
                                     Text "http://go.microsoft.com/fwlink/?LinkId=168841"
                                 }
                             }
-                            Remove-PSSession -Session $DCPssSession
                         }
                     } else {
                         if (-Not $_.Exception.MessageId) {

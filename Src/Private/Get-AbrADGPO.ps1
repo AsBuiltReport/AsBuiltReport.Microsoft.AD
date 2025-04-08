@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -197,14 +197,13 @@ function Get-AbrADGPO {
                         try {
                             $DC = Get-ValidDCfromDomain -Domain $Domain
 
-                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'WmiFilters'
+                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
 
                             if ($DCPssSession) {
                                 $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
 
                                 $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
 
-                                Remove-PSSession -Session $DCPssSession
                             } else {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
@@ -555,13 +554,12 @@ function Get-AbrADGPO {
                     try {
                         $DC = Get-ValidDCfromDomain -Domain $Domain
 
-                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'OrphanedGPO'
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
                         $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
 
                         if ($DCPssSession) {
                             $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
 
-                            Remove-PSSession -Session $DCPssSession
                         } else {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId

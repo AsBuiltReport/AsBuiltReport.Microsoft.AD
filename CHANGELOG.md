@@ -11,9 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Increase AsBuiltReport.Core to v1.4.2.1
+- Increase AsBuiltReport.Core to v1.4.3
 - Increase Diagrammer.Core minimum requirement
 - Increase Diagrammer.Microsoft.AD minumum requirement
+
+### Fixed
+
+- Fix issue with WinRM connection setup in Domain Controller section
+
+### Removed
+
+- Remove DCDiag section as it is not functioning properly
 
 ## [0.9.3] - 2025-02-21
 
