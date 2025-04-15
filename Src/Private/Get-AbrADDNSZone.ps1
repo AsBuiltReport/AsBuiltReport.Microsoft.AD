@@ -31,8 +31,6 @@ function Get-AbrADDNSZone {
 
     process {
         try {
-            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
-
             if ($TempCIMSession) {
                 $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder" }
             }
@@ -118,6 +116,7 @@ function Get-AbrADDNSZone {
                     }
 
                     if ($InfoLevel.DNS -ge 2) {
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
                         try {
                             $DNSSetting = $Null
                             if ($DCPssSession) {

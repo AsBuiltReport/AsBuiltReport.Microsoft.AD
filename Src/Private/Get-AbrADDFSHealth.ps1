@@ -103,9 +103,9 @@ function Get-AbrADDFSHealth {
                 Write-PScriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
             }
             try {
-                $DC = Get-ValidDCfromDomain -Domain $Domain
+                $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
 
-                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
                 if ($DCPssSession) {
                     # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                     $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\SYSVOL\' + $using:Domain) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
@@ -168,8 +168,8 @@ function Get-AbrADDFSHealth {
                 Write-PScriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
             }
             try {
-                $DC = Get-ValidDCfromDomain -Domain $Domain
-                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
+                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
                 if ($DCPssSession) {
                     # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
                     $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {

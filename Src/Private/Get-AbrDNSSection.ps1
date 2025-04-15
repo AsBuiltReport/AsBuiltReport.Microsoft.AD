@@ -34,7 +34,7 @@ function Get-AbrDNSSection {
                     BlankLine
                 }
                 foreach ($Domain in $OrderedDomains.split(" ")) {
-                    if ($Domain) {
+                    if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         try {
                             # Define Filter option for Domain variable
                             if ($Options.Include.Domains) {
@@ -52,7 +52,7 @@ function Get-AbrDNSSection {
                                     }
                                     $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } }
                                     foreach ($DC in $DCs) {
-                                        if (Get-DCWinRMState -ComputerName $DC) {
+                                        if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                             Get-AbrADDNSZone -Domain $Domain -DC $DC
                                         }
                                     }

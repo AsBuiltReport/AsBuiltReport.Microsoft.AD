@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,7 @@ function Get-AbrADTrust {
         try {
             if ($Domain) {
                 try {
-                    $DC = Get-ValidDCfromDomain -Domain $Domain
+                    $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
                     $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:DC }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {
@@ -40,10 +40,16 @@ function Get-AbrADTrust {
                                 try {
                                     $inObj = [ordered] @{
                                         'Name' = $Trust.Name
-                                        'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Domain $Domain
+                                        'Path' = $Trust.CanonicalName
                                         'Source' = ConvertTo-ADObjectName $Trust.Source -Session $TempPssSession -DC $DC
                                         'Target' = $Trust.Target
-                                        'Trust Type' = $Trust.TrustType
+                                        'Trust Type' = Switch ($Trust.TrustType) {
+                                            1 { "Downlevel (NT domain)" }
+                                            2 { "Uplevel (Active Directory)" }
+                                            3 { "MIT (Kerberos Realm Trust )" }
+                                            4 { "DCE" }
+                                            default { $Trust.TrustType }
+                                        }
                                         'Trust Attributes' = switch ($Trust.TrustAttributes) {
                                             1 { "Non-Transitive" }
                                             2 { "Uplevel clients only (Windows 2000 or newer" }
@@ -56,8 +62,8 @@ function Get-AbrADTrust {
                                         }
                                         'Trust Direction' = Switch ($Trust.TrustDirection) {
                                             0 { "Disabled (The trust relationship exists but has been disabled)" }
-                                            1 { "Inbound (TrustING domain)" }
-                                            2 { "Outbound (TrustED domain)" }
+                                            1 { "Inbound (Trusting domain)" }
+                                            2 { "Outbound (Trusted domain)" }
                                             3 { "Bidirectional (two-way trust)" }
                                             default { $Trust.TrustDirection }
                                         }
@@ -102,25 +108,23 @@ function Get-AbrADTrust {
                                 }
                                 $TrustInfo | Table @TableParams
                             }
-                            if ($Domain -eq $ADSystem.RootDomain) {
+                            try {
                                 try {
-                                    try {
-                                        $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Trusts
-                                    } catch {
-                                        Write-PScriboMessage -IsWarning "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
-                                    }
-
-                                    if ($Graph) {
-                                        If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
-                                        Section -Style Heading3 "Domain and Trusts Diagram." {
-                                            Image -Base64 $Graph -Text "Domain and Trusts Diagram" -Percent $ImagePrty -Align Center
-                                            Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
-                                        }
-                                        BlankLine -Count 2
-                                    }
+                                    $Graph = New-ADDiagram -Target $DC -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Trusts
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "Domain and Trusts Diagram Section: $($_.Exception.Message)"
+                                    Write-PScriboMessage -IsWarning "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
                                 }
+
+                                if ($Graph) {
+                                    If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
+                                    Section -Style Heading3 "Domain and Trusts Diagram." {
+                                        Image -Base64 $Graph -Text "Domain and Trusts Diagram" -Percent $ImagePrty -Align Center
+                                        Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                                    }
+                                    BlankLine -Count 2
+                                }
+                            } catch {
+                                Write-PScriboMessage -IsWarning "Domain and Trusts Diagram Section: $($_.Exception.Message)"
                             }
                         }
                     } else {

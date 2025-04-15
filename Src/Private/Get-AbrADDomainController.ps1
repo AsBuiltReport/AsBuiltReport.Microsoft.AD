@@ -67,9 +67,9 @@ function Get-AbrADDomainController {
             try {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
-                    if (Get-DCWinRMState -ComputerName $DC) {
+                    if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
-                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                         if ($DCPssSession ) {
                             $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Write-PScriboMessage -IsWarning "Unable to get $DC network interfaces information" }
@@ -151,10 +151,10 @@ function Get-AbrADDomainController {
             try {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
-                    if (Get-DCWinRMState -ComputerName $DC) {
+                    if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
                         $DCComputerObject = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADComputer ($using:DCInfo).ComputerObjectDN -Properties * -Server $using:DC } } catch { Out-Null }
-                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
                         if ($DCPssSession) {
                             $DCNetSettings = try { Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-NetIPAddress } } catch { Out-Null }
                             $DCNetSMBv1Setting = try { Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol } } catch { Out-Null }
@@ -337,8 +337,8 @@ function Get-AbrADDomainController {
                                     try {
                                         $DCHWInfo = @()
                                         try {
-                                            $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "DomainControllerHardware"
-                                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                                            $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName $DC -CIMTable ([ref]$CIMTable)
+                                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
                                             if ($DCPssSession) {
                                                 $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
                                                 $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
@@ -346,7 +346,6 @@ function Get-AbrADDomainController {
 
                                             if ($CimSession) {
                                                 $License = Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
-                                                Remove-CimSession $CimSession
                                             }
                                             if ($HW) {
                                                 $inObj = [ordered] @{
@@ -424,8 +423,8 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             foreach ($DC in $DCs) {
-                if (Get-DCWinRMState -ComputerName $DC) {
-                    $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
+                    $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
                     try {
                         if ($DCPssSession) {
                             $DCIPAddress = Invoke-Command -Session $DCPssSession { [System.Net.Dns]::GetHostAddresses($using:DC).IPAddressToString }
@@ -528,9 +527,9 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             foreach ($DC in $DCs) {
-                if (Get-DCWinRMState -ComputerName $DC) {
+                if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                     try {
-                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                         if ($DCPssSession) {
                             $NTDS = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\NTDS\Parameters | Select-Object -ExpandProperty 'DSA Database File' }
@@ -578,9 +577,9 @@ function Get-AbrADDomainController {
         try {
             $OutObj = @()
             foreach ($DC in $DCs) {
-                if (Get-DCWinRMState -ComputerName $DC) {
+                if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                     try {
-                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                         if ($DCPssSession) {
                             $NtpServer = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty -Path HKLM:\System\CurrentControlSet\Services\W32Time\Parameters | Select-Object -ExpandProperty 'NtpServer' }
@@ -639,9 +638,9 @@ function Get-AbrADDomainController {
             try {
                 $OutObj = @()
                 foreach ($DC in $DCs) {
-                    if (Get-DCWinRMState -ComputerName $DC) {
+                    if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         try {
-                            $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "SRVRecordsStatus"
+                            $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName $DC -CIMTable ([ref]$CIMTable)
                             $PDCEmulator = Invoke-Command -Session $TempPssSession { (Get-ADDomain $using:Domain -ErrorAction Stop).PDCEmulator }
                             if ($CimSession -and ($Domain -eq $ADSystem.RootDomain)) {
                                 $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName _msdcs.$Domain -RRType Srv
@@ -654,7 +653,6 @@ function Get-AbrADDomainController {
                                 } else { $GC = 'NonGC' }
                                 $KDC = $SRVRR | Where-Object { $_.Hostname -eq "_kerberos._tcp.dc" -and $_.RecordData.DomainName -eq "$($DC)." }
                                 $DCRR = $SRVRR | Where-Object { $_.Hostname -eq "_ldap._tcp.dc" -and $_.RecordData.DomainName -eq "$($DC)." }
-                                Remove-CimSession $CimSession
                             } else {
                                 if ($CimSession) {
                                     $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType Srv
@@ -667,7 +665,6 @@ function Get-AbrADDomainController {
                                     } else { $GC = 'NonGC' }
                                     $KDC = $SRVRR | Where-Object { $_.Hostname -eq "_kerberos._tcp.dc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)." }
                                     $DCRR = $SRVRR | Where-Object { $_.Hostname -eq "_ldap._tcp.dc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)." }
-                                    Remove-CimSession $CimSession
                                 }
                             }
 
@@ -754,9 +751,9 @@ function Get-AbrADDomainController {
         try {
             if ($HealthCheck.DomainController.BestPractice) {
                 $OutObj = foreach ($DC in $DCs) {
-                    if (Get-DCWinRMState -ComputerName $DC) {
+                    if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         try {
-                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                             if ($DCPssSession) {
                                 $Shares = Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-SmbShare | Where-Object { $_.Description -ne 'Default share' -and $_.Description -notmatch 'Remote' -and $_.Name -ne 'NETLOGON' -and $_.Name -ne 'SYSVOL' } }
@@ -820,10 +817,10 @@ function Get-AbrADDomainController {
             try {
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
-                    if (Get-DCWinRMState -ComputerName $DC) {
+                    if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         try {
                             $Software = @()
-                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                             if ($DCPssSession) {
                                 $SoftwareX64 = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { ($_.Publisher -notlike "Microsoft*" -and $_.DisplayName -notlike "VMware*" -and $_.DisplayName -notlike "Microsoft*") -and ($Null -ne $_.Publisher -or $Null -ne $_.DisplayName) } | Select-Object -Property DisplayName, Publisher, InstallDate | Sort-Object -Property DisplayName }
@@ -898,10 +895,10 @@ function Get-AbrADDomainController {
             try {
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
-                    if (Get-DCWinRMState -ComputerName $DC) {
+                    if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         try {
                             $Software = @()
-                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                             if ($DCPssSession ) {
                                 $Updates = Invoke-Command -Session $DCPssSession -ScriptBlock { (New-Object -ComObject Microsoft.Update.Session).CreateupdateSearcher().Search("IsHidden=0 and IsInstalled=0").Updates | Select-Object Title, KBArticleIDs }

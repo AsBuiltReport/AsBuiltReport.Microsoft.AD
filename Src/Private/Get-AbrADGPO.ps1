@@ -195,9 +195,9 @@ function Get-AbrADGPO {
                     }
                     if ($InfoLevel.Domain -ge 2) {
                         try {
-                            $DC = Get-ValidDCfromDomain -Domain $Domain
+                            $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
 
-                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                             if ($DCPssSession) {
                                 $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
@@ -494,7 +494,7 @@ function Get-AbrADGPO {
                         $DM = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}
                         $OutObj = @()
 
-                        $DC = Get-ValidDCfromDomain -Domain $Domain
+                        $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
                         $OUs = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * }).DistinguishedName
                         if ($OUs) {
                             $OUs += $DM.DistinguishedName
@@ -552,9 +552,9 @@ function Get-AbrADGPO {
                     # Code taken from Jeremy Saunders
                     # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
                     try {
-                        $DC = Get-ValidDCfromDomain -Domain $Domain
+                        $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
 
-                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
                         $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
 
                         if ($DCPssSession) {

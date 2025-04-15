@@ -33,7 +33,7 @@ function Get-AbrADSiteReplication {
             try {
                 $ReplInfo = @()
                 foreach ($DC in $DCs) {
-                    if (Get-DCWinRMState -ComputerName $DC) {
+                    if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         $Replication = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Server $using:DC -Properties * }
                         if ($Replication) {
                             try {
@@ -118,8 +118,8 @@ function Get-AbrADSiteReplication {
         }
         try {
             if ($HealthCheck.Site.Replication) {
-                $DC = Get-ValidDCfromDomain -Domain $Domain
-                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
+                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                 if ($DCPssSession) {
                     $RepStatus = Invoke-Command -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }

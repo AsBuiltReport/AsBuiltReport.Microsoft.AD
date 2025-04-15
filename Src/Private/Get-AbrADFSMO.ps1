@@ -32,8 +32,8 @@ function Get-AbrADFSMO {
             $DomainData = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator }
             $ForestData = Invoke-Command -Session $TempPssSession { Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster }
             if ($DomainData -and $ForestData) {
-                if ($DC = Get-ValidDCfromDomain -Domain $Domain) {
-                    if ($DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)) {
+                if ($DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
+                    if ($DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)) {
                         Section -Style Heading3 'FSMO Roles' {
                             $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
                             $OutObj = @()

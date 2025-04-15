@@ -30,7 +30,7 @@ function Get-AbrADKerberosAudit {
     process {
         if ($HealthCheck.Domain.Security) {
             try {
-                $DC = Get-ValidDCfromDomain -Domain $Domain
+                $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
                 $Unconstrained = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:DC -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
                 if ($Unconstrained) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Unconstrained Kerberos Delegation' {

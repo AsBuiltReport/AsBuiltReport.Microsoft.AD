@@ -29,9 +29,9 @@ function Get-AbrADHardening {
 
     process {
 
-        $DC = Get-ValidDCfromDomain -Domain $Domain
+        $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
 
-        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
 
         $NTLMversion = Invoke-Command -Session $DCPssSession -ScriptBlock {

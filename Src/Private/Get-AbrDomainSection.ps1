@@ -35,7 +35,7 @@ function Get-AbrDomainSection {
                 }
 
                 foreach ($Domain in $OrderedDomains.split(" ")) {
-                    if ($Domain) {
+                    if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         # Define Filter option for Domain variable
                         if ($Options.Include.Domains) {
                             $DomainFilterOption = $Domain -in $Options.Include.Domains
@@ -87,12 +87,10 @@ function Get-AbrDomainSection {
 
                                             if ($InfoLevel.Domain -ge 2) {
                                                 $RolesObj = foreach ($DC in $DCs) {
-                                                    $DCStatus = Get-DCWinRMState -ComputerName $DC
-                                                    if (-Not $DCStatus) {
-                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report."
-                                                    }
-                                                    if ($DCStatus) {
+                                                    if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                                         Get-AbrADDCRoleFeature -DC $DC
+                                                    } else {
+                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report."
                                                     }
                                                 }
                                                 if ($RolesObj) {
@@ -124,7 +122,7 @@ function Get-AbrDomainSection {
                                             # }
                                             try {
                                                 $ADInfraServices = foreach ($DC in $DCs) {
-                                                    if (Get-DCWinRMState -ComputerName $DC) {
+                                                    if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                                         Get-AbrADInfrastructureService -DC $DC
                                                     }
                                                 }
@@ -150,6 +148,8 @@ function Get-AbrDomainSection {
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Active Directory Domain)"
                         }
+                    } else {
+                        Write-PScriboMessage -IsWarning "Unable to get an available DC in $Domain domain. Removing it from the report."
                     }
                 }
             }

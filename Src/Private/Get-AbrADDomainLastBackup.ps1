@@ -30,7 +30,7 @@ function Get-AbrADDomainLastBackup {
     process {
         if ($Domain -and $HealthCheck.Domain.Backup) {
             try {
-                $LastBackups = Get-WinADLastBackup -Domain $Domain -Credential $Credential
+                $LastBackups = Get-WinADLastBackup -Domain $Domain -Credential $Credential -DCStatus ([ref]$DCStatus)
                 if ($LastBackups) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Naming Context Last Backup' {
                         Paragraph "The following section details naming context last backup time for Domain $($Domain.ToString().ToUpper())."
