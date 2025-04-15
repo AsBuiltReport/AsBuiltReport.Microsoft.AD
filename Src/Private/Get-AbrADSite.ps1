@@ -749,6 +749,7 @@ function Get-AbrADSite {
                                                     5 { 'In error state' }
                                                     6 { 'Disabled' }
                                                     7 { 'Unknown' }
+                                                    default { 'Offline' }
                                                 }
                                                 'Domain' = $Domain
                                             }

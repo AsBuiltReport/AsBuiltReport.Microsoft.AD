@@ -845,7 +845,7 @@ function Get-AbrADDomainObject {
                 }
                 try {
                     if ($HealthCheck.Domain.Security) {
-                        $ComputerObjects = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { PasswordNotRequired -eq $true } -Properties Name, DistinguishedName, Enabled }
+                        $ComputerObjects = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { PasswordNotRequired -eq $true } -Server $using:DC -Properties Name, DistinguishedName, Enabled }
                         if ($ComputerObjects) {
                             Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers with Password-Not-Required Attribute Set' {
                                 $OutObj = @()
@@ -1052,7 +1052,7 @@ function Get-AbrADDomainObject {
                         $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                         $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
                         $LAPS = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Server $using:DCPDC "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:DomainInfo).DistinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
-                        Section -Style Heading3 'Microsoft LAPS ' {
+                        Section -Style Heading3 'Microsoft LAPS' {
                             $LAPSInfo = @()
                             try {
                                 $inObj = [ordered] @{
