@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.4] - Unreleased
+## [0.9.4] - 2025-04-15
 
 ### Added
 
@@ -18,8 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increase AsBuiltReport.Core to v1.4.3
 - Increase Diagrammer.Core minimum requirement
 - Increase Diagrammer.Microsoft.AD minumum requirement
-- Improve Get-ValidCimSession,ValidPSSession to detect current connected DC
+- Improve Get-ValidCimSession,Get-ValidPSSession to detect current connected DC
   - Reuse the WinRM session
+  - Reuse the CIM session
 - Improve DNS settings retrieval by filtering only active network adapters in Get-AbrADDomainController function
 - Update Sample report
 - Improved Get-AbrADSite to handle cases where information cannot be collected from DCs, ensuring that the output remains informative and consistent.
