@@ -31,6 +31,85 @@ function Get-AbrADDomainController {
     process {
         try {
             $OutObj = @()
+            foreach ($DC in $DCs) {
+                if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
+                    $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
+                    $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
+
+                    if ($DCPssSession ) {
+                        $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Write-PScriboMessage -IsWarning "Unable to get $DC network interfaces information" }
+                    } else {
+                        if (-Not $_.Exception.MessageId) {
+                            $ErrorMessage = $_.FullyQualifiedErrorId
+                        } else { $ErrorMessage = $_.Exception.MessageId }
+                        Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                    }
+                    try {
+                        $inObj = [ordered] @{
+                            'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                            'Status' = "Online"
+                            'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                $true { "--" }
+                                $false { $DCInfo.Site }
+                                default { "Unknown" }
+                            }
+                            'Global Catalog' = $DCInfo.IsGlobalCatalog
+                            'Read Only' = $DCInfo.IsReadOnly
+                            'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
+                                $true { "--" }
+                                $false { $DCInfo.IPv4Address }
+                                default { "Unknown" }
+                            }
+                        }
+                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
+                    }
+                } else {
+                    try {
+                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                        $inObj = [ordered] @{
+                            'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                            'Status' = "Offline"
+                            'Site' = "--"
+                            'Global Catalog' = "--"
+                            'Read Only' = "--"
+                            'IP Address' = "--"
+                        }
+                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
+                    }
+                }
+            }
+            if ($HealthCheck.DomainController.BestPractice) {
+                if ($OutObj.Count -eq 1) {
+                    $OutObj | Set-Style -Style Warning
+                }
+            }
+
+            $TableParams = @{
+                Name = "Domain Controller in Domain - $($Domain.ToString().ToUpper())"
+                List = $false
+                ColumnWidths = 25, 12, 24, 10, 10, 19
+            }
+            if ($Report.ShowTableCaptions) {
+                $TableParams['Caption'] = "- $($TableParams.Name)"
+            }
+            $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+            if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
+                Paragraph "Health Check:" -Bold -Underline
+                BlankLine
+                Paragraph {
+                    Text "Best Practice:" -Bold
+                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources. This ensures high availability and fault tolerance within the domain infrastructure."
+                }
+            }
+        } catch {
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
+        }
+        try {
+            $OutObj = @()
             $inObj = [ordered] @{
                 'Domain Controller' = ($DomainController | Measure-Object).Count
                 'Global Catalog' = ($GC | Measure-Object).Count
@@ -63,94 +142,10 @@ function Get-AbrADDomainController {
         } catch {
             Write-PScriboMessage -IsWarning $($_.Exception.Message)
         }
-        if ($InfoLevel.Domain -eq 1) {
+        if ($InfoLevel.Domain -eq 2) {
             try {
                 $OutObj = @()
-                foreach ($DC in $DCs) {
-                    if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
-                        $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
-                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
-
-                        if ($DCPssSession ) {
-                            $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Write-PScriboMessage -IsWarning "Unable to get $DC network interfaces information" }
-                        } else {
-                            if (-Not $_.Exception.MessageId) {
-                                $ErrorMessage = $_.FullyQualifiedErrorId
-                            } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
-                        }
-                        try {
-                            $inObj = [ordered] @{
-                                'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
-                                'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
-                                    $true { "--" }
-                                    $false { $DCInfo.Domain }
-                                    default { "Unknown" }
-                                }
-                                'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
-                                    $true { "--" }
-                                    $false { $DCInfo.Site }
-                                    default { "Unknown" }
-                                }
-                                'Global Catalog' = $DCInfo.IsGlobalCatalog
-                                'Read Only' = $DCInfo.IsReadOnly
-                                'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
-                                    $true { "--" }
-                                    $false { $DCInfo.IPv4Address }
-                                    default { "Unknown" }
-                                }
-                            }
-                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
-                        } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
-                        }
-                    } else {
-                        try {
-                            Write-PScriboMessage "Unable to collect infromation from $DC."
-                            $inObj = [ordered] @{
-                                'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
-                                'Domain Name' = "Unable to Connect"
-                                'Site' = "--"
-                                'Global Catalog' = "--"
-                                'Read Only' = "--"
-                                'IP Address' = "--"
-                            }
-                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
-                        } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
-                        }
-                    }
-                }
-                if ($HealthCheck.DomainController.BestPractice) {
-                    if ($OutObj.Count -eq 1) {
-                        $OutObj | Set-Style -Style Warning
-                    }
-                }
-
-                $TableParams = @{
-                    Name = "Domain Controllers - $($Domain.ToString().ToUpper())"
-                    List = $false
-                    ColumnWidths = 25, 25, 15, 10, 10, 15
-                }
-                if ($Report.ShowTableCaptions) {
-                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                }
-                $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-                if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
-                    Paragraph "Health Check:" -Bold -Underline
-                    BlankLine
-                    Paragraph {
-                        Text "Best Practice:" -Bold
-                        Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources. This ensures high availability and fault tolerance within the domain infrastructure."
-                    }
-                }
-            } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
-            }
-        } else {
-            try {
-                $OutObj = @()
-                foreach ($DC in $DCs) {
+                $DCConfiguration = foreach ($DC in $DCs) {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
                         $DCComputerObject = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADComputer ($using:DCInfo).ComputerObjectDN -Properties * -Server $using:DC } } catch { Out-Null }
@@ -164,253 +159,207 @@ function Get-AbrADDomainController {
                             } else { $ErrorMessage = $_.Exception.MessageId }
                             Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
-                        if ($InfoLevel.Domain -eq 1) {
-                            try {
-                                $inObj = [ordered] @{
-                                    'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
-                                    'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
-                                        $true { "--" }
-                                        $false { $DCInfo.Domain }
-                                        default { "Unknown" }
-                                    }
-                                    'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
-                                        $true { "--" }
-                                        $false { $DCInfo.Site }
-                                        default { "Unknown" }
-                                    }
-                                    'Global Catalog' = $DCInfo.IsGlobalCatalog
-                                    'Read Only' = $DCInfo.IsReadOnly
-                                    'IP Address' = Switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
-                                        $true { "--" }
-                                        $false { $DCInfo.IPv4Address }
-                                        default { "Unknown" }
-                                    }
-                                }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
-                            } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
-                            }
-                            if ($HealthCheck.DomainController.BestPractice) {
-                                if ($OutObj.Count -eq 1) {
-                                    $OutObj | Set-Style -Style Warning
-                                }
-                            }
+                        try {
+                            Section -Style Heading5 $DCInfo.Name {
+                                try {
+                                    Section -ExcludeFromTOC -Style NOTOCHeading6 "General Information" {
+                                        $inObj = [ordered] @{
+                                            'DC Name' = $DCInfo.Hostname
+                                            'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
+                                                $true { "--" }
+                                                $false { $DCInfo.Domain }
+                                                default { "Unknown" }
+                                            }
+                                            'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                                $true { "--" }
+                                                $false { $DCInfo.Site }
+                                                default { "Unknown" }
+                                            }
+                                            'Global Catalog' = $DCInfo.IsGlobalCatalog
+                                            'Read Only' = $DCInfo.IsReadOnly
+                                            'Operation Master Roles' = ($DCInfo.OperationMasterRoles -join ', ')
+                                            'Location' = $DCComputerObject.Location
+                                            'Computer Object SID' = $DCComputerObject.SID
+                                            'Operating System' = $DCInfo.OperatingSystem
+                                            'SMB1 Status' = $DCNetSMBv1Setting.State
+                                            'Description' = $DCComputerObject.Description
+                                        }
+                                        $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
-                            $TableParams = @{
-                                Name = "Domain Controllers - $($Domain.ToString().ToUpper())"
-                                List = $false
-                                ColumnWidths = 25, 25, 15, 10, 10, 15
-                            }
-                            if ($Report.ShowTableCaptions) {
-                                $TableParams['Caption'] = "- $($TableParams.Name)"
-                            }
-                            $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-                            if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
-                                Paragraph "Health Check:" -Bold -Underline
-                                BlankLine
-                                Paragraph {
-                                    Text "Best Practice:" -Bold
-                                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources. This ensures high availability and fault tolerance within the domain infrastructure."
+                                        if ($HealthCheck.DomainController.BestPractice) {
+                                            $OutObj | Where-Object { $_.'SMB1 Status' -eq 'Enabled' } | Set-Style -Style Critical -Property 'SMB1 Status'
+                                        }
+
+                                        $TableParams = @{
+                                            Name = "General Information - $($DCInfo.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
+                                        if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'SMB1 Status' -eq 'Enabled' })) {
+                                            Paragraph "Health Check:" -Bold -Underline
+                                            BlankLine
+                                            Paragraph {
+                                                Text "Best Practice:" -Bold
+                                                Text "Disable SMBv1: SMBv1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems to enhance security and reduce the risk of exploitation. SMB v1 has been deprecated and replaced by SMB v2 and SMB v3, which offer improved performance and security features."
+                                            }
+                                        }
+                                    }
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (General Information Section)"
                                 }
-                            }
-                        } else {
-                            try {
-                                Section -Style Heading4 $DCInfo.Name {
-                                    try {
-                                        Section -ExcludeFromTOC -Style NOTOCHeading5 "General Information" {
+                                try {
+                                    Section -ExcludeFromTOC -Style NOTOCHeading6 "Partitions" {
+                                        $inObj = [ordered] @{
+                                            'Default Partition' = $DCInfo.DefaultPartition
+                                            'Partitions' = $DCInfo.Partitions
+                                        }
+                                        $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+
+
+                                        $TableParams = @{
+                                            Name = "Partitions - $($DCInfo.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $OutObj | Table @TableParams
+                                    }
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Partitions Section)"
+                                }
+                                try {
+                                    if ($DCNetSettings) {
+                                        Section -ExcludeFromTOC -Style NOTOCHeading6 "Networking Settings" {
                                             $inObj = [ordered] @{
-                                                'DC Name' = $DCInfo.Hostname
-                                                'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
+                                                'IPv4 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv4' -or $_.AddressFamily -eq 2) -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address))) {
                                                     $true { "--" }
-                                                    $false { $DCInfo.Domain }
+                                                    $false { ($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv4' -or $_.AddressFamily -eq 2) -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address -join ", " }
                                                     default { "Unknown" }
                                                 }
-                                                'Site' = Switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                                'IPv6 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv6' -or $_.AddressFamily -eq 23) -and $_.IPAddress -ne '::1' }).IPv6Address))) {
                                                     $true { "--" }
-                                                    $false { $DCInfo.Site }
+                                                    $false { ($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv6' -or $_.AddressFamily -eq 23) -and $_.IPAddress -ne '::1' }).IPv6Address -join "," }
                                                     default { "Unknown" }
                                                 }
-                                                'Global Catalog' = $DCInfo.IsGlobalCatalog
-                                                'Read Only' = $DCInfo.IsReadOnly
-                                                'Operation Master Roles' = ($DCInfo.OperationMasterRoles -join ', ')
-                                                'Location' = $DCComputerObject.Location
-                                                'Computer Object SID' = $DCComputerObject.SID
-                                                'Operating System' = $DCInfo.OperatingSystem
-                                                'SMB1 Status' = $DCNetSMBv1Setting.State
-                                                'Description' = $DCComputerObject.Description
+                                                "LDAP Port" = $DCInfo.LdapPort
+                                                "LDAPS Port" = $DCInfo.SslPort
                                             }
                                             $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
                                             if ($HealthCheck.DomainController.BestPractice) {
-                                                $OutObj | Where-Object { $_.'SMB1 Status' -eq 'Enabled' } | Set-Style -Style Critical -Property 'SMB1 Status'
+                                                $OutObj | Where-Object { $_.'IPv4 Addresses'.Split(",").Count -gt 1 } | Set-Style -Style Warning -Property 'IPv4 Addresses'
                                             }
-
-                                            $TableParams = @{
-                                                Name = "General Information - $($DCInfo.Name)"
-                                                List = $true
-                                                ColumnWidths = 40, 60
-                                            }
-                                            if ($Report.ShowTableCaptions) {
-                                                $TableParams['Caption'] = "- $($TableParams.Name)"
-                                            }
-                                            $OutObj | Table @TableParams
-                                            if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'SMB1 Status' -eq 'Enabled' })) {
-                                                Paragraph "Health Check:" -Bold -Underline
-                                                BlankLine
-                                                Paragraph {
-                                                    Text "Best Practice:" -Bold
-                                                    Text "Disable SMBv1: SMBv1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems to enhance security and reduce the risk of exploitation. SMB v1 has been deprecated and replaced by SMB v2 and SMB v3, which offer improved performance and security features."
+                                            if ($OutObj) {
+                                                $TableParams = @{
+                                                    Name = "Networking Settings - $($DCInfo.Name)"
+                                                    List = $true
+                                                    ColumnWidths = 40, 60
+                                                }
+                                                if ($Report.ShowTableCaptions) {
+                                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                                }
+                                                $OutObj | Table @TableParams
+                                                if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'IPv4 Addresses'.Split(",").Count -gt 1 })) {
+                                                    Paragraph "Health Check:" -Bold -Underline
+                                                    BlankLine
+                                                    Paragraph {
+                                                        Text "Best Practice:" -Bold
+                                                        Text "On Domain Controllers with more than one NIC where each NIC is connected to separate Network, there's a possibility that the Host A DNS registration can occur for unwanted NICs. Avoid registering unwanted NICs in DNS on a multihomed domain controller."
+                                                    }
                                                 }
                                             }
                                         }
-                                    } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (General Information Section)"
                                     }
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Networking Settings Section)"
+                                }
+                                try {
+                                    $DCHWInfo = @()
                                     try {
-                                        Section -ExcludeFromTOC -Style NOTOCHeading5 "Partitions" {
+                                        $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName $DC -CIMTable ([ref]$CIMTable)
+                                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
+                                        if ($DCPssSession) {
+                                            $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
+                                            $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
+                                        }
+
+                                        if ($CimSession) {
+                                            $License = Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
+                                        }
+                                        if ($HW) {
                                             $inObj = [ordered] @{
-                                                'Default Partition' = $DCInfo.DefaultPartition
-                                                'Partitions' = $DCInfo.Partitions
+                                                'Name' = $HW.CsName
+                                                'Windows Product Name' = $HW.WindowsProductName
+                                                'Windows Build Number' = $HW.OsVersion
+                                                'AD Domain' = $HW.CsDomain
+                                                'Windows Installation Date' = $HW.OsInstallDate
+                                                'Time Zone' = $HW.TimeZone
+                                                'License Type' = $License.ProductKeyChannel
+                                                'Partial Product Key' = $License.PartialProductKey
+                                                'Manufacturer' = $HW.CsManufacturer
+                                                'Model' = $HW.CsModel
+                                                'Processor Model' = $HWCPU[0].Name
+                                                'Number of Processors' = ($HWCPU | Measure-Object).Count
+                                                'Number of CPU Cores' = $HWCPU[0].NumberOfCores
+                                                'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
+                                                'Physical Memory' = & {
+                                                    try {
+                                                        ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
+                                                    } catch { '0.00 GB' }
+                                                }
                                             }
-                                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
-
-
-                                            $TableParams = @{
-                                                Name = "Partitions - $($DCInfo.Name)"
-                                                List = $true
-                                                ColumnWidths = 40, 60
-                                            }
-                                            if ($Report.ShowTableCaptions) {
-                                                $TableParams['Caption'] = "- $($TableParams.Name)"
-                                            }
-                                            $OutObj | Table @TableParams
+                                            $DCHWInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         }
-                                    } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Partitions Section)"
-                                    }
-                                    try {
-                                        if ($DCNetSettings) {
-                                            Section -ExcludeFromTOC -Style NOTOCHeading5 "Networking Settings" {
-                                                $inObj = [ordered] @{
-                                                    'IPv4 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv4' -or $_.AddressFamily -eq 2) -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address))) {
-                                                        $true { "--" }
-                                                        $false { ($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv4' -or $_.AddressFamily -eq 2) -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address -join ", " }
-                                                        default { "Unknown" }
-                                                    }
-                                                    'IPv6 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv6' -or $_.AddressFamily -eq 23) -and $_.IPAddress -ne '::1' }).IPv6Address))) {
-                                                        $true { "--" }
-                                                        $false { ($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv6' -or $_.AddressFamily -eq 23) -and $_.IPAddress -ne '::1' }).IPv6Address -join "," }
-                                                        default { "Unknown" }
-                                                    }
-                                                    "LDAP Port" = $DCInfo.LdapPort
-                                                    "LDAPS Port" = $DCInfo.SslPort
-                                                }
-                                                $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
-                                                if ($HealthCheck.DomainController.BestPractice) {
-                                                    $OutObj | Where-Object { $_.'IPv4 Addresses'.Split(",").Count -gt 1 } | Set-Style -Style Warning -Property 'IPv4 Addresses'
+                                        if ($HealthCheck.DomainController.Diagnostic) {
+                                            if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
+                                                $DCHWInfo | Set-Style -Style Warning -Property 'Physical Memory'
+                                            }
+                                        }
+                                        if ($DCHWInfo) {
+                                            Section -ExcludeFromTOC -Style NOTOCHeading6 'Hardware Inventory' {
+                                                $TableParams = @{
+                                                    Name = "Hardware Inventory - $($DCHWInfo.Name.ToString().ToUpper())"
+                                                    List = $true
+                                                    ColumnWidths = 40, 60
                                                 }
-                                                if ($OutObj) {
-                                                    $TableParams = @{
-                                                        Name = "Networking Settings - $($DCInfo.Name)"
-                                                        List = $true
-                                                        ColumnWidths = 40, 60
-                                                    }
-                                                    if ($Report.ShowTableCaptions) {
-                                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                                    }
-                                                    $OutObj | Table @TableParams
-                                                    if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'IPv4 Addresses'.Split(",").Count -gt 1 })) {
+                                                if ($Report.ShowTableCaptions) {
+                                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                                }
+                                                $DCHWInfo | Table @TableParams
+                                                if ($HealthCheck.DomainController.Diagnostic) {
+                                                    if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
                                                         Paragraph "Health Check:" -Bold -Underline
                                                         BlankLine
                                                         Paragraph {
                                                             Text "Best Practice:" -Bold
-                                                            Text "On Domain Controllers with more than one NIC where each NIC is connected to separate Network, there's a possibility that the Host A DNS registration can occur for unwanted NICs. Avoid registering unwanted NICs in DNS on a multihomed domain controller."
+                                                            Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on. Insufficient memory can lead to performance issues and slow response times, which can affect the overall health and efficiency of the domain controller. Ensuring adequate memory helps maintain optimal performance and reliability of the Active Directory services."
                                                         }
                                                     }
                                                 }
                                             }
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Networking Settings Section)"
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Hardware Inventory Table)"
                                     }
-                                    try {
-                                        $DCHWInfo = @()
-                                        try {
-                                            $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName $DC -CIMTable ([ref]$CIMTable)
-                                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
-                                            if ($DCPssSession) {
-                                                $HW = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-ComputerInfo }
-                                                $HWCPU = Get-CimInstance -Class Win32_Processor -CimSession $CimSession
-                                            }
-
-                                            if ($CimSession) {
-                                                $License = Get-CimInstance -Query 'Select * from SoftwareLicensingProduct' -CimSession $CimSession | Where-Object { $_.LicenseStatus -eq 1 }
-                                            }
-                                            if ($HW) {
-                                                $inObj = [ordered] @{
-                                                    'Name' = $HW.CsName
-                                                    'Windows Product Name' = $HW.WindowsProductName
-                                                    'Windows Build Number' = $HW.OsVersion
-                                                    'AD Domain' = $HW.CsDomain
-                                                    'Windows Installation Date' = $HW.OsInstallDate
-                                                    'Time Zone' = $HW.TimeZone
-                                                    'License Type' = $License.ProductKeyChannel
-                                                    'Partial Product Key' = $License.PartialProductKey
-                                                    'Manufacturer' = $HW.CsManufacturer
-                                                    'Model' = $HW.CsModel
-                                                    'Processor Model' = $HWCPU[0].Name
-                                                    'Number of Processors' = ($HWCPU | Measure-Object).Count
-                                                    'Number of CPU Cores' = $HWCPU[0].NumberOfCores
-                                                    'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
-                                                    'Physical Memory' = & {
-                                                        try {
-                                                            ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
-                                                        } catch { '0.00 GB' }
-                                                    }
-                                                }
-                                                $DCHWInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
-                                            }
-
-                                            if ($HealthCheck.DomainController.Diagnostic) {
-                                                if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                                                    $DCHWInfo | Set-Style -Style Warning -Property 'Physical Memory'
-                                                }
-                                            }
-                                            if ($DCHWInfo) {
-                                                Section -ExcludeFromTOC -Style NOTOCHeading5 'Hardware Inventory' {
-                                                    $TableParams = @{
-                                                        Name = "Hardware Inventory - $($DCHWInfo.Name.ToString().ToUpper())"
-                                                        List = $true
-                                                        ColumnWidths = 40, 60
-                                                    }
-                                                    if ($Report.ShowTableCaptions) {
-                                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                                    }
-                                                    $DCHWInfo | Table @TableParams
-                                                    if ($HealthCheck.DomainController.Diagnostic) {
-                                                        if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', "\d+(\.*\d+)").value) -lt 8) {
-                                                            Paragraph "Health Check:" -Bold -Underline
-                                                            BlankLine
-                                                            Paragraph {
-                                                                Text "Best Practice:" -Bold
-                                                                Text "Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on. Insufficient memory can lead to performance issues and slow response times, which can affect the overall health and efficiency of the domain controller. Ensuring adequate memory helps maintain optimal performance and reliability of the Active Directory services."
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Hardware Inventory Table)"
-                                        }
-                                    } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Section)"
-                                    }
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Section)"
                                 }
-                            } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
                             }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
                         }
+                    }
+                }
+                if ($DCConfiguration) {
+                    Section -Style Heading4 'Configuration' {
+                        $DCConfiguration
                     }
                 }
             } catch {
@@ -429,7 +378,7 @@ function Get-AbrADDomainController {
                     try {
                         if ($DCPssSession) {
                             $DCIPAddress = Invoke-Command -Session $DCPssSession { [System.Net.Dns]::GetHostAddresses($using:DC).IPAddressToString }
-                            $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Where-Object { $_.ifOperStatus -eq "Up"} | Get-DnsClientServerAddress -AddressFamily IPv4 }
+                            $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Where-Object { $_.ifOperStatus -eq "Up" } | Get-DnsClientServerAddress -AddressFamily IPv4 }
                             $PrimaryDNSSoA = Invoke-Command -Session $DCPssSession { (Get-DnsServerResourceRecord -RRType Soa -ZoneName $using:Domain).RecordData.PrimaryServer }
                         } else {
                             if (-Not $_.Exception.MessageId) {
@@ -463,12 +412,27 @@ function Get-AbrADDomainController {
                     } catch {
                         Write-PScriboMessage -IsWarning "Domain Controller DNS IP Configuration Table Section: $($_.Exception.Message)"
                     }
+                } else {
+                    try {
+                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                        $inObj = [ordered] @{
+                            'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                            'Interface' = 'Offline'
+                            'Prefered DNS' = '--'
+                            'Alternate DNS' = '--'
+                            'DNS 3' = '--'
+                            'DNS 4' = '--'
+                        }
+                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
+                    }
                 }
             }
 
             if ($HealthCheck.DomainController.BestPractice) {
                 $OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1" -or $_.'Prefered DNS' -in $DCIPAddress } | Set-Style -Style Warning -Property 'Prefered DNS'
-                $OutObj | Where-Object { $_.'Alternate DNS' -eq "--" } | Set-Style -Style Warning -Property 'Alternate DNS'
+                $OutObj | Where-Object { $_.'Alternate DNS' -eq "--" -and $_.'Prefered DNS' -ne '--' } | Set-Style -Style Warning -Property 'Alternate DNS'
                 $OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'Prefered DNS'
                 $OutObj | Where-Object { $_.'Alternate DNS' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'Alternate DNS'
                 $OutObj | Where-Object { $_.'DNS 3' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'DNS 3'
@@ -487,7 +451,7 @@ function Get-AbrADDomainController {
                     }
 
                     $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-                    if ($HealthCheck.DomainController.BestPractice -and (($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1" }) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) -or ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--" }) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS -or $_.'Alternate DNS' -in $UnresolverDNS -or $_.'DNS 3' -in $UnresolverDNS -or $_.'DNS 4' -in $UnresolverDNS }))) {
+                    if ($HealthCheck.DomainController.BestPractice -and (($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1" }) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) -or ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--" -and $_.'Prefered DNS' -ne '--' }) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS -or $_.'Alternate DNS' -in $UnresolverDNS -or $_.'DNS 3' -in $UnresolverDNS -or $_.'DNS 4' -in $UnresolverDNS }))) {
                         Paragraph "Health Check:" -Bold -Underline
                         BlankLine
                         if ($OutObj | Where-Object { $_.'Prefered DNS' -eq "127.0.0.1" }) {
@@ -503,7 +467,7 @@ function Get-AbrADDomainController {
                                 Text "DNS configuration on the network adapter should not include the Domain Controller's own IP address as the first entry."
                             }
                         }
-                        if ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--" }) {
+                        if ($OutObj | Where-Object { $_.'Alternate DNS' -eq "--" -and $_.'Prefered DNS' -ne '--' }) {
                             BlankLine
                             Paragraph {
                                 Text "Best Practices:" -Bold
@@ -555,6 +519,20 @@ function Get-AbrADDomainController {
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
                     }
+                } else {
+                    try {
+                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                        $inObj = [ordered] @{
+                            'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
+                            'Database File' = "--"
+                            'Database Size' = "--"
+                            'Log Path' = "--"
+                            'SysVol Path' = "--"
+                        }
+                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
+                    }
                 }
             }
 
@@ -572,7 +550,7 @@ function Get-AbrADDomainController {
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Table)"
+            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS section)"
         }
         try {
             $OutObj = @()
@@ -614,6 +592,18 @@ function Get-AbrADDomainController {
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Time Source Table)"
                     }
+                } else {
+                    try {
+                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                        $inObj = [ordered] @{
+                            'Name' = $DC.ToString().ToUpper().Split(".")[0]
+                            'Time Server' = "--"
+                            'Type' = "--"
+                        }
+                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
+                    }
                 }
             }
 
@@ -628,7 +618,7 @@ function Get-AbrADDomainController {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
 
-                    $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                 }
             }
         } catch {
@@ -719,6 +709,21 @@ function Get-AbrADDomainController {
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status Table)"
                         }
+                    } else {
+                        try {
+                            Write-PScriboMessage "Unable to collect infromation from $DC."
+                            $inObj = [ordered] @{
+                                'Name' = $DC.ToString().ToUpper().Split(".")[0]
+                                'A Record' = "--"
+                                'KDC SRV' = "--"
+                                'PDC SRV' = "--"
+                                'GC SRV' = "--"
+                                'DC SRV' = "--"
+                            }
+                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
+                        }
                     }
                 }
 
@@ -750,6 +755,7 @@ function Get-AbrADDomainController {
         }
         try {
             if ($HealthCheck.DomainController.BestPractice) {
+                $OutObj = @()
                 $OutObj = foreach ($DC in $DCs) {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         try {

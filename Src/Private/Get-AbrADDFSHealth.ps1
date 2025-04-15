@@ -30,27 +30,46 @@ function Get-AbrADDFSHealth {
     process {
         if ($HealthCheck.Domain.DFS) {
             try {
+                $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
+
                 if ($Options.Exclude.DCs) {
-                    $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential | Where-Object { $_.DomainController -notin ($Options.Exclude.DCs).split(".", 2)[0] }
+                    $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential | Where-Object { $_.DomainController -notin $Options.Exclude.DCs }
                 } Else { $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential }
                 if ($DFS) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Replication Status' {
                         Paragraph "The following section details the sysvol folder replication status for Domain $($Domain.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
-                        foreach ($DCStatus in $DFS) {
+                        foreach ($Controller in $DCs) {
                             try {
+                                $RepState = $DFS | Where-Object { $_.DomainController -eq $Controller.Split('.')[0] } | Select-Object -Property ReplicationState, GroupPolicyCount, SysvolCount, IdenticalCount, StopReplicationOnAutoRecovery
                                 $inObj = [ordered] @{
-                                    'DC Name' = $DCStatus.DomainController
-                                    'Replication Status' = Switch ([string]::IsNullOrEmpty($DCStatus.ReplicationState)) {
-                                        $true { "Unknown" }
-                                        $false { $DCStatus.ReplicationState }
+                                    'DC Name' = $Controller.Split('.')[0]
+                                    'Replication Status' = Switch ([string]::IsNullOrEmpty($RepState.ReplicationState)) {
+                                        $true { "Offline" }
+                                        $false { $RepState.ReplicationState }
                                         default { "--" }
                                     }
-                                    'GPO Count' = $DCStatus.GroupPolicyCount
-                                    'Sysvol Count' = $DCStatus.SysvolCount
-                                    'Identical Count' = $DCStatus.IdenticalCount
-                                    'Stop Replication On AutoRecovery' = $DCStatus.StopReplicationOnAutoRecovery
+                                    'GPO Count' = switch ([string]::IsNullOrEmpty($RepState.GroupPolicyCount)) {
+                                        $true { "0" }
+                                        $false { $RepState.GroupPolicyCount }
+                                        default { "--" }
+                                    }
+                                    'Sysvol Count' = switch ([string]::IsNullOrEmpty($RepState.SysvolCount)) {
+                                        $true { "0" }
+                                        $false { $RepState.SysvolCount }
+                                        default { "--" }
+                                    }
+                                    'Identical Count' = switch ([string]::IsNullOrEmpty($RepState.IdenticalCount)) {
+                                        $true { "0" }
+                                        $false { $RepState.IdenticalCount }
+                                        default { "--" }
+                                    }
+                                    'Stop Replication On AutoRecovery' = switch ([string]::IsNullOrEmpty($RepState.StopReplicationOnAutoRecovery)) {
+                                        $true { "0" }
+                                        $false { $RepState.StopReplicationOnAutoRecovery }
+                                        default { "--" }
+                                    }
 
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)

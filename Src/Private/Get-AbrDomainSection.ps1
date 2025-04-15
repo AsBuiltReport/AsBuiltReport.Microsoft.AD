@@ -79,6 +79,7 @@ function Get-AbrDomainSection {
                                                 BlankLine
                                             }
                                         }
+
                                         $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
                                         if ($DCs) {

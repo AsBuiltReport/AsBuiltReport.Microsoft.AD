@@ -682,7 +682,7 @@ function Get-AbrADSite {
                                                                 if ($Report.ShowTableCaptions) {
                                                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                                                 }
-                                                                $OutObj | Table @TableParams
+                                                                $OutObj | Table @TableParamsSysvol Replication
                                                                 if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' })))) {
                                                                     Paragraph "Health Check:" -Bold -Underline
                                                                     BlankLine
@@ -773,6 +773,28 @@ function Get-AbrADSite {
                                             $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError } | Set-Style -Style Critical -Property 'Replication Status'
                                             $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property 'Replication Status'
                                         }
+                                    }
+                                } else {
+                                    try {
+                                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                                        $inObj = [ordered] @{
+                                            'DC Name' = $DC.split(".", 2)[0]
+                                            'Replication Status' = Switch ($Replication.State) {
+                                                0 { 'Uninitialized' }
+                                                1 { 'Initialized' }
+                                                2 { 'Initial synchronization' }
+                                                3 { 'Auto recovery' }
+                                                4 { 'Normal' }
+                                                5 { 'In error state' }
+                                                6 { 'Disabled' }
+                                                7 { 'Unknown' }
+                                                default { 'Offline' }
+                                            }
+                                            'Domain' = $Domain
+                                        }
+                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
                                     }
                                 }
                             }
