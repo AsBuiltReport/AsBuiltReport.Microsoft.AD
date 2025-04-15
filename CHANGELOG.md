@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increase AsBuiltReport.Core to v1.4.3
 - Increase Diagrammer.Core minimum requirement
 - Increase Diagrammer.Microsoft.AD minumum requirement
-- Improve Get-DCWinRMState to detect current connected DC (WIP)
+- Improve Get-ValidCimSession,ValidPSSession to detect current connected DC
+  - Reuse the WinRM session
 - Improve DNS settings retrieval by filtering only active network adapters in Get-AbrADDomainController function
 - Update Sample report
 

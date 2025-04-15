@@ -422,6 +422,7 @@ function Get-AbrADDomainController {
         #---------------------------------------------------------------------------------------------#
         try {
             $OutObj = @()
+            $UnresolverDNS = @()
             foreach ($DC in $DCs) {
                 if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                     $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
@@ -436,7 +437,6 @@ function Get-AbrADDomainController {
                             } else { $ErrorMessage = $_.Exception.MessageId }
                             Write-PScriboMessage -IsWarning "DNS IP Configuration Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
-                        $UnresolverDNS = @()
                         foreach ($DNSServer in $DNSSettings.ServerAddresses) {
                             if ($DCPssSession) {
                                 $Unresolver = Invoke-Command -Session $DCPssSession { Resolve-DnsName -Server $using:DNSServer -Name $using:PrimaryDNSSoA -DnsOnly -ErrorAction SilentlyContinue }

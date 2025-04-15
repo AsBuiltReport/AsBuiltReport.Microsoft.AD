@@ -66,7 +66,7 @@
         },
         @{
             ModuleName = 'Diagrammer.Microsoft.AD';
-            ModuleVersion = '0.2.10'
+            ModuleVersion = '0.2.11'
         },
         @{
             ModuleName = 'Diagrammer.Core';
