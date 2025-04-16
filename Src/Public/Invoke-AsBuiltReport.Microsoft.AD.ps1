@@ -144,7 +144,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Get-AbrPKISection
 
         if ($PSSTable) {
-            foreach ($PSSession in $PSSTable) {
+            foreach ($PSSession in ($PSSTable | Where-Object { $_.Status -ne 'Offline' })) {
                 # Remove used CIMSession
                 Write-PScriboMessage "Clearing PSSession with ID $($PSSession.Id)"
                 Remove-PSSession -Id $PSSession.id
@@ -152,11 +152,21 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         if ($CIMTable) {
-            foreach ($CIMSession in $CIMTable) {
+            foreach ($CIMSession in ($CIMTable | Where-Object { $_.Status -ne 'Offline' })) {
                 # Remove used CIMSession
                 Write-PScriboMessage "Clearing CIM Session with ID $($CIMSession.Id)"
                 Remove-CimSession -Id $CIMSession.id
             }
+        }
+
+        if ($DCStatus) {
+            Write-Host "The following Domain Controllers were not reachable:`n"
+            Write-Host "Domain Controllers"
+            Write-Host "------------------"
+            $DCStatus | Where-Object { $_.Status -eq 'Offline' } | ForEach-Object {
+                Write-Host "$($_.DCName)"
+            }
+            Write-Host "`n"
         }
     }#endregion foreach loop
 }

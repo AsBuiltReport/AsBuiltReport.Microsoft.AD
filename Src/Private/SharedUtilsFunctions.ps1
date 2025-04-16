@@ -2428,16 +2428,12 @@ function Get-DCWinRMState {
         [ref]$DCStatus
     )
     Write-PScriboMessage -Message "Validating WinRM status of $ComputerName in Cache"
-    if ($Options.WinRMSSL) {
-        if ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'WinRMSSL' }) {
-            Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: Offline"
-            return $false
-        }
-    } else {
-        if ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'WinRM' }) {
-            Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: Offline"
-            return $false
-        }
+    if ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'WinRMSSL' }) {
+        Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: Offline"
+        return $false
+    } elseif ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'WinRM' }) {
+        Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: Offline"
+        return $false
     }
 
 
@@ -2471,7 +2467,9 @@ function Get-DCWinRMState {
             }
             Write-PScriboMessage -Message "WinRM status in $ComputerName is Online ($WinRMType)."
             return $true
-        } elseif ($Options.WinRMFallbackToNoSSL) {
+        }
+
+        if ($Options.WinRMFallbackToNoSSL) {
             $ConnectionParams['UseSSL'] = $false
             $ConnectionParams['Port'] = $Options.WinRMPort
             $WinRMType = "WinRM"
