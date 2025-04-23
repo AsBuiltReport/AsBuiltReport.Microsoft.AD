@@ -417,7 +417,7 @@ function Get-AbrADDomainController {
                         Write-PScriboMessage "Unable to collect infromation from $DC."
                         $inObj = [ordered] @{
                             'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
-                            'Interface' = 'Offline'
+                            'Interface' = '--'
                             'Prefered DNS' = '--'
                             'Alternate DNS' = '--'
                             'DNS 3' = '--'

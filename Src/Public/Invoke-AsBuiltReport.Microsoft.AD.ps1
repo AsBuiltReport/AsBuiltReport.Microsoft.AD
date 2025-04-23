@@ -160,7 +160,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         if ($DCStatus) {
-            Write-Host "The following Domain Controllers were not reachable:`n"
+            Write-Host "`n"
+            Write-Host "The following Domain Controllers could not be reached:`n"
             Write-Host "Domain Controllers"
             Write-Host "------------------"
             $DCStatus | Where-Object { $_.Status -eq 'Offline' } | ForEach-Object {
