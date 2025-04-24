@@ -45,11 +45,12 @@ function Get-AbrDiagrammer {
             HelpMessage = 'Please provide pssession to use for the connection'
         )]
         [ValidateNotNullOrEmpty()]
-        $PSSessionObject
+        $PSSessionObject,
+        [string]$DomainController = $System
     )
 
     begin {
-        Write-PScriboMessage "Getting $($Global:Report) diagram for $System."
+        Write-PScriboMessage "Getting $($Global:Report) diagram for $DomainController ."
     }
 
     process {
@@ -87,7 +88,7 @@ function Get-AbrDiagrammer {
             $DiagramParams = @{
                 'OutputFolderPath' = $OutputFolderPath
                 'Credential' = $Credential
-                'Target' = $System
+                'Target' = $DomainController
                 'Direction' = 'top-to-bottom'
                 'WaterMarkText' = $Options.DiagramWaterMark
                 'WaterMarkColor' = 'DarkGreen'

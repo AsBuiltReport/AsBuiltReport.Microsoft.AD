@@ -7,12 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.4] - 2025-04-15
+## [0.9.4] - 2025-04-24
 
 ### Added
 
-- Added a new section in Get-AbrDomainSection to retrieve and sort DCs while excluding specified ones, enhancing the overall structure and clarity of the script.
-- Added diagram options to configuration for various sections.
+- Add a new section in Get-AbrDomainSection to retrieve and sort DCs while excluding specified ones, enhancing the overall structure and clarity of the script.
+- Add diagram options to configuration file for various sections.
 - Introduced Get-AbrDiagrammer function to generate diagrams in multiple formats.
 
 ### Changed

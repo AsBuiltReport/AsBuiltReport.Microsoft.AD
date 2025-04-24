@@ -24,8 +24,8 @@ function Get-AbrDNSSection {
 
     process {
         if ($InfoLevel.DNS -ge 1) {
-            $DNSDomainObj = foreach ($Domain in [string[]]$OrderedDomains) {
-                if ($DomainStatus.Value | Where-Object { $_.Name -eq $Domain -and $_.Status -ne "Offline" }) {
+            $DNSDomainObj = foreach ($Domain in [string[]]($OrderedDomains | Where-Object { $_ -notin $Options.Exclude.Domains })) {
+                if ($Domain -notin $DomainStatus.Value.Name) {
                     if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         try {
                             if (Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }) {
