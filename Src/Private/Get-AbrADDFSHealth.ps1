@@ -33,8 +33,8 @@ function Get-AbrADDFSHealth {
                 $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
                 if ($Options.Exclude.DCs) {
-                    $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential | Where-Object { $_.DomainController -notin $Options.Exclude.DCs }
-                } Else { $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential }
+                    $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential -ExcludeDomains $Options.Exclude.Domains -ExcludeDomainControllers $Options.Exclude.DCs
+                } Else { $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential -ExcludeDomains $Options.Exclude.Domains }
                 if ($DFS) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Replication Status' {
                         Paragraph "The following section details the sysvol folder replication status for Domain $($Domain.ToString().ToUpper())."

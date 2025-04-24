@@ -16,6 +16,7 @@ function Get-AbrDomainSection {
     #>
     [CmdletBinding()]
     param (
+        [ref]$DomainStatus
     )
 
     begin {
@@ -24,27 +25,13 @@ function Get-AbrDomainSection {
 
     process {
         if ($InfoLevel.Domain -ge 1) {
-            Section -Style Heading1 "AD Domain Configuration" {
-                if ($Options.ShowDefinitionInfo) {
-                    Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user, a group, or a hardware component such as a computer or printer. Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain, or an alternate version (which may end in .local)."
-                    BlankLine
-                }
-                if (-Not $Options.ShowDefinitionInfo) {
-                    Paragraph "The following section provides a summary of the Active Directory domain information."
-                    BlankLine
-                }
-
-                foreach ($Domain in $OrderedDomains.split(" ")) {
+            $DomainObj = foreach ($Domain in [string[]]$OrderedDomains) {
+                if ($DomainStatus.Value | Where-Object { $_.Name -eq $Domain -and $_.Status -ne "Offline" }) {
+                    Write-PScriboMessage -IsWarning "Domain $($Domain.ToString().ToUpper()) is offline. Skipping it."
                     if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         # Define Filter option for Domain variable
-                        if ($Options.Include.Domains) {
-                            $DomainFilterOption = $Domain -in $Options.Include.Domains
-
-                        } else {
-                            $DomainFilterOption = $Domain -notin $Options.Exclude.Domains
-                        }
                         try {
-                            if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain })) {
+                            if (Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain }) {
                                 Section -Style Heading2 "$($Domain.ToString().ToUpper())" {
                                     Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                     BlankLine
@@ -150,8 +137,25 @@ function Get-AbrDomainSection {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Active Directory Domain)"
                         }
                     } else {
+                        $DomainStatus.Value += @{
+                            Name = $Domain
+                            Status = 'Offline'
+                        }
                         Write-PScriboMessage -IsWarning "Unable to get an available DC in $Domain domain. Removing it from the report."
                     }
+                }
+            }
+            if ($DomainObj) {
+                Section -Style Heading1 "AD Domain Configuration" {
+                    if ($Options.ShowDefinitionInfo) {
+                        Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user, a group, or a hardware component such as a computer or printer. Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain, or an alternate version (which may end in .local)."
+                        BlankLine
+                    }
+                    if (-Not $Options.ShowDefinitionInfo) {
+                        Paragraph "The following section provides a summary of the Active Directory domain information."
+                        BlankLine
+                    }
+                    $DomainObj
                 }
             }
         }

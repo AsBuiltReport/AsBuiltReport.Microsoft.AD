@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added a new section in Get-AbrDomainSection to retrieve and sort DCs while excluding specified ones, enhancing the overall structure and clarity of the script.
+- Added diagram options to configuration for various sections.
+- Introduced Get-AbrDiagrammer function to generate diagrams in multiple formats.
 
 ### Changed
 
@@ -23,7 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reuse the CIM session
 - Improve DNS settings retrieval by filtering only active network adapters in Get-AbrADDomainController function
 - Update Sample report
-- Improved Get-AbrADSite to handle cases where information cannot be collected from DCs, ensuring that the output remains informative and consistent.
+- Improve Get-AbrADSite to handle cases where information cannot be collected from DCs, ensuring that the output remains informative and consistent.
+- Update existing functions to utilize new diagram features and handle domain status.
+- Improve error handling and reporting for offline domains and DCs.
+
 
 ### Fixed
 

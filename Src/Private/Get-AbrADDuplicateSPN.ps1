@@ -30,7 +30,7 @@ function Get-AbrADDuplicateSPN {
     process {
         if ($HealthCheck.Domain.SPN) {
             try {
-                $SPNs = Get-WinADDuplicateSPN -Domain $Domain -Credential $Credential
+                $SPNs = Get-WinADDuplicateSPN -Domain $Domain -Credential $Credential -ExcludeDomains $Options.Exclude.Domains
                 if ($SPNs) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate SPN' {
                         Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.ToString().ToUpper())."

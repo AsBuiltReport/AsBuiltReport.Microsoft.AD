@@ -103,6 +103,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         # WinRM Session variables
         $DCStatus = @()
+        $DomainStatus = @()
         $CIMTable = @()
         $PSSTable = @()
 
@@ -128,14 +129,18 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
         [array]$RootDomains = $ADSystem.RootDomain
-        [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains }
-        [string] $script:OrderedDomains = $RootDomains + $ChildDomains
+        if ($Options.Include.Domains) {
+            [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -in $Options.Include.Domains }
+        } else {
+            [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
+        }
+        [array] $script:OrderedDomains = @($RootDomains, $ChildDomains)
 
         # Forest Section
         Get-AbrForestSection
 
         # Domain Section
-        Get-AbrDomainSection
+        Get-AbrDomainSection -DomainStatus ([ref]$DomainStatus)
 
         # DNS Section
         Get-AbrDnsSection
@@ -143,6 +148,17 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         # PKI Section
         Get-AbrPKISection
 
+        #---------------------------------------------------------------------------------------------#
+        #                            Export Diagram Section                                           #
+        #---------------------------------------------------------------------------------------------#
+
+        if ($Options.ExportDiagrams) {
+            $Options.DiagramType.PSobject.Properties | ForEach-Object { if ($_.Value) { Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $TempPssSession } }
+        }
+
+        #---------------------------------------------------------------------------------------------#
+        #                          Clean Connection Sessions Section                                  #
+        #---------------------------------------------------------------------------------------------#
         if ($PSSTable) {
             foreach ($PSSession in ($PSSTable | Where-Object { $_.Status -ne 'Offline' })) {
                 # Remove used CIMSession
@@ -159,15 +175,29 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             }
         }
 
-        if ($DCStatus) {
-            Write-Host "`n"
-            Write-Host "The following Domain Controllers could not be reached:`n"
-            Write-Host "Domain Controllers"
-            Write-Host "------------------"
-            $DCStatus | Where-Object { $_.Status -eq 'Offline' } | ForEach-Object {
-                Write-Host "$($_.DCName)"
+        #---------------------------------------------------------------------------------------------#
+        #                           Connection Status Section                                         #
+        #---------------------------------------------------------------------------------------------#
+
+        if ($DCStatus -or $DomainStatus) {
+            Write-Host "`r`n"
+            Write-Host "The following Systems could not be reached:`n"
+            if ($DCStatus) {
+                Write-Host "Domain Controllers"
+                Write-Host "------------------"
+                $DCStatus | Where-Object { $_.Status -eq 'Offline' } | ForEach-Object {
+                    Write-Host "$($_.DCName)"
+                }
+                Write-Host "`r`n"
             }
-            Write-Host "`n"
+            if ($DomainStatus) {
+                Write-Host "Domains"
+                Write-Host "--------"
+                $DomainStatus | Where-Object { $_.Status -eq 'Offline' } | ForEach-Object {
+                    Write-Host "$($_.Name)"
+                }
+                Write-Host "`r`n"
+            }
         }
     }#endregion foreach loop
 }
