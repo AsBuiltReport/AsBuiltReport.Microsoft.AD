@@ -30,23 +30,25 @@ function Get-AbrADSite {
                     Paragraph 'Replication is the process of transferring and updating Active Directory objects between domain controllers in the Active Directory domain and forest.'
                     BlankLine
                     Paragraph "The following section details Active Directory replication and its relationships."
-                    try {
+                    if ($Options.EnableDiagrams) {
                         try {
-                            $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType SitesInventory
-                        } catch {
-                            Write-PScriboMessage -IsWarning "Site Inventory Diagram Graph: $($_.Exception.Message)"
-                        }
-
-                        if ($Graph) {
-                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 20 } else { $ImagePrty = 50 }
-                            Section -Style Heading4 "Site Inventory Diagram." {
-                                Image -Base64 $Graph -Text "Site Inventory Diagram" -Percent $ImagePrty -Align Center
-                                Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                            try {
+                                $Graph = Get-AbrDiagrammer -DiagramType "SitesInventory" -DiagramOutput base64 -PSSessionObject $TempPssSession
+                            } catch {
+                                Write-PScriboMessage -IsWarning "Site Inventory Diagram Graph: $($_.Exception.Message)"
                             }
-                            BlankLine -Count 2
+
+                            if ($Graph) {
+                                If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 20 } else { $ImagePrty = 50 }
+                                Section -Style Heading4 "Site Inventory Diagram." {
+                                    Image -Base64 $Graph -Text "Site Inventory Diagram" -Percent $ImagePrty -Align Center
+                                    Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                                }
+                                BlankLine -Count 2
+                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "Site Inventory Diagram Section: $($_.Exception.Message)"
                         }
-                    } catch {
-                        Write-PScriboMessage -IsWarning "Site Inventory Diagram Section: $($_.Exception.Message)"
                     }
                     Section -Style Heading4 'Sites' {
                         $OutObj = @()
@@ -78,14 +80,37 @@ function Get-AbrADSite {
                                     }
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
-
-                                if ($HealthCheck.Site.BestPractice) {
-                                    $OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' } | Set-Style -Style Warning -Property 'Subnets'
-                                    $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
-                                    $OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' } | Set-Style -Style Warning -Property 'Domain Controllers'
-                                }
                             } catch {
                                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Site)"
+                            }
+                        }
+
+                        if ($HealthCheck.Site.BestPractice) {
+                            $List = @()
+                            $Num = 0
+                            if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
+                                $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
+                                $Num++
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Description' -eq '--' }) ) {
+                                    $OBJ.'Description' = $OBJ.'Description' + " ($Num)"
+                                }
+                                $List += "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
+                            }
+                            if ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' }) {
+                                $OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' } | Set-Style -Style Warning -Property 'Subnets'
+                                $Num++
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' }) ) {
+                                    $OBJ.'Subnets' = $OBJ.'Subnets' + " ($Num)"
+                                }
+                                $List += "Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller."
+                            }
+                            if ($OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' }) {
+                                $OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' } | Set-Style -Style Warning -Property 'Domain Controllers'
+                                $Num++
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' } ) ) {
+                                    $OBJ.'Domain Controllers' = $OBJ.'Domain Controllers' + " ($Num)"
+                                }
+                                $List += "It is important to ensure that each site has at least one assigned domain controller. Missing domain controllers can lead to authentication delays and potential service disruptions for users in the site."
                             }
                         }
 
@@ -98,21 +123,9 @@ function Get-AbrADSite {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Sort-Object -Property 'Site Name' | Table @TableParams
-                        if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Subnets' -eq '--' }) -or ($OutObj | Where-Object { $_.'Description' -eq '--' }))) {
+                        if ($List) {
                             Paragraph 'Health Check:' -Bold -Underline
-                            BlankLine
-                            if ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' }) {
-                                Paragraph {
-                                    Text -Bold "Corrective Actions:"
-                                    Text "Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller." }
-                            }
-                            if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
-                                BlankLine
-                                Paragraph {
-                                    Text "Best Practice:" -Bold
-                                    Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
-                                }
-                            }
+                            List -Item $List -Numbered
                         }
                     }
                     try {
@@ -197,6 +210,27 @@ function Get-AbrADSite {
                                     }
                                 }
 
+                                if ($HealthCheck.Site.BestPractice) {
+                                    $List = @()
+                                    $Num = 0
+                                    if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
+                                        $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
+                                        $Num++
+                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Description' -eq '--' }) ) {
+                                            $OBJ.'Description' = $OBJ.'Description' + " ($Num)"
+                                        }
+                                        $List += "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
+                                    }
+                                    if ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }) {
+                                        $OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' } | Set-Style -Style Warning -Property 'Sites'
+                                        $Num++
+                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }) ) {
+                                            $OBJ.'Sites' = $OBJ.'Sites' + " ($Num)"
+                                        }
+                                        $List += "Ensure Subnet have an associated site. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication. This can lead to increased latency and potential performance issues for users authenticating against a domain controller that is not local to their site."
+                                    }
+                                }
+
                                 $TableParams = @{
                                     Name = "Site Subnets - $($ForestInfo)"
                                     List = $false
@@ -206,22 +240,9 @@ function Get-AbrADSite {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'Subnet' | Table @TableParams
-                                if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Description' -eq '--' }) -or ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }))) {
-                                    Paragraph "Health Check:" -Bold -Underline
-                                    BlankLine
-                                    if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
-                                        Paragraph {
-                                            Text "Best Practice:" -Bold
-                                            Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
-                                        }
-                                        BlankLine
-                                    }
-                                    if ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }) {
-                                        Paragraph {
-                                            Text "Corrective Actions:" -Bold
-                                            Text "Ensure Subnet have an associated site. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication. This can lead to increased latency and potential performance issues for users authenticating against a domain controller that is not local to their site."
-                                        }
-                                    }
+                                if ($List) {
+                                    Paragraph 'Health Check:' -Bold -Underline
+                                    List -Item $List -Numbered
                                 }
                                 if ($HealthCheck.Site.BestPractice) {
                                     try {
@@ -229,9 +250,9 @@ function Get-AbrADSite {
                                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
-                                                if (Get-DCWinRMState -ComputerName $DC) {
+                                                if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                                     try {
-                                                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                                                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
                                                         if ($DCPssSession) {
                                                             $Path = "\\$DC\admin`$\debug\netlogon.log"
                                                             if ((Invoke-Command -Session $DCPssSession { Test-Path -Path $using:path }) -and (Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0 })) {
@@ -284,7 +305,7 @@ function Get-AbrADSite {
                                                     Paragraph "Health Check:" -Bold -Underline
                                                     BlankLine
                                                     Paragraph {
-                                                        Text "Corrective Actions:" -Bold
+                                                        Text "Best Practice:" -Bold
                                                         Text "Ensure that all subnets at each site are properly defined. Missing subnets can cause clients to not use the site's local Domain Controllers."
                                                     }
                                                     BlankLine
@@ -304,23 +325,25 @@ function Get-AbrADSite {
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
                     }
-                    try {
+                    if ($Options.EnableDiagrams) {
                         try {
-                            $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Sites
-                        } catch {
-                            Write-PScriboMessage -IsWarning "Site Topology Diagram Graph: $($_.Exception.Message)"
-                        }
-
-                        if ($Graph) {
-                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
-                            Section -Style Heading4 "Site Topology Diagram." {
-                                Image -Base64 $Graph -Text "Site Topology Diagram" -Percent $ImagePrty -Align Center
-                                Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                            try {
+                                $Graph = Get-AbrDiagrammer -DiagramType "Sites" -DiagramOutput base64 -PSSessionObject $TempPssSession
+                            } catch {
+                                Write-PScriboMessage -IsWarning "Site Topology Diagram Graph: $($_.Exception.Message)"
                             }
-                            BlankLine -Count 2
+
+                            if ($Graph) {
+                                If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
+                                Section -Style Heading4 "Site Topology Diagram." {
+                                    Image -Base64 $Graph -Text "Site Topology Diagram" -Percent $ImagePrty -Align Center
+                                    Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                                }
+                                BlankLine -Count 2
+                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "Site Topology Diagram Section: $($_.Exception.Message)"
                         }
-                    } catch {
-                        Write-PScriboMessage -IsWarning "Site Topology Diagram Section: $($_.Exception.Message)"
                     }
                     try {
                         $DomainDN = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
@@ -663,7 +686,7 @@ function Get-AbrADSite {
                                                                 if ($Report.ShowTableCaptions) {
                                                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                                                 }
-                                                                $OutObj | Table @TableParams
+                                                                $OutObj | Table @TableParamsSysvol Replication
                                                                 if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' })))) {
                                                                     Paragraph "Health Check:" -Bold -Underline
                                                                     BlankLine
@@ -712,14 +735,11 @@ function Get-AbrADSite {
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
-                                if (Get-DCWinRMState -ComputerName $DC) {
-                                    $DCCIMSession = Get-ValidCIMSession -ComputerName $DC -SessionName "SysvolReplication"
+                                if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
+                                    $DCCIMSession = Get-ValidCIMSession -ComputerName $DC -SessionName $DC -CIMTable ([ref]$CIMTable)
 
                                     if ($DCCIMSession) {
                                         $Replication = Get-CimInstance -CimSession $DCCIMSession -Namespace "root/microsoftdfs" -Class "dfsrreplicatedfolderinfo" -Filter "ReplicatedFolderName = 'SYSVOL Share'" -EA 0 -Verbose:$False | Select-Object State
-                                        if ($DCCIMSession) {
-                                            Remove-CimSession -CimSession $DCCIMSession
-                                        }
 
                                         try {
                                             $inObj = [ordered] @{
@@ -733,6 +753,7 @@ function Get-AbrADSite {
                                                     5 { 'In error state' }
                                                     6 { 'Disabled' }
                                                     7 { 'Unknown' }
+                                                    default { 'Offline' }
                                                 }
                                                 'Domain' = $Domain
                                             }
@@ -758,6 +779,28 @@ function Get-AbrADSite {
                                             $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property 'Replication Status'
                                         }
                                     }
+                                } else {
+                                    try {
+                                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                                        $inObj = [ordered] @{
+                                            'DC Name' = $DC.split(".", 2)[0]
+                                            'Replication Status' = Switch ($Replication.State) {
+                                                0 { 'Uninitialized' }
+                                                1 { 'Initialized' }
+                                                2 { 'Initial synchronization' }
+                                                3 { 'Auto recovery' }
+                                                4 { 'Normal' }
+                                                5 { 'In error state' }
+                                                6 { 'Disabled' }
+                                                7 { 'Unknown' }
+                                                default { 'Offline' }
+                                            }
+                                            'Domain' = $Domain
+                                        }
+                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                    } catch {
+                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
+                                    }
                                 }
                             }
                         }
@@ -778,7 +821,7 @@ function Get-AbrADSite {
                                     Paragraph "Health Check:" -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text "Corrective Actions:" -Bold
+                                        Text "Best Practice:" -Bold
                                         Text "SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains."
                                     }
                                     BlankLine

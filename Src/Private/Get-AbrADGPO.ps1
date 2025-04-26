@@ -16,35 +16,32 @@ function Get-AbrADGPO {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string]$ValidDCFromDomain
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory Group Policy Objects information for $($Domain.ToString().ToUpper())."
+        Write-PScriboMessage "Collecting Active Directory Group Policy Objects information for $($Domain.DNSRoot.ToString().ToUpper())."
     }
 
     process {
         try {
             Section -Style Heading4 "Group Policy Objects" {
-                Paragraph "The following section provides a summary of the Group Policy Objects for domain $($Domain.ToString().ToUpper())."
+                Paragraph "The following section provides a summary of the Group Policy Objects for domain $($Domain.DNSRoot.ToString().ToUpper())."
                 BlankLine
                 $OutObj = @()
-                $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Domain $using:Domain -All }
+                $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Domain ($using:Domain).DNSRoot -All }
                 if ($GPOs) {
                     if ($InfoLevel.Domain -eq 1) {
                         try {
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML }
+                                    [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain ($using:Domain).DNSRoot -ReportType XML }
                                     $inObj = [ordered] @{
                                         'GPO Name' = $GPO.DisplayName
                                         'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
                                         'Security Filtering' = & {
-                                            $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName $using:Domain -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
+                                            $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName ($using:Domain).DNSRoot -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
                                             if ($GPOSECFILTER) {
 
                                                 return $GPOSECFILTER
@@ -66,7 +63,7 @@ function Get-AbrADGPO {
                             }
 
                             $TableParams = @{
-                                Name = "GPO - $($Domain.ToString().ToUpper())"
+                                Name = "GPO - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 40, 25, 25, 10
                             }
@@ -109,7 +106,7 @@ function Get-AbrADGPO {
                             foreach ($GPO in $GPOs) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading5 "$($GPO.DisplayName)" {
                                     try {
-                                        [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain $using:Domain -ReportType XML }
+                                        [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain ($using:Domain).DNSRoot -ReportType XML }
                                         $inObj = [ordered] @{
                                             'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
                                             'GUID' = $GPO.Id
@@ -119,13 +116,13 @@ function Get-AbrADGPO {
                                             'Computer Version' = "$($Links.GPO.Computer.VersionDirectory) (AD), $($Links.GPO.Computer.VersionSysvol) (SYSVOL)"
                                             'User Version' = "$($Links.GPO.User.VersionDirectory) (AD), $($Links.GPO.User.VersionSysvol) (SYSVOL)"
                                             'WMI Filter' = & {
-                                                $WMIFilter = Invoke-Command -Session $TempPssSession -ScriptBlock { ((Get-GPO -DomainName $using:Domain  -Name $using:GPO.DisplayName).WMifilter.Name) }
+                                                $WMIFilter = Invoke-Command -Session $TempPssSession -ScriptBlock { ((Get-GPO -DomainName $($using:Domain).DNSROot  -Name $using:GPO.DisplayName).WMifilter.Name) }
                                                 if ($WMIFilter) {
                                                     $WMIFilter
                                                 } else { '--' }
                                             }
                                             'Security Filtering' = & {
-                                                $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName $using:Domain -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
+                                                $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName ($using:Domain).DNSROot -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
                                                 if ($GPOSECFILTER) {
 
                                                     return $GPOSECFILTER
@@ -195,20 +192,16 @@ function Get-AbrADGPO {
                     }
                     if ($InfoLevel.Domain -ge 2) {
                         try {
-                            $DC = Get-ValidDCfromDomain -Domain $Domain
-
-                            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+                            $DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)
 
                             if ($DCPssSession) {
-                                $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
-
-                                $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
+                                $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($Domain.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
 
                             } else {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
-                                Write-PScriboMessage -IsWarning "Wmi Filters Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                                Write-PScriboMessage -IsWarning "Wmi Filters Section: New-PSSession: Unable to connect to $($ValidDCFromDomain): $ErrorMessage"
                             }
 
                             if ($WmiFilters) {
@@ -240,22 +233,22 @@ function Get-AbrADGPO {
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage "No WMI Filter information found in $Domain, Disabling this section."
+                                Write-PScriboMessage "No WMI Filter information found in $($Domain.DNSRoot), Disabling this section."
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (WMI Filters)"
                         }
                     }
                     try {
-                        $PATH = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
+                        $PATH = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\PolicyDefinitions"
                         $CentralStore = Invoke-Command -Session $TempPssSession -ScriptBlock { Test-Path $using:PATH }
                         if ($PATH) {
                             Section -Style Heading5 "Central Store Repository" {
                                 $OutObj = @()
                                 $inObj = [ordered] @{
-                                    'Domain' = $Domain.ToString().ToUpper()
+                                    'Domain' = $Domain.Name.ToString().ToUpper()
                                     'Configured' = $CentralStore
-                                    'Central Store Path' = "\\$Domain\SYSVOL\$Domain\Policies\PolicyDefinitions"
+                                    'Central Store Path' = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\PolicyDefinitions"
                                 }
                                 $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
 
@@ -264,7 +257,7 @@ function Get-AbrADGPO {
                                 }
 
                                 $TableParams = @{
-                                    Name = "GPO Central Store - $($Domain.ToString().ToUpper())"
+                                    Name = "GPO Central Store - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 25, 15, 60
                                 }
@@ -283,7 +276,7 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage "No GPO Central Store information found in $Domain, Disabling this section."
+                            Write-PScriboMessage "No GPO Central Store information found in $($Domain.DNSRoot), Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO Central Store)"
@@ -293,7 +286,7 @@ function Get-AbrADGPO {
                             $OutObj = @()
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
+                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
                                     $UserScripts = $Gpoxml.GPO.User.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
                                     if ($UserScripts.extension.Script) {
                                         foreach ($Script in $UserScripts.extension.Script) {
@@ -322,7 +315,7 @@ function Get-AbrADGPO {
                                 }
 
                                 $TableParams = @{
-                                    Name = "GPO with Logon/Logoff Script - $($Domain.ToString().ToUpper())"
+                                    Name = "GPO with Logon/Logoff Script - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 20, 15, 15, 50
                                 }
@@ -333,7 +326,7 @@ function Get-AbrADGPO {
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                             }
                         } else {
-                            Write-PScriboMessage "No GPO Logon/Logoff script information found in $Domain, Disabling this section."
+                            Write-PScriboMessage "No GPO Logon/Logoff script information found in $($Domain.DNSRoot), Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO with Logon/Logoff Script Section)"
@@ -343,7 +336,7 @@ function Get-AbrADGPO {
                             $OutObj = @()
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
+                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
                                     $ComputerScripts = $Gpoxml.GPO.Computer.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
                                     if ($ComputerScripts.extension.Script) {
                                         foreach ($Script in $ComputerScripts.extension.Script) {
@@ -372,7 +365,7 @@ function Get-AbrADGPO {
                                 }
 
                                 $TableParams = @{
-                                    Name = "GPO with Startup/Shutdown Script - $($Domain.ToString().ToUpper())"
+                                    Name = "GPO with Startup/Shutdown Script - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 20, 15, 15, 50
                                 }
@@ -384,7 +377,7 @@ function Get-AbrADGPO {
                             }
 
                         } else {
-                            Write-PScriboMessage "No GPO Computer Startup/Shutdown script information found in $Domain, Disabling this section."
+                            Write-PScriboMessage "No GPO Computer Startup/Shutdown script information found in $($Domain.DNSRoot), Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Section)"
@@ -396,7 +389,7 @@ function Get-AbrADGPO {
                         if ($GPOs) {
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
+                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
                                     if (($Null -ne $Gpoxml.GPO.Name) -and ($Null -eq $Gpoxml.GPO.LinksTo.SOMPath)) {
                                         $inObj = [ordered] @{
                                             'GPO Name' = $Gpoxml.GPO.Name
@@ -419,7 +412,7 @@ function Get-AbrADGPO {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Unlinked GPO - $($Domain.ToString().ToUpper())"
+                                    Name = "Unlinked GPO - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 40, 15, 15, 15, 15
                                 }
@@ -436,7 +429,7 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage "No Unlinked Group Policy Objects information found in $Domain, Disabling this section."
+                            Write-PScriboMessage "No Unlinked Group Policy Objects information found in $($Domain.DNSRoot), Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unlinked Group Policy Objects Section)"
@@ -446,7 +439,7 @@ function Get-AbrADGPO {
                         if ($GPOs) {
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain $using:Domain -ReportType Xml -Guid ($using:GPO).Id }
+                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
                                     if (($Null -eq ($Gpoxml.GPO.Computer.ExtensionData)) -and ($Null -eq ($Gpoxml.GPO.User.extensionData))) {
                                         $inObj = [ordered] @{
                                             'GPO Name' = $Gpoxml.GPO.Name
@@ -468,7 +461,7 @@ function Get-AbrADGPO {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Empty GPO - $($Domain.ToString().ToUpper())"
+                                    Name = "Empty GPO - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 35, 15, 15, 35
                                 }
@@ -485,27 +478,25 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage "No Empty GPO information found in $Domain, Disabling this section."
+                            Write-PScriboMessage "No Empty GPO information found in $($Domain.DNSRoot), Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Empty Group Policy Objects Section)"
                     }
                     try {
-                        $DM = Invoke-Command -Session $TempPssSession {Get-ADDomain -Identity $using:Domain}
                         $OutObj = @()
 
-                        $DC = Get-ValidDCfromDomain -Domain $Domain
-                        $OUs = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Filter * }).DistinguishedName
+                        $OUs = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:ValidDCFromDomain -Filter * }).DistinguishedName
                         if ($OUs) {
-                            $OUs += $DM.DistinguishedName
+                            $OUs += $Domain.DistinguishedName
                         }
                         if ($OUs) {
                             foreach ($OU in $OUs) {
                                 try {
-                                    $GpoEnforces = Invoke-Command -Session $TempPssSession -ErrorAction Stop  -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
+                                    $GpoEnforces = Invoke-Command -Session $TempPssSession -ErrorAction Stop  -ScriptBlock { Get-GPInheritance -Domain ($using:Domain).DNSRoot -Server $using:ValidDCFromDomain -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
                                     foreach ($GpoEnforced in $GpoEnforces) {
                                         if ($GpoEnforced.Enforced -eq "True") {
-                                            $TargetCanonical = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:DC -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
+                                            $TargetCanonical = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:ValidDCFromDomain -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
                                             $inObj = [ordered] @{
                                                 'GPO Name' = $GpoEnforced.DisplayName
                                                 'Target' = $TargetCanonical
@@ -526,7 +517,7 @@ function Get-AbrADGPO {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Enforced GPO - $($Domain.ToString().ToUpper())"
+                                    Name = "Enforced GPO - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 50, 50
                                 }
@@ -544,7 +535,7 @@ function Get-AbrADGPO {
 
                             }
                         } else {
-                            Write-PScriboMessage "No Enforced GPO information found in $Domain, Disabling this section."
+                            Write-PScriboMessage "No Enforced GPO information found in $($Domain.DNSRoot), Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Enforced Group Policy Objects Table)"
@@ -552,21 +543,18 @@ function Get-AbrADGPO {
                     # Code taken from Jeremy Saunders
                     # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
                     try {
-                        $DC = Get-ValidDCfromDomain -Domain $Domain
-
-                        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
-                        $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
+                        $DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)
 
                         if ($DCPssSession) {
-                            $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($DomainInfo.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
+                            $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($Domain.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
 
                         } else {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
                             } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "Orphaned GPO Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                            Write-PScriboMessage -IsWarning "Orphaned GPO Section: New-PSSession: Unable to connect to $($ValidDCFromDomain): $ErrorMessage"
                         }
-                        $GPOPoliciesSYSVOLUNC = "\\$Domain\SYSVOL\$Domain\Policies"
+                        $GPOPoliciesSYSVOLUNC = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies"
                         $OrphanGPOs = @()
                         $GPOPoliciesSYSVOL = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object }).Name.Trim("{}")
                         $SYSVOLGPOList = @()
@@ -601,8 +589,8 @@ function Get-AbrADGPO {
                                         }
                                         'AD DN Path' = & {
                                             if ($OrphanGPO -in $MissingADGPOs) {
-                                                return "CN={$($OrphanGPO)},CN=Policies,CN=System,$($DomainInfo.DistinguishedName) (Missing)"
-                                            } else { "CN={$($OrphanGPO)},CN=Policies,CN=System,$($DomainInfo.DistinguishedName) (Valid)" }
+                                                return "CN={$($OrphanGPO)},CN=Policies,CN=System,$($Domain.DistinguishedName) (Missing)"
+                                            } else { "CN={$($OrphanGPO)},CN=Policies,CN=System,$($Domain.DistinguishedName) (Valid)" }
                                         }
                                         'SYSVOL Guid Directory' = & {
                                             if ($OrphanGPO -in $MissingSYSVOLGPOs) {
@@ -611,8 +599,8 @@ function Get-AbrADGPO {
                                         }
                                         'SYSVOL Guid Path' = & {
                                             if ($OrphanGPO -in $MissingSYSVOLGPOs) {
-                                                return "\\$Domain\SYSVOL\$Domain\Policies\{$($OrphanGPO)} (Missing)"
-                                            } else { "\\$Domain\SYSVOL\$Domain\Policies\{$($OrphanGPO)} (Valid)" }
+                                                return "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\{$($OrphanGPO)} (Missing)"
+                                            } else { "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\{$($OrphanGPO)} (Valid)" }
                                         }
                                     }
                                     $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
@@ -623,7 +611,7 @@ function Get-AbrADGPO {
                                     }
 
                                     $TableParams = @{
-                                        Name = "Orphaned GPO - $($Domain.ToString().ToUpper())"
+                                        Name = "Orphaned GPO - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $true
                                         ColumnWidths = 40, 60
                                     }
@@ -653,7 +641,7 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage "No Orphaned GPO information found in $Domain, Disabling this section."
+                            Write-PScriboMessage "No Orphaned GPO information found in $($Domain.DNSRoot), Disabling this section."
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Orphaned GPO)"

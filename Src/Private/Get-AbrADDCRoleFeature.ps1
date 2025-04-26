@@ -16,10 +16,6 @@ function Get-AbrADDCRoleFeature {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
         $DC
     )
 
@@ -29,7 +25,7 @@ function Get-AbrADDCRoleFeature {
 
     process {
         try {
-            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
+            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
             if ($DCPssSession) {
                 $Features = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq "True" -and $_.FeatureType -eq 'Role' } }
             } else {

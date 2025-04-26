@@ -42,7 +42,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         if ($InstalledVersion) {
             Write-PScriboMessage -IsWarning "AsBuiltReport.Microsoft.AD $($InstalledVersion.ToString()) is currently installed."
             $LatestVersion = Find-Module -Name AsBuiltReport.Microsoft.AD -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
-            if ($LatestVersion -gt $InstalledVersion) {
+            if ([version]$LatestVersion -gt [version]$InstalledVersion) {
                 Write-PScriboMessage -IsWarning "AsBuiltReport.Microsoft.AD $($LatestVersion.ToString()) is available."
                 Write-PScriboMessage -IsWarning "Run 'Update-Module -Name AsBuiltReport.Microsoft.AD -Force' to install the latest version."
             }
@@ -101,14 +101,21 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $CIMType = "CIM"
         }
 
+        # WinRM Session variables
+        $DCStatus = @()
+        $DomainStatus = @()
+        $CIMTable = @()
+        $PSSTable = @()
+
         Try {
-            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System
+            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable)
         } Catch {
             throw "Failed to establish a PSSession ($WinRMType) with the Domain Controller '$System': $($_.Exception.Message)"
         }
 
         Try {
-            $script:TempCIMSession = Get-ValidCIMSession -ComputerName $System -SessionName $System
+            # By default, SSL is not used with New-CimSession. WsMan encrypts all content that is transmitted over the network, even when using HTTP.
+            $script:TempCIMSession = Get-ValidCIMSession -ComputerName $System -SessionName $System -CIMTable ([ref]$CIMTable)
         } Catch {
             Write-PScriboMessage -IsWarning "Unable to establish a CimSession ($CIMType) with the Domain Controller '$System'."
         }
@@ -122,38 +129,77 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
         [array]$RootDomains = $ADSystem.RootDomain
-        [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains }
-        [string] $script:OrderedDomains = $RootDomains + $ChildDomains
+        if ($Options.Include.Domains) {
+            [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -in $Options.Include.Domains }
+        } else {
+            [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
+        }
+        [array] $script:OrderedDomains = @($RootDomains, $ChildDomains)
 
         # Forest Section
         Get-AbrForestSection
 
         # Domain Section
-        Get-AbrDomainSection
+        Get-AbrDomainSection -DomainStatus ([ref]$DomainStatus)
 
         # DNS Section
-        Get-AbrDnsSection
+        Get-AbrDnsSection -DomainStatus ([ref]$DomainStatus)
 
         # PKI Section
         Get-AbrPKISection
 
-        if ($TempPssSession) {
-            # Remove used PSSession
-            Write-PScriboMessage "Clearing PowerShell session with ID $($TempPssSession.Id)."
-            Remove-PSSession -Session $TempPssSession
+        #---------------------------------------------------------------------------------------------#
+        #                            Export Diagram Section                                           #
+        #---------------------------------------------------------------------------------------------#
+
+        if ($Options.ExportDiagrams) {
+            $Options.DiagramType.PSobject.Properties | ForEach-Object { if ($_.Value) { Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $TempPssSession } }
         }
-        if ($DCPssSessions = Get-PSSession | Where-Object { $_.Runspace.ConnectionInfo.Credential.Username -eq $Credential.UserName }) {
-            foreach ($DCPssSession in $DCPssSessions) {
-                # Remove used PSSession
-                Write-PScriboMessage "Clearing PowerShell session: $($DCPssSession.Id)."
-                Remove-PSSession -Session $DCPssSession
+
+        #---------------------------------------------------------------------------------------------#
+        #                          Clean Connection Sessions Section                                  #
+        #---------------------------------------------------------------------------------------------#
+        if ($PSSTable) {
+            foreach ($PSSession in ($PSSTable | Where-Object { $_.Status -ne 'Offline' })) {
+                # Remove used CIMSession
+                Write-PScriboMessage "Clearing PSSession with ID $($PSSession.Id)"
+                Remove-PSSession -Id $PSSession.id
             }
         }
 
-        if ($TempCIMSession) {
-            # Remove used CIMSession
-            Write-PScriboMessage "Clearing CIM Session with ID $($TempCIMSession.Id)"
-            Remove-CimSession -CimSession $TempCIMSession
+        if ($CIMTable) {
+            foreach ($CIMSession in ($CIMTable | Where-Object { $_.Status -ne 'Offline' })) {
+                # Remove used CIMSession
+                Write-PScriboMessage "Clearing CIM Session with ID $($CIMSession.Id)"
+                Remove-CimSession -Id $CIMSession.id
+            }
+        }
+
+        #---------------------------------------------------------------------------------------------#
+        #                           Connection Status Section                                         #
+        #---------------------------------------------------------------------------------------------#
+
+        $DCOffine = $DCStatus | Where-Object { $Null -ne $_.DCName -and $_.Status -eq 'Offline' }
+        $DomainOffline = $DomainStatus | Where-Object { $Null -ne $_.Name -and $_.Status -eq 'Offline' }
+        if ($DCOffine -or $DomainOffline) {
+            Write-Host "`r`n"
+            Write-Host "The following Systems could not be reached:`n"
+            if ($DCOffine) {
+                Write-Host "Domain Controllers"
+                Write-Host "------------------"
+                $DCOffine | ForEach-Object {
+                    Write-Host "$($_.DCName)"
+                }
+                Write-Host "`r`n"
+            }
+            if ($DomainOffline) {
+                Write-Host "Domains"
+                Write-Host "--------"
+                $DomainOffline | ForEach-Object {
+                    Write-Host "$($_.Name)"
+                }
+                Write-Host "`r`n"
+            }
         }
     }#endregion foreach loop
 }

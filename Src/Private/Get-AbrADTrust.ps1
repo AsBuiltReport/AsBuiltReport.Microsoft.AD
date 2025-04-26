@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,23 +16,19 @@ function Get-AbrADTrust {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string]$ValidDCFromDomain
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Trust information of $($Domain.ToString().ToUpper())."
+        Write-PScriboMessage "Collecting AD Trust information of $($Domain.DNSRoot.ToString().ToUpper())."
     }
 
     process {
         try {
             if ($Domain) {
                 try {
-                    $DC = Get-ValidDCfromDomain -Domain $Domain
-                    $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:DC }
+                    $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:ValidDCFromDomain }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {
                             $TrustInfo = @()
@@ -40,10 +36,16 @@ function Get-AbrADTrust {
                                 try {
                                     $inObj = [ordered] @{
                                         'Name' = $Trust.Name
-                                        'Path' = ConvertTo-ADCanonicalName -DN $Trust.DistinguishedName -Domain $Domain
-                                        'Source' = ConvertTo-ADObjectName $Trust.Source -Session $TempPssSession -DC $DC
+                                        'Path' = $Trust.CanonicalName
+                                        'Source' = ConvertTo-ADObjectName $Trust.Source -Session $TempPssSession -DC $ValidDCFromDomain
                                         'Target' = $Trust.Target
-                                        'Trust Type' = $Trust.TrustType
+                                        'Trust Type' = Switch ($Trust.TrustType) {
+                                            1 { "Downlevel (NT domain)" }
+                                            2 { "Uplevel (Active Directory)" }
+                                            3 { "MIT (Kerberos Realm Trust )" }
+                                            4 { "DCE" }
+                                            default { $Trust.TrustType }
+                                        }
                                         'Trust Attributes' = switch ($Trust.TrustAttributes) {
                                             1 { "Non-Transitive" }
                                             2 { "Uplevel clients only (Windows 2000 or newer" }
@@ -56,8 +58,8 @@ function Get-AbrADTrust {
                                         }
                                         'Trust Direction' = Switch ($Trust.TrustDirection) {
                                             0 { "Disabled (The trust relationship exists but has been disabled)" }
-                                            1 { "Inbound (TrustING domain)" }
-                                            2 { "Outbound (TrustED domain)" }
+                                            1 { "Inbound (Trusting domain)" }
+                                            2 { "Outbound (Trusted domain)" }
                                             3 { "Bidirectional (two-way trust)" }
                                             default { $Trust.TrustDirection }
                                         }
@@ -92,7 +94,7 @@ function Get-AbrADTrust {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Trusts - $($Domain.ToString().ToUpper())"
+                                    Name = "Trusts - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     Columns = 'Name', 'Path', 'Source', 'Target', 'Trust Direction'
                                     ColumnWidths = 20, 20, 20, 20, 20
@@ -102,10 +104,10 @@ function Get-AbrADTrust {
                                 }
                                 $TrustInfo | Table @TableParams
                             }
-                            if ($Domain -eq $ADSystem.RootDomain) {
+                            if ($Options.EnableDiagrams) {
                                 try {
                                     try {
-                                        $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Trusts
+                                        $Graph = Get-AbrDiagrammer -DiagramType "Trusts" -DiagramOutput base64 -DomainController $ValidDCFromDomain
                                     } catch {
                                         Write-PScriboMessage -IsWarning "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
                                     }
@@ -124,7 +126,7 @@ function Get-AbrADTrust {
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No Domain Trust information found in $Domain, Disabling this section."
+                        Write-PScriboMessage "No Domain Trust information found in $($Domain.DNSRoot), Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Table)"

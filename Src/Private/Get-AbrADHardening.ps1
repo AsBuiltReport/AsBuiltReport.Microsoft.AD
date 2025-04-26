@@ -16,23 +16,16 @@ function Get-AbrADHardening {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string]$ValidDcFromDomain
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Hardening information of $($Domain.toUpper())."
+        Write-PScriboMessage "Collecting AD Hardening information from $($Domain.Name.toUpper())."
     }
 
     process {
-
-        $DC = Get-ValidDCfromDomain -Domain $Domain
-
-        $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC)
-
+        $DCPssSession = Get-ValidPSSession -ComputerName $ValidDcFromDomain -SessionName $($ValidDcFromDomain) -PSSTable ([ref]$PSSTable)
 
         $NTLMversion = Invoke-Command -Session $DCPssSession -ScriptBlock {
             $NTLMversion = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name 'LmCompatibilityLevel' -ErrorAction SilentlyContinue
@@ -133,7 +126,7 @@ function Get-AbrADHardening {
                     }
 
                     $TableParams = @{
-                        Name = "Active Directory Hardening - $($Domain.toUpper())"
+                        Name = "Active Directory Hardening - $($Domain.Name.toUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }
