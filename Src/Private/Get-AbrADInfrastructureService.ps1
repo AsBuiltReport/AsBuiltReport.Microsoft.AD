@@ -16,10 +16,6 @@ function Get-AbrADInfrastructureService {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
         $DC
     )
 

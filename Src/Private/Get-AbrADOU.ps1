@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,21 +16,17 @@ function Get-AbrADOU {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string]$ValidDCFromDomain
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory Organizational Unit information on domain $Domain"
+        Write-PScriboMessage "Collecting Active Directory Organizational Unit information on domain $($Domain.DNSRoot)"
     }
 
     process {
         try {
-            $DC = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName }
-            $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:DC -Properties * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName -Filter * }
+            $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:ValidDCFromDomain -Properties * -SearchBase ($using:Domain).distinguishedName -Filter * }
             if ($OUs) {
                 Section -Style Heading3 "Organizational Units" {
                     Paragraph "The following section provides a summary of Active Directory Organizational Unit information."
@@ -42,14 +38,14 @@ function Get-AbrADOU {
                             [array]$GPOs = $OU.LinkedGroupPolicyObjects
                             foreach ($Object in $GPOs) {
                                 try {
-                                    $GP = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:DC -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain $using:Domain }
+                                    $GP = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:ValidDCFromDomain -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain ($using:Domain).DNSRoot }
                                     $GPOArray += $GP.DisplayName
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
                             }
                             $inObj = [ordered] @{
-                                'Name' = ((ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Domain $Domain -DC $DC).split('/') | Select-Object -Skip 1) -join "/"
+                                'Name' = ((ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Domain $Domain.DNSRoot -DC $ValidDCFromDomain).split('/') | Select-Object -Skip 1) -join "/"
                                 'Linked GPO' = ($GPOArray -join ", ")
                                 'Protected' = $OU.ProtectedFromAccidentalDeletion
                             }
@@ -64,7 +60,7 @@ function Get-AbrADOU {
                     }
 
                     $TableParams = @{
-                        Name = "Organizational Unit - $($Domain.ToString().ToUpper())"
+                        Name = "Organizational Unit - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 45, 45, 10
                     }
@@ -83,17 +79,16 @@ function Get-AbrADOU {
                     if ($HealthCheck.Domain.GPO) {
                         try {
                             $OutObj = @()
-                            $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
                             if ($OUs) {
                                 foreach ($OU in $OUs) {
                                     try {
-                                        $GpoInheritance = Invoke-Command -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-GPInheritance -Domain $using:Domain -Server $using:DC -Target ($using:OU).DistinguishedName }
+                                        $GpoInheritance = Invoke-Command -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-GPInheritance -Domain ($using:Domain).DNSRoot -Server $using:ValidDCFromDomain -Target ($using:OU).DistinguishedName }
                                         if ( $GpoInheritance.GPOInheritanceBlocked -eq "True") {
                                             $inObj = [ordered] @{
                                                 'OU Name' = $GpoInheritance.Name
                                                 'Container Type' = $GpoInheritance.ContainerType
                                                 'Inheritance Blocked' = $GpoInheritance.GpoInheritanceBlocked
-                                                'Path' = ConvertTo-ADCanonicalName -DN $GpoInheritance.Path -Domain $Domain -DC $DC
+                                                'Path' = ConvertTo-ADCanonicalName -DN $GpoInheritance.Path -Domain $Domain.DNSRoot -DC $ValidDCFromDomain
                                             }
                                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         }
@@ -109,7 +104,7 @@ function Get-AbrADOU {
                                     }
 
                                     $TableParams = @{
-                                        Name = "Blocked Inheritance GPO - $($Domain.ToString().ToUpper())"
+                                        Name = "Blocked Inheritance GPO - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 35, 15, 15, 35
                                     }
@@ -133,7 +128,7 @@ function Get-AbrADOU {
                     }
                 }
             } else {
-                Write-PScriboMessage "No Organizational Units information found in $Domain, Disabling this section."
+                Write-PScriboMessage "No Organizational Units information found in $($Domain.DNSRoot), Disabling this section."
             }
         } catch {
             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit Section)"

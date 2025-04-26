@@ -16,10 +16,6 @@ function Get-AbrADDomainController {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
         $Domain,
         $DCs
     )
@@ -89,7 +85,7 @@ function Get-AbrADDomainController {
             }
 
             $TableParams = @{
-                Name = "Domain Controller in Domain - $($Domain.ToString().ToUpper())"
+                Name = "Domain Controller in Domain - $($Domain.DNSRoot.ToString().ToUpper())"
                 List = $false
                 ColumnWidths = 25, 12, 24, 10, 10, 19
             }
@@ -117,7 +113,7 @@ function Get-AbrADDomainController {
             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
             $TableParams = @{
-                Name = "Domain Controller Counts - $($Domain.ToString().ToUpper())"
+                Name = "Domain Controller Counts - $($Domain.DNSRoot.ToString().ToUpper())"
                 List = $true
                 ColumnWidths = 40, 60
             }
@@ -379,7 +375,7 @@ function Get-AbrADDomainController {
                         if ($DCPssSession) {
                             $DCIPAddress = Invoke-Command -Session $DCPssSession { [System.Net.Dns]::GetHostAddresses($using:DC).IPAddressToString }
                             $DNSSettings = Invoke-Command -Session $DCPssSession { Get-NetAdapter | Where-Object { $_.ifOperStatus -eq "Up" } | Get-DnsClientServerAddress -AddressFamily IPv4 }
-                            $PrimaryDNSSoA = Invoke-Command -Session $DCPssSession { (Get-DnsServerResourceRecord -RRType Soa -ZoneName $using:Domain).RecordData.PrimaryServer }
+                            $PrimaryDNSSoA = Invoke-Command -Session $DCPssSession { (Get-DnsServerResourceRecord -RRType Soa -ZoneName ($using:Domain).DNSRoot).RecordData.PrimaryServer }
                         } else {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
@@ -442,7 +438,7 @@ function Get-AbrADDomainController {
             if ($OutObj) {
                 Section -Style Heading4 "DNS IP Configuration" {
                     $TableParams = @{
-                        Name = "DNS IP Configuration - $($Domain.ToString().ToUpper())"
+                        Name = "DNS IP Configuration - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 20, 20, 15, 15, 15, 15
                     }
@@ -478,7 +474,7 @@ function Get-AbrADDomainController {
                             BlankLine
                             Paragraph {
                                 Text "Corrective Actions:" -Bold
-                                Text "Network interfaces must be configured with DNS servers that can resolve names in the forest root domain. The following DNS server did not respond to the query for the forest root domain $($Domain.ToString().toUpper()): $(($UnresolverDNS -join ", "))"
+                                Text "Network interfaces must be configured with DNS servers that can resolve names in the forest root domain. The following DNS server did not respond to the query for the forest root domain $($Domain.DNSRoot.ToString().ToUpper()): $(($UnresolverDNS -join ", "))"
                             }
                         }
                     }
@@ -539,7 +535,7 @@ function Get-AbrADDomainController {
             if ($OutObj) {
                 Section -Style Heading4 'NTDS Information' {
                     $TableParams = @{
-                        Name = "NTDS Database File Usage - $($Domain.ToString().ToUpper())"
+                        Name = "NTDS Database File Usage - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 20, 22, 14, 22, 22
                     }
@@ -610,7 +606,7 @@ function Get-AbrADDomainController {
             if ($OutObj) {
                 Section -Style Heading4 'Time Source Information' {
                     $TableParams = @{
-                        Name = "Time Source Configuration - $($Domain.ToString().ToUpper())"
+                        Name = "Time Source Configuration - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 30, 50, 20
                     }
@@ -631,11 +627,10 @@ function Get-AbrADDomainController {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         try {
                             $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName $DC -CIMTable ([ref]$CIMTable)
-                            $PDCEmulator = Invoke-Command -Session $TempPssSession { (Get-ADDomain $using:Domain -ErrorAction Stop).PDCEmulator }
-                            if ($CimSession -and ($Domain -eq $ADSystem.RootDomain)) {
-                                $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName _msdcs.$Domain -RRType Srv
-                                $DCARR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType A | Where-Object { $_.Hostname -eq $DC.ToString().ToUpper().Split(".")[0] }
-                                if ($DC -in $PDCEmulator) {
+                            if ($CimSession -and ($Domain.DNSRoot -eq $ADSystem.RootDomain)) {
+                                $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName "_msdcs.$($Domain.DNSRoot)" -RRType Srv
+                                $DCARR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain.DNSRoot -RRType A | Where-Object { $_.Hostname -eq $DC.ToString().ToUpper().Split(".")[0] }
+                                if ($DC -in $Domain.PDCEmulator) {
                                     $PDC = $SRVRR | Where-Object { $_.Hostname -eq "_ldap._tcp.pdc" -and $_.RecordData.DomainName -eq "$($DC)." }
                                 } else { $PDC = 'NonPDC' }
                                 if ($DC -in $ADSystem.GlobalCatalogs) {
@@ -645,9 +640,9 @@ function Get-AbrADDomainController {
                                 $DCRR = $SRVRR | Where-Object { $_.Hostname -eq "_ldap._tcp.dc" -and $_.RecordData.DomainName -eq "$($DC)." }
                             } else {
                                 if ($CimSession) {
-                                    $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType Srv
-                                    $DCARR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain -RRType A | Where-Object { $_.Hostname -eq $DC.ToString().ToUpper().Split(".")[0] }
-                                    if ($DC -in $PDCEmulator) {
+                                    $SRVRR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain.DNSRoot -RRType Srv
+                                    $DCARR = Get-DnsServerResourceRecord -CimSession $CimSession -ZoneName $Domain.DNSRoot -RRType A | Where-Object { $_.Hostname -eq $DC.ToString().ToUpper().Split(".")[0] }
+                                    if ($DC -in $Domain.PDCEmulator) {
                                         $PDC = $SRVRR | Where-Object { $_.Hostname -eq "_ldap._tcp.pdc._msdcs" -and $_.RecordData.DomainName -eq "$($DC)." }
                                     } else { $PDC = 'NonPDC' }
                                     if ($DC -in $ADSystem.GlobalCatalogs) {
@@ -730,7 +725,7 @@ function Get-AbrADDomainController {
                 if ($OutObj) {
                     Section -Style Heading4 'SRV Records Status' {
                         $TableParams = @{
-                            Name = "SRV Records Status - $($Domain.ToString().ToUpper())"
+                            Name = "SRV Records Status - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 20, 16, 16, 16, 16, 16
                         }
@@ -890,7 +885,7 @@ function Get-AbrADDomainController {
                 }
                 if ($DCObj) {
                     Section -Style Heading4 'Installed Software' {
-                        Paragraph "The following section provides a summary of additional software running on Domain Controllers from domain $($Domain.ToString().ToUpper())."
+                        Paragraph "The following section provides a summary of additional software running on Domain Controllers from domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
                         $DCObj
                     }
@@ -959,7 +954,7 @@ function Get-AbrADDomainController {
                 }
                 if ($DCObj) {
                     Section -Style Heading4 'Missing Windows Updates' {
-                        Paragraph "The following section provides a summary of pending/missing windows updates on Domain Controllers from domain $($Domain.ToString().ToUpper())."
+                        Paragraph "The following section provides a summary of pending/missing windows updates on Domain Controllers from domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
                         $DCObj
                     }

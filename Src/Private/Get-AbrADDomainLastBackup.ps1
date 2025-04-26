@@ -5,7 +5,7 @@ function Get-AbrADDomainLastBackup {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,24 +16,20 @@ function Get-AbrADDomainLastBackup {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
         $Domain
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain last backup information on $Domain."
+        Write-PScriboMessage "Collecting AD Domain last backup information on $($Domain.DNSRoot)."
     }
 
     process {
         if ($Domain -and $HealthCheck.Domain.Backup) {
             try {
-                $LastBackups = Get-WinADLastBackup -Domain $Domain -Credential $Credential -DCStatus ([ref]$DCStatus)
+                $LastBackups = Get-WinADLastBackup -Domain $Domain.DNSRoot -Credential $Credential -DCStatus ([ref]$DCStatus)
                 if ($LastBackups) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Naming Context Last Backup' {
-                        Paragraph "The following section details naming context last backup time for Domain $($Domain.ToString().ToUpper())."
+                        Paragraph "The following section details naming context last backup time for Domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
                         foreach ($LastBackup in $LastBackups) {
@@ -57,7 +53,7 @@ function Get-AbrADDomainLastBackup {
                         }
 
                         $TableParams = @{
-                            Name = "Naming Context Last Backup - $($Domain.ToString().ToUpper())"
+                            Name = "Naming Context Last Backup - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 60, 20, 20
                         }
@@ -78,7 +74,7 @@ function Get-AbrADDomainLastBackup {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Naming context last backup information found in $Domain, Disabling this section."
+                    Write-PScriboMessage "No Naming context last backup information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup Table)"

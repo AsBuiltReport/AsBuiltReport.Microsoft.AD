@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,11 +16,8 @@ function Get-AbrADDomain {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string]$ValidDcFromDomain
     )
 
     begin {
@@ -31,36 +28,34 @@ function Get-AbrADDomain {
         $OutObj = @()
         if ($Domain) {
             try {
-                $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
-                $DC = $DomainInfo | Select-Object -ExpandProperty ReplicaDirectoryServers | Select-Object -First 1
-                $RIDPool = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:DC -Identity "CN=RID Manager$,CN=System,$(($using:DomainInfo).DistinguishedName)" -Properties rIDAvailablePool -ErrorAction SilentlyContinue }
+                $RIDPool = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:ValidDcFromDomain -Identity "CN=RID Manager$,CN=System,$(($using:DomainInfo).DistinguishedName)" -Properties rIDAvailablePool -ErrorAction SilentlyContinue }
                 $RIDavailable = $RIDPool.rIDAvailablePool
                 [int32] $CompleteSIDS = $($RIDavailable) / ([math]::Pow(2, 32))
                 [int64] $TEMP = $CompleteSIDS * ([math]::Pow(2, 32))
                 $RIDsIssued = [int32]($($RIDavailable) - $TEMP)
                 $RIDsRemaining = $CompleteSIDS - $RIDsIssued
-                if ($DomainInfo) {
+                if ($Domain) {
                     $inObj = [ordered] @{
-                        'Domain Name' = $DomainInfo.Name
-                        'NetBIOS Name' = $DomainInfo.NetBIOSName
-                        'Domain SID' = $DomainInfo.DomainSID
-                        'Domain Functional Level' = $DomainInfo.DomainMode
-                        'Domains' = $DomainInfo.Domains
-                        'Forest' = $DomainInfo.Forest
-                        'Parent Domain' = $DomainInfo.ParentDomain
-                        'Replica Directory Servers' = $DomainInfo.ReplicaDirectoryServers
-                        'Child Domains' = $DomainInfo.ChildDomains
-                        'Domain Path' = ConvertTo-ADCanonicalName -DN $DomainInfo.DistinguishedName -Domain $Domain
-                        'Computers Container' = $DomainInfo.ComputersContainer
-                        'Domain Controllers Container' = $DomainInfo.DomainControllersContainer
-                        'Systems Container' = $DomainInfo.SystemsContainer
-                        'Users Container' = $DomainInfo.UsersContainer
-                        'Deleted Objects Container' = $DomainInfo.DeletedObjectsContainer
-                        'Foreign Security Principals Container' = $DomainInfo.ForeignSecurityPrincipalsContainer
-                        'Lost And Found Container' = $DomainInfo.LostAndFoundContainer
-                        'Quotas Container' = $DomainInfo.QuotasContainer
-                        'ReadOnly Replica Directory Servers' = $DomainInfo.ReadOnlyReplicaDirectoryServers
-                        'ms-DS-MachineAccountQuota' = Invoke-Command -Session $TempPssSession { (Get-ADObject -Server $using:DC -Identity (($using:DomainInfo).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota' }
+                        'Domain Name' = $Domain.Name
+                        'NetBIOS Name' = $Domain.NetBIOSName
+                        'Domain SID' = $Domain.DomainSID
+                        'Domain Functional Level' = $Domain.DomainMode
+                        'Domains' = $Domain.Domains
+                        'Forest' = $Domain.Forest
+                        'Parent Domain' = $Domain.ParentDomain
+                        'Replica Directory Servers' = $Domain.ReplicaDirectoryServers
+                        'Child Domains' = $Domain.ChildDomains
+                        'Domain Path' = ConvertTo-ADCanonicalName -DN $Domain.DistinguishedName -Domain $Domain.DNSRoot
+                        'Computers Container' = $Domain.ComputersContainer
+                        'Domain Controllers Container' = $Domain.DomainControllersContainer
+                        'Systems Container' = $Domain.SystemsContainer
+                        'Users Container' = $Domain.UsersContainer
+                        'Deleted Objects Container' = $Domain.DeletedObjectsContainer
+                        'Foreign Security Principals Container' = $Domain.ForeignSecurityPrincipalsContainer
+                        'Lost And Found Container' = $Domain.LostAndFoundContainer
+                        'Quotas Container' = $Domain.QuotasContainer
+                        'ReadOnly Replica Directory Servers' = $Domain.ReadOnlyReplicaDirectoryServers
+                        'ms-DS-MachineAccountQuota' = Invoke-Command -Session $TempPssSession { (Get-ADObject -Server $using:ValidDcFromDomain -Identity (($using:Domain).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota' }
                         'RID Issued/Available' = try { "$($RIDsIssued) / $($RIDsRemaining) ($([math]::Truncate($CompleteSIDS / $RIDsRemaining))% Issued)" } catch { "$($RIDsIssued)/$($RIDsRemaining)" }
                     }
                     $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
@@ -72,7 +67,7 @@ function Get-AbrADDomain {
                     }
 
                     $TableParams = @{
-                        Name = "Domain Summary - $($Domain.ToString().ToUpper())"
+                        Name = "Domain Summary - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }

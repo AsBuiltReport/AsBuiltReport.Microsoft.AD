@@ -28,7 +28,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve Get-AbrADSite to handle cases where information cannot be collected from DCs, ensuring that the output remains informative and consistent.
 - Update existing functions to utilize new diagram features and handle domain status.
 - Improve error handling and reporting for offline domains and DCs.
-
+- Updated Get-AbrDNSSection to better handle domain status checks and improve logging clarity.
+- Refined Get-AbrDomainSection to ensure consistent domain information retrieval and improved error handling.
+- Updated Get-AbrADOU to utilize DNSRoot for domain references and improved error handling.
+- Modified Get-AbrADSecurityAssessment to enhance domain information retrieval and output formatting.
+- Enhanced Get-AbrADSiteReplication to streamline domain controller handling and improve logging messages.
+- Revised Get-AbrADTrust to ensure consistent use of DNSRoot and improved trust information retrieval.
+- Enhanced SharedUtilsFunctions to improve session management and error handling for WinRM connections.
+  - Get-ValidCIMSession
+  - Get-ValidPSSession
 
 ### Fixed
 

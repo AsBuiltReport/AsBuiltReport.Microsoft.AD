@@ -143,7 +143,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Get-AbrDomainSection -DomainStatus ([ref]$DomainStatus)
 
         # DNS Section
-        Get-AbrDnsSection
+        Get-AbrDnsSection -DomainStatus ([ref]$DomainStatus)
 
         # PKI Section
         Get-AbrPKISection
@@ -179,21 +179,23 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #                           Connection Status Section                                         #
         #---------------------------------------------------------------------------------------------#
 
-        if ($DCStatus -or $DomainStatus) {
+        $DCOffine = $DCStatus | Where-Object { $Null -ne $_.DCName -and $_.Status -eq 'Offline' }
+        $DomainOffline = $DomainStatus | Where-Object { $Null -ne $_.Name -and $_.Status -eq 'Offline' }
+        if ($DCOffine -or $DomainOffline) {
             Write-Host "`r`n"
             Write-Host "The following Systems could not be reached:`n"
-            if ($DCStatus) {
+            if ($DCOffine) {
                 Write-Host "Domain Controllers"
                 Write-Host "------------------"
-                $DCStatus | Where-Object { $_.Status -eq 'Offline' } | ForEach-Object {
+                $DCOffine | ForEach-Object {
                     Write-Host "$($_.DCName)"
                 }
                 Write-Host "`r`n"
             }
-            if ($DomainStatus) {
+            if ($DomainOffline) {
                 Write-Host "Domains"
                 Write-Host "--------"
-                $DomainStatus | Where-Object { $_.Status -eq 'Offline' } | ForEach-Object {
+                $DomainOffline | ForEach-Object {
                     Write-Host "$($_.Name)"
                 }
                 Write-Host "`r`n"

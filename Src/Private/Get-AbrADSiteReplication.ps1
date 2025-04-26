@@ -16,20 +16,18 @@ function Get-AbrADSiteReplication {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string[]]
+        $DCs,
+        [string]$ValidDCFromDomain
     )
 
     begin {
     }
 
     process {
-        $DCs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers }
         if ($DCs) {
-            Write-PScriboMessage "Collecting Active Directory Sites Replication information on $Domain. (Sites Replication)"
+            Write-PScriboMessage "Collecting Active Directory Sites Replication information on $($Domain.DNSRoot). (Sites Replication)"
             try {
                 $ReplInfo = @()
                 foreach ($DC in $DCs) {
@@ -98,7 +96,7 @@ function Get-AbrADSiteReplication {
                             Paragraph "The following section provide connection objects to source server ."
                             BlankLine
                             $TableParams = @{
-                                Name = "Replication Connection - $($Domain.ToString().ToUpper())"
+                                Name = "Replication Connection - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 Columns = 'Name', 'From Server', 'From Site'
                                 ColumnWidths = 33, 33, 34
@@ -110,7 +108,7 @@ function Get-AbrADSiteReplication {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Replication Connection information found in $Domain, Disabling this section."
+                    Write-PScriboMessage "No Replication Connection information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Replication Connection)"
@@ -118,8 +116,7 @@ function Get-AbrADSiteReplication {
         }
         try {
             if ($HealthCheck.Site.Replication) {
-                $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
-                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
+                $DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)
 
                 if ($DCPssSession) {
                     $RepStatus = Invoke-Command -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }
@@ -127,7 +124,7 @@ function Get-AbrADSiteReplication {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning "Replication Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                    Write-PScriboMessage -IsWarning "Replication Status Section: New-PSSession: Unable to connect to $($ValidDCFromDomain): $ErrorMessage"
                 }
                 if ($RepStatus) {
                     Section -Style Heading4 'Replication Status' {
@@ -154,7 +151,7 @@ function Get-AbrADSiteReplication {
                         }
 
                         $TableParams = @{
-                            Name = "Replication Status - $($Domain.ToUpper())"
+                            Name = "Replication Status - $($Domain.Name.ToUpper())"
                             List = $false
                             ColumnWidths = 14, 14, 14, 15, 14, 15 , 14
                         }
@@ -173,7 +170,7 @@ function Get-AbrADSiteReplication {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Replication Status information found in $Domain, Disabling this section."
+                    Write-PScriboMessage "No Replication Status information found in $($Domain.DNSRoot), Disabling this section."
                 }
             }
         } catch {

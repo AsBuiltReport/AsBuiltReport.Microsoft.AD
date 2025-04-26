@@ -5,46 +5,41 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
     .EXAMPLE
 
     .LINK
-
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string]$ValidDcFromDomain
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain Objects information on forest $Forestinfo."
+        Write-PScriboMessage "Collecting AD Domain Objects information on forest $($Domain.DNSRoot)."
     }
 
     process {
         Section -Style Heading3 'Domain Objects' {
-            Paragraph "The following section details information about computers, groups and users objects found in $($Domain) "
+            Paragraph "The following section details information about computers, groups and users objects found in $($Domain.DNSRoot) "
             try {
                 try {
-                    $script:DomainSID = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).domainsid.Value }
+                    $script:DomainSID = $Domain.domainsid
                     $ADLimitedProperties = @("Name", "Enabled", "SAMAccountname", "DisplayName", "Enabled", "LastLogonDate", "PasswordLastSet", "PasswordNeverExpires", "PasswordNotRequired", "PasswordExpired", "SmartcardLogonRequired", "AccountExpirationDate", "AdminCount", "Created", "Modified", "LastBadPasswordAttempt", "badpwdcount", "mail", "CanonicalName", "DistinguishedName", "ServicePrincipalName", "SIDHistory", "PrimaryGroupID", "UserAccountControl", "CannotChangePassword", "PwdLastSet", "LockedOut", "TrustedForDelegation", "TrustedtoAuthForDelegation", "msds-keyversionnumber", "SID", "AccountNotDelegated", "EmailAddress")
-                    $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
-                    $script:Computers = Invoke-Command -Session $TempPssSession { (Get-ADComputer -ResultPageSize 1000 -Server $using:DC -Filter * -Properties Enabled, OperatingSystem, lastlogontimestamp, PasswordLastSet, SIDHistory -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
+                    $script:Computers = Invoke-Command -Session $TempPssSession { (Get-ADComputer -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Properties Enabled, OperatingSystem, lastlogontimestamp, PasswordLastSet, SIDHistory -SearchBase ($using:Domain).distinguishedName) }
                     $Servers = $Computers | Where-Object { $_.OperatingSystem -like "Windows Ser*" } | Measure-Object
-                    $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:DC -Filter * -Property $using:ADLimitedProperties -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
+                    $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Property $using:ADLimitedProperties -SearchBase ($using:Domain).distinguishedName }
                     $script:PrivilegedUsers = $Users | Where-Object { $_.AdminCount -eq 1 }
-                    $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
+                    $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:ValidDcFromDomain -Filter * -SearchBase ($using:Domain).distinguishedName) }
                     $excludedDomainGroupsBySID = @("$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
                     $excludedForestGroupsBySID = ($GroupOBj | Where-Object { $_.SID -like 'S-1-5-32-*' }).SID
                     $AdminGroupsBySID = "S-1-5-32-552", "$DomainSID-527", "$DomainSID-521", "$DomainSID-516", "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
-                    $script:DomainController = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter *) | Select-Object name,OperatingSystem }
-                    $script:GC = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:DC -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name }
+                    $script:DomainController = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter *) | Select-Object name, OperatingSystem }
+                    $script:GC = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name }
 
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Object Stats)"
@@ -63,7 +58,7 @@ function Get-AbrADDomainObject {
                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                         $TableParams = @{
-                            Name = "User - $($Domain.ToString().ToUpper())"
+                            Name = "User - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $true
                             ColumnWidths = 40, 60
                         }
@@ -104,8 +99,8 @@ function Get-AbrADDomainObject {
                     $NeverloggedIn = $Users | Where-Object { -not $_.LastLogonDate }
                     $Dormant = $Users | Where-Object { ($_.LastLogonDate) -lt $dormanttime }
                     $PasswordNotRequired = $Users | Where-Object { $_.PasswordNotRequired -eq $true }
-                    $AccountExpired = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:DC -AccountExpired }
-                    $AccountLockout = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:DC -LockedOut }
+                    $AccountExpired = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:ValidDcFromDomain -AccountExpired }
+                    $AccountLockout = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:ValidDcFromDomain -LockedOut }
                     $Categories = @('Total Users', 'Cannot Change Password', 'Password Never Expires', 'Must Change Password at Logon', 'Password Age (> 42 days)', 'SmartcardLogonRequired', 'SidHistory', 'Never Logged in', 'Dormant (> 90 days)', 'Password Not Required', 'Account Expired', 'Account Lockout')
                     if ($Categories) {
                         foreach ($Category in $Categories) {
@@ -164,7 +159,7 @@ function Get-AbrADDomainObject {
                         }
 
                         $TableParams = @{
-                            Name = "Status of User Accounts - $($Domain.ToString().ToUpper())"
+                            Name = "Status of User Accounts - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 28, 12, 12, 12, 12, 12, 12
                         }
@@ -213,7 +208,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Users - $($Domain.ToString().ToUpper())"
+                                    Name = "Users - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 33, 33, 34
                                 }
@@ -243,7 +238,7 @@ function Get-AbrADDomainObject {
                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                         $TableParams = @{
-                            Name = "Group Categories - $($Domain.ToString().ToUpper())"
+                            Name = "Group Categories - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $true
                             ColumnWidths = 40, 60
                         }
@@ -280,7 +275,7 @@ function Get-AbrADDomainObject {
                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                         $TableParams = @{
-                            Name = "Group Scopes - $($Domain.ToString().ToUpper())"
+                            Name = "Group Scopes - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $true
                             ColumnWidths = 40, 60
                         }
@@ -313,7 +308,7 @@ function Get-AbrADDomainObject {
                                 $OutObj = @()
                                 foreach ($Group in $GroupOBj) {
                                     try {
-                                        $UserCount = Invoke-Command -Session $TempPssSession { (Get-ADGroupMember  -Server $using:DC  -Identity ($using:Group).Name  | Measure-Object).Count }
+                                        $UserCount = Invoke-Command -Session $TempPssSession { (Get-ADGroupMember  -Server $using:ValidDcFromDomain  -Identity ($using:Group).Name  | Measure-Object).Count }
                                         $inObj = [ordered] @{
                                             'Name' = $Group.Name
                                             'Category' = $Group.GroupCategory
@@ -327,7 +322,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Groups - $($Domain.ToString().ToUpper())"
+                                    Name = "Groups - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 35, 25, 25, 15
                                 }
@@ -344,184 +339,182 @@ function Get-AbrADDomainObject {
                     }
                     Section -Style Heading5 'Privileged Groups (Built-in)' {
                         $OutObj = @()
-                        if ($Domain) {
-                            try {
-                                if ($Domain -eq $ADSystem.Name) {
-                                    $GroupsSID = "", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
-                                } else {
-                                    $GroupsSID = "$DomainSID-512", 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', 'S-1-5-32-578'
-                                }
-                                if ($GroupsSID) {
-                                    if ($InfoLevel.Domain -eq 1) {
-                                        Paragraph "The following section summarizes the counts of users within the privileged groups."
-                                        BlankLine
-                                        foreach ($GroupSID in $GroupsSID) {
-                                            try {
-                                                $Group = $GroupOBj | Where-Object { $_.SID -like $GroupSID }
-                                                if ($Group) {
-                                                    $GroupObject = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:DC -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue }
-                                                    $inObj = [ordered] @{
-                                                        'Group Name' = $Group.Name
-                                                        'Count' = ($GroupObject | Measure-Object).Count
-                                                    }
-                                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                        try {
+                            if ($Domain.DNSRoot -eq $ADSystem.Name) {
+                                $GroupsSID = "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
+                            } else {
+                                $GroupsSID = "$DomainSID-512", 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', 'S-1-5-32-578'
+                            }
+                            if ($GroupsSID) {
+                                if ($InfoLevel.Domain -eq 1) {
+                                    Paragraph "The following section summarizes the counts of users within the privileged groups."
+                                    BlankLine
+                                    foreach ($GroupSID in $GroupsSID) {
+                                        try {
+                                            $Group = $GroupOBj | Where-Object { $_.SID -like $GroupSID }
+                                            if ($Group) {
+                                                $GroupObject = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:ValidDcFromDomain -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue }
+                                                $inObj = [ordered] @{
+                                                    'Group Name' = $Group.Name
+                                                    'Count' = ($GroupObject | Measure-Object).Count
                                                 }
-                                            } catch {
-                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group in Active Directory item)"
+                                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                             }
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group in Active Directory item)"
                                         }
+                                    }
 
-                                        if ($HealthCheck.Domain.Security) {
-                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 })) {
-                                                $OBJ.'Group Name' = "*" + $OBJ.'Group Name'
-                                            }
-                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Enterprise Admins' -and $_.Count -gt 1 })) {
-                                                $OBJ.'Group Name' = "**" + $OBJ.'Group Name'
-                                            }
-                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Domain Admins' -and $_.Count -gt 5 })) {
-                                                $OBJ.'Group Name' = "***" + $OBJ.'Group Name'
-                                            }
-                                            $OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
-                                            $OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
-                                            $OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 } | Set-Style -Style Warning
+                                    if ($HealthCheck.Domain.Security) {
+                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 })) {
+                                            $OBJ.'Group Name' = "*" + $OBJ.'Group Name'
                                         }
+                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Enterprise Admins' -and $_.Count -gt 1 })) {
+                                            $OBJ.'Group Name' = "**" + $OBJ.'Group Name'
+                                        }
+                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Domain Admins' -and $_.Count -gt 5 })) {
+                                            $OBJ.'Group Name' = "***" + $OBJ.'Group Name'
+                                        }
+                                        $OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
+                                        $OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
+                                        $OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 } | Set-Style -Style Warning
+                                    }
 
-                                        $TableParams = @{
-                                            Name = "Privileged Groups - $($Domain.ToString().ToUpper())"
-                                            List = $false
-                                            ColumnWidths = 60, 40
-                                        }
-                                        if ($Report.ShowTableCaptions) {
-                                            $TableParams['Caption'] = "- $($TableParams.Name)"
-                                        }
-                                        $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
-                                        if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 })) {
-                                            Paragraph "Health Check:" -Bold -Underline
+                                    $TableParams = @{
+                                        Name = "Privileged Groups - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        List = $false
+                                        ColumnWidths = 60, 40
+                                    }
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
+                                    if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 })) {
+                                        Paragraph "Health Check:" -Bold -Underline
+                                        BlankLine
+                                        Paragraph "Security Best Practice:" -Bold
+                                        if ($OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 }) {
                                             BlankLine
-                                            Paragraph "Security Best Practice:" -Bold
-                                            if ($OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 }) {
-                                                BlankLine
-                                                Paragraph {
-                                                    Text "*The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed."
-                                                }
-                                            }
-                                            if ($OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 }) {
-                                                BlankLine
-                                                Paragraph {
-                                                    Text "**Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically."
-                                                }
-                                            }
-                                            if ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 }) {
-                                                BlankLine
-                                                Paragraph {
-                                                    Text "***Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access."
-                                                }
+                                            Paragraph {
+                                                Text "*The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed."
                                             }
                                         }
-                                    } else {
-                                        Paragraph "The following section details the members users within the privilege groups. (Empty group are excluded)"
-                                        BlankLine
-                                        foreach ($GroupSID in $GroupsSID) {
-                                            try {
-                                                $Group = $GroupOBj | Where-Object { $_.SID -like $GroupSID }
-                                                if ($Group) {
-                                                    $GroupObjects = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:DC  -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue | ForEach-Object { Get-ADUser -Filter 'SamAccountName -eq $_.SamAccountName' -Server $using:DC -Property SamAccountName, objectClass, LastLogonDate, passwordNeverExpires, Enabled -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName } }
-                                                    if ($GroupObjects) {
-                                                        Section -ExcludeFromTOC -Style NOTOCHeading4 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) Members)" {
-                                                            $OutObj = @()
-                                                            foreach ($GroupObject in $GroupObjects) {
-                                                                try {
-                                                                    $inObj = [ordered] @{
-                                                                        'Name' = $GroupObject.SamAccountName
-                                                                        'Last Logon Date' = Switch ([string]::IsNullOrEmpty($GroupObject.LastLogonDate)) {
-                                                                            $true { "--" }
-                                                                            $false { $GroupObject.LastLogonDate.ToShortDateString() }
-                                                                            default { "Unknown" }
-                                                                        }
-                                                                        'Password Never Expires' = $GroupObject.passwordNeverExpires
-                                                                        'Account Enabled' = $GroupObject.Enabled
+                                        if ($OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 }) {
+                                            BlankLine
+                                            Paragraph {
+                                                Text "**Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically."
+                                            }
+                                        }
+                                        if ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 }) {
+                                            BlankLine
+                                            Paragraph {
+                                                Text "***Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access."
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Paragraph "The following section details the members users within the privilege groups. (Empty group are excluded)"
+                                    BlankLine
+                                    foreach ($GroupSID in $GroupsSID) {
+                                        try {
+                                            $Group = $GroupOBj | Where-Object { $_.SID -like $GroupSID }
+                                            if ($Group) {
+                                                $GroupObjects = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:ValidDcFromDomain  -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue | ForEach-Object { Get-ADUser -Filter 'SamAccountName -eq $_.SamAccountName' -Server $using:ValidDcFromDomain -Property SamAccountName, objectClass, LastLogonDate, passwordNeverExpires, Enabled -SearchBase ($using:Domain).distinguishedName } }
+                                                if ($GroupObjects) {
+                                                    Section -ExcludeFromTOC -Style NOTOCHeading4 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) Members)" {
+                                                        $OutObj = @()
+                                                        foreach ($GroupObject in $GroupObjects) {
+                                                            try {
+                                                                $inObj = [ordered] @{
+                                                                    'Name' = $GroupObject.SamAccountName
+                                                                    'Last Logon Date' = Switch ([string]::IsNullOrEmpty($GroupObject.LastLogonDate)) {
+                                                                        $true { "--" }
+                                                                        $false { $GroupObject.LastLogonDate.ToShortDateString() }
+                                                                        default { "Unknown" }
                                                                     }
-                                                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
-                                                                } catch {
-                                                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group in Active Directory item)"
-
+                                                                    'Password Never Expires' = $GroupObject.passwordNeverExpires
+                                                                    'Account Enabled' = $GroupObject.Enabled
                                                                 }
-                                                            }
+                                                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                            } catch {
+                                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group in Active Directory item)"
 
-                                                            if ($HealthCheck.Domain.Security) {
-                                                                $OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Never Expires'
-                                                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' })) {
-                                                                    $OBJ.'Password Never Expires' = "**Yes"
-                                                                }
-                                                                $OutObj | Where-Object { $_.'Account Enabled' -eq 'No' } | Set-Style -Style Warning -Property 'Account Enabled'
-                                                                $OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) } | Set-Style -Style Warning -Property 'Last Logon Date'
-                                                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) })) {
-                                                                    $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
-                                                                }
                                                             }
+                                                        }
 
-                                                            $TableParams = @{
-                                                                Name = "$($Group.Name) - $($Domain.ToString().ToUpper())"
-                                                                List = $false
-                                                                ColumnWidths = 50, 20, 15, 15
+                                                        if ($HealthCheck.Domain.Security) {
+                                                            $OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Never Expires'
+                                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' })) {
+                                                                $OBJ.'Password Never Expires' = "**Yes"
                                                             }
-                                                            if ($Report.ShowTableCaptions) {
-                                                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                                                            $OutObj | Where-Object { $_.'Account Enabled' -eq 'No' } | Set-Style -Style Warning -Property 'Account Enabled'
+                                                            $OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) } | Set-Style -Style Warning -Property 'Last Logon Date'
+                                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) })) {
+                                                                $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
                                                             }
-                                                            $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                                                            if ($HealthCheck.Domain.Security -and ((($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or ($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) -or ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) -or ($OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and $_.'Last Logon Date' -match "\*" })) {
-                                                                Paragraph "Health Check:" -Bold -Underline
+                                                        }
+
+                                                        $TableParams = @{
+                                                            Name = "$($Group.Name) - $($Domain.DNSRoot.ToString().ToUpper())"
+                                                            List = $false
+                                                            ColumnWidths = 50, 20, 15, 15
+                                                        }
+                                                        if ($Report.ShowTableCaptions) {
+                                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                                        }
+                                                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                                                        if ($HealthCheck.Domain.Security -and ((($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or ($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) -or ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) -or ($OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and $_.'Last Logon Date' -match "\*" })) {
+                                                            Paragraph "Health Check:" -Bold -Underline
+                                                            BlankLine
+                                                            Paragraph "Security Best Practice:" -Bold
+
+                                                            if (($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
                                                                 BlankLine
-                                                                Paragraph "Security Best Practice:" -Bold
-
-                                                                if (($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
-                                                                    BlankLine
-                                                                    Paragraph {
-                                                                        Text "The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed."
-                                                                    }
+                                                                Paragraph {
+                                                                    Text "The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed."
                                                                 }
-                                                                if (($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
-                                                                    BlankLine
-                                                                    Paragraph {
-                                                                        Text "Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically."
-                                                                    }
+                                                            }
+                                                            if (($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
+                                                                BlankLine
+                                                                Paragraph {
+                                                                    Text "Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically."
                                                                 }
-                                                                if (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) {
-                                                                    BlankLine
-                                                                    Paragraph {
-                                                                        Text "Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access."
-                                                                    }
+                                                            }
+                                                            if (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) {
+                                                                BlankLine
+                                                                Paragraph {
+                                                                    Text "Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access."
                                                                 }
-                                                                if ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) {
-                                                                    BlankLine
-                                                                    Paragraph {
-                                                                        Text "**Accounts with passwords set to never expire were found in the environment. Ensure there are no accounts with weak security postures. Accounts with passwords that never expire can pose a significant security risk as they may not be updated regularly. It is recommended to enforce password expiration policies to enhance security."
-                                                                    }
+                                                            }
+                                                            if ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) {
+                                                                BlankLine
+                                                                Paragraph {
+                                                                    Text "**Accounts with passwords set to never expire were found in the environment. Ensure there are no accounts with weak security postures. Accounts with passwords that never expire can pose a significant security risk as they may not be updated regularly. It is recommended to enforce password expiration policies to enhance security."
                                                                 }
-                                                                if ($OutObj | Where-Object { $_.'Last Logon Date' -match "\*" }) {
-                                                                    BlankLine
-                                                                    Paragraph {
-                                                                        Text "*Regularly check for and remove inactive privileged user accounts in Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts have privileged access helps maintain a secure environment."
-                                                                    }
+                                                            }
+                                                            if ($OutObj | Where-Object { $_.'Last Logon Date' -match "\*" }) {
+                                                                BlankLine
+                                                                Paragraph {
+                                                                    Text "*Regularly check for and remove inactive privileged user accounts in Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts have privileged access helps maintain a secure environment."
                                                                 }
                                                             }
                                                         }
                                                     }
                                                 }
-                                            } catch {
-                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group in Active Directory item)"
                                             }
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group in Active Directory item)"
                                         }
                                     }
                                 }
-                            } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group in Active Directory)"
                             }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Group in Active Directory)"
                         }
                     }
                     if ($HealthCheck.Domain.BestPractice) {
                         try {
-                            $AdminGroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:DC -Filter "admincount -eq '1'" -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName) }
+                            $AdminGroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:ValidDcFromDomain -Filter "admincount -eq '1'" -SearchBase ($using:Domain).distinguishedName) }
                             if ($AdminGroupOBj) {
                                 $OutObj = @()
                                 foreach ($Group in $AdminGroupOBj) {
@@ -539,7 +532,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Privileged Group (Non-Default) - $($Domain.ToString().ToUpper())"
+                                    Name = "Privileged Group (Non-Default) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 50, 50
                                 }
@@ -585,7 +578,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Empty Groups - $($Domain.ToString().ToUpper())"
+                                    Name = "Empty Groups - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 50, 50
                                 }
@@ -614,7 +607,7 @@ function Get-AbrADDomainObject {
                                 [int]$Len = 0
                                 # Create an array of the group members, limited to sub-groups (not users)
                                 $Children = @(
-                                    Invoke-Command -Session $TempPssSession -ErrorAction SilentlyContinue { Get-ADGroupMember -Server $using:DC -Identity ($using:Parent).Name | Where-Object { $_.objectClass -eq "group" } }
+                                    Invoke-Command -Session $TempPssSession -ErrorAction SilentlyContinue { Get-ADGroupMember -Server $using:ValidDcFromDomain -Identity ($using:Parent).Name | Where-Object { $_.objectClass -eq "group" } }
                                 )
 
                                 $Len = @($Children).Count
@@ -623,7 +616,7 @@ function Get-AbrADDomainObject {
                                     ForEach ($Child in $Children) {
                                         # Now find any member of $Child which is also the childs $Parent
                                         $nestedGroup = @(
-                                            Invoke-Command -Session $TempPssSession -ErrorAction SilentlyContinue { Get-ADGroupMember -Server $using:DC -Identity ($using:Child).Name | Where-Object { $_.objectClass -eq "group" -and ($_.Name -eq ($using:Parent).Name) } }
+                                            Invoke-Command -Session $TempPssSession -ErrorAction SilentlyContinue { Get-ADGroupMember -Server $using:ValidDcFromDomain -Identity ($using:Child).Name | Where-Object { $_.objectClass -eq "group" -and ($_.Name -eq ($using:Parent).Name) } }
                                         )
 
                                         $NestCount = @($nestedGroup).Count
@@ -655,7 +648,7 @@ function Get-AbrADDomainObject {
                                     $OutObj | Set-Style -Style Warning
 
                                     $TableParams = @{
-                                        Name = "Circular Group Membership - $($Domain.ToString().ToUpper())"
+                                        Name = "Circular Group Membership - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 50, 50
                                     }
@@ -690,7 +683,7 @@ function Get-AbrADDomainObject {
                     $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                     $TableParams = @{
-                        Name = "Computers - $($Domain.ToString().ToUpper())"
+                        Name = "Computers - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }
@@ -766,7 +759,7 @@ function Get-AbrADDomainObject {
                         }
 
                         $TableParams = @{
-                            Name = "Status of Computer Accounts - $($Domain.ToString().ToUpper())"
+                            Name = "Status of Computer Accounts - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 28, 12, 12, 12, 12, 12, 12
                         }
@@ -799,45 +792,43 @@ function Get-AbrADDomainObject {
                 try {
                     Section -Style Heading5 'Operating Systems Count' {
                         $OutObj = @()
-                        if ($Domain) {
-                            try {
-                                $OSObjects = $Computers | Where-Object { $_.name -like '*' } | Group-Object -Property operatingSystem | Select-Object Name, Count
-                                if ($OSObjects) {
-                                    foreach ($OSObject in $OSObjects) {
-                                        $inObj = [ordered] @{
-                                            'Operating System' = Switch ([string]::IsNullOrEmpty($OSObject.Name)) {
-                                                $True { 'No OS Specified' }
-                                                default { $OSObject.Name }
-                                            }
-                                            'Count' = $OSObject.Count
+                        try {
+                            $OSObjects = $Computers | Where-Object { $_.name -like '*' } | Group-Object -Property operatingSystem | Select-Object Name, Count
+                            if ($OSObjects) {
+                                foreach ($OSObject in $OSObjects) {
+                                    $inObj = [ordered] @{
+                                        'Operating System' = Switch ([string]::IsNullOrEmpty($OSObject.Name)) {
+                                            $True { 'No OS Specified' }
+                                            default { $OSObject.Name }
                                         }
-                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        'Count' = $OSObject.Count
                                     }
-                                    if ($HealthCheck.Domain.Security) {
-                                        $OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' } | Set-Style -Style Critical -Property 'Operating System'
-                                    }
+                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                }
+                                if ($HealthCheck.Domain.Security) {
+                                    $OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' } | Set-Style -Style Critical -Property 'Operating System'
+                                }
 
-                                    $TableParams = @{
-                                        Name = "Operating System Count - $($Domain.ToString().ToUpper())"
-                                        List = $false
-                                        ColumnWidths = 60, 40
-                                    }
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                    }
-                                    $OutObj | Sort-Object -Property 'Operating System' |  Table @TableParams
-                                    if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' })) {
-                                        Paragraph "Health Check:" -Bold -Underline
-                                        BlankLine
-                                        Paragraph {
-                                            Text "Security Best Practice:" -Bold
-                                            Text "Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture."
-                                        }
+                                $TableParams = @{
+                                    Name = "Operating System Count - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    List = $false
+                                    ColumnWidths = 60, 40
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $OutObj | Sort-Object -Property 'Operating System' |  Table @TableParams
+                                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' })) {
+                                    Paragraph "Health Check:" -Bold -Underline
+                                    BlankLine
+                                    Paragraph {
+                                        Text "Security Best Practice:" -Bold
+                                        Text "Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture."
                                     }
                                 }
-                            } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Operating Systems in Active Directory)"
                             }
+                        } catch {
+                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Operating Systems in Active Directory)"
                         }
                     }
                 } catch {
@@ -845,7 +836,7 @@ function Get-AbrADDomainObject {
                 }
                 try {
                     if ($HealthCheck.Domain.Security) {
-                        $ComputerObjects = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { PasswordNotRequired -eq $true } -Server $using:DC -Properties Name, DistinguishedName, Enabled }
+                        $ComputerObjects = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { PasswordNotRequired -eq $true } -Server $using:ValidDcFromDomain -Properties Name, DistinguishedName, Enabled }
                         if ($ComputerObjects) {
                             Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers with Password-Not-Required Attribute Set' {
                                 $OutObj = @()
@@ -862,7 +853,7 @@ function Get-AbrADDomainObject {
                                     $OutObj | Set-Style -Style Warning
 
                                     $TableParams = @{
-                                        Name = "Computers with Password-Not-Required - $($Domain.ToString().ToUpper())"
+                                        Name = "Computers with Password-Not-Required - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 30, 58, 12
                                     }
@@ -908,7 +899,7 @@ function Get-AbrADDomainObject {
                             }
 
                             $TableParams = @{
-                                Name = "Computers - $($Domain.ToString().ToUpper())"
+                                Name = "Computers - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 30, 30, 25, 15
                             }
@@ -927,117 +918,112 @@ function Get-AbrADDomainObject {
             try {
                 Section -Style Heading3 'Default Domain Password Policy' {
                     $OutObj = @()
-                    if ($Domain) {
-                        try {
-                            $PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADDefaultDomainPasswordPolicy -Identity $using:Domain }
-                            if ($PasswordPolicy) {
-                                $inObj = [ordered] @{
-                                    'Password Must Meet Complexity Requirements' = $PasswordPolicy.ComplexityEnabled
-                                    'Path' = ConvertTo-ADCanonicalName -DN $PasswordPolicy.DistinguishedName -Domain $Domain
-                                    'Lockout Duration' = $PasswordPolicy.LockoutDuration.toString("mm' minutes'")
-                                    'Lockout Threshold' = $PasswordPolicy.LockoutThreshold
-                                    'Lockout Observation Window' = $PasswordPolicy.LockoutObservationWindow.toString("mm' minutes'")
-                                    'Maximum Password Age' = $PasswordPolicy.MaxPasswordAge.toString("dd' days'")
-                                    'Minimum Password Age' = $PasswordPolicy.MinPasswordAge.toString("dd' days'")
-                                    'Minimum Password Length' = $PasswordPolicy.MinPasswordLength
-                                    'Enforce Password History' = $PasswordPolicy.PasswordHistoryCount
-                                    'Store Password using Reversible Encryption' = $PasswordPolicy.ReversibleEncryptionEnabled
-                                }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                    try {
+                        $PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADDefaultDomainPasswordPolicy -Identity ($using:Domain).DNSRoot }
+                        if ($PasswordPolicy) {
+                            $inObj = [ordered] @{
+                                'Password Must Meet Complexity Requirements' = $PasswordPolicy.ComplexityEnabled
+                                'Path' = ConvertTo-ADCanonicalName -DN $PasswordPolicy.DistinguishedName -Domain $Domain.Name
+                                'Lockout Duration' = $PasswordPolicy.LockoutDuration.toString("mm' minutes'")
+                                'Lockout Threshold' = $PasswordPolicy.LockoutThreshold
+                                'Lockout Observation Window' = $PasswordPolicy.LockoutObservationWindow.toString("mm' minutes'")
+                                'Maximum Password Age' = $PasswordPolicy.MaxPasswordAge.toString("dd' days'")
+                                'Minimum Password Age' = $PasswordPolicy.MinPasswordAge.toString("dd' days'")
+                                'Minimum Password Length' = $PasswordPolicy.MinPasswordLength
+                                'Enforce Password History' = $PasswordPolicy.PasswordHistoryCount
+                                'Store Password using Reversible Encryption' = $PasswordPolicy.ReversibleEncryptionEnabled
+                            }
+                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
-                                if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
-                                    $OutObj | Set-Style -Style Warning -Property 'Maximun Password Age'
-                                }
+                            if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
+                                $OutObj | Set-Style -Style Warning -Property 'Maximun Password Age'
+                            }
 
-                                $TableParams = @{
-                                    Name = "Default Domain Password Policy - $($Domain.ToString().ToUpper())"
-                                    List = $true
-                                    ColumnWidths = 40, 60
-                                }
-                                if ($Report.ShowTableCaptions) {
-                                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                                }
-                                $OutObj | Table @TableParams
+                            $TableParams = @{
+                                Name = "Default Domain Password Policy - $($Domain.DNSRoot.ToString().ToUpper())"
+                                List = $true
+                                ColumnWidths = 40, 60
+                            }
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $OutObj | Table @TableParams
 
-                                if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
-                                    Paragraph "Health Check:" -Bold -Underline
-                                    BlankLine
-                                    Paragraph {
-                                        Text "Security Best Practice:" -Bold
-                                        Text "The MS-ISAC recommends organizations establish a standard for the creation, maintenance, and storage of strong passwords. A Password policies should enforce a maximum password age of between 30 and 90 days."
-                                    }
+                            if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
+                                Paragraph "Health Check:" -Bold -Underline
+                                BlankLine
+                                Paragraph {
+                                    Text "Security Best Practice:" -Bold
+                                    Text "The MS-ISAC recommends organizations establish a standard for the creation, maintenance, and storage of strong passwords. A Password policies should enforce a maximum password age of between 30 and 90 days."
                                 }
                             }
-                        } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Default Domain Password Policy)"
                         }
+                    } catch {
+                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Default Domain Password Policy)"
                     }
                 }
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
             }
             try {
-                if ($Domain) {
-                    foreach ($Item in $Domain) {
-                        $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
-                        $PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADFineGrainedPasswordPolicy -Server $using:DCPDC -Filter { Name -like "*" } -Properties * -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName } | Sort-Object -Property Name
-                        if ($PasswordPolicy) {
-                            Section -Style Heading3 'Fined Grained Password Policies' {
-                                $FGPPInfo = @()
-                                foreach ($FGPP in $PasswordPolicy) {
-                                    try {
-                                        $Accounts = @()
-                                        foreach ($ADObject in $FGPP.AppliesTo) {
-                                            $Accounts += Invoke-Command -Session $TempPssSession { Get-ADObject $using:ADObject -Server $using:DC -Properties sAMAccountName | Select-Object -ExpandProperty sAMAccountName }
-                                        }
-                                        $inObj = [ordered] @{
-                                            'Name' = $FGPP.Name
-                                            'Domain Name' = $Item
-                                            'Complexity Enabled' = $FGPP.ComplexityEnabled
-                                            'Path' = ConvertTo-ADCanonicalName -DN $FGPP.DistinguishedName -Domain $Domain
-                                            'Lockout Duration' = $FGPP.LockoutDuration.toString("mm' minutes'")
-                                            'Lockout Threshold' = $FGPP.LockoutThreshold
-                                            'Lockout Observation Window' = $FGPP.LockoutObservationWindow.toString("mm' minutes'")
-                                            'Max Password Age' = $FGPP.MaxPasswordAge.toString("dd' days'")
-                                            'Min Password Age' = $FGPP.MinPasswordAge.toString("dd' days'")
-                                            'Min Password Length' = $FGPP.MinPasswordLength
-                                            'Password History Count' = $FGPP.PasswordHistoryCount
-                                            'Reversible Encryption Enabled' = $FGPP.ReversibleEncryptionEnabled
-                                            'Precedence' = $FGPP.Precedence
-                                            'Applies To' = $Accounts -join ", "
-                                        }
-                                        $FGPPInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
-                                    } catch {
-                                        Write-PScriboMessage -IsWarning $($_.Exception.Message)
+                foreach ($Item in $Domain) {
+                    $PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADFineGrainedPasswordPolicy -Server ($using:Domain).PDCEmulator -Filter { Name -like "*" } -Properties * -SearchBase ($using:Domain).distinguishedName } | Sort-Object -Property Name
+                    if ($PasswordPolicy) {
+                        Section -Style Heading3 'Fined Grained Password Policies' {
+                            $FGPPInfo = @()
+                            foreach ($FGPP in $PasswordPolicy) {
+                                try {
+                                    $Accounts = @()
+                                    foreach ($ADObject in $FGPP.AppliesTo) {
+                                        $Accounts += Invoke-Command -Session $TempPssSession { Get-ADObject $using:ADObject -Server $using:ValidDcFromDomain -Properties sAMAccountName | Select-Object -ExpandProperty sAMAccountName }
                                     }
+                                    $inObj = [ordered] @{
+                                        'Name' = $FGPP.Name
+                                        'Domain Name' = $Item
+                                        'Complexity Enabled' = $FGPP.ComplexityEnabled
+                                        'Path' = ConvertTo-ADCanonicalName -DN $FGPP.DistinguishedName -Domain $Domain.DNSRoot
+                                        'Lockout Duration' = $FGPP.LockoutDuration.toString("mm' minutes'")
+                                        'Lockout Threshold' = $FGPP.LockoutThreshold
+                                        'Lockout Observation Window' = $FGPP.LockoutObservationWindow.toString("mm' minutes'")
+                                        'Max Password Age' = $FGPP.MaxPasswordAge.toString("dd' days'")
+                                        'Min Password Age' = $FGPP.MinPasswordAge.toString("dd' days'")
+                                        'Min Password Length' = $FGPP.MinPasswordLength
+                                        'Password History Count' = $FGPP.PasswordHistoryCount
+                                        'Reversible Encryption Enabled' = $FGPP.ReversibleEncryptionEnabled
+                                        'Precedence' = $FGPP.Precedence
+                                        'Applies To' = $Accounts -join ", "
+                                    }
+                                    $FGPPInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                } catch {
+                                    Write-PScriboMessage -IsWarning $($_.Exception.Message)
                                 }
+                            }
 
-                                if ($InfoLevel.Domain -ge 2) {
-                                    foreach ($FGPP in $FGPPInfo) {
-                                        Section -Style NOTOCHeading4 -ExcludeFromTOC "$($FGPP.Name)" {
-                                            $TableParams = @{
-                                                Name = "Fined Grained Password Policies - $($FGPP.Name)"
-                                                List = $true
-                                                ColumnWidths = 40, 60
-                                            }
-                                            if ($Report.ShowTableCaptions) {
-                                                $TableParams['Caption'] = "- $($TableParams.Name)"
-                                            }
-                                            $FGPP | Table @TableParams
+                            if ($InfoLevel.Domain -ge 2) {
+                                foreach ($FGPP in $FGPPInfo) {
+                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($FGPP.Name)" {
+                                        $TableParams = @{
+                                            Name = "Fined Grained Password Policies - $($FGPP.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
                                         }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $FGPP | Table @TableParams
                                     }
-                                } else {
-                                    $TableParams = @{
-                                        Name = "Fined Grained Password Policies -  $($Domain.ToString().ToUpper())"
-                                        List = $false
-                                        Columns = 'Name', 'Lockout Duration', 'Max Password Age', 'Min Password Age', 'Min Password Length', 'Password History Count'
-                                        ColumnWidths = 20, 20, 15, 15, 15, 15
-                                    }
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                    }
-                                    $FGPPInfo | Table @TableParams
                                 }
+                            } else {
+                                $TableParams = @{
+                                    Name = "Fined Grained Password Policies -  $($Domain.DNSRoot.ToString().ToUpper())"
+                                    List = $false
+                                    Columns = 'Name', 'Lockout Duration', 'Max Password Age', 'Min Password Age', 'Min Password Length', 'Password History Count'
+                                    ColumnWidths = 20, 20, 15, 15, 15, 15
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $FGPPInfo | Table @TableParams
                             }
                         }
                     }
@@ -1047,11 +1033,9 @@ function Get-AbrADDomainObject {
             }
 
             try {
-                if ($Domain -eq $ADSystem.RootDomain) {
+                if ($Domain.DNSRoot -eq $ADSystem.RootDomain) {
                     foreach ($Item in $Domain) {
-                        $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
-                        $DCPDC = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Item | Select-Object -ExpandProperty PDCEmulator }
-                        $LAPS = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Server $using:DCPDC "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:DomainInfo).DistinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
+                        $LAPS = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Server ($using:Domain).PDCEmulator "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:Domain).distinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
                         Section -Style Heading3 'Microsoft LAPS' {
                             $LAPSInfo = @()
                             try {
@@ -1078,7 +1062,7 @@ function Get-AbrADDomainObject {
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($LAP in $LAPSInfo) {
                                     $TableParams = @{
-                                        Name = "Microsoft LAPS - $($Domain.ToString().ToUpper())"
+                                        Name = "Microsoft LAPS - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $true
                                         ColumnWidths = 40, 60
                                     }
@@ -1089,7 +1073,7 @@ function Get-AbrADDomainObject {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Microsoft LAPS -  $($Domain.ToString().ToUpper())"
+                                    Name = "Microsoft LAPS -  $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     Columns = 'Name', 'Domain Name', 'Enabled'
                                     ColumnWidths = 34, 33, 33
@@ -1116,179 +1100,175 @@ function Get-AbrADDomainObject {
             }
 
             try {
-                if ($Domain) {
-                    try {
-                        $GMSA = Invoke-Command -Session $TempPssSession { Get-ADServiceAccount -Server $using:DC -Filter * -Properties * }
-                        if ($GMSA) {
-                            Section -Style Heading3 'gMSA Identities' {
-                                $GMSAInfo = @()
-                                foreach ($Account in $GMSA) {
-                                    try {
-                                        $inObj = [ordered] @{
-                                            'Name' = $Account.Name
-                                            'SamAccountName' = $Account.SamAccountName
-                                            'Created' = Switch ($Account.Created) {
-                                                $null { '--' }
-                                                default { $Account.Created.ToShortDateString() }
-                                            }
-                                            'Enabled' = $Account.Enabled
-                                            'DNS Host Name' = $Account.DNSHostName
-                                            'Host Computers' = ((ConvertTo-ADObjectName -DN $Account.HostComputers -Session $TempPssSession -DC $DC) -join ", ")
-                                            'Retrieve Managed Password' = ((ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $TempPssSession -DC $DC) -join ", ")
-                                            'Primary Group' = (ConvertTo-ADObjectName $Account.PrimaryGroup -Session $TempPssSession -DC $DC) -join ", "
-                                            'Last Logon Date' = Switch ($Account.LastLogonDate) {
-                                                $null { '--' }
-                                                default { $Account.LastLogonDate.ToShortDateString() }
-                                            }
-                                            'Locked Out' = $Account.LockedOut
-                                            'Logon Count' = $Account.logonCount
-                                            'Password Expired' = $Account.PasswordExpired
-                                            'Password Last Set' = Switch ([string]::IsNullOrEmpty($Account.PasswordLastSet)) {
-                                                $true { '--' }
-                                                $false { $Account.PasswordLastSet.ToShortDateString() }
-                                                default { "Unknown" }
-                                            }
+                try {
+                    $GMSA = Invoke-Command -Session $TempPssSession { Get-ADServiceAccount -Server $using:ValidDcFromDomain -Filter * -Properties * }
+                    if ($GMSA) {
+                        Section -Style Heading3 'gMSA Identities' {
+                            $GMSAInfo = @()
+                            foreach ($Account in $GMSA) {
+                                try {
+                                    $inObj = [ordered] @{
+                                        'Name' = $Account.Name
+                                        'SamAccountName' = $Account.SamAccountName
+                                        'Created' = Switch ($Account.Created) {
+                                            $null { '--' }
+                                            default { $Account.Created.ToShortDateString() }
                                         }
-                                        $GMSAInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
-
-                                    } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts Item)"
+                                        'Enabled' = $Account.Enabled
+                                        'DNS Host Name' = $Account.DNSHostName
+                                        'Host Computers' = ((ConvertTo-ADObjectName -DN $Account.HostComputers -Session $TempPssSession -DC $ValidDcFromDomain) -join ", ")
+                                        'Retrieve Managed Password' = ((ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $TempPssSession -DC $ValidDcFromDomain) -join ", ")
+                                        'Primary Group' = (ConvertTo-ADObjectName $Account.PrimaryGroup -Session $TempPssSession -DC $ValidDcFromDomain) -join ", "
+                                        'Last Logon Date' = Switch ($Account.LastLogonDate) {
+                                            $null { '--' }
+                                            default { $Account.LastLogonDate.ToShortDateString() }
+                                        }
+                                        'Locked Out' = $Account.LockedOut
+                                        'Logon Count' = $Account.logonCount
+                                        'Password Expired' = $Account.PasswordExpired
+                                        'Password Last Set' = Switch ([string]::IsNullOrEmpty($Account.PasswordLastSet)) {
+                                            $true { '--' }
+                                            $false { $Account.PasswordLastSet.ToShortDateString() }
+                                            default { "Unknown" }
+                                        }
                                     }
+                                    $GMSAInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
+
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts Item)"
                                 }
+                            }
 
-                                if ($HealthCheck.Domain.GMSA) {
-                                    $GMSAInfo | Where-Object { $_.'Enabled' -ne 'Yes' } | Set-Style -Style Warning -Property 'Enabled'
-                                    $GMSAInfo | Where-Object { $_.'Password Last Set' -ne '--' -and [datetime]$_.'Password Last Set' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Password Last Set'
-                                    $GMSAInfo | Where-Object { $_.'Password Last Set' -eq '--' } | Set-Style -Style Warning -Property 'Password Last Set'
-                                    $GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Last Logon Date'
-                                    $GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' } | Set-Style -Style Warning -Property 'Last Logon Date'
-                                    foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' })) {
-                                        $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
-                                    }
-                                    foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '*--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) })) {
-                                        $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
-                                    }
-                                    $GMSAInfo | Where-Object { $_.'Locked Out' -eq 'Yes' } | Set-Style -Style Warning -Property 'Locked Out'
-                                    $GMSAInfo | Where-Object { $_.'Logon Count' -eq 0 } | Set-Style -Style Warning -Property 'Logon Count'
-                                    $GMSAInfo | Where-Object { $_.'Password Expired' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Expired'
-                                    $GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' } | Set-Style -Style Warning -Property 'Host Computers'
-                                    foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' })) {
-                                        $OBJ.'Host Computers' = "**" + $OBJ.'Host Computers'
-                                    }
-                                    $GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' } | Set-Style -Style Warning -Property 'Retrieve Managed Password'
-                                    foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' })) {
-                                        $OBJ.'Retrieve Managed Password' = "***" + $OBJ.'Retrieve Managed Password'
-                                    }
+                            if ($HealthCheck.Domain.GMSA) {
+                                $GMSAInfo | Where-Object { $_.'Enabled' -ne 'Yes' } | Set-Style -Style Warning -Property 'Enabled'
+                                $GMSAInfo | Where-Object { $_.'Password Last Set' -ne '--' -and [datetime]$_.'Password Last Set' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Password Last Set'
+                                $GMSAInfo | Where-Object { $_.'Password Last Set' -eq '--' } | Set-Style -Style Warning -Property 'Password Last Set'
+                                $GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Last Logon Date'
+                                $GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' } | Set-Style -Style Warning -Property 'Last Logon Date'
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' })) {
+                                    $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
                                 }
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '*--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) })) {
+                                    $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
+                                }
+                                $GMSAInfo | Where-Object { $_.'Locked Out' -eq 'Yes' } | Set-Style -Style Warning -Property 'Locked Out'
+                                $GMSAInfo | Where-Object { $_.'Logon Count' -eq 0 } | Set-Style -Style Warning -Property 'Logon Count'
+                                $GMSAInfo | Where-Object { $_.'Password Expired' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Expired'
+                                $GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' } | Set-Style -Style Warning -Property 'Host Computers'
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' })) {
+                                    $OBJ.'Host Computers' = "**" + $OBJ.'Host Computers'
+                                }
+                                $GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' } | Set-Style -Style Warning -Property 'Retrieve Managed Password'
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' })) {
+                                    $OBJ.'Retrieve Managed Password' = "***" + $OBJ.'Retrieve Managed Password'
+                                }
+                            }
 
-                                if ($InfoLevel.Domain -ge 2) {
-                                    foreach ($Account in $GMSAInfo) {
-                                        Section -Style NOTOCHeading4 -ExcludeFromTOC "$($Account.Name)" {
-                                            $TableParams = @{
-                                                Name = "gMSA - $($Account.Name)"
-                                                List = $true
-                                                ColumnWidths = 40, 60
-                                            }
-                                            if ($Report.ShowTableCaptions) {
-                                                $TableParams['Caption'] = "- $($TableParams.Name)"
-                                            }
-                                            $Account | Table @TableParams
-                                            if (($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '--') }) -or ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) -or ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '**--' })) {
-                                                Paragraph "Health Check:" -Bold -Underline
+                            if ($InfoLevel.Domain -ge 2) {
+                                foreach ($Account in $GMSAInfo) {
+                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($Account.Name)" {
+                                        $TableParams = @{
+                                            Name = "gMSA - $($Account.Name)"
+                                            List = $true
+                                            ColumnWidths = 40, 60
+                                        }
+                                        if ($Report.ShowTableCaptions) {
+                                            $TableParams['Caption'] = "- $($TableParams.Name)"
+                                        }
+                                        $Account | Table @TableParams
+                                        if (($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '--') }) -or ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) -or ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '**--' })) {
+                                            Paragraph "Health Check:" -Bold -Underline
+                                            BlankLine
+                                            Paragraph "Security Best Practice:" -Bold
+                                            if ($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '*--') }) {
                                                 BlankLine
-                                                Paragraph "Security Best Practice:" -Bold
-                                                if ($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '*--') }) {
-                                                    BlankLine
-                                                    Paragraph {
-                                                        Text "*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation."
-                                                    }
+                                                Paragraph {
+                                                    Text "*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation."
                                                 }
-                                                if ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) {
-                                                    BlankLine
-                                                    Paragraph {
-                                                        Text "**No 'Host Computers' has been defined, please validate that the gMSA is currently in use. If not, it is recommended to remove these unused resources from Active Directory."
-                                                    }
+                                            }
+                                            if ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) {
+                                                BlankLine
+                                                Paragraph {
+                                                    Text "**No 'Host Computers' has been defined, please validate that the gMSA is currently in use. If not, it is recommended to remove these unused resources from Active Directory."
                                                 }
-                                                if ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '***--' }) {
-                                                    BlankLine
-                                                    Paragraph {
-                                                        Text "***No 'Retrieve Managed Password' has been defined, please validate that the gMSA is currently in use. If not, it is recommended to remove these unused resources from Active Directory."
-                                                    }
+                                            }
+                                            if ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '***--' }) {
+                                                BlankLine
+                                                Paragraph {
+                                                    Text "***No 'Retrieve Managed Password' has been defined, please validate that the gMSA is currently in use. If not, it is recommended to remove these unused resources from Active Directory."
                                                 }
                                             }
                                         }
                                     }
-                                } else {
-                                    $TableParams = @{
-                                        Name = "gMSA - $($Domain.ToString().ToUpper())"
-                                        List = $false
-                                        Columns = 'Name', 'Logon Count', 'Locked Out', 'Last Logon Date', 'Password Last Set', 'Enabled'
-                                        ColumnWidths = 25, 15, 15, 15, 15, 15
-                                    }
-                                    if ($Report.ShowTableCaptions) {
-                                        $TableParams['Caption'] = "- $($TableParams.Name)"
-                                    }
-                                    $GMSAInfo | Table @TableParams
-                                    if (($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '--') })) {
-                                        Paragraph "Health Check:" -Bold -Underline
-                                        BlankLine
-                                        if ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq "*--" }) {
-                                            Paragraph {
-                                                Text "Security Best Practice:" -Bold
-                                                Text "*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation."
-                                            }
+                                }
+                            } else {
+                                $TableParams = @{
+                                    Name = "gMSA - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    List = $false
+                                    Columns = 'Name', 'Logon Count', 'Locked Out', 'Last Logon Date', 'Password Last Set', 'Enabled'
+                                    ColumnWidths = 25, 15, 15, 15, 15, 15
+                                }
+                                if ($Report.ShowTableCaptions) {
+                                    $TableParams['Caption'] = "- $($TableParams.Name)"
+                                }
+                                $GMSAInfo | Table @TableParams
+                                if (($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '--') })) {
+                                    Paragraph "Health Check:" -Bold -Underline
+                                    BlankLine
+                                    if ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq "*--" }) {
+                                        Paragraph {
+                                            Text "Security Best Practice:" -Bold
+                                            Text "*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation."
                                         }
                                     }
                                 }
                             }
                         }
-                    } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts Section)"
                     }
+                } catch {
+                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Group Managed Service Accounts Section)"
                 }
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
             }
             try {
-                if ($Domain) {
-                    try {
-                        $FSP = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:DC -Filter { ObjectClass -eq "foreignSecurityPrincipal" } -Properties msds-principalname, memberof }
-                        if ($FSP) {
-                            Section -Style Heading3 'Foreign Security Principals' {
-                                $FSPInfo = @()
-                                foreach ($Account in $FSP) {
-                                    try {
-                                        $inObj = [ordered] @{
-                                            'Name' = $Account.'msds-principalname'
-                                            'Principal Name' = $Account.memberof | ForEach-Object {
-                                                if ($Null -ne $_) {
-                                                    ConvertTo-ADObjectName -DN $_ -Session $TempPssSession -DC $DC
-                                                } else {
-                                                    return "--"
-                                                }
+                try {
+                    $FSP = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:ValidDcFromDomain -Filter { ObjectClass -eq "foreignSecurityPrincipal" } -Properties msds-principalname, memberof }
+                    if ($FSP) {
+                        Section -Style Heading3 'Foreign Security Principals' {
+                            $FSPInfo = @()
+                            foreach ($Account in $FSP) {
+                                try {
+                                    $inObj = [ordered] @{
+                                        'Name' = $Account.'msds-principalname'
+                                        'Principal Name' = $Account.memberof | ForEach-Object {
+                                            if ($Null -ne $_) {
+                                                ConvertTo-ADObjectName -DN $_ -Session $TempPssSession -DC $ValidDcFromDomain
+                                            } else {
+                                                return "--"
                                             }
                                         }
-                                        $FSPInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
-
-                                    } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Foreign Security Principals Item)"
                                     }
-                                }
+                                    $FSPInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
 
-                                $TableParams = @{
-                                    Name = "Foreign Security Principals - $($Domain.ToString().ToUpper())"
-                                    List = $false
-                                    ColumnWidths = 50, 50
+                                } catch {
+                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Foreign Security Principals Item)"
                                 }
-                                if ($Report.ShowTableCaptions) {
-                                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                                }
-                                $FSPInfo | Table @TableParams
                             }
+
+                            $TableParams = @{
+                                Name = "Foreign Security Principals - $($Domain.DNSRoot.ToString().ToUpper())"
+                                List = $false
+                                ColumnWidths = 50, 50
+                            }
+                            if ($Report.ShowTableCaptions) {
+                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                            }
+                            $FSPInfo | Table @TableParams
                         }
-                    } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Foreign Security Principals Section)"
                     }
+                } catch {
+                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Foreign Security Principals Section)"
                 }
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)

@@ -16,24 +16,21 @@ function Get-AbrADFSMO {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string]$ValidDCFromDomain
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory FSMO information of domain $Domain."
+        Write-PScriboMessage "Collecting Active Directory FSMO information of domain $($Domain.DNSRoot)."
     }
 
     process {
         try {
-            $DomainData = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator }
-            $ForestData = Invoke-Command -Session $TempPssSession { Get-ADForest $using:Domain | Select-Object DomainNamingMaster, SchemaMaster }
+            $DomainData = Invoke-Command -Session $TempPssSession { Get-ADDomain ($using:Domain).DNSRoot | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator }
+            $ForestData = Invoke-Command -Session $TempPssSession { Get-ADForest ($using:Domain).DNSRoot | Select-Object DomainNamingMaster, SchemaMaster }
             if ($DomainData -and $ForestData) {
-                if ($DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
-                    if ($DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)) {
+                if ($ValidDCFromDomain) {
+                    if ($DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)) {
                         Section -Style Heading3 'FSMO Roles' {
                             $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
                             $OutObj = @()
@@ -57,7 +54,7 @@ function Get-AbrADFSMO {
                             }
 
                             $TableParams = @{
-                                Name = "FSMO Roles - $($Domain)"
+                                Name = "FSMO Roles - $($Domain.DNSRoot)"
                                 List = $true
                                 ColumnWidths = 40, 60
                             }
@@ -70,7 +67,7 @@ function Get-AbrADFSMO {
                                 BlankLine
                                 Paragraph {
                                     Text "Best Practice:" -Bold
-                                    Text "The infrastructure master role in the domain $($Domain.ToString().ToUpper()) should be held by a domain controller that is not a global catalog server. The infrastructure master is responsible for updating references from objects in its domain to objects in other domains. If the infrastructure master runs on a global catalog server, it will not function properly because the global catalog holds a partial replica of every object in the forest, and it will not update the references. This issue does not affect forests that have a single domain. "
+                                    Text "The infrastructure master role in the domain $($Domain.DNSRoot.ToString().ToUpper()) should be held by a domain controller that is not a global catalog server. The infrastructure master is responsible for updating references from objects in its domain to objects in other domains. If the infrastructure master runs on a global catalog server, it will not function properly because the global catalog holds a partial replica of every object in the forest, and it will not update the references. This issue does not affect forests that have a single domain. "
                                 }
                                 BlankLine
                                 Paragraph {
@@ -83,7 +80,7 @@ function Get-AbrADFSMO {
                         if (-Not $_.Exception.MessageId) {
                             $ErrorMessage = $_.FullyQualifiedErrorId
                         } else { $ErrorMessage = $_.Exception.MessageId }
-                        Write-PScriboMessage -IsWarning "FSMO Roles Section: New-PSSession: Unable to connect to $($Domain): $ErrorMessage"
+                        Write-PScriboMessage -IsWarning "FSMO Roles Section: New-PSSession: Unable to connect to $($Domain.DNSRoot): $ErrorMessage"
                     }
                 }
             }

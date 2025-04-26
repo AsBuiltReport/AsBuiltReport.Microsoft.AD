@@ -16,6 +16,7 @@ function Get-AbrDNSSection {
     #>
     [CmdletBinding()]
     param (
+        [ref]$DomainStatus
     )
 
     begin {
@@ -25,31 +26,32 @@ function Get-AbrDNSSection {
     process {
         if ($InfoLevel.DNS -ge 1) {
             $DNSDomainObj = foreach ($Domain in [string[]]($OrderedDomains | Where-Object { $_ -notin $Options.Exclude.Domains })) {
-                if ($Domain -notin $DomainStatus.Value.Name) {
-                    if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
+                if ($Domain -and ($Domain -notin $DomainStatus.Value.Name)) {
+                    if ($ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         try {
-                            if (Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }) {
-                                Section -Style Heading2 "$($Domain.ToString().ToUpper())" {
+                            if ($DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain }) {
+                                $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
+
+                                Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
                                     Paragraph "The following section provides a configuration summary of the DNS service."
                                     BlankLine
                                     if ($TempCIMSession) {
-                                        Get-AbrADDNSInfrastructure -Domain $Domain
+                                        Get-AbrADDNSInfrastructure -Domain $DomainInfo -DCs $DCs
                                     }
-                                    $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } }
                                     foreach ($DC in $DCs) {
                                         if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
-                                            Get-AbrADDNSZone -Domain $Domain -DC $DC
+                                            Get-AbrADDNSZone -Domain $DomainInfo -DC $DC
                                         }
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage "$($Domain) disabled in Exclude.Domain variable"
+                                Write-PScriboMessage "$($DomainInfo.DNSRoot) disabled in Exclude.Domain variable"
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Information)"
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning "Unable to get an available DC in $Domain domain. Removing it from the report."
+                        Write-PScriboMessage -IsWarning "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing it from the report."
                     }
                 }
             }

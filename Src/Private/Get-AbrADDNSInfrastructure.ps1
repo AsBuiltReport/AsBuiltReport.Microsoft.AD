@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,20 +16,16 @@ function Get-AbrADDNSInfrastructure {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string[]]$DCs
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory Domain Name System Infrastructure information for $Domain"
+        Write-PScriboMessage "Collecting Active Directory Domain Name System Infrastructure information for $($Domain.DNSRoot)"
     }
 
     process {
         try {
-            $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } }
             if ($DCs) {
                 Section -Style Heading3 "Infrastructure Summary" {
                     Paragraph "The following section provides a summary of the DNS Infrastructure configuration."
@@ -51,13 +47,11 @@ function Get-AbrADDNSInfrastructure {
                             } catch {
                                 Write-PScriboMessage -IsWarning "DNS Infrastructure Summary Section: $($_.Exception.Message)"
                             }
-                        } else {
-                            Write-PScriboMessage -IsWarning "DNS Infrastructure Summary Section: Unable to connect to DC server $DC"
                         }
                     }
 
                     $TableParams = @{
-                        Name = "Infrastructure Summary - $($Domain.ToString().ToUpper())"
+                        Name = "Infrastructure Summary - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 30, 10, 9, 10, 11, 30
                     }
@@ -112,8 +106,6 @@ function Get-AbrADDNSInfrastructure {
                                         } catch {
                                             Write-PScriboMessage -IsWarning "Directory Partitions Table Section: $($_.Exception.Message)"
                                         }
-                                    } else {
-                                        Write-PScriboMessage -IsWarning "DNS Directory Partition Section: Unable to connect to DC server $DC"
                                     }
                                 }
                             }
@@ -146,13 +138,11 @@ function Get-AbrADDNSInfrastructure {
                                         } catch {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
                                         }
-                                    } else {
-                                        Write-PScriboMessage -IsWarning "DNS Response Rate Limiting (RRL) Section: Unable to connect to DC server $DC"
                                     }
                                 }
 
                                 $TableParams = @{
-                                    Name = "Response Rate Limiting - $($Domain.ToString().ToUpper())"
+                                    Name = "Response Rate Limiting - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 30, 10, 12, 12, 12, 12, 12
                                 }
@@ -196,8 +186,6 @@ function Get-AbrADDNSInfrastructure {
                                         } catch {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Item)"
                                         }
-                                    } else {
-                                        Write-PScriboMessage -IsWarning "DNS Scavenging Section: Unable to connect to DC server $DC"
                                     }
                                 }
 
@@ -206,7 +194,7 @@ function Get-AbrADDNSInfrastructure {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Scavenging - $($Domain.ToString().ToUpper())"
+                                    Name = "Scavenging - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 25, 15, 15, 15, 15, 15
                                 }
@@ -249,8 +237,6 @@ function Get-AbrADDNSInfrastructure {
                                     } catch {
                                         Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Item)"
                                     }
-                                } else {
-                                    Write-PScriboMessage -IsWarning "DNS Forwarder Section: Unable to connect to DC server $DC"
                                 }
                             }
 
@@ -260,7 +246,7 @@ function Get-AbrADDNSInfrastructure {
                             }
 
                             $TableParams = @{
-                                Name = "Forwarders - $($Domain.ToString().ToUpper())"
+                                Name = "Forwarders - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 35, 15, 15, 15, 20
                             }
@@ -301,7 +287,7 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading4 "Root Hints" {
-                                Paragraph "The following section provides Root Hints information from domain $($Domain)."
+                                Paragraph "The following section provides Root Hints information from domain $($Domain.DNSRoot)."
                                 BlankLine
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
@@ -392,8 +378,6 @@ function Get-AbrADDNSInfrastructure {
                                         } catch {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Table)"
                                         }
-                                    } else {
-                                        Write-PScriboMessage -IsWarning "DNS Root Hints Section: Unable to connect to DC server $DC"
                                     }
                                 }
                             }
@@ -425,13 +409,11 @@ function Get-AbrADDNSInfrastructure {
                                         } catch {
                                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Item)"
                                         }
-                                    } else {
-                                        Write-PScriboMessage -IsWarning "DNS Zone Scope Recursion Section: Unable to connect to DC server $DC"
                                     }
                                 }
 
                                 $TableParams = @{
-                                    Name = "Zone Scope Recursion - $($Domain.ToString().ToUpper())"
+                                    Name = "Zone Scope Recursion - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 35, 25, 20, 20
                                 }

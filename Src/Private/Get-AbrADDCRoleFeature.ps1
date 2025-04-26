@@ -16,10 +16,6 @@ function Get-AbrADDCRoleFeature {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
         $DC
     )
 

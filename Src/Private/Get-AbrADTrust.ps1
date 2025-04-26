@@ -16,23 +16,19 @@ function Get-AbrADTrust {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string]$ValidDCFromDomain
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Trust information of $($Domain.ToString().ToUpper())."
+        Write-PScriboMessage "Collecting AD Trust information of $($Domain.DNSRoot.ToString().ToUpper())."
     }
 
     process {
         try {
             if ($Domain) {
                 try {
-                    $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
-                    $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:DC }
+                    $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:ValidDCFromDomain }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {
                             $TrustInfo = @()
@@ -41,7 +37,7 @@ function Get-AbrADTrust {
                                     $inObj = [ordered] @{
                                         'Name' = $Trust.Name
                                         'Path' = $Trust.CanonicalName
-                                        'Source' = ConvertTo-ADObjectName $Trust.Source -Session $TempPssSession -DC $DC
+                                        'Source' = ConvertTo-ADObjectName $Trust.Source -Session $TempPssSession -DC $ValidDCFromDomain
                                         'Target' = $Trust.Target
                                         'Trust Type' = Switch ($Trust.TrustType) {
                                             1 { "Downlevel (NT domain)" }
@@ -98,7 +94,7 @@ function Get-AbrADTrust {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Trusts - $($Domain.ToString().ToUpper())"
+                                    Name = "Trusts - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     Columns = 'Name', 'Path', 'Source', 'Target', 'Trust Direction'
                                     ColumnWidths = 20, 20, 20, 20, 20
@@ -111,7 +107,7 @@ function Get-AbrADTrust {
                             if ($Options.EnableDiagrams) {
                                 try {
                                     try {
-                                        $Graph = Get-AbrDiagrammer -DiagramType "Trusts" -DiagramOutput base64 -DomainController $DC
+                                        $Graph = Get-AbrDiagrammer -DiagramType "Trusts" -DiagramOutput base64 -DomainController $ValidDCFromDomain
                                     } catch {
                                         Write-PScriboMessage -IsWarning "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
                                     }
@@ -130,7 +126,7 @@ function Get-AbrADTrust {
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No Domain Trust information found in $Domain, Disabling this section."
+                        Write-PScriboMessage "No Domain Trust information found in $($Domain.DNSRoot), Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Table)"

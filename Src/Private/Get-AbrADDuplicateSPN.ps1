@@ -5,7 +5,7 @@ function Get-AbrADDuplicateSPN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,24 +16,20 @@ function Get-AbrADDuplicateSPN {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
         $Domain
     )
 
     begin {
-        Write-PScriboMessage "Collecting duplicate SPN information on $Domain."
+        Write-PScriboMessage "Collecting duplicate SPN information on $($Domain.DNSRoot)."
     }
 
     process {
         if ($HealthCheck.Domain.SPN) {
             try {
-                $SPNs = Get-WinADDuplicateSPN -Domain $Domain -Credential $Credential -ExcludeDomains $Options.Exclude.Domains
+                $SPNs = Get-WinADDuplicateSPN -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains
                 if ($SPNs) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate SPN' {
-                        Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.ToString().ToUpper())."
+                        Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
                         foreach ($SPN in $SPNs) {
@@ -54,7 +50,7 @@ function Get-AbrADDuplicateSPN {
                         }
 
                         $TableParams = @{
-                            Name = "Duplicate SPN - $($Domain.ToString().ToUpper())"
+                            Name = "Duplicate SPN - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 40, 10, 50
                         }
@@ -73,7 +69,7 @@ function Get-AbrADDuplicateSPN {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Duplicate SPN information found in $Domain, Disabling this section."
+                    Write-PScriboMessage "No Duplicate SPN information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SPN Table)"

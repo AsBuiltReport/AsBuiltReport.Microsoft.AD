@@ -2517,6 +2517,8 @@ function Get-ValidPSSession {
             Id Name            ComputerName    ComputerType    State         ConfigurationName     Availability
             -- ----            ------------    ------------    -----         -----------------     ------------
             9 Global:TempP... server-dc-01... RemoteMachine   Opened        Microsoft.PowerShell     Available
+
+    .Todo
     #>
     [CmdletBinding()]
     [OutputType([String])]
@@ -2531,10 +2533,18 @@ function Get-ValidPSSession {
 
     )
 
+    if ((-Not $Options.WinRMFallbackToNoSSL) -and ($PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'PSSessionSSL' })) {
+        throw "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
+    } elseif (($Options.WinRMFallbackToNoSSL) -and ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSession' })) {
+        Write-PScriboMessage -Message "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
+        Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM)."
+        return Get-PSSession $PSessionObj.Id
+    }
+
     if ($Options.WinRMSSL) {
-        if ($PSessionObj = Get-PSSession | Where-Object { $_.ComputerName -eq $ComputerName -and $_.Availability -eq 'Available' -and $_.State -eq 'Opened' -and $_.Runspace.ConnectionInfo.Scheme -eq 'https' -and $_.Runspace.ConnectionInfo.Credential.Username -eq $Credential.UserName }) {
+        if ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSessionSSL' }) {
             Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM with SSL)."
-            $PSessionObj
+            return Get-PSSession $PSessionObj.Id
         } else {
             try {
                 Write-PScriboMessage -Message "Connecting to '$ComputerName' through PSSession with SSL."
@@ -2546,26 +2556,40 @@ function Get-ValidPSSession {
                         Protocol = 'PSSessionSSL'
                         Id = $SessionObject.Id
                     }
-                    $SessionObject
+                    return $SessionObject
                 }
             } catch {
-                Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession with SSL. Reverting to WinRM without SSL!"
+                Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession with SSL."
+                $PSSTable.Value += @{
+                    DCName = $ComputerName
+                    Status = 'Offline'
+                    Protocol = 'PSSessionSSL'
+                    Id = 'None'
+                }
                 if ($Options.WinRMFallbackToNoSSL) {
                     if ($PSessionObj = Get-PSSession | Where-Object { $_.ComputerName -eq $ComputerName -and $_.Availability -eq 'Available' -and $_.State -eq 'Opened' -and $_.Runspace.ConnectionInfo.Scheme -eq 'http' -and $_.Runspace.ConnectionInfo.Credential.Username -eq $Credential.UserName }) {
                         Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM without SSL)."
-                        $PSessionObj
+                        $PSSTable.Value += @{
+                            DCName = $ComputerName
+                            Status = 'Online'
+                            Protocol = 'PSSession'
+                            Id = $PSessionObj.Id
+                        }
+                        return $PSessionObj
                     } else {
                         Write-PScriboMessage -Message "Generating a PSSession to '$ComputerName' (WinRM without SSL)."
-                        if ($SessionObject = New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
-                            Write-PScriboMessage -Message "Connected to '$ComputerName' through PSSession (WinRM without SSL)."
-                            $PSSTable.Value += @{
-                                DCName = $ComputerName
-                                Status = 'Online'
-                                Protocol = 'PSSession'
-                                Id = $SessionObject.Id
+                        try {
+                            if ($SessionObject = New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
+                                Write-PScriboMessage -Message "Connected to '$ComputerName' through PSSession (WinRM without SSL)."
+                                $PSSTable.Value += @{
+                                    DCName = $ComputerName
+                                    Status = 'Online'
+                                    Protocol = 'PSSession'
+                                    Id = $SessionObject.Id
+                                }
+                                return $SessionObject
                             }
-                            $SessionObject
-                        } else {
+                        } catch {
                             Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession."
                             $PSSTable.Value += @{
                                 DCName = $ComputerName
@@ -2581,20 +2605,24 @@ function Get-ValidPSSession {
             }
         }
     } else {
-        if ($PSessionObj = Get-PSSession | Where-Object { $_.ComputerName -eq $ComputerName -and $_.Availability -eq 'Available' -and $_.State -eq 'Opened' -and $_.Runspace.ConnectionInfo.Scheme -eq 'http' -and $_.Runspace.ConnectionInfo.Credential.Username -eq $Credential.UserName }) {
+        if ($PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'PSSession' }) {
+            throw "Unable to connect to $ComputerName through PSSession (WinRM)."
+        } elseif ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSession' }) {
             Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id)"
-            $PSessionObj
+            return Get-PSSession $PSessionObj.Id
         } else {
             Write-PScriboMessage -Message "Generating a PSSession to '$ComputerName'."
-            if ($SessionObject = New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
-                $PSSTable.Value += @{
-                    DCName = $ComputerName
-                    Status = 'Online'
-                    Protocol = 'PSSession'
-                    Id = $SessionObject.Id
+            try {
+                if ($SessionObject = New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
+                    $PSSTable.Value += @{
+                        DCName = $ComputerName
+                        Status = 'Online'
+                        Protocol = 'PSSession'
+                        Id = $SessionObject.Id
+                    }
+                    return $SessionObject
                 }
-                $SessionObject
-            } else {
+            } catch {
                 Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession."
                 $PSSTable.Value += @{
                     DCName = $ComputerName
@@ -2632,10 +2660,18 @@ function Get-ValidCIMSession {
         [ref]$CIMTable
     )
 
+    if ((-Not $Options.WinRMFallbackToNoSSL) -and ($CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'CimSessionSSL' })) {
+        throw "Unable to connect to $ComputerName through CimSession (CIM with SSL)."
+    } elseif (($Options.WinRMFallbackToNoSSL) -and ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSession' })) {
+        Write-PScriboMessage -Message "Unable to connect to $ComputerName through CimSession (CIM with SSL)."
+        Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' CimSession id: $($PSessionObj.Id) (WinRM)."
+        return Get-CimSession $CIMSessionObj.Id
+    }
+
     if ($Options.WinRMSSL) {
-        if ($CIMSessionObj = Get-CimSession | Where-Object { $_.ComputerName -eq $ComputerName -and $_.Protocol -eq 'WSMAN' }) {
-            Write-PScriboMessage -Message "Using available '$ComputerName' CIMSession id: $($CIMSessionObj.Id) (CimSession with SSL)."
-            $CIMSessionObj
+        if ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSessionSSL' }) {
+            Write-PScriboMessage -Message "Using available '$ComputerName' CIMSession id: $($CIMSessionObj.Id) (CimSession)."
+            return Get-CimSession $CIMSessionObj.Id
         } else {
             try {
                 Write-PScriboMessage -Message "No available CimSession with SSL found for '$ComputerName': Generating a new one."
@@ -2655,22 +2691,31 @@ function Get-ValidCIMSession {
             } catch {
                 if ($Options.WinRMFallbackToNoSSL) {
                     Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession with SSL. Reverting to Cim without SSL!"
-                    if ($CIMSessionObj = New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
-                        Write-PScriboMessage -Message "Connected to '$ComputerName' through CimSession without SSL."
-                        $CIMTable.Value += @{
-                            DCName = $ComputerName
-                            Status = 'Online'
-                            Protocol = 'CimSessionSSL'
-                            Id = $CIMSessionObj.Id
-                            InstanceId = $CIMSessionObj.InstanceId
+                    $CIMTable.Value += @{
+                        DCName = $ComputerName
+                        Status = 'Offline'
+                        Protocol = 'CimSessionSSL'
+                        Id = 'None'
+                        InstanceId = 'None'
+                    }
+                    try {
+                        if ($CIMSessionObj = New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
+                            Write-PScriboMessage -Message "Connected to '$ComputerName' through CimSession without SSL."
+                            $CIMTable.Value += @{
+                                DCName = $ComputerName
+                                Status = 'Online'
+                                Protocol = 'CimSession'
+                                Id = $CIMSessionObj.Id
+                                InstanceId = $CIMSessionObj.InstanceId
+                            }
+                            $CIMSessionObj
                         }
-                        $CIMSessionObj
-                    } else {
+                    } catch {
                         Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession without SSL."
                         $CIMTable.Value += @{
                             DCName = $ComputerName
                             Status = 'Offline'
-                            Protocol = 'CimSessionSSL'
+                            Protocol = 'CimSession'
                             Id = 'None'
                             InstanceId = 'None'
                         }
@@ -2679,27 +2724,31 @@ function Get-ValidCIMSession {
             }
         }
     } else {
-        if ($CIMSessionObj = Get-CimSession | Where-Object { $_.ComputerName -eq $ComputerName -and $_.Protocol -eq 'WSMAN' }) {
+        if ($CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'CimSession' }) {
+            throw "Unable to connect to $ComputerName through CimSession (CimSession)."
+        } elseif ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSession' }) {
             Write-PScriboMessage -Message "Using available '$ComputerName' CIMSession id: $($CIMSessionObj.Id) (CimSession without SSL)."
-            $CIMSessionObj
+            return Get-CimSession $CIMSessionObj.Id
         } else {
             Write-PScriboMessage -Message "Connecting to '$ComputerName' through CimSession without SSL."
-            if ($CIMSessionObj = New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name $SessionName -Port $Options.WinRMPort -ErrorAction Continue) {
-                Write-PScriboMessage -Message "Connected to '$ComputerName' CimSession without SSL."
-                $CIMTable.Value += @{
-                    DCName = $ComputerName
-                    Status = 'Online'
-                    Protocol = 'CimSessionSSL'
-                    Id = $CIMSessionObj.Id
-                    InstanceId = $CIMSessionObj.InstanceId
+            try {
+                if ($CIMSessionObj = New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name $SessionName -Port $Options.WinRMPort) {
+                    Write-PScriboMessage -Message "Connected to '$ComputerName' CimSession without SSL."
+                    $CIMTable.Value += @{
+                        DCName = $ComputerName
+                        Status = 'Online'
+                        Protocol = 'CimSession'
+                        Id = $CIMSessionObj.Id
+                        InstanceId = $CIMSessionObj.InstanceId
+                    }
+                    $CIMSessionObj
                 }
-                $CIMSessionObj
-            } else {
+            } catch {
                 Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession without SSL."
                 $CIMTable.Value += @{
                     DCName = $ComputerName
                     Status = 'Offline'
-                    Protocol = 'CimSessionSSL'
+                    Protocol = 'CimSession'
                     Id = 'None'
                     InstanceId = 'None'
                 }

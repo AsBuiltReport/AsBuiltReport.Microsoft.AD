@@ -16,28 +16,24 @@ function Get-AbrADDFSHealth {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string[]]$DCs,
+        $ValidDcFromDomain
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain DFS Health information on $Domain."
+        Write-PScriboMessage "Collecting AD Domain DFS Health information on $($Domain.DNSRoot)."
     }
 
     process {
         if ($HealthCheck.Domain.DFS) {
             try {
-                $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
-
                 if ($Options.Exclude.DCs) {
-                    $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential -ExcludeDomains $Options.Exclude.Domains -ExcludeDomainControllers $Options.Exclude.DCs
-                } Else { $DFS = Get-WinADDFSHealth -Domain $Domain -Credential $Credential -ExcludeDomains $Options.Exclude.Domains }
+                    $DFS = Get-WinADDFSHealth -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains -ExcludeDomainControllers $Options.Exclude.DCs
+                } Else { $DFS = Get-WinADDFSHealth -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains }
                 if ($DFS) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Replication Status' {
-                        Paragraph "The following section details the sysvol folder replication status for Domain $($Domain.ToString().ToUpper())."
+                        Paragraph "The following section details the sysvol folder replication status for Domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
                         foreach ($Controller in $DCs) {
@@ -96,7 +92,7 @@ function Get-AbrADDFSHealth {
                         }
 
                         $TableParams = @{
-                            Name = "Sysvol Replication Status - $($Domain.ToString().ToUpper())"
+                            Name = "Sysvol Replication Status - $($Domain.DNSRoot.ToString().ToUpper()))"
                             List = $false
                             ColumnWidths = 20, 16, 16, 16, 16, 16
                         }
@@ -116,18 +112,17 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No DFS information found in $Domain, Disabling this section."
+                    Write-PScriboMessage "No DFS information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
             }
             try {
-                $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
 
-                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
+                $DCPssSession = Get-ValidPSSession -ComputerName $ValidDcFromDomain -SessionName $($ValidDcFromDomain) -PSSTable ([ref]$PSSTable)
                 if ($DCPssSession) {
                     # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
-                    $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\SYSVOL\' + $using:Domain) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
+                    $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + ($using:Domain).DNSRoot + '\SYSVOL\' + ($using:Domain).DNSRoot) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
                             New-Object -TypeName PSObject -Property @{
                                 'Extension' = $_.name
                                 'Count' = $_.count
@@ -137,11 +132,11 @@ function Get-AbrADDFSHealth {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                    Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
                 }
                 if ($SYSVOLFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Content Status' {
-                        Paragraph "The following section details domain $($Domain.ToString().ToUpper()) sysvol health status."
+                        Paragraph "The following section details domain $($Domain.DNSRoot.ToString().ToUpper())) sysvol health status."
                         BlankLine
                         $OutObj = @()
                         foreach ($Extension in $SYSVOLFolder) {
@@ -162,7 +157,7 @@ function Get-AbrADDFSHealth {
                         }
 
                         $TableParams = @{
-                            Name = "Sysvol Content Status - $($Domain.ToString().ToUpper())"
+                            Name = "Sysvol Content Status - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 33, 33, 34
                         }
@@ -181,17 +176,16 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No SYSVOL folder information found in $Domain, Disabling this section."
+                    Write-PScriboMessage "No SYSVOL folder information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
             }
             try {
-                $DC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
-                $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
+                $DCPssSession = Get-ValidPSSession -ComputerName $ValidDcFromDomain -SessionName $($ValidDcFromDomain) -PSSTable ([ref]$PSSTable)
                 if ($DCPssSession) {
                     # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
-                    $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + $using:Domain + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
+                    $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + ($using:Domain).DNSRoot + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
                             New-Object -TypeName PSObject -Property @{
                                 'Extension' = $_.name
                                 'Count' = $_.count
@@ -201,11 +195,11 @@ function Get-AbrADDFSHealth {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                    Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
                 }
                 if ($NetlogonFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Netlogon Content Status' {
-                        Paragraph "The following section details domain $($Domain.ToString().ToUpper()) netlogon health status."
+                        Paragraph "The following section details domain $($Domain.DNSRoot.ToString().ToUpper())) netlogon health status."
                         BlankLine
                         $OutObj = @()
                         foreach ($Extension in $NetlogonFolder) {
@@ -226,7 +220,7 @@ function Get-AbrADDFSHealth {
                         }
 
                         $TableParams = @{
-                            Name = "Netlogon Content Status - $($Domain.ToString().ToUpper())"
+                            Name = "Netlogon Content Status - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 33, 33, 34
                         }
@@ -245,7 +239,7 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No NETLOGON folder information found in $Domain, Disabling this section."
+                    Write-PScriboMessage "No NETLOGON folder information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "Netlogon Content Status Section: $($_.Exception.Message)"

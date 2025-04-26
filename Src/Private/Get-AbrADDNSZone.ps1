@@ -16,17 +16,13 @@ function Get-AbrADDNSZone {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
         $Domain,
         [string]
         $DC
     )
 
     begin {
-        Write-PScriboMessage "Collecting Actve Directory Domain Name System Zone information on $Domain."
+        Write-PScriboMessage "Collecting Actve Directory Domain Name System Zone information on $($Domain.DNSRoot)."
     }
 
     process {
@@ -55,7 +51,7 @@ function Get-AbrADDNSZone {
                     }
 
                     $TableParams = @{
-                        Name = "Zones - $($Domain.ToString().ToUpper())"
+                        Name = "Zones - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 25, 15, 12, 12, 12, 12, 12
                     }
@@ -100,7 +96,7 @@ function Get-AbrADDNSZone {
                                 Section -Style Heading4 "Zone Delegation" {
 
                                     $TableParams = @{
-                                        Name = "Zone Delegations - $($Domain.ToString().ToUpper())"
+                                        Name = "Zone Delegations - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 25, 25, 32, 18
                                     }
@@ -202,7 +198,7 @@ function Get-AbrADDNSZone {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Zones - $($Domain.ToString().ToUpper())"
+                                    Name = "Zones - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 25, 15, 12, 12, 12, 12, 12
                                 }
@@ -238,7 +234,7 @@ function Get-AbrADDNSZone {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Conditional Forwarders - $($Domain.ToString().ToUpper())"
+                                    Name = "Conditional Forwarders - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 25, 20, 20, 20, 15
                                 }
@@ -284,7 +280,7 @@ function Get-AbrADDNSZone {
                                     }
 
                                     $TableParams = @{
-                                        Name = "Zone Aging Properties - $($Domain.ToString().ToUpper())"
+                                        Name = "Zone Aging Properties - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 25, 10, 15, 15, 35
                                     }
@@ -294,6 +290,7 @@ function Get-AbrADDNSZone {
                                     $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                                     if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Aging Enabled' -ne 'Yes' })) {
                                         Paragraph "Health Check:" -Bold -Underline
+                                        BlankLine
                                         Paragraph {
                                             Text "Best Practices:" -Bold
                                             Text "Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs."

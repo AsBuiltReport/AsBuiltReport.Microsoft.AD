@@ -26,29 +26,31 @@ function Get-AbrDomainSection {
     process {
         if ($InfoLevel.Domain -ge 1) {
             $DomainObj = foreach ($Domain in [string[]]($OrderedDomains | Where-Object { $_ -notin $Options.Exclude.Domains })) {
-                if ($Domain -notin $DomainStatus.Value.Name) {
-                    if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
+                if ($Domain -and ($Domain -notin $DomainStatus.Value.Name)) {
+                    if ($ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         # Define Filter option for Domain variable
                         try {
-                            if (Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain }) {
-                                Section -Style Heading2 "$($Domain.ToString().ToUpper())" {
+                            if ($DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain }) {
+                                $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
+
+                                Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
                                     Paragraph "The following section provides a summary of the Active Directory Domain Information."
                                     BlankLine
-                                    Get-AbrADDomain -Domain $Domain
-                                    Get-AbrADFSMO -Domain $Domain
-                                    Get-AbrADTrust -Domain $Domain
-                                    Get-AbrADHardening -Domain $Domain
-                                    Get-AbrADDomainObject -Domain $Domain
+                                    Get-AbrADDomain -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    Get-AbrADFSMO -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    Get-AbrADTrust -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    Get-AbrADHardening -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    Get-AbrADDomainObject -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     if ($HealthCheck.Domain.Backup -or $HealthCheck.Domain.DFS -or $HealthCheck.Domain.SPN -or $HealthCheck.Domain.Security -or $HealthCheck.Domain.DuplicateObject) {
                                         Section -Style Heading3 'Health Checks' {
-                                            Get-AbrADDomainLastBackup -Domain $Domain
-                                            Get-AbrADDFSHealth -Domain $Domain
-                                            if ($Domain -like $ADSystem.RootDomain) {
+                                            Get-AbrADDomainLastBackup -Domain $DomainInfo
+                                            Get-AbrADDFSHealth -Domain $DomainInfo -DCs $DCs -ValidDcFromDomain $ValidDC
+                                            if ($DomainInfo -like $ADSystem.RootDomain) {
                                                 Get-AbrADDuplicateSPN -Domain $ADSystem.RootDomain
                                             }
-                                            Get-AbrADSecurityAssessment -Domain $Domain
-                                            Get-AbrADKerberosAudit -Domain $Domain
-                                            Get-AbrADDuplicateObject -Domain $Domain
+                                            Get-AbrADSecurityAssessment -Domain $DomainInfo
+                                            Get-AbrADKerberosAudit -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                            Get-AbrADDuplicateObject -Domain $DomainInfo
                                         }
                                     }
                                     Section -Style Heading3 'Domain Controllers' {
@@ -66,23 +68,21 @@ function Get-AbrDomainSection {
                                             }
                                         }
 
-                                        $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
-
                                         if ($DCs) {
 
-                                            Get-AbrADDomainController -Domain $Domain -Dcs $DCs
+                                            Get-AbrADDomainController -Domain $DomainInfo -Dcs $DCs
 
                                             if ($InfoLevel.Domain -ge 2) {
                                                 $RolesObj = foreach ($DC in $DCs) {
                                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                                         Get-AbrADDCRoleFeature -DC $DC
                                                     } else {
-                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $Domain report."
+                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $($DomainInfo.DNSRoot) report."
                                                     }
                                                 }
                                                 if ($RolesObj) {
                                                     Section -Style Heading4 "Roles" {
-                                                        Paragraph "The following section provides a summary of installed role & features on $Domain DCs."
+                                                        Paragraph "The following section provides a summary of installed role & features on $($DomainInfo.DNSRoot) DCs."
                                                         $RolesObj
                                                     }
                                                 }
@@ -105,22 +105,22 @@ function Get-AbrDomainSection {
                                             }
                                         }
                                     }
-                                    Get-AbrADSiteReplication -Domain $Domain
-                                    Get-AbrADGPO -Domain $Domain
-                                    Get-AbrADOU -Domain $Domain
+                                    Get-AbrADSiteReplication -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    Get-AbrADGPO -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    Get-AbrADOU -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                 }
                             } else {
-                                Write-PScriboMessage "$($Domain) disabled in Exclude.Domain variable"
+                                Write-PScriboMessage "$($DomainInfo.DNSRoot) disabled in Exclude.Domain variable"
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Active Directory Domain)"
                         }
                     } else {
                         $DomainStatus.Value += @{
-                            Name = $Domain
+                            Name = $DomainInfo.DNSRoot
                             Status = 'Offline'
                         }
-                        Write-PScriboMessage -IsWarning "Unable to get an available DC in $Domain domain. Removing it from the report."
+                        Write-PScriboMessage -IsWarning "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing it from the report."
                     }
                 }
             }

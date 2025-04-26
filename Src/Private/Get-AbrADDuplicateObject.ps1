@@ -5,7 +5,7 @@ function Get-AbrADDuplicateObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,24 +16,20 @@ function Get-AbrADDuplicateObject {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
         $Domain
     )
 
     begin {
-        Write-PScriboMessage "Collecting duplicate Objects information on $Domain."
+        Write-PScriboMessage "Collecting duplicate Objects information on $($Domain.DNSRoot)."
     }
 
     process {
         if ($HealthCheck.Domain.DuplicateObject) {
             try {
-                $Objects = Get-WinADDuplicateObject -Domain $Domain -Credential $Credential
+                $Objects = Get-WinADDuplicateObject -Domain $Domain.DNSRoot -Credential $Credential
                 if ($Objects) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate Objects' {
-                        Paragraph "The following section details Duplicate Objects discovered on Domain $($Domain.ToString().ToUpper())."
+                        Paragraph "The following section details Duplicate Objects discovered on Domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
                         foreach ($Object in $Objects) {
@@ -55,7 +51,7 @@ function Get-AbrADDuplicateObject {
                         }
 
                         $TableParams = @{
-                            Name = "Duplicate Object - $($Domain.ToString().ToUpper())"
+                            Name = "Duplicate Object - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 40, 20, 20, 20
                         }
@@ -72,7 +68,7 @@ function Get-AbrADDuplicateObject {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Duplicate object information found in $Domain, Disabling this section."
+                    Write-PScriboMessage "No Duplicate object information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Duplicate Object Table)"
