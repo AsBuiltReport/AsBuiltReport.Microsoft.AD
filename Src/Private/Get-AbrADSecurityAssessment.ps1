@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,15 +16,11 @@ function Get-AbrADSecurityAssessment {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
         $Domain
     )
 
     begin {
-        Write-PScriboMessage "Collecting Account Security Assessment information on $Domain."
+        Write-PScriboMessage "Collecting Account Security Assessment information on $($Domain.DNSRoot)."
     }
 
     process {
@@ -73,7 +69,7 @@ function Get-AbrADSecurityAssessment {
                     }
 
                     $TableParams = @{
-                        Name = "Account Security Assessment - $($Domain.ToString().ToUpper())"
+                        Name = "Account Security Assessment - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }
@@ -90,7 +86,7 @@ function Get-AbrADSecurityAssessment {
                     }
                     if ($OutObj) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Account Security Assessment' {
-                            Paragraph "The following section provide a summary of the Account Security Assessment on Domain $($Domain.ToString().ToUpper())."
+                            Paragraph "The following section provide a summary of the Account Security Assessment on Domain $($Domain.DNSRoot.ToString().ToUpper())."
                             BlankLine
                             if ($chartFileItem) {
                                 Image -Text 'Account Security Assessment - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
@@ -104,7 +100,7 @@ function Get-AbrADSecurityAssessment {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Domain users information found in $Domain, Disabling this section."
+                    Write-PScriboMessage "No Domain users information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
                 Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Account Security Assessment Table)"
@@ -113,7 +109,7 @@ function Get-AbrADSecurityAssessment {
                 try {
                     if ($PrivilegedUsers) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Privileged Users Assessment' {
-                            Paragraph "The following section details probable AD Admin accounts (user accounts with AdminCount set to 1) on Domain $($Domain.ToString().ToUpper())"
+                            Paragraph "The following section details probable AD Admin accounts (user accounts with AdminCount set to 1) on Domain $($Domain.DNSRoot.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
                             $AccountNotDelegated = $PrivilegedUsers | Where-Object { -not $_.AccountNotDelegated -and $_.objectClass -eq "user" }
@@ -159,7 +155,7 @@ function Get-AbrADSecurityAssessment {
                             }
 
                             $TableParams = @{
-                                Name = "Privileged User Assessment - $($Domain.ToString().ToUpper())"
+                                Name = "Privileged User Assessment - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 40, 15, 15, 15, 15
                             }
@@ -189,7 +185,7 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No Privileged User Assessment information found in $Domain, Disabling this section."
+                        Write-PScriboMessage "No Privileged User Assessment information found in $($Domain.DNSRoot), Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Privileged Users Table)"
@@ -198,7 +194,7 @@ function Get-AbrADSecurityAssessment {
                     $InactivePrivilegedUsers = $PrivilegedUsers | Where-Object { ($_.LastLogonDate -le (Get-Date).AddDays(-30)) -AND ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
                     if ($InactivePrivilegedUsers) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Inactive Privileged Accounts' {
-                            Paragraph "The following section details privileged accounts with the following filter (LastLogonDate >=30 days and PasswordLastSet >= 365 days) on Domain $($Domain.ToString().ToUpper())"
+                            Paragraph "The following section details privileged accounts with the following filter (LastLogonDate >=30 days and PasswordLastSet >= 365 days) on Domain $($Domain.DNSRoot.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
                             foreach ($InactivePrivilegedUser in $InactivePrivilegedUsers) {
@@ -229,7 +225,7 @@ function Get-AbrADSecurityAssessment {
                             }
 
                             $TableParams = @{
-                                Name = "Inactive Privileged Accounts - $($Domain.ToString().ToUpper())"
+                                Name = "Inactive Privileged Accounts - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 40, 20, 20, 20
                             }
@@ -246,16 +242,16 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No Inactive Privileged Accounts information found in $Domain, Disabling this section."
+                        Write-PScriboMessage "No Inactive Privileged Accounts information found in $($Domain.DNSRoot), Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Inactive Privileged Accounts Table)"
                 }
                 try {
-                    $UserSPNs = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:Domain -Filter { ServicePrincipalName -like '*' } -Properties AdminCount, PasswordLastSet, LastLogonDate, ServicePrincipalName, TrustedForDelegation, TrustedtoAuthForDelegation }
+                    $UserSPNs = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server ($using:Domain).DNSRoot -Filter { ServicePrincipalName -like '*' } -Properties AdminCount, PasswordLastSet, LastLogonDate, ServicePrincipalName, TrustedForDelegation, TrustedtoAuthForDelegation }
                     if ($UserSPNs) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Service Accounts Assessment (Kerberoastable)' {
-                            Paragraph "The following section details probable AD Service Accounts (user accounts with SPNs) on Domain $($Domain.ToString().ToUpper())"
+                            Paragraph "The following section details probable AD Service Accounts (user accounts with SPNs) on Domain $($Domain.DNSRoot.ToString().ToUpper())"
                             BlankLine
                             $OutObj = @()
                             $AdminCount = ($UserSPNs | Where-Object { $_.AdminCount -eq 1 -and $_.SamAccountName -ne 'krbtgt' }).Name
@@ -281,13 +277,15 @@ function Get-AbrADSecurityAssessment {
                             }
 
                             if ($HealthCheck.Domain.Security) {
+                                $OutObj | Where-Object { $_.'Username' -in $AdminCount } | Set-Style -Style Critical
+
                                 foreach ( $OBJ in ($OutObj | Where-Object { $_.'Username' -in $AdminCount })) {
                                     $OBJ.Username = "** $($OBJ.Username)"
                                 }
                             }
 
                             $TableParams = @{
-                                Name = "Service Accounts Assessment - $($Domain.ToString().ToUpper())"
+                                Name = "Service Accounts Assessment - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 30, 12, 14, 14, 30
                             }
@@ -307,7 +305,7 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No Service Accounts Assessment information found in $Domain, Disabling this section."
+                        Write-PScriboMessage "No Service Accounts Assessment information found in $($Domain.DNSRoot), Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Service Accounts Assessment Table)"

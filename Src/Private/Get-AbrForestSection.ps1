@@ -5,7 +5,7 @@ function Get-AbrForestSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -54,7 +54,7 @@ function Get-AbrForestSection {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                         try {
-                            Get-AbrDHCPinAD
+                            Get-AbrDHCPinAD -DomainStatus ([ref]$DomainStatus)
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }

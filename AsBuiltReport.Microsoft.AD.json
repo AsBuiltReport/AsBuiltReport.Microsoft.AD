@@ -21,7 +21,26 @@
         "WinRMSSL": false,
         "WinRMFallbackToNoSSL": true,
         "WinRMSSLPort": 5986,
-        "WinRMPort": 5985
+        "WinRMPort": 5985,
+        "EnableDiagrams": true,
+        "EnableDiagramDebug": false,
+        "DiagramTheme": "White",
+        "DiagramObjDebug": false,
+        "DiagramWaterMark": "",
+        "DiagramType": {
+            "CertificateAuthority": false,
+            "Forest": false,
+            "Sites": false,
+            "SitesInventory": false,
+            "Trusts": false
+        },
+        "ExportDiagrams": false,
+        "ExportDiagramsFormat": [
+            "png"
+        ],
+        "EnableDiagramSignature": false,
+        "SignatureAuthorName": "",
+        "SignatureCompanyName": ""
     },
     "InfoLevel": {
         "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",
@@ -56,7 +75,6 @@
             "DP": true,
             "Zones": true,
             "BestPractice": true
-
         },
         "CA": {
             "Status": true,

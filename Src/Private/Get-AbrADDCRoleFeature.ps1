@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,10 +16,6 @@ function Get-AbrADDCRoleFeature {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
         $DC
     )
 
@@ -29,10 +25,9 @@ function Get-AbrADDCRoleFeature {
 
     process {
         try {
-            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName 'ADDCRoleFeature'
+            $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
             if ($DCPssSession) {
                 $Features = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq "True" -and $_.FeatureType -eq 'Role' } }
-                Remove-PSSession -Session $DCPssSession
             } else {
                 if (-Not $_.Exception.MessageId) {
                     $ErrorMessage = $_.FullyQualifiedErrorId
@@ -56,7 +51,12 @@ function Get-AbrADDCRoleFeature {
                     }
 
                     if ($HealthCheck.DomainController.BestPractice) {
+                        $List = @()
                         $OutObj | Where-Object { $_.'Name' -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') } | Set-Style -Style Warning
+                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Name' -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') })) {
+                            $OBJ.'Name' = $OBJ.'Name' + " (1)"
+                            $List = "Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation."
+                        }
                     }
 
                     $TableParams = @{
@@ -68,13 +68,11 @@ function Get-AbrADDCRoleFeature {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Table @TableParams
-                    if ($HealthCheck.DomainController.Software -and ($OutObj | Where-Object { $_.'Name' -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services') })) {
+                    if ($HealthCheck.DomainController.Software -and $List) {
                         Paragraph "Health Check:" -Bold -Underline
                         BlankLine
-                        Paragraph {
-                            Text "Best Practices:" -Bold
-                            Text "Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation."
-                        }
+                        Paragraph "Best Practices:" -Bold
+                        List -Item $List -Numbered
                     }
                 }
             }

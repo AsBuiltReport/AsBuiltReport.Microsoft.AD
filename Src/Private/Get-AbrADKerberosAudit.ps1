@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,25 +16,21 @@ function Get-AbrADKerberosAudit {
     #>
     [CmdletBinding()]
     param (
-        [Parameter (
-            Position = 0,
-            Mandatory)]
-        [string]
-        $Domain
+        $Domain,
+        [string]$ValidDCFromDomain
     )
 
     begin {
-        Write-PScriboMessage "Collecting Kerberos Audit information on $Domain."
+        Write-PScriboMessage "Collecting Kerberos Audit information on $($Domain.DNSRoot)."
     }
 
     process {
         if ($HealthCheck.Domain.Security) {
             try {
-                $DC = Get-ValidDCfromDomain -Domain $Domain
-                $Unconstrained = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:DC -SearchBase (Get-ADDomain -Identity $using:Domain).distinguishedName }
+                $Unconstrained = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:ValidDCFromDomain -SearchBase $($using:Domain).distinguishedName }
                 if ($Unconstrained) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Unconstrained Kerberos Delegation' {
-                        Paragraph "The following section provide a summary of unconstrained kerberos delegation on Domain $($Domain.ToString().ToUpper())."
+                        Paragraph "The following section provide a summary of unconstrained kerberos delegation on Domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
                         $OutObj = @()
                         foreach ($Item in $Unconstrained) {
@@ -54,7 +50,7 @@ function Get-AbrADKerberosAudit {
                         }
 
                         $TableParams = @{
-                            Name = "Unconstrained Kerberos Delegation - $($Domain.ToString().ToUpper())"
+                            Name = "Unconstrained Kerberos Delegation - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 40, 60
                         }
@@ -71,13 +67,13 @@ function Get-AbrADKerberosAudit {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Unconstrained Kerberos Delegation information found in $Domain, Disabling this section."
+                    Write-PScriboMessage "No Unconstrained Kerberos Delegation information found in $($Domain.DNSRoot), Disabling this section."
                 }
                 try {
                     $KRBTGT = $Users | Where-Object { $_.Name -eq 'krbtgt' }
                     if ($KRBTGT) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'KRBTGT Account Audit' {
-                            Paragraph "The following section provide a summary of KRBTGT account on Domain $($Domain.ToString().ToUpper())."
+                            Paragraph "The following section provide a summary of KRBTGT account on Domain $($Domain.DNSRoot.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()
                             try {
@@ -97,7 +93,7 @@ function Get-AbrADKerberosAudit {
                             }
 
                             $TableParams = @{
-                                Name = "KRBTGT Account Audit - $($Domain.ToString().ToUpper())"
+                                Name = "KRBTGT Account Audit - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $true
                                 ColumnWidths = 40, 60
                             }
@@ -114,17 +110,17 @@ function Get-AbrADKerberosAudit {
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No KRBTGT Account Audit information found in $Domain, Disabling this section."
+                        Write-PScriboMessage "No KRBTGT Account Audit information found in $($Domain.DNSRoot), Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
                 try {
-                    $SID = Invoke-Command -Session $TempPssSession { ((Get-ADDomain -Identity $using:Domain).domainsid).ToString() + "-500" }
+                    $SID = Invoke-Command -Session $TempPssSession { $($using:Domain).domainsid.ToString() + "-500" }
                     $ADMIN = $Users | Where-Object { $_.SID -eq $SID }
                     if ($ADMIN) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Administrator Account Audit' {
-                            Paragraph "The following section provide a summary of Administrator account on Domain $($Domain.ToString().ToUpper())."
+                            Paragraph "The following section provide a summary of Administrator account on Domain $($Domain.DNSRoot.ToString().ToUpper())."
                             BlankLine
                             $OutObj = @()
                             try {
@@ -145,7 +141,7 @@ function Get-AbrADKerberosAudit {
                             }
 
                             $TableParams = @{
-                                Name = "Administrator Account Audit - $($Domain.ToString().ToUpper())"
+                                Name = "Administrator Account Audit - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $true
                                 ColumnWidths = 40, 60
                             }
@@ -162,7 +158,7 @@ function Get-AbrADKerberosAudit {
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No Administrator Account Audit information found in $Domain, Disabling this section."
+                        Write-PScriboMessage "No Administrator Account Audit information found in $($Domain.DNSRoot), Disabling this section."
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"

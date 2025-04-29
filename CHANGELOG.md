@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.4] - 2025-04-28
+
+### Added
+
+- Add a new section in Get-AbrDomainSection to retrieve and sort DCs while excluding specified ones, enhancing the overall structure and clarity of the script.
+- Add diagram options to configuration file for various sections.
+- Introduced Get-AbrDiagrammer function to generate diagrams in multiple formats.
+
+### Changed
+
+- Increase AsBuiltReport.Core to v1.4.3
+- Increase Diagrammer.Core minimum requirement
+- Increase Diagrammer.Microsoft.AD minumum requirement
+- Improve Get-ValidCimSession,Get-ValidPSSession to detect current connected DC
+  - Reuse the WinRM session
+  - Reuse the CIM session
+- Improve DNS settings retrieval by filtering only active network adapters in Get-AbrADDomainController function
+- Update Sample report
+- Improve Get-AbrADSite to handle cases where information cannot be collected from DCs, ensuring that the output remains informative and consistent.
+- Update existing functions to utilize new diagram features and handle domain status.
+- Improve error handling and reporting for offline domains and DCs.
+- Updated Get-AbrDNSSection to better handle domain status checks and improve logging clarity.
+- Refined Get-AbrDomainSection to ensure consistent domain information retrieval and improved error handling.
+- Updated Get-AbrADOU to utilize DNSRoot for domain references and improved error handling.
+- Modified Get-AbrADSecurityAssessment to enhance domain information retrieval and output formatting.
+- Enhanced Get-AbrADSiteReplication to streamline domain controller handling and improve logging messages.
+- Revised Get-AbrADTrust to ensure consistent use of DNSRoot and improved trust information retrieval.
+- Enhanced SharedUtilsFunctions to improve session management and error handling for WinRM connections.
+  - Get-ValidCIMSession
+  - Get-ValidPSSession
+
+### Fixed
+
+- Fix issue with WinRM connection setup in Domain Controller section
+
+### Removed
+
+- Remove DCDiag section as it is not functioning properly
+
 ## [0.9.3] - 2025-02-21
 
 ### Added

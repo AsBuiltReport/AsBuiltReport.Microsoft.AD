@@ -5,7 +5,7 @@ function Get-AbrDNSSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.0
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,6 +16,7 @@ function Get-AbrDNSSection {
     #>
     [CmdletBinding()]
     param (
+        [ref]$DomainStatus
     )
 
     begin {
@@ -24,46 +25,47 @@ function Get-AbrDNSSection {
 
     process {
         if ($InfoLevel.DNS -ge 1) {
-            Section -Style Heading1 "DNS Configuration" {
-                if ($Options.ShowDefinitionInfo) {
-                    Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
-                    BlankLine
-                }
-                if (-Not $Options.ShowDefinitionInfo) {
-                    Paragraph "The following section provides a summary of the Active Directory DNS Infrastructure Information."
-                    BlankLine
-                }
-                foreach ($Domain in $OrderedDomains.split(" ")) {
-                    if ($Domain) {
+            $DNSDomainObj = foreach ($Domain in [string[]]($OrderedDomains | Where-Object { $_ -notin $Options.Exclude.Domains })) {
+                if ($Domain -and ($Domain -notin $DomainStatus.Value.Name)) {
+                    if ($ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         try {
-                            # Define Filter option for Domain variable
-                            if ($Options.Include.Domains) {
-                                $DomainFilterOption = $Domain -in $Options.Include.Domains
+                            if ($DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain }) {
+                                $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
-                            } else {
-                                $DomainFilterOption = $Domain -notin $Options.Exclude.Domains
-                            }
-                            if (( $DomainFilterOption ) -and (Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop })) {
-                                Section -Style Heading2 "$($Domain.ToString().ToUpper())" {
+                                Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
                                     Paragraph "The following section provides a configuration summary of the DNS service."
                                     BlankLine
                                     if ($TempCIMSession) {
-                                        Get-AbrADDNSInfrastructure -Domain $Domain
+                                        Get-AbrADDNSInfrastructure -Domain $DomainInfo -DCs $DCs
                                     }
-                                    $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } }
                                     foreach ($DC in $DCs) {
-                                        if (Get-DCWinRMState -ComputerName $DC) {
-                                            Get-AbrADDNSZone -Domain $Domain -DC $DC
+                                        if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
+                                            Get-AbrADDNSZone -Domain $DomainInfo -DC $DC
                                         }
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage "$($Domain) disabled in Exclude.Domain variable"
+                                Write-PScriboMessage "$($DomainInfo.DNSRoot) disabled in Exclude.Domain variable"
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Information)"
                         }
+                    } else {
+                        Write-PScriboMessage -IsWarning "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing it from the report."
                     }
+                }
+            }
+            if ($DNSDomainObj) {
+                Section -Style Heading1 "DNS Configuration" {
+                    if ($Options.ShowDefinitionInfo) {
+                        Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
+                        BlankLine
+                    }
+                    if (-Not $Options.ShowDefinitionInfo) {
+                        Paragraph "The following section provides a summary of the Active Directory DNS Infrastructure Information."
+                        BlankLine
+                    }
+                    $DNSDomainObj
                 }
             }
         }

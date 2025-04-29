@@ -65,36 +65,46 @@ function ConvertTo-FileSizeString {
     return "$([math]::Round(($Size / $("1" + $Unit)), 0)) $Unit"
 } # end
 
-function Invoke-DcDiag {
-    <#
-    .SYNOPSIS
-    Used by As Built Report to get the dcdiag tests for a Domain Controller.
-    .DESCRIPTION
+# Disabled function Invoke-DcDiag for now, as it is not working properly.
+# function Invoke-DcDiag {
+#     <#
+#     .SYNOPSIS
+#     Used by As Built Report to get the dcdiag tests for a Domain Controller.
+#     .DESCRIPTION
 
-    .NOTES
-        Version:        0.4.0
-        Author:         Adam Bertram
+#     .NOTES
+#         Version:        0.4.0
+#         Author:         Adam Bertram
 
-    .EXAMPLE
+#     .EXAMPLE
 
-    .LINK
+#     .LINK
 
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [string]$DomainController
-    )
-    $result = Invoke-Command -Session $TempPssSession { dcdiag /c /s:$using:DomainController }
-    $result | Select-String -Pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
-        $obj = @{
-            TestName = $_.Matches.Groups[3].Value
-            TestResult = $_.Matches.Groups[2].Value
-            Entity = $_.Matches.Groups[1].Value
-        }
-        [pscustomobject]$obj
-    }
-}# end
+#     #>
+#     param(
+#         [Parameter(Mandatory)]
+#         [ValidateNotNullOrEmpty()]
+#         [string]$DomainController
+#     )
+#     $DCPssSessionDCDiag = Get-ValidPSSession -ComputerName $DomainController -SessionName 'DCDiag'
+#     try {
+#         $result = Invoke-Command -Session $DCPssSessionDCDiag { dcdiag /c /s:$using:DomainController }
+#     } catch {
+#         if ($DCPssSessionDCDiag) {
+#             Remove-PSSession -Session $DCPssSessionDCDiag -ErrorAction SilentlyContinue
+#         }
+#         Write-PScriboMessage "Invoke-DcDiag - Failed to get DCDiag for $DomainController with error: $($_.Exception.Message)"
+#         return
+#     }
+#     $result | Select-String -Pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
+#         $obj = @{
+#             TestName = $_.Matches.Groups[3].Value
+#             TestResult = $_.Matches.Groups[2].Value
+#             Entity = $_.Matches.Groups[1].Value
+#         }
+#         [pscustomobject]$obj
+#     }
+# }# end
 
 function ConvertTo-EmptyToFiller {
     <#
@@ -349,7 +359,8 @@ function Get-WinADLastBackup {
     [cmdletBinding()]
     param(
         [string[]] $Domains,
-        [pscredential] $Credential
+        [pscredential] $Credential,
+        [ref]$DCStatus
     )
     $NameUsed = [System.Collections.Generic.List[string]]::new()
     [DateTime] $CurrentDate = Get-Date
@@ -358,19 +369,19 @@ function Get-WinADLastBackup {
             $Forest = $ADSystem
             $Domains = $Forest.Domains
         } catch {
-            Write-PScriboMessage "Get-WinADLastBackup - Failed to gather Forest Domains $($_.Exception.Message)"
+            Write-PScriboMessage -Message "Get-WinADLastBackup - Failed to gather Forest Domains $($_.Exception.Message)"
             break
         }
     }
     foreach ($Domain in $Domains) {
         try {
-            $DCServer = Get-ValidDCfromDomain -Domain $Domain
+            $DCServer = Get-ValidDCfromDomain -Domain $Domain -DCStatus $DCStatus
             [string[]]$Partitions = (Get-ADRootDSE -Credential $Credential -Server $DCServer -ErrorAction Stop).namingContexts
             [System.DirectoryServices.ActiveDirectory.DirectoryContextType] $contextType = [System.DirectoryServices.ActiveDirectory.DirectoryContextType]::Domain
             [System.DirectoryServices.ActiveDirectory.DirectoryContext] $context = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext($contextType, $Domain, $Credential.UserName, $Credential.GetNetworkCredential().Password)
             [System.DirectoryServices.ActiveDirectory.DomainController] $domainController = [System.DirectoryServices.ActiveDirectory.DomainController]::FindOne($context)
         } catch {
-            Write-PScriboMessage "Get-WinADLastBackup - Failed to gather partitions information for $Domain with error: $($_.Exception.Message)"
+            Write-PScriboMessage -Message "Get-WinADLastBackup - Failed to gather partitions information for $Domain with error: $($_.Exception.Message)"
             break
         }
         $Output = ForEach ($Name in $Partitions) {
@@ -428,7 +439,7 @@ function Get-WinADDFSHealth {
         $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExcludeDomainControllers $ExcludeDomainControllers -IncludeDomainControllers $IncludeDomainControllers -SkipRODC:$SkipRODC -ExtendedForestInformation $ExtendedForestInformation -Extended -Credential $Credential
     } else {
         if (-not $IncludeDomains) {
-            Write-PScriboMessage "Get-WinADDFSHealth - You need to specify domain when using SkipAutodetection."
+            Write-PScriboMessage -Message "Get-WinADDFSHealth - You need to specify domain when using SkipAutodetection."
             return
         }
         # This is for case when Get-ADDomainController -Filter * is broken
@@ -444,14 +455,14 @@ function Get-WinADDFSHealth {
                     Add-Member -InputObject $DCInformation -MemberType NoteProperty -Value $DCInformation.ComputerObjectDN -Name 'DistinguishedName' -Force
                     $ForestInformation['DomainDomainControllers'][$Domain].Add($DCInformation)
                 } catch {
-                    Write-PScriboMessage "Get-WinADDFSHealth - Can't get DC details. Skipping with error: $($_.Exception.Message)"
+                    Write-PScriboMessage -Message "Get-WinADDFSHealth - Can't get DC details. Skipping with error: $($_.Exception.Message)"
                     continue
                 }
             }
         }
     }
     [Array] $Table = foreach ($Domain in $ForestInformation.Domains) {
-        Write-PScriboMessage "Get-WinADDFSHealth - Processing $Domain"
+        Write-PScriboMessage -Message "Get-WinADDFSHealth - Processing $Domain"
         [Array] $DomainControllersFull = $ForestInformation['DomainDomainControllers']["$Domain"]
         if ($DomainControllersFull.Count -eq 0) {
             continue
@@ -481,145 +492,150 @@ function Get-WinADDFSHealth {
         }
 
         foreach ($DC in $DomainControllersFull) {
-            Write-PScriboMessage "Get-WinADDFSHealth - Processing $($DC.Name) $($DC.HostName) for $Domain"
-            $DCName = $DC.Name
-            $Hostname = $DC.Hostname
-            $DN = $DC.DistinguishedName
-
-            $LocalSettings = "CN=DFSR-LocalSettings,$DN"
-            $Subscriber = "CN=Domain System Volume,$LocalSettings"
-            $Subscription = "CN=SYSVOL Subscription,$Subscriber"
-
-            $ReplicationStatus = @{
-                '0' = 'Uninitialized'
-                '1' = 'Initialized'
-                '2' = 'Initial synchronization'
-                '3' = 'Auto recovery'
-                '4' = 'Normal'
-                '5' = 'In error state'
-                '6' = 'Disabled'
-                '7' = 'Unknown'
-            }
-
-            $DomainSummary = [ordered] @{
-                "DomainController" = $DCName
-                "Domain" = $Domain
-                "Status" = $false
-                "ReplicationState" = 'Unknown'
-                "IsPDC" = $DC.OperationMasterRoles -contains 'PDCEmulator'
-                'GroupPolicyOutput' = $null -ne $GPOs # This shows whether output was on Get-GPO
-                "GroupPolicyCount" = if ($GPOs) { $GPOs.Count } else { 0 };
-                "SYSVOLCount" = 0
-                'CentralRepository' = $CentralRepositoryDomain
-                'CentralRepositoryDC' = $false
-                'IdenticalCount' = $false
-                "Availability" = $false
-                "MemberReference" = $false
-                "DFSErrors" = 0
-                "DFSEvents" = $null
-                "DFSLocalSetting" = $false
-                "DomainSystemVolume" = $false
-                "SYSVOLSubscription" = $false
-                "StopReplicationOnAutoRecovery" = $false
-                "DFSReplicatedFolderInfo" = $null
-            }
-            if ($SkipGPO) {
-                $DomainSummary.Remove('GroupPolicyOutput')
-                $DomainSummary.Remove('GroupPolicyCount')
-                $DomainSummary.Remove('SYSVOLCount')
-            }
-
-            $WarningVar = $null
-            $DFSReplicatedFolderInfoAll = Get-CimData -NameSpace "root\microsoftdfs" -Class 'dfsrreplicatedfolderinfo' -ComputerName $Hostname -WarningAction SilentlyContinue -WarningVariable WarningVar -Verbose:$false
-            $DFSReplicatedFolderInfo = $DFSReplicatedFolderInfoAll | Where-Object { $_.ReplicationGroupName -eq 'Domain System Volume' }
-            if ($WarningVar) {
-                $DomainSummary['ReplicationState'] = 'Unknown'
-                #$DomainSummary['ReplicationState'] = $WarningVar -join ', '
-            } else {
-                $DomainSummary['ReplicationState'] = $ReplicationStatus["$($DFSReplicatedFolderInfo.State)"]
-            }
             try {
-                $CentralRepositoryDC = Get-ChildItem -Path "\\$Hostname\SYSVOL\$Domain\policies\PolicyDefinitions" -ErrorAction Stop
-                $DomainSummary['CentralRepositoryDC'] = if ($CentralRepositoryDC) { $true } else { $false }
-            } catch {
-                $DomainSummary['CentralRepositoryDC'] = $false
-            }
-            try {
-                $MemberReference = (Get-ADObject -Credential $Credential -Identity $Subscriber -Properties msDFSR-MemberReference -Server $QueryServer -ErrorAction Stop).'msDFSR-MemberReference' -like "CN=$DCName,*"
-                $DomainSummary['MemberReference'] = if ($MemberReference) { $true } else { $false }
-            } catch {
-                $DomainSummary['MemberReference'] = $false
-            }
-            try {
-                $DFSLocalSetting = Get-ADObject -Credential $Credential -Identity $LocalSettings -Server $QueryServer -ErrorAction Stop
-                $DomainSummary['DFSLocalSetting'] = if ($DFSLocalSetting) { $true } else { $false }
-            } catch {
-                $DomainSummary['DFSLocalSetting'] = $false
-            }
+                Write-PScriboMessage -Message "Get-WinADDFSHealth - Processing $($DC.Name) $($DC.HostName) for $Domain"
+                $DCName = $DC.Name
+                $Hostname = $DC.Hostname
+                $DN = $DC.DistinguishedName
 
-            try {
-                $DomainSystemVolume = Get-ADObject -Credential $Credential -Identity $Subscriber -Server $QueryServer -ErrorAction Stop
-                $DomainSummary['DomainSystemVolume'] = if ($DomainSystemVolume) { $true } else { $false }
-            } catch {
-                $DomainSummary['DomainSystemVolume'] = $false
-            }
-            try {
-                $SysVolSubscription = Get-ADObject -Credential $Credential -Identity $Subscription -Server $QueryServer -ErrorAction Stop
-                $DomainSummary['SYSVOLSubscription'] = if ($SysVolSubscription) { $true } else { $false }
-            } catch {
-                $DomainSummary['SYSVOLSubscription'] = $false
-            }
-            if (-not $SkipGPO) {
+                $LocalSettings = "CN=DFSR-LocalSettings,$DN"
+                $Subscriber = "CN=Domain System Volume,$LocalSettings"
+                $Subscription = "CN=SYSVOL Subscription,$Subscriber"
+
+                $ReplicationStatus = @{
+                    '0' = 'Uninitialized'
+                    '1' = 'Initialized'
+                    '2' = 'Initial synchronization'
+                    '3' = 'Auto recovery'
+                    '4' = 'Normal'
+                    '5' = 'In error state'
+                    '6' = 'Disabled'
+                    '7' = 'Unknown'
+                }
+
+                $DomainSummary = [ordered] @{
+                    "DomainController" = $DCName
+                    "Domain" = $Domain
+                    "Status" = $false
+                    "ReplicationState" = 'Unknown'
+                    "IsPDC" = $DC.OperationMasterRoles -contains 'PDCEmulator'
+                    'GroupPolicyOutput' = $null -ne $GPOs # This shows whether output was on Get-GPO
+                    "GroupPolicyCount" = if ($GPOs) { $GPOs.Count } else { 0 };
+                    "SYSVOLCount" = 0
+                    'CentralRepository' = $CentralRepositoryDomain
+                    'CentralRepositoryDC' = $false
+                    'IdenticalCount' = $false
+                    "Availability" = $false
+                    "MemberReference" = $false
+                    "DFSErrors" = 0
+                    "DFSEvents" = $null
+                    "DFSLocalSetting" = $false
+                    "DomainSystemVolume" = $false
+                    "SYSVOLSubscription" = $false
+                    "StopReplicationOnAutoRecovery" = $false
+                    "DFSReplicatedFolderInfo" = $null
+                }
+                if ($SkipGPO) {
+                    $DomainSummary.Remove('GroupPolicyOutput')
+                    $DomainSummary.Remove('GroupPolicyCount')
+                    $DomainSummary.Remove('SYSVOLCount')
+                }
+
+                $WarningVar = $null
+                $DFSReplicatedFolderInfoAll = Get-CimData -NameSpace "root\microsoftdfs" -Class 'dfsrreplicatedfolderinfo' -ComputerName $Hostname -WarningAction SilentlyContinue -WarningVariable WarningVar -Verbose:$false
+                $DFSReplicatedFolderInfo = $DFSReplicatedFolderInfoAll | Where-Object { $_.ReplicationGroupName -eq 'Domain System Volume' }
+                if ($WarningVar) {
+                    $DomainSummary['ReplicationState'] = 'Unknown'
+                    #$DomainSummary['ReplicationState'] = $WarningVar -join ', '
+                } else {
+                    $DomainSummary['ReplicationState'] = $ReplicationStatus["$($DFSReplicatedFolderInfo.State)"]
+                }
                 try {
-                    [Array] $SYSVOL = Get-ChildItem -Path "\\$Hostname\SYSVOL\$Domain\Policies" -Exclude "PolicyDefinitions*" -ErrorAction Stop
-                    $DomainSummary['SysvolCount'] = $SYSVOL.Count
+                    $CentralRepositoryDC = Get-ChildItem -Path "\\$Hostname\SYSVOL\$Domain\policies\PolicyDefinitions" -ErrorAction Stop
+                    $DomainSummary['CentralRepositoryDC'] = if ($CentralRepositoryDC) { $true } else { $false }
                 } catch {
-                    $DomainSummary['SysvolCount'] = 0
+                    $DomainSummary['CentralRepositoryDC'] = $false
                 }
-            }
-            if (Test-Connection $Hostname -ErrorAction SilentlyContinue) {
-                $DomainSummary['Availability'] = $true
-            } else {
-                $DomainSummary['Availability'] = $false
-            }
-            try {
-                [Array] $Events = 0
-                $DomainSummary['DFSErrors'] = $Events.Count
-                $DomainSummary['DFSEvents'] = $Events
-            } catch {
-                $DomainSummary['DFSErrors'] = $null
-            }
-            $DomainSummary['IdenticalCount'] = $DomainSummary['GroupPolicyCount'] -eq $DomainSummary['SYSVOLCount']
+                try {
+                    $MemberReference = (Get-ADObject -Credential $Credential -Identity $Subscriber -Properties msDFSR-MemberReference -Server $QueryServer -ErrorAction Stop).'msDFSR-MemberReference' -like "CN=$DCName,*"
+                    $DomainSummary['MemberReference'] = if ($MemberReference) { $true } else { $false }
+                } catch {
+                    $DomainSummary['MemberReference'] = $false
+                }
+                try {
+                    $DFSLocalSetting = Get-ADObject -Credential $Credential -Identity $LocalSettings -Server $QueryServer -ErrorAction Stop
+                    $DomainSummary['DFSLocalSetting'] = if ($DFSLocalSetting) { $true } else { $false }
+                } catch {
+                    $DomainSummary['DFSLocalSetting'] = $false
+                }
 
-            try {
-                $Registry = Get-PSRegistry -RegistryPath "HKLM\SYSTEM\CurrentControlSet\Services\DFSR\Parameters" -ComputerName $Hostname -ErrorAction Stop
-            } catch {
-                #$ErrorMessage = $_.Exception.Message
-                $Registry = $null
-            }
-            if ($null -ne $Registry.StopReplicationOnAutoRecovery) {
-                $DomainSummary['StopReplicationOnAutoRecovery'] = [bool] $Registry.StopReplicationOnAutoRecovery
-            } else {
-                $DomainSummary['StopReplicationOnAutoRecovery'] = $null
-                # $DomainSummary['StopReplicationOnAutoRecovery'] = $ErrorMessage
-            }
-            $DomainSummary['DFSReplicatedFolderInfo'] = $DFSReplicatedFolderInfoAll
-
-            $All = @(
+                try {
+                    $DomainSystemVolume = Get-ADObject -Credential $Credential -Identity $Subscriber -Server $QueryServer -ErrorAction Stop
+                    $DomainSummary['DomainSystemVolume'] = if ($DomainSystemVolume) { $true } else { $false }
+                } catch {
+                    $DomainSummary['DomainSystemVolume'] = $false
+                }
+                try {
+                    $SysVolSubscription = Get-ADObject -Credential $Credential -Identity $Subscription -Server $QueryServer -ErrorAction Stop
+                    $DomainSummary['SYSVOLSubscription'] = if ($SysVolSubscription) { $true } else { $false }
+                } catch {
+                    $DomainSummary['SYSVOLSubscription'] = $false
+                }
                 if (-not $SkipGPO) {
-                    $DomainSummary['GroupPolicyOutput']
+                    try {
+                        [Array] $SYSVOL = Get-ChildItem -Path "\\$Hostname\SYSVOL\$Domain\Policies" -Exclude "PolicyDefinitions*" -ErrorAction Stop
+                        $DomainSummary['SysvolCount'] = $SYSVOL.Count
+                    } catch {
+                        $DomainSummary['SysvolCount'] = 0
+                    }
                 }
-                $DomainSummary['SYSVOLSubscription']
-                $DomainSummary['ReplicationState'] -eq 'Normal'
-                $DomainSummary['DomainSystemVolume']
-                $DomainSummary['DFSLocalSetting']
-                $DomainSummary['MemberReference']
-                $DomainSummary['Availability']
-                $DomainSummary['IdenticalCount']
-                $DomainSummary['DFSErrors'] -eq 0
-            )
-            $DomainSummary['Status'] = $All -notcontains $false
-            [PSCustomObject] $DomainSummary
+                if (Test-Connection $Hostname -ErrorAction SilentlyContinue) {
+                    $DomainSummary['Availability'] = $true
+                } else {
+                    $DomainSummary['Availability'] = $false
+                }
+                try {
+                    [Array] $Events = 0
+                    $DomainSummary['DFSErrors'] = $Events.Count
+                    $DomainSummary['DFSEvents'] = $Events
+                } catch {
+                    $DomainSummary['DFSErrors'] = $null
+                }
+                $DomainSummary['IdenticalCount'] = $DomainSummary['GroupPolicyCount'] -eq $DomainSummary['SYSVOLCount']
+
+                try {
+                    $Registry = Get-PSRegistry -RegistryPath "HKLM\SYSTEM\CurrentControlSet\Services\DFSR\Parameters" -ComputerName $Hostname -ErrorAction Stop
+                } catch {
+                    #$ErrorMessage = $_.Exception.Message
+                    $Registry = $null
+                }
+                if ($null -ne $Registry.StopReplicationOnAutoRecovery) {
+                    $DomainSummary['StopReplicationOnAutoRecovery'] = [bool] $Registry.StopReplicationOnAutoRecovery
+                } else {
+                    $DomainSummary['StopReplicationOnAutoRecovery'] = $null
+                    # $DomainSummary['StopReplicationOnAutoRecovery'] = $ErrorMessage
+                }
+                $DomainSummary['DFSReplicatedFolderInfo'] = $DFSReplicatedFolderInfoAll
+
+                $All = @(
+                    if (-not $SkipGPO) {
+                        $DomainSummary['GroupPolicyOutput']
+                    }
+                    $DomainSummary['SYSVOLSubscription']
+                    $DomainSummary['ReplicationState'] -eq 'Normal'
+                    $DomainSummary['DomainSystemVolume']
+                    $DomainSummary['DFSLocalSetting']
+                    $DomainSummary['MemberReference']
+                    $DomainSummary['Availability']
+                    $DomainSummary['IdenticalCount']
+                    $DomainSummary['DFSErrors'] -eq 0
+                )
+                $DomainSummary['Status'] = $All -notcontains $false
+                [PSCustomObject] $DomainSummary
+            } catch {
+                Write-PScriboMessage -Message "Get-WinADDFSHealth - Failed to gather DFS Health for $Domain $($DC.Name) with error: $($_.Exception.Message)"
+                continue
+            }
         }
     }
     $Table
@@ -820,9 +836,9 @@ function Get-WinADDuplicateSPN {
     $SPNCache = [ordered] @{}
     $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation -Credential $Credential
     foreach ($Domain in $ForestInformation.Domains) {
-        Write-PScriboMessage "Get-WinADDuplicateSPN - Processing $Domain"
+        Write-PScriboMessage -Message "Get-WinADDuplicateSPN - Processing $Domain"
         $Objects = (Get-ADObject -Credential $Credential -LDAPFilter "ServicePrincipalName=*" -Properties ServicePrincipalName -Server $ForestInformation['QueryServers'][$domain]['HostName'][0])
-        Write-PScriboMessage "Get-WinADDuplicateSPN - Found $($Objects.Count) objects. Processing..."
+        Write-PScriboMessage -Message "Get-WinADDuplicateSPN - Found $($Objects.Count) objects. Processing..."
         foreach ($Object in $Objects) {
             foreach ($SPN in $Object.ServicePrincipalName) {
                 if (-not $SPNCache[$SPN]) {
@@ -842,7 +858,7 @@ function Get-WinADDuplicateSPN {
             }
         }
     }
-    Write-PScriboMessage "Get-WinADDuplicateSPN - Finalizing output. Processing..."
+    Write-PScriboMessage -Message "Get-WinADDuplicateSPN - Finalizing output. Processing..."
     foreach ($SPN in $SPNCache.Values) {
         if ($SPN.Count -gt 1 -and $SPN.Excluded -ne $true) {
             $SPN.Duplicate = $true
@@ -1072,7 +1088,7 @@ function Get-WinADForestDetail {
             }
 
         } catch {
-            Write-PScriboMessage "Get-WinADForestDetail - Error discovering DC for Forest - $($_.Exception.Message)"
+            Write-PScriboMessage -Message "Get-WinADForestDetail - Error discovering DC for Forest - $($_.Exception.Message)"
             return
         }
         if (-not $ForestInformation) {
@@ -1110,7 +1126,7 @@ function Get-WinADForestDetail {
                 }
 
             } catch {
-                Write-PScriboMessage "Get-WinADForestDetail - Error discovering DC for domain $Domain - $($_.Exception.Message)"
+                Write-PScriboMessage -Message "Get-WinADForestDetail - Error discovering DC for domain $Domain - $($_.Exception.Message)"
                 continue
             }
             if ($Domain -eq $Findings['Forest']['Name']) {
@@ -1124,7 +1140,7 @@ function Get-WinADForestDetail {
         # we need to make sure to remove domains that don't have DCs for some reason
         [Array] $Findings['Domains'] = foreach ($Domain in $Findings['Domains']) {
             if ($Domain -notin $DomainsActive) {
-                Write-PScriboMessage "Get-WinADForestDetail - Domain $Domain doesn't seem to be active (no DCs). Skipping."
+                Write-PScriboMessage -Message "Get-WinADForestDetail - Domain $Domain doesn't seem to be active (no DCs). Skipping."
                 continue
             }
             $Domain
@@ -1137,7 +1153,7 @@ function Get-WinADForestDetail {
                 try {
                     $DomainControllers = Get-ADDomainController -Filter $Filter -Server $QueryServer -ErrorAction Stop -Credential $Credential
                 } catch {
-                    Write-PScriboMessage "Get-WinADForestDetail - Error listing DCs for domain $Domain - $($_.Exception.Message)"
+                    Write-PScriboMessage -Message "Get-WinADForestDetail - Error listing DCs for domain $Domain - $($_.Exception.Message)"
                     continue
                 }
                 foreach ($S in $DomainControllers) {
@@ -1285,7 +1301,7 @@ function Get-WinADForestDetail {
                     $NetBios = $Findings['DomainsExtended'][$DomainEx]['NetBIOSName']
                     $Findings['DomainsExtendedNetBIOS'][$NetBios] = $Findings['DomainsExtended'][$DomainEx]
                 } catch {
-                    Write-PScriboMessage "Get-WinADForestDetail - Error gathering Domain Information for domain $DomainEx - $($_.Exception.Message)"
+                    Write-PScriboMessage -Message "Get-WinADForestDetail - Error gathering Domain Information for domain $DomainEx - $($_.Exception.Message)"
                     continue
                 }
             }
@@ -1427,11 +1443,8 @@ function Get-CimData {
         $Computers = $ComputersSplit[1]
         if ($Computers.Count -gt 0) {
             if ($Protocol -eq 'Default') {
-                $CimSession = Get-ValidCIMSession -ComputerName $Computers[0] -SessionName "Get-CimData"
+                $CimSession = Get-ValidCIMSession -ComputerName $Computers[0] -SessionName $Computers[0] -CIMTable ([ref]$CIMTable)
                 Get-CimInstance -CimSession $CimSession -ClassName $Class -ErrorAction SilentlyContinue -Property $PropertiesOnly -Namespace $NameSpace -Verbose:$false -ErrorVariable ErrorsToProcess | Select-Object -Property $Properties -ExcludeProperty $ExcludeProperties
-                if ($CimSession) {
-                    Remove-CimSession -CimSession $CimSession -ErrorAction SilentlyContinue
-                }
             } else {
                 $Option = New-CimSessionOption -Protocol $Protocol
                 $Session = New-CimSession -ComputerName $Computers -SessionOption $Option -ErrorAction SilentlyContinue -Credential $Credential
@@ -1710,7 +1723,7 @@ function Get-ComputerADDomain {
     [OutputType([System.DirectoryServices.ActiveDirectory.Domain])]
     Param
     ()
-    Write-PScriboMessage 'Calling GetCurrentDomain()'
+    Write-PScriboMessage -Message 'Calling GetCurrentDomain()'
     ([DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain())
 }
 
@@ -1789,7 +1802,7 @@ function Get-ADCSObject {
         $ADRoot = Invoke-Command -Session $TempPssSession { (Get-ADRootDSE -Server $Using:Target).defaultNamingContext }
         Invoke-Command -Session $TempPssSession { Get-ADObject -Filter * -SearchBase "CN=Public Key Services,CN=Services,CN=Configuration,$Using:ADRoot" -SearchScope 2 -Properties * }
     } catch {
-        Write-PScriboMessage -IsWarning "Unable to find CA auditing information"
+        Write-PScriboMessage -IsWarning -Message "Unable to find CA auditing information"
     }
 }
 
@@ -1838,7 +1851,7 @@ function get-Severity {
                 return 'Critical'
             }
         } catch {
-            Write-PScriboMessage -IsWarning 'Could not determine issue severity'
+            Write-PScriboMessage -IsWarning -Message 'Could not determine issue severity'
         }
     }
 }
@@ -1902,7 +1915,7 @@ Function Get-ADExchangeServer {
                 ServerRoles = $roles;
             }
         } Catch {
-            Write-PScriboMessage -IsWarning "ExchangeServer: [$($server.Name)]. $($_.Exception.Message)"
+            Write-PScriboMessage -IsWarning -Message "ExchangeServer: [$($server.Name)]. $($_.Exception.Message)"
         }
     }
 }
@@ -2362,23 +2375,24 @@ function Get-ValidDCfromDomain {
     param(
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [string]$Domain
+        [string]$Domain,
+        [ref]$DCStatus
     )
 
     $DCList = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity $using:Domain).ReplicaDirectoryServers }
 
     if ($DCList) {
         foreach ($TestedDC in $DCList) {
-            if (Get-DCWinRMState -ComputerName $TestedDC) {
-                Write-PScriboMessage "Using $TestedDC to retreive $Domain information."
+            if (Get-DCWinRMState -ComputerName $TestedDC -DCStatus $DCStatus) {
+                Write-PScriboMessage -Message "Using $TestedDC to retreive $Domain information."
                 $TestedDC
                 break
             } else {
-                Write-PScriboMessage "Unable to connect to $TestedDC to retreive $Domain information."
+                Write-PScriboMessage -Message "Unable to connect to $TestedDC to retreive $Domain information."
             }
         }
     } else {
-        Write-PScriboMessage "Unable to connect to $Domain to get a valid Domain Controller list."
+        Write-PScriboMessage -Message "Unable to connect to $Domain to get a valid Domain Controller list."
     }
 }# end
 
@@ -2411,51 +2425,90 @@ function Get-DCWinRMState {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$ComputerName,
-        [string]$ErrorCategory
+        [ref]$DCStatus
     )
-
-    # build the connection to the DC
-    $ConnectionParams = @{
-        ComputerName = $ComputerName
-        Credential = $Credential
-        Authentication = $Options.PSDefaultAuthentication
-        ErrorAction = 'SilentlyContinue'
+    $PingStatus = switch (Test-Connection -ComputerName $ComputerName -Count 2 -Quiet) {
+        'True' { "Online" }
+        'False' { "Offline" }
     }
 
-    if ($Options.WinRMSSL) {
-        $ConnectionParams.Add('UseSSL', $true)
-        $ConnectionParams.Add('Port', $Options.WinRMSSLPort)
-        $WinRMType = "WinRM with SSL"
-    } else {
-        $ConnectionParams.Add('Port', $Options.WinRMPort)
-        $WinRMType = "WinRM"
+    Write-PScriboMessage -Message "Validating WinRM status of $ComputerName in Cache"
+    if ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'WinRMSSL' }) {
+        Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: Offline"
+        return $false
+    } elseif ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'WinRM' }) {
+        Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: Offline"
+        return $false
     }
 
-    if (Test-WSMan @ConnectionParams) {
-        Write-PScriboMessage "WinRM status in $ComputerName is OK."
+
+    if ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' }) {
+        Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: return True"
         return $true
-    } elseif ($Options.WinRMFallbackToNoSSL) {
-        $ConnectionParams['UseSSL'] = $false
-        $ConnectionParams['Port'] = $Options.WinRMPort
-        if (Test-WSMan @ConnectionParams) {
-            Write-PScriboMessage "WinRM status in $ComputerName is OK."
-            return $true
+    } else {
+        Write-PScriboMessage -Message "No valid WinRM status of $ComputerName found in Cache: Building new connection."
+        # build the connection to the DC
+        $ConnectionParams = @{
+            ComputerName = $ComputerName
+            Credential = $Credential
+            Authentication = $Options.PSDefaultAuthentication
+            ErrorAction = 'SilentlyContinue'
+        }
+
+        if ($Options.WinRMSSL) {
+            $ConnectionParams.Add('UseSSL', $true)
+            $ConnectionParams.Add('Port', $Options.WinRMSSLPort)
+            $WinRMType = "WinRMSSL"
         } else {
-            if ($ErrorCategory) {
-                Write-PScriboMessage "Unable to connect to $ComputerName through $WinRMType, ($ErrorCategory)"
-            } else {
-                Write-PScriboMessage "Unable to connect to $ComputerName through $WinRMType."
+            $ConnectionParams.Add('Port', $Options.WinRMPort)
+            $WinRMType = "WinRM"
+        }
+
+        if (Test-WSMan @ConnectionParams) {
+            $DCStatus.Value += @{
+                DCName = $ComputerName
+                Status = 'Online'
+                Protocol = $WinRMType
+                PingStatus = $PingStatus
             }
+            Write-PScriboMessage -Message "WinRM status in $ComputerName is Online ($WinRMType)."
+            return $true
+        }
+
+        if ($Options.WinRMFallbackToNoSSL) {
+            $ConnectionParams['UseSSL'] = $false
+            $ConnectionParams['Port'] = $Options.WinRMPort
+            $WinRMType = "WinRM"
+            if (Test-WSMan @ConnectionParams) {
+                Write-PScriboMessage -Message "WinRM status in $ComputerName is Online ($WinRMType)."
+                $DCStatus.Value += @{
+                    DCName = $ComputerName
+                    Status = 'Online'
+                    Protocol = $WinRMType
+                    PingStatus = $PingStatus
+                }
+                return $true
+            } else {
+                Write-PScriboMessage -Message "Unable to connect to $ComputerName through $WinRMType."
+                $DCStatus.Value += @{
+                    DCName = $ComputerName
+                    Status = 'Offline'
+                    Protocol = $WinRMType
+                    PingStatus = $PingStatus
+                }
+                return $false
+            }
+
+        } else {
+            $DCStatus.Value += @{
+                DCName = $ComputerName
+                Status = 'Offline'
+                Protocol = $WinRMType
+                PingStatus = $PingStatus
+            }
+            Write-PScriboMessage -Message "Unable to connect to $ComputerName through $WinRMType."
             return $false
         }
-
-    } else {
-        if ($ErrorCategory) {
-            Write-PScriboMessage "Unable to connect to $ComputerName through $WinRMType, ($ErrorCategory)"
-        } else {
-            Write-PScriboMessage "Unable to connect to $ComputerName through $WinRMType."
-        }
-        return $false
     }
 }# end
 
@@ -2466,11 +2519,15 @@ function Get-ValidPSSession {
     .DESCRIPTION
         Function to generate a valid WinRM session from a computer string.
     .NOTES
-        Version:        0.1.0
+        Version:        0.9.4
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidPSSession -ComputerName 'server-dc-01v.pharmax.local'
-            Server-DC-01V.pharmax.local
+            Id Name            ComputerName    ComputerType    State         ConfigurationName     Availability
+            -- ----            ------------    ------------    -----         -----------------     ------------
+            9 Global:TempP... server-dc-01... RemoteMachine   Opened        Microsoft.PowerShell     Available
+
+    .Todo
     #>
     [CmdletBinding()]
     [OutputType([String])]
@@ -2480,26 +2537,110 @@ function Get-ValidPSSession {
         [string]$ComputerName,
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [string]$SessionName
+        [string]$SessionName,
+        [ref]$PSSTable
 
     )
 
+    if ((-Not $Options.WinRMFallbackToNoSSL) -and ($PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'PSSessionSSL' })) {
+        throw "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
+    } elseif (($Options.WinRMFallbackToNoSSL) -and ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSession' })) {
+        Write-PScriboMessage -Message "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
+        Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM)."
+        return Get-PSSession $PSessionObj.Id
+    }
+
     if ($Options.WinRMSSL) {
-        try {
-            Write-PScriboMessage "Connecting to '$ComputerName' through PSSession with SSL."
-            New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -UseSSL -Port $Options.WinRMSSLPort
-        } catch {
-            if ($Options.WinRMFallbackToNoSSL) {
-                Write-PScriboMessage "Unable to Connect to '$ComputerName' through PSSession with SSL. Reverting to WinRM without SSL!"
-                New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort
-                Write-PScriboMessage "Connected to '$ComputerName' through PSSession."
-            } else {
-                throw
+        if ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSessionSSL' }) {
+            Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM with SSL)."
+            return Get-PSSession $PSessionObj.Id
+        } else {
+            try {
+                Write-PScriboMessage -Message "Connecting to '$ComputerName' through PSSession with SSL."
+                if ($SessionObject = New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -UseSSL -Port $Options.WinRMSSLPort) {
+                    Write-PScriboMessage -Message "Connected to '$ComputerName' through PSSession (WinRM with SSL)."
+                    $PSSTable.Value += @{
+                        DCName = $ComputerName
+                        Status = 'Online'
+                        Protocol = 'PSSessionSSL'
+                        Id = $SessionObject.Id
+                    }
+                    return $SessionObject
+                }
+            } catch {
+                Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession with SSL."
+                $PSSTable.Value += @{
+                    DCName = $ComputerName
+                    Status = 'Offline'
+                    Protocol = 'PSSessionSSL'
+                    Id = 'None'
+                }
+                if ($Options.WinRMFallbackToNoSSL) {
+                    if ($PSessionObj = Get-PSSession | Where-Object { $_.ComputerName -eq $ComputerName -and $_.Availability -eq 'Available' -and $_.State -eq 'Opened' -and $_.Runspace.ConnectionInfo.Scheme -eq 'http' -and $_.Runspace.ConnectionInfo.Credential.Username -eq $Credential.UserName }) {
+                        Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM without SSL)."
+                        $PSSTable.Value += @{
+                            DCName = $ComputerName
+                            Status = 'Online'
+                            Protocol = 'PSSession'
+                            Id = $PSessionObj.Id
+                        }
+                        return $PSessionObj
+                    } else {
+                        Write-PScriboMessage -Message "Generating a PSSession to '$ComputerName' (WinRM without SSL)."
+                        try {
+                            if ($SessionObject = New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
+                                Write-PScriboMessage -Message "Connected to '$ComputerName' through PSSession (WinRM without SSL)."
+                                $PSSTable.Value += @{
+                                    DCName = $ComputerName
+                                    Status = 'Online'
+                                    Protocol = 'PSSession'
+                                    Id = $SessionObject.Id
+                                }
+                                return $SessionObject
+                            }
+                        } catch {
+                            Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession."
+                            $PSSTable.Value += @{
+                                DCName = $ComputerName
+                                Status = 'Offline'
+                                Protocol = 'PSSession'
+                                Id = 'None'
+                            }
+                        }
+                    }
+                } else {
+                    throw
+                }
             }
         }
     } else {
-        Write-PScriboMessage "Connecting to '$ComputerName' through PSSession."
-        New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort
+        if ($PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'PSSession' }) {
+            throw "Unable to connect to $ComputerName through PSSession (WinRM)."
+        } elseif ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSession' }) {
+            Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id)"
+            return Get-PSSession $PSessionObj.Id
+        } else {
+            Write-PScriboMessage -Message "Generating a PSSession to '$ComputerName'."
+            try {
+                if ($SessionObject = New-PSSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
+                    $PSSTable.Value += @{
+                        DCName = $ComputerName
+                        Status = 'Online'
+                        Protocol = 'PSSession'
+                        Id = $SessionObject.Id
+                    }
+                    return $SessionObject
+                }
+            } catch {
+                Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession."
+                $PSSTable.Value += @{
+                    DCName = $ComputerName
+                    Status = 'Offline'
+                    Protocol = 'PSSession'
+                    Id = 'None'
+                }
+            }
+        }
     }
 }# end
 
@@ -2510,7 +2651,7 @@ function Get-ValidCIMSession {
     .DESCRIPTION
         Function to generate a valid CIM session from a computer string.
     .NOTES
-        Version:        0.1.0
+        Version:        0.9.4
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidCIMSession -ComputerName 'server-dc-01v.pharmax.local'
@@ -2524,25 +2665,120 @@ function Get-ValidCIMSession {
         [string]$ComputerName,
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [string]$SessionName
+        [string]$SessionName,
+        [ref]$CIMTable
     )
 
+    if ((-Not $Options.WinRMFallbackToNoSSL) -and ($CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'CimSessionSSL' })) {
+        throw "Unable to connect to $ComputerName through CimSession (CIM with SSL)."
+    } elseif (($Options.WinRMFallbackToNoSSL) -and ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSession' })) {
+        Write-PScriboMessage -Message "Unable to connect to $ComputerName through CimSession (CIM with SSL)."
+        Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' CimSession id: $($PSessionObj.Id) (WinRM)."
+        return Get-CimSession $CIMSessionObj.Id
+    }
+
     if ($Options.WinRMSSL) {
-        try {
-            $CimSessionOptions = New-CimSessionOption -ProxyAuthentication $Options.PSDefaultAuthentication -ProxyCredential $Credential -SkipCACheck -SkipCNCheck -UseSsl
-            Write-PScriboMessage "Connecting to '$ComputerName' through CimSession with SSL."
-            New-CimSession $ComputerName -SessionOption $CimSessionOptions -Port $Options.WinRMSSLPort -Name $SessionName -ErrorAction Stop
-        } catch {
-            if ($Options.WinRMFallbackToNoSSL) {
-                Write-PScriboMessage "Unable to Connect to '$ComputerName' through CimSession with SSL. Reverting to Cim without SSL!"
-                New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name $SessionName -Port $Options.WinRMPort -ErrorAction Continue
-                Write-PScriboMessage "Connected to '$ComputerName' through CimSession with SSL."
-            } else {
-                throw
+        if ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSessionSSL' }) {
+            Write-PScriboMessage -Message "Using available '$ComputerName' CIMSession id: $($CIMSessionObj.Id) (CimSession)."
+            return Get-CimSession $CIMSessionObj.Id
+        } else {
+            try {
+                Write-PScriboMessage -Message "No available CimSession with SSL found for '$ComputerName': Generating a new one."
+                $CimSessionOptions = New-CimSessionOption -ProxyAuthentication $Options.PSDefaultAuthentication -ProxyCredential $Credential -UseSsl
+                Write-PScriboMessage -Message "Connecting to '$ComputerName' through CimSession with SSL."
+                if ($CIMSessionObj = New-CimSession $ComputerName -SessionOption $CimSessionOptions -Port $Options.WinRMSSLPort -Name $SessionName -ErrorAction Stop) {
+                    Write-PScriboMessage -Message "Connected to '$ComputerName' through CimSession with SSL."
+                    $CIMTable.Value += @{
+                        DCName = $ComputerName
+                        Status = 'Online'
+                        Protocol = 'CimSessionSSL'
+                        Id = $CIMSessionObj.Id
+                        InstanceId = $CIMSessionObj.InstanceId
+                    }
+                    $CIMSessionObj
+                }
+            } catch {
+                if ($Options.WinRMFallbackToNoSSL) {
+                    Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession with SSL. Reverting to Cim without SSL!"
+                    $CIMTable.Value += @{
+                        DCName = $ComputerName
+                        Status = 'Offline'
+                        Protocol = 'CimSessionSSL'
+                        Id = 'None'
+                        InstanceId = 'None'
+                    }
+                    try {
+                        if ($CIMSessionObj = New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
+                            Write-PScriboMessage -Message "Connected to '$ComputerName' through CimSession without SSL."
+                            $CIMTable.Value += @{
+                                DCName = $ComputerName
+                                Status = 'Online'
+                                Protocol = 'CimSession'
+                                Id = $CIMSessionObj.Id
+                                InstanceId = $CIMSessionObj.InstanceId
+                            }
+                            $CIMSessionObj
+                        }
+                    } catch {
+                        Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession without SSL."
+                        $CIMTable.Value += @{
+                            DCName = $ComputerName
+                            Status = 'Offline'
+                            Protocol = 'CimSession'
+                            Id = 'None'
+                            InstanceId = 'None'
+                        }
+                    }
+                }
             }
         }
     } else {
-        Write-PScriboMessage "Connecting to '$ComputerName' through CimSession."
-        New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name $SessionName -Port $Options.WinRMPort -ErrorAction Continue
+        if ($CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'CimSession' }) {
+            throw "Unable to connect to $ComputerName through CimSession (CimSession)."
+        } elseif ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSession' }) {
+            Write-PScriboMessage -Message "Using available '$ComputerName' CIMSession id: $($CIMSessionObj.Id) (CimSession without SSL)."
+            return Get-CimSession $CIMSessionObj.Id
+        } else {
+            Write-PScriboMessage -Message "Connecting to '$ComputerName' through CimSession without SSL."
+            try {
+                if ($CIMSessionObj = New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name $SessionName -Port $Options.WinRMPort) {
+                    Write-PScriboMessage -Message "Connected to '$ComputerName' CimSession without SSL."
+                    $CIMTable.Value += @{
+                        DCName = $ComputerName
+                        Status = 'Online'
+                        Protocol = 'CimSession'
+                        Id = $CIMSessionObj.Id
+                        InstanceId = $CIMSessionObj.InstanceId
+                    }
+                    $CIMSessionObj
+                }
+            } catch {
+                Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession without SSL."
+                $CIMTable.Value += @{
+                    DCName = $ComputerName
+                    Status = 'Offline'
+                    Protocol = 'CimSession'
+                    Id = 'None'
+                    InstanceId = 'None'
+                }
+            }
+        }
     }
 }# end
+
+function Format-Color([hashtable] $Colors = @{}, [switch] $SimpleMatch) {
+    # taken from https://www.bgreco.net/powershell/format-color/
+    $lines = ($Input | Out-String) -replace "`r", "" -split "`n"
+    foreach ($Line in $Lines) {
+        $Color = ''
+        foreach ($Pattern in $Colors.Keys) {
+            if ((-Not $SimpleMatch) -and $Line -match $Pattern) { $color = $Colors[$Pattern] }
+            elseif ($SimpleMatch -and $Line -like $Pattern) { $color = $Colors[$Pattern] }
+        }
+        if ($color) {
+            Write-Host -ForegroundColor $Colors $Line
+        } else {
+            Write-Host $Line
+        }
+    }
+}

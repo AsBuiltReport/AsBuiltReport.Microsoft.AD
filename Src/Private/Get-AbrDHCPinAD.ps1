@@ -5,7 +5,7 @@ function Get-AbrDHCPinAD {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,6 +16,7 @@ function Get-AbrDHCPinAD {
     #>
     [CmdletBinding()]
     param (
+        [ref]$DomainStatus
     )
 
     begin {
@@ -30,11 +31,23 @@ function Get-AbrDHCPinAD {
             } catch { Out-Null }
         }
         try {
-            if ($DHCPServers ) {
+            if ($Options.Exclude.Domains) {
+                $DHCPServers = $DHCPServers | Where-Object { $_.Name -notmatch $Options.Exclude.Domains }
+            }
+            if ($DHCPServers) {
                 try {
-                    $DCServersinAD = @(foreach ($Domain in $ADSystem.Domains) {
+                    $DCServersinAD = @(
+                        foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             try {
-                        (Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
+                                if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
+                                    (Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
+                                } else {
+                                    $DomainStatus.Value += @{
+                                        Name = $Domain
+                                        Status = 'Offline'
+                                    }
+                                    Write-PScriboMessage -IsWarning "Unable to get an available DC in $Domain domain. Removing it from the report."
+                                }
                             } catch { Out-Null }
                         }
                     )

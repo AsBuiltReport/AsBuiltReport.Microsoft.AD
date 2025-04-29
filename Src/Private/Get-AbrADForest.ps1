@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -106,23 +106,25 @@ function Get-AbrADForest {
                         }
                     }
                 }
-                try {
+                if ($Options.EnableDiagrams) {
                     try {
-                        $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType Forest
-                    } catch {
-                        Write-PScriboMessage -IsWarning "Forest Diagram Graph: $($_.Exception.Message)"
-                    }
-
-                    if ($Graph) {
-                        If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 10 } else { $ImagePrty = 50 }
-                        Section -Style Heading3 "Forest Diagram." {
-                            Image -Base64 $Graph -Text "Forest Diagram" -Percent $ImagePrty -Align Center
-                            Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                        try {
+                            $Graph = Get-AbrDiagrammer -DiagramType 'Forest' -DiagramOutput base64 -PSSessionObject $TempPssSession
+                        } catch {
+                            Write-PScriboMessage -IsWarning "Forest Diagram Graph: $($_.Exception.Message)"
                         }
-                        BlankLine -Count 2
+
+                        if ($Graph) {
+                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 20 } else { $ImagePrty = 50 }
+                            Section -Style Heading3 "Forest Diagram." {
+                                Image -Base64 $Graph -Text "Forest Diagram" -Percent $ImagePrty -Align Center
+                                Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                            }
+                            BlankLine -Count 2
+                        }
+                    } catch {
+                        Write-PScriboMessage -IsWarning "Forest Diagram Section: $($_.Exception.Message)"
                     }
-                } catch {
-                    Write-PScriboMessage -IsWarning "Forest Diagram Section: $($_.Exception.Message)"
                 }
             }
         } catch {
@@ -212,23 +214,25 @@ function Get-AbrADForest {
                         Write-PScriboMessage "No Certificate Authority Issuer information found, Disabling this section."
                     }
                 }
-                try {
+                if ($Options.EnableDiagrams) {
                     try {
-                        $Graph = New-ADDiagram -Target $System -Credential $Credential -Format base64 -Direction top-to-bottom -DiagramType CertificateAuthority
-                    } catch {
-                        Write-PScriboMessage -IsWarning "Certificate Authority Diagram Graph: $($_.Exception.Message)"
-                    }
-
-                    if ($Graph) {
-                        If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 20 } else { $ImagePrty = 50 }
-                        Section -Style Heading4 "Certificate Authority Diagram." {
-                            Image -Base64 $Graph -Text "Certificate Authority Diagram" -Percent $ImagePrty -Align Center
-                            Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                        try {
+                            $Graph = Get-AbrDiagrammer -DiagramType "CertificateAuthority" -DiagramOutput base64 -PSSessionObject $TempPssSession
+                        } catch {
+                            Write-PScriboMessage -IsWarning "Certificate Authority Diagram Graph: $($_.Exception.Message)"
                         }
-                        BlankLine -Count 2
+
+                        if ($Graph) {
+                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 20 } else { $ImagePrty = 50 }
+                            Section -Style Heading4 "Certificate Authority Diagram." {
+                                Image -Base64 $Graph -Text "Certificate Authority Diagram" -Percent $ImagePrty -Align Center
+                                Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                            }
+                            BlankLine -Count 2
+                        }
+                    } catch {
+                        Write-PScriboMessage -IsWarning "Certificate Authority Diagram Section: $($_.Exception.Message)"
                     }
-                } catch {
-                    Write-PScriboMessage -IsWarning "Certificate Authority Diagram Section: $($_.Exception.Message)"
                 }
             }
         } catch {
