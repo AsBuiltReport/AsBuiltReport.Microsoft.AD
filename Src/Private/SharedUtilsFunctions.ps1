@@ -2427,6 +2427,11 @@ function Get-DCWinRMState {
         [string]$ComputerName,
         [ref]$DCStatus
     )
+    $PingStatus = switch (Test-Connection -ComputerName $ComputerName -Count 2 -Quiet) {
+        'True' { "Online" }
+        'False' { "Offline" }
+    }
+
     Write-PScriboMessage -Message "Validating WinRM status of $ComputerName in Cache"
     if ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'WinRMSSL' }) {
         Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: Offline"
@@ -2464,6 +2469,7 @@ function Get-DCWinRMState {
                 DCName = $ComputerName
                 Status = 'Online'
                 Protocol = $WinRMType
+                PingStatus = $PingStatus
             }
             Write-PScriboMessage -Message "WinRM status in $ComputerName is Online ($WinRMType)."
             return $true
@@ -2479,6 +2485,7 @@ function Get-DCWinRMState {
                     DCName = $ComputerName
                     Status = 'Online'
                     Protocol = $WinRMType
+                    PingStatus = $PingStatus
                 }
                 return $true
             } else {
@@ -2487,6 +2494,7 @@ function Get-DCWinRMState {
                     DCName = $ComputerName
                     Status = 'Offline'
                     Protocol = $WinRMType
+                    PingStatus = $PingStatus
                 }
                 return $false
             }
@@ -2496,6 +2504,7 @@ function Get-DCWinRMState {
                 DCName = $ComputerName
                 Status = 'Offline'
                 Protocol = $WinRMType
+                PingStatus = $PingStatus
             }
             Write-PScriboMessage -Message "Unable to connect to $ComputerName through $WinRMType."
             return $false
@@ -2756,3 +2765,20 @@ function Get-ValidCIMSession {
         }
     }
 }# end
+
+function Format-Color([hashtable] $Colors = @{}, [switch] $SimpleMatch) {
+    # taken from https://www.bgreco.net/powershell/format-color/
+    $lines = ($Input | Out-String) -replace "`r", "" -split "`n"
+    foreach ($Line in $Lines) {
+        $Color = ''
+        foreach ($Pattern in $Colors.Keys) {
+            if ((-Not $SimpleMatch) -and $Line -match $Pattern) { $color = $Colors[$Pattern] }
+            elseif ($SimpleMatch -and $Line -like $Pattern) { $color = $Colors[$Pattern] }
+        }
+        if ($color) {
+            Write-Host -ForegroundColor $Colors $Line
+        } else {
+            Write-Host $Line
+        }
+    }
+}

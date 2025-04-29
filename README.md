@@ -172,18 +172,30 @@ The **Report** schema provides configuration of the Microsoft AD report informat
 
 The **Options** schema allows certain options within the report to be toggled on or off.
 
-| Sub-Schema              | Setting            | Default   | Description                                                                                                               |
-| ----------------------- | ------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------- |
-| ShowDefinitionInfo      | true/false         | False     | Toggle to enable/disable Microsoft AD term explanations                                                                   |
-| PSDefaultAuthentication | Negotiate/Kerberos | Negotiate | Allow to set the value of the PSRemoting authentication method. For Workgroup authentication Negotiate value is required. |
-| Exclude.Domains         | Array List         | Empty     | Allow to filter on AD Domain FQDN                                                                                         |
-| Exclude.DCs             | Array List         | Empty     | Allow to filter on AD Domain Controller Server FQDN.                                                                      |
-| Include.Domains         | Array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.                                                 |
-| Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                                                            |
-| WinRMSSL                | Bool               | True      | Allow to enable SSL for WINRM connection                                                                                  |
-| WinRMFallbackToNoSSL | Bool               | True      | Allow to fallback to WINRM without SSL                                                                                    |
-| WinRMSSLPort            | Int                | 5986      | Allow to set tcp port for WinRM over SSL                                                                                  |
-| WinRMPort               | Int                | 5985      | Allow to set tcp port for WinRM                                                                                           |
+| Sub-Schema              | Setting            | Default   | Description                                                                   |
+| ----------------------- | ------------------ | --------- | ----------------------------------------------------------------------------- |
+| DiagramTheme            | string             | White     | Set the diagram theme (Black/White/Neon)                                      |
+| DiagramType             | true / false       | true      | Toggle to enable/disable the export of individual diagram diagrams            |
+| DiagramWaterMark        | string             | empty     | Set the diagram watermark                                                     |
+| EnableDiagrams          | true / false       | false     | Toggle to enable/disable infrastructure diagrams                              |
+| EnableDiagramsDebug     | true / false       | false     | Toggle to enable/disable diagram debug option                                 |
+| EnableDiagramSignature  | true / false       | false     | Toggle to enable/disable diagram signature (bottom right corner)              |
+| EnableHardwareInventory | true / false       | false     | Toggle to enable/disable hardware information                                 |
+| ExportDiagrams          | true / false       | true      | Toggle to enable/disable diagram export option                                |
+| ExportDiagramsFormat    | string array       | png       | Set the format used to export the infrastructure diagram (dot, png, pdf, svg) |
+| Exclude.DCs             | Array List         | Empty     | Allow to filter on AD Domain Controller Server FQDN.                          |
+| Exclude.Domains         | Array List         | Empty     | Allow to filter on AD Domain FQDN                                             |
+| Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                |
+| Include.Domains         | Array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.     |
+| PSDefaultAuthentication | Negotiate/Kerberos | Negotiate | Allow to set the value of the PSRemoting authentication method.               |
+|                         |                    |           | For Workgroup authentication Negotiate value is required.                     |
+| ShowDefinitionInfo      | true/false         | False     | Toggle to enable/disable Microsoft AD term explanations                       |
+| SignatureAuthorName     | string             | empty     | Set the signature author name                                                 |
+| SignatureCompanyName    | string             | empty     | Set the signature company name                                                |
+| WinRMFallbackToNoSSL    | Bool               | True      | Allow to fallback to WINRM without SSL                                        |
+| WinRMPort               | Int                | 5985      | Allow to set tcp port for WinRM                                               |
+| WinRMSSL                | Bool               | True      | Allow to enable SSL for WINRM connection                                      |
+| WinRMSSLPort            | Int                | 5986      | Allow to set tcp port for WinRM over SSL                                      |
 
 
 ### InfoLevel

@@ -179,7 +179,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #                           Connection Status Section                                         #
         #---------------------------------------------------------------------------------------------#
 
-        $DCOffine = $DCStatus | Where-Object { $Null -ne $_.DCName -and $_.Status -eq 'Offline' }
+        $DCOffine = $DCStatus | Where-Object { $Null -ne $_.DCName -and $_.Status -eq 'Offline' } | Select-Object -Property @{N = 'Name'; E = { $_.DCName } }, @{N = 'WinRM Status'; E = { $_.Status } }, @{N = 'Ping Status'; E = { $_.PingStatus } }, @{N = 'Protocol'; E = { $_.Protocol } } | ForEach-Object { [pscustomobject]$_ }
         $DomainOffline = $DomainStatus | Where-Object { $Null -ne $_.Name -and $_.Status -eq 'Offline' }
         if ($DCOffine -or $DomainOffline) {
             Write-Host "`r`n"
@@ -187,10 +187,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             if ($DCOffine) {
                 Write-Host "Domain Controllers"
                 Write-Host "------------------"
-                $DCOffine | ForEach-Object {
-                    Write-Host "$($_.DCName)"
-                }
-                Write-Host "`r`n"
+                $DCOffine | Format-Table -AutoSize | Out-String | Write-Host
             }
             if ($DomainOffline) {
                 Write-Host "Domains"
