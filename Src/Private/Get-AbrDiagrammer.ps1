@@ -91,7 +91,7 @@ function Get-AbrDiagrammer {
                 'Target' = $DomainController
                 'Direction' = 'top-to-bottom'
                 'WaterMarkText' = $Options.DiagramWaterMark
-                'WaterMarkColor' = 'DarkGreen'
+                'WaterMarkColor' = '#565656'
                 'DiagramTheme' = $DiagramTheme
             }
 
@@ -111,66 +111,31 @@ function Get-AbrDiagrammer {
                 $DiagramParams.Add('CompanyName', $Options.SignatureCompanyName)
             }
 
-            if ($DiagramType -eq 'All') {
-                try {
-                    foreach ($DiagramTypeItem in $DiagramTypeNameArray) {
-                        foreach ($Format in $DiagramFormat) {
-                            try {
-                                if ($Format -eq "base64") {
-                                    $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramTypeItem -Format $Format
-                                    if ($Graph) {
-                                        $Graph
-                                    }
+            try {
+                foreach ($Format in $DiagramFormat) {
+                    if ($Format -eq "base64") {
+                        $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format
+                        if ($Graph) {
+                            $Graph
+                        }
+                    } else {
+                        $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename "AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)"
+                        if ($Graph) {
+                            if ($ExportPath) {
+                                $FilePath = Join-Path -Path $OutputFolderPath -ChildPath "AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)"
+                                if (Test-Path -Path $FilePath) {
+                                    $FilePath
                                 } else {
-                                    $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramTypeItem  -Format $Format -Filename "AsBuiltReport.$($Global:Report)-($($DiagramTypeNameArray)).$($Format)"
-                                    if ($Graph) {
-                                        if ($ExportPath) {
-                                            $FilePath = Join-Path -Path $OutputFolderPath -ChildPath "AsBuiltReport.$($Global:Report)-($($DiagramTypeNameArray)).$($Format)"
-                                            if (Test-Path -Path $FilePath) {
-                                                $FilePath
-                                            } else {
-                                                Write-PScriboMessage -IsWarning "Unable to export the $DiagramTypeNameArray Diagram: $($_.Exception.Message)"
-                                            }
-                                        } else {
-                                            Write-Information "Saved 'AsBuiltReport.$($Global:Report)-($($DiagramTypeNameArray)).$($Format)' diagram to '$($OutputFolderPath)'." -InformationAction Continue
-                                        }
-                                    }
+                                    Write-PScriboMessage -IsWarning "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
                                 }
-                            } catch {
-                                Write-PScriboMessage -IsWarning "Unable to export the $($DiagramTypeNameArray) Diagram: $($_.Exception.Message)"
+                            } else {
+                                Write-Information "Saved 'AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)' diagram to '$($OutputFolderPath)'." -InformationAction Continue
                             }
                         }
                     }
-                } catch {
-                    Write-PScriboMessage -IsWarning "Unable to generate the $DiagramType type Diagram: $($_.Exception.Message)"
                 }
-            } else {
-                try {
-                    foreach ($Format in $DiagramFormat) {
-                        if ($Format -eq "base64") {
-                            $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format
-                            if ($Graph) {
-                                $Graph
-                            }
-                        } else {
-                            $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename "AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)"
-                            if ($Graph) {
-                                if ($ExportPath) {
-                                    $FilePath = Join-Path -Path $OutputFolderPath -ChildPath "AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)"
-                                    if (Test-Path -Path $FilePath) {
-                                        $FilePath
-                                    } else {
-                                        Write-PScriboMessage -IsWarning "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
-                                    }
-                                } else {
-                                    Write-Information "Saved 'AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)' diagram to '$($OutputFolderPath)'." -InformationAction Continue
-                                }
-                            }
-                        }
-                    }
-                } catch {
-                    Write-PScriboMessage -IsWarning "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
-                }
+            } catch {
+                Write-PScriboMessage -IsWarning "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
             }
         } catch {
             Write-PScriboMessage -IsWarning "Unable to get the $DiagramType Diagram: $($_.Exception.Message)"
