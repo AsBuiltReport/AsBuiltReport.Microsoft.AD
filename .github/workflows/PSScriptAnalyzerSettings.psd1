@@ -1,6 +1,7 @@
 @{
     ExcludeRules = @(
         'PSUseToExportFieldsInManifest'
+        'PSAvoidUsingWriteHost'
     )
     Rules = @{
         PSAvoidExclaimOperator = @{
