@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ensured that warning messages are properly formatted with the `-IsWarning` flag where applicable.
 - Enhanced logging messages to provide better context during execution, particularly in sections related to Active Directory, DHCP, DNS, and replication.
 
+### Fixed
+
+- Fix message in Get-AbrDiagrammer function to correctly reference DiagramType
+
 ## [0.9.4] - 2025-04-28
 
 ### Added
