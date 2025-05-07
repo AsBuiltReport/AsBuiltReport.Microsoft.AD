@@ -5,7 +5,7 @@ function Get-AbrADDNSZone {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -22,7 +22,7 @@ function Get-AbrADDNSZone {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Actve Directory Domain Name System Zone information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message "Collecting Actve Directory Domain Name System Zone information on $($Domain.DNSRoot)."
     }
 
     process {
@@ -46,7 +46,7 @@ function Get-AbrADDNSZone {
                             }
                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Zone Item)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Name System Zone Item)"
                         }
                     }
 
@@ -82,14 +82,14 @@ function Get-AbrADDNSZone {
                                                 }
                                             }
                                         } else {
-                                            Write-PScriboMessage "DNS Zones $($Zone) Section: No Zone Delegation information found, Disabling this section."
+                                            Write-PScriboMessage -Message "DNS Zones $($Zone) Section: No Zone Delegation information found, Disabling this section."
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Delegation Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Delegation Item)"
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage "DNS Zones Section: No Zone Delegation information found in $DC, Disabling this section."
+                                Write-PScriboMessage -Message "DNS Zones Section: No Zone Delegation information found in $DC, Disabling this section."
                             }
 
                             if ($OutObj) {
@@ -107,7 +107,7 @@ function Get-AbrADDNSZone {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Delegation Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Delegation Table)"
                         }
                     }
 
@@ -121,7 +121,7 @@ function Get-AbrADDNSZone {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
-                                Write-PScriboMessage -IsWarning "DNS Zones Transfers Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                                Write-PScriboMessage -IsWarning -Message "DNS Zones Transfers Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
                             if ($DNSSetting) {
                                 Section -Style Heading4 "Zone Transfers" {
@@ -146,7 +146,7 @@ function Get-AbrADDNSZone {
                                                 $OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them." } | Set-Style -Style Warning -Property 'Secure Secondaries'
                                             }
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers Item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Transfers Item)"
                                         }
                                     }
 
@@ -169,10 +169,10 @@ function Get-AbrADDNSZone {
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage "DNS Zones Section: No Zone Transfer information found in $DC, Disabling this section."
+                                Write-PScriboMessage -Message "DNS Zones Section: No Zone Transfer information found in $DC, Disabling this section."
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Transfers Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Transfers Table)"
                         }
                     }
                     try {
@@ -193,7 +193,7 @@ function Get-AbrADDNSZone {
                                         }
                                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Reverse Lookup Zone Configuration Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Reverse Lookup Zone Configuration Item)"
                                     }
                                 }
 
@@ -208,10 +208,10 @@ function Get-AbrADDNSZone {
                                 $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                             }
                         } else {
-                            Write-PScriboMessage "DNS Zones Section: No Reverse lookup zone information found in $DC, Disabling this section."
+                            Write-PScriboMessage -Message "DNS Zones Section: No Reverse lookup zone information found in $DC, Disabling this section."
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Reverse Lookup Zone Configuration Table)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Reverse Lookup Zone Configuration Table)"
                     }
                     try {
                         $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -like "Forwarder" }
@@ -229,7 +229,7 @@ function Get-AbrADDNSZone {
                                         }
                                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Conditional Forwarder Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Conditional Forwarder Item)"
                                     }
                                 }
 
@@ -244,10 +244,10 @@ function Get-AbrADDNSZone {
                                 $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                             }
                         } else {
-                            Write-PScriboMessage "DNS Zones Section: No Conditional forwarder zone information found in $DC, Disabling this section."
+                            Write-PScriboMessage -Message "DNS Zones Section: No Conditional forwarder zone information found in $DC, Disabling this section."
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Conditional Forwarder Table)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Conditional Forwarder Table)"
                     }
                     if ($InfoLevel.DNS -ge 2) {
                         try {
@@ -271,7 +271,7 @@ function Get-AbrADDNSZone {
                                             }
                                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Aging Item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Scope Aging Item)"
                                         }
                                     }
 
@@ -298,16 +298,16 @@ function Get-AbrADDNSZone {
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage "DNS Zones Section: No Zone Aging property information found in $DC, Disabling this section."
+                                Write-PScriboMessage -Message "DNS Zones Section: No Zone Aging property information found in $DC, Disabling this section."
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Aging Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Scope Aging Table)"
                         }
                     }
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Global DNS Zone Information)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Global DNS Zone Information)"
         }
     }
 

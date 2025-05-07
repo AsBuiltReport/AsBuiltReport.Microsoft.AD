@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,7 +20,7 @@ function Get-AbrADDCRoleFeature {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory DC Role & Features information of $DC."
+        Write-PScriboMessage -Message "Collecting Active Directory DC Role & Features information of $DC."
     }
 
     process {
@@ -32,7 +32,7 @@ function Get-AbrADDCRoleFeature {
                 if (-Not $_.Exception.MessageId) {
                     $ErrorMessage = $_.FullyQualifiedErrorId
                 } else { $ErrorMessage = $_.Exception.MessageId }
-                Write-PScriboMessage -IsWarning "Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                Write-PScriboMessage -IsWarning -Message "Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
             }
             if ($Features) {
                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
@@ -46,7 +46,7 @@ function Get-AbrADDCRoleFeature {
                             }
                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
-                            Write-PScriboMessage -IsWarning "Roles $($Feature.DisplayName) Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "Roles $($Feature.DisplayName) Section: $($_.Exception.Message)"
                         }
                     }
 
@@ -77,7 +77,7 @@ function Get-AbrADDCRoleFeature {
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "Roles Section: $($_.Exception.Message)"
+            Write-PScriboMessage -IsWarning -Message "Roles Section: $($_.Exception.Message)"
         }
     }
     end {}

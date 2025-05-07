@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade Diagrammer.Microsoft.AD module to version `0.2.16`.
 - Refactor the `Get-AbrDiagrammer` function to improve error handling.
 - Change watermark color from `DarkGreen` to `#565656` for better visibility.
+- Modified calls to Write-PScriboMessage to include the `-Message` parameter for clarity and consistency across scripts.
+- Ensured that warning messages are properly formatted with the `-IsWarning` flag where applicable.
+- Enhanced logging messages to provide better context during execution, particularly in sections related to Active Directory, DHCP, DNS, and replication.
 
 ## [0.9.4] - 2025-04-28
 

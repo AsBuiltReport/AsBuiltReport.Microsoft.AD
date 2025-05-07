@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,7 @@ function Get-AbrADDomain {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain information on forest $Forestinfo."
+        Write-PScriboMessage -Message "Collecting AD Domain information on forest $Forestinfo."
     }
 
     process {
@@ -90,7 +90,7 @@ function Get-AbrADDomain {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "AD Domain Summary Section: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning -Message "AD Domain Summary Section: $($_.Exception.Message)"
             }
         }
     }

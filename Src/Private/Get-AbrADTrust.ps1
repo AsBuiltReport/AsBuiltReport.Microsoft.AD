@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,7 @@ function Get-AbrADTrust {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Trust information of $($Domain.DNSRoot.ToString().ToUpper())."
+        Write-PScriboMessage -Message "Collecting AD Trust information of $($Domain.DNSRoot.ToString().ToUpper())."
     }
 
     process {
@@ -74,7 +74,7 @@ function Get-AbrADTrust {
                                     }
                                     $TrustInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Item)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Trust Item)"
                                 }
                             }
 
@@ -109,7 +109,7 @@ function Get-AbrADTrust {
                                     try {
                                         $Graph = Get-AbrDiagrammer -DiagramType "Trusts" -DiagramOutput base64 -DomainController $ValidDCFromDomain
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
+                                        Write-PScriboMessage -IsWarning -Message "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
                                     }
 
                                     if ($Graph) {
@@ -121,19 +121,19 @@ function Get-AbrADTrust {
                                         BlankLine -Count 2
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "Domain and Trusts Diagram Section: $($_.Exception.Message)"
+                                    Write-PScriboMessage -IsWarning -Message "Domain and Trusts Diagram Section: $($_.Exception.Message)"
                                 }
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No Domain Trust information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message "No Domain Trust information found in $($Domain.DNSRoot), Disabling this section."
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Table)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Trust Table)"
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Trust Section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Trust Section)"
         }
     }
 

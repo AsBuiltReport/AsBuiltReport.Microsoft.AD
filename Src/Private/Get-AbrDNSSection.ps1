@@ -5,7 +5,7 @@ function Get-AbrDNSSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,7 +20,7 @@ function Get-AbrDNSSection {
     )
 
     begin {
-        Write-PScriboMessage "Collecting DNS server information from $ForestInfo."
+        Write-PScriboMessage -Message "Collecting DNS server information from $ForestInfo."
     }
 
     process {
@@ -45,13 +45,13 @@ function Get-AbrDNSSection {
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage "$($DomainInfo.DNSRoot) disabled in Exclude.Domain variable"
+                                Write-PScriboMessage -Message "$($DomainInfo.DNSRoot) disabled in Exclude.Domain variable"
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Name System Information)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Name System Information)"
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing it from the report."
+                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing it from the report."
                     }
                 }
             }

@@ -5,7 +5,7 @@ function Get-AbrADCAAIA {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,7 +23,7 @@ function Get-AbrADCAAIA {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory Certification Authority Information Access details."
+        Write-PScriboMessage -Message "Collecting Active Directory Certification Authority Information Access details."
     }
 
     process {
@@ -33,7 +33,7 @@ function Get-AbrADCAAIA {
                 BlankLine
                 try {
                     $OutObj = @()
-                    Write-PScriboMessage "Collecting AD CA Authority Information Access information on $($CA.Name)."
+                    Write-PScriboMessage -Message "Collecting AD CA Authority Information Access information on $($CA.Name)."
                     $AIA = Get-AuthorityInformationAccess -CertificationAuthority $CA
                     foreach ($URI in $AIA.URI) {
                         try {
@@ -57,11 +57,11 @@ function Get-AbrADCAAIA {
                             }
                             $OutObj | Table @TableParams
                         } catch {
-                            Write-PScriboMessage -IsWarning "Authority Information Access Item $($URI.RegURI) Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "Authority Information Access Item $($URI.RegURI) Section: $($_.Exception.Message)"
                         }
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning "Authority Information Access Section: $($_.Exception.Message)"
+                    Write-PScriboMessage -IsWarning -Message "Authority Information Access Section: $($_.Exception.Message)"
                 }
             }
         }

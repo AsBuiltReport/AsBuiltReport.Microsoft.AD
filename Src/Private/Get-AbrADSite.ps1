@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,7 @@ function Get-AbrADSite {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory Sites information of forest $ForestInfo"
+        Write-PScriboMessage -Message "Collecting Active Directory Sites information of forest $ForestInfo"
     }
 
     process {
@@ -35,7 +35,7 @@ function Get-AbrADSite {
                             try {
                                 $Graph = Get-AbrDiagrammer -DiagramType "SitesInventory" -DiagramOutput base64 -PSSessionObject $TempPssSession
                             } catch {
-                                Write-PScriboMessage -IsWarning "Site Inventory Diagram Graph: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "Site Inventory Diagram Graph: $($_.Exception.Message)"
                             }
 
                             if ($Graph) {
@@ -47,7 +47,7 @@ function Get-AbrADSite {
                                 BlankLine -Count 2
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "Site Inventory Diagram Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "Site Inventory Diagram Section: $($_.Exception.Message)"
                         }
                     }
                     Section -Style Heading4 'Sites' {
@@ -81,7 +81,7 @@ function Get-AbrADSite {
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Site)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Site)"
                             }
                         }
 
@@ -153,7 +153,7 @@ function Get-AbrADSite {
                                             $OutObj | Where-Object { $_.'Name' -ne '<automatically generated>' } | Set-Style -Style Warning -Property 'Name'
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Connection Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Site Replication Connection Item)"
                                     }
                                 }
 
@@ -178,10 +178,10 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage "No Connection Objects information found in $ForestInfo, Disabling this section."
+                            Write-PScriboMessage -Message "No Connection Objects information found in $ForestInfo, Disabling this section."
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Connection Objects)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Connection Objects)"
                     }
                     try {
                         $Subnet = Invoke-Command -Session $TempPssSession { Get-ADReplicationSubnet -Filter * -Properties * }
@@ -206,7 +206,7 @@ function Get-AbrADSite {
                                             $OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' } | Set-Style -Style Warning -Property 'Sites'
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Site Subnets)"
                                     }
                                 }
 
@@ -272,16 +272,16 @@ function Get-AbrADSite {
                                                                     }
                                                                 }
                                                             } else {
-                                                                Write-PScriboMessage "Unable to read $Path on $DC"
+                                                                Write-PScriboMessage -Message "Unable to read $Path on $DC"
                                                             }
                                                         } else {
                                                             if (-Not $_.Exception.MessageId) {
                                                                 $ErrorMessage = $_.FullyQualifiedErrorId
                                                             } else { $ErrorMessage = $_.Exception.MessageId }
-                                                            Write-PScriboMessage -IsWarning "Missing Subnet in AD Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                                                            Write-PScriboMessage -IsWarning -Message "Missing Subnet in AD Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                                                         }
                                                     } catch {
-                                                        Write-PScriboMessage -IsWarning "Missing Subnet in AD Item table: $($_.Exception.Message)"
+                                                        Write-PScriboMessage -IsWarning -Message "Missing Subnet in AD Item table: $($_.Exception.Message)"
                                                     }
                                                 }
                                             }
@@ -312,25 +312,25 @@ function Get-AbrADSite {
                                                 }
                                             }
                                         } else {
-                                            Write-PScriboMessage "No Missing Subnets in AD information found in $ForestInfo, Disabling this section."
+                                            Write-PScriboMessage -Message "No Missing Subnets in AD information found in $ForestInfo, Disabling this section."
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "Missing Subnet in AD Item Section: $($_.Exception.Message)"
+                                        Write-PScriboMessage -IsWarning -Message "Missing Subnet in AD Item Section: $($_.Exception.Message)"
                                     }
                                 }
                             }
                         } else {
-                            Write-PScriboMessage "No Site Subnets information found in $ForestInfo, Disabling this section."
+                            Write-PScriboMessage -Message "No Site Subnets information found in $ForestInfo, Disabling this section."
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Site Subnets)"
                     }
                     if ($Options.EnableDiagrams) {
                         try {
                             try {
                                 $Graph = Get-AbrDiagrammer -DiagramType "Sites" -DiagramOutput base64 -PSSessionObject $TempPssSession
                             } catch {
-                                Write-PScriboMessage -IsWarning "Site Topology Diagram Graph: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "Site Topology Diagram Graph: $($_.Exception.Message)"
                             }
 
                             if ($Graph) {
@@ -342,7 +342,7 @@ function Get-AbrADSite {
                                 BlankLine -Count 2
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "Site Topology Diagram Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "Site Topology Diagram Section: $($_.Exception.Message)"
                         }
                     }
                     try {
@@ -401,7 +401,7 @@ function Get-AbrADSite {
                                     }
                                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Inter-Site Transports section)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Inter-Site Transports section)"
                                 }
                                 try {
                                     Section -Style Heading4 'IP' {
@@ -483,15 +483,15 @@ function Get-AbrADSite {
                                                             }
 
                                                         } catch {
-                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IP Site Links table)"
+                                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (IP Site Links table)"
                                                         }
                                                     }
                                                 }
                                             } else {
-                                                Write-PScriboMessage "No IP Site Links information found in $ForestInfo, Disabling this section."
+                                                Write-PScriboMessage -Message "No IP Site Links information found in $ForestInfo, Disabling this section."
                                             }
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IP Site Links Section)"
+                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (IP Site Links Section)"
                                         }
                                         try {
                                             $IPLinkBridges = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "IP" } }
@@ -549,19 +549,19 @@ function Get-AbrADSite {
                                                             }
 
                                                         } catch {
-                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IP Site Links Bridges table)"
+                                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (IP Site Links Bridges table)"
                                                         }
                                                     }
                                                 }
                                             } else {
-                                                Write-PScriboMessage "No IP Site Links Bridges information found in $ForestInfo, Disabling this section."
+                                                Write-PScriboMessage -Message "No IP Site Links Bridges information found in $ForestInfo, Disabling this section."
                                             }
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IP Site Links Section)"
+                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (IP Site Links Section)"
                                         }
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (IP)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (IP)"
                                 }
                                 try {
                                     $IPLink = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "SMTP" } }
@@ -644,12 +644,12 @@ function Get-AbrADSite {
                                                             }
 
                                                         } catch {
-                                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SMTP Site Links table)"
+                                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SMTP Site Links table)"
                                                         }
                                                     }
                                                 }
                                             } catch {
-                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SMTP Site Links Section)"
+                                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SMTP Site Links Section)"
                                             }
                                             try {
                                                 $IPLinkBridges = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "SMTP" } }
@@ -706,29 +706,29 @@ function Get-AbrADSite {
                                                                     }
                                                                 }
                                                             } catch {
-                                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SMTP Site Links Bridges table)"
+                                                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SMTP Site Links Bridges table)"
                                                             }
                                                         }
                                                     }
                                                 } else {
-                                                    Write-PScriboMessage "No SMTP Site Links Bridges information found in $ForestInfo, Disabling this section."
+                                                    Write-PScriboMessage -Message "No SMTP Site Links Bridges information found in $ForestInfo, Disabling this section."
                                                 }
                                             } catch {
-                                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SMTP Site Links Section)"
+                                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SMTP Site Links Section)"
                                             }
                                         }
                                     } else {
-                                        Write-PScriboMessage "No SMTP Site Links information found in $ForestInfo, Disabling this section."
+                                        Write-PScriboMessage -Message "No SMTP Site Links information found in $ForestInfo, Disabling this section."
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SMTP)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SMTP)"
                                 }
                             }
                         } else {
-                            Write-PScriboMessage "No SMTP Site Links information found in $ForestInfo, Disabling this section."
+                            Write-PScriboMessage -Message "No SMTP Site Links information found in $ForestInfo, Disabling this section."
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Subnets)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Site Subnets)"
                     }
                     try {
                         $OutObj = @()
@@ -759,7 +759,7 @@ function Get-AbrADSite {
                                             }
                                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "Sysvol Replication Item Section: $($_.Exception.Message)"
+                                            Write-PScriboMessage -IsWarning -Message "Sysvol Replication Item Section: $($_.Exception.Message)"
                                         }
 
                                         if ($HealthCheck.Site.BestPractice) {
@@ -781,7 +781,7 @@ function Get-AbrADSite {
                                     }
                                 } else {
                                     try {
-                                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                                        Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                                         $inObj = [ordered] @{
                                             'DC Name' = $DC.split(".", 2)[0]
                                             'Replication Status' = Switch ($Replication.State) {
@@ -799,7 +799,7 @@ function Get-AbrADSite {
                                         }
                                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DNS IP Configuration Item)"
                                     }
                                 }
                             }
@@ -828,17 +828,17 @@ function Get-AbrADSite {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage "No Sysvol Replication information found in $ForestInfo, Disabling this section."
+                            Write-PScriboMessage -Message "No Sysvol Replication information found in $ForestInfo, Disabling this section."
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "Sysvol Replication Table Section: $($_.Exception.Message)"
+                        Write-PScriboMessage -IsWarning -Message "Sysvol Replication Table Section: $($_.Exception.Message)"
                     }
                 }
             } else {
-                Write-PScriboMessage "No Sites information found in $ForestInfo, Disabling this section."
+                Write-PScriboMessage -Message "No Sites information found in $ForestInfo, Disabling this section."
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Site Global)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Site Global)"
         }
     }
 

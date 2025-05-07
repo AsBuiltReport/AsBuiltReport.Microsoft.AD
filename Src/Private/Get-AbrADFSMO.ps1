@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,7 @@ function Get-AbrADFSMO {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory FSMO information of domain $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message "Collecting Active Directory FSMO information of domain $($Domain.DNSRoot)."
     }
 
     process {
@@ -44,7 +44,7 @@ function Get-AbrADFSMO {
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Flexible Single Master Operations)"
                             }
 
                             if ($HealthCheck.Domain.BestPractice) {
@@ -80,12 +80,12 @@ function Get-AbrADFSMO {
                         if (-Not $_.Exception.MessageId) {
                             $ErrorMessage = $_.FullyQualifiedErrorId
                         } else { $ErrorMessage = $_.Exception.MessageId }
-                        Write-PScriboMessage -IsWarning "FSMO Roles Section: New-PSSession: Unable to connect to $($Domain.DNSRoot): $ErrorMessage"
+                        Write-PScriboMessage -IsWarning -Message "FSMO Roles Section: New-PSSession: Unable to connect to $($Domain.DNSRoot): $ErrorMessage"
                     }
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Flexible Single Master Operations)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Flexible Single Master Operations)"
         }
     }
     end {}

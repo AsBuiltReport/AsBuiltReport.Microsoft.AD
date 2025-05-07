@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,7 +27,7 @@ function Get-AbrADSiteReplication {
 
     process {
         if ($DCs) {
-            Write-PScriboMessage "Collecting Active Directory Sites Replication information on $($Domain.DNSRoot). (Sites Replication)"
+            Write-PScriboMessage -Message "Collecting Active Directory Sites Replication information on $($Domain.DNSRoot). (Sites Replication)"
             try {
                 $ReplInfo = @()
                 foreach ($DC in $DCs) {
@@ -63,11 +63,11 @@ function Get-AbrADSiteReplication {
                                             $ReplInfo | Where-Object { $_.'Auto Generated' -ne 'Yes' } | Set-Style -Style Warning -Property 'Auto Generated'
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Connection Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Site Replication Connection Item)"
                                     }
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Connection Section)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Site Replication Connection Section)"
                             }
                         }
                     }
@@ -108,10 +108,10 @@ function Get-AbrADSiteReplication {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Replication Connection information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message "No Replication Connection information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Replication Connection)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Replication Connection)"
             }
         }
         try {
@@ -124,7 +124,7 @@ function Get-AbrADSiteReplication {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning "Replication Status Section: New-PSSession: Unable to connect to $($ValidDCFromDomain): $ErrorMessage"
+                    Write-PScriboMessage -IsWarning -Message "Replication Status Section: New-PSSession: Unable to connect to $($ValidDCFromDomain): $ErrorMessage"
                 }
                 if ($RepStatus) {
                     Section -Style Heading4 'Replication Status' {
@@ -143,7 +143,7 @@ function Get-AbrADSiteReplication {
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Replication Status)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Replication Status)"
                             }
                         }
                         if ($HealthCheck.Site.Replication) {
@@ -170,11 +170,11 @@ function Get-AbrADSiteReplication {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Replication Status information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message "No Replication Status information found in $($Domain.DNSRoot), Disabling this section."
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Site Replication Status)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Site Replication Status)"
         }
     }
 

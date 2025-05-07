@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,7 @@ function Get-AbrADForest {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory forest information."
+        Write-PScriboMessage -Message "Collecting Active Directory forest information."
     }
 
     process {
@@ -111,7 +111,7 @@ function Get-AbrADForest {
                         try {
                             $Graph = Get-AbrDiagrammer -DiagramType 'Forest' -DiagramOutput base64 -PSSessionObject $TempPssSession
                         } catch {
-                            Write-PScriboMessage -IsWarning "Forest Diagram Graph: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "Forest Diagram Graph: $($_.Exception.Message)"
                         }
 
                         if ($Graph) {
@@ -123,7 +123,7 @@ function Get-AbrADForest {
                             BlankLine -Count 2
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "Forest Diagram Section: $($_.Exception.Message)"
+                        Write-PScriboMessage -IsWarning -Message "Forest Diagram Section: $($_.Exception.Message)"
                     }
                 }
             }
@@ -182,7 +182,7 @@ function Get-AbrADForest {
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No Certificate Authority Root information found in $ForestInfo, Disabling this section."
+                        Write-PScriboMessage -Message "No Certificate Authority Root information found in $ForestInfo, Disabling this section."
                     }
 
                     if ($subordinateCA) {
@@ -211,7 +211,7 @@ function Get-AbrADForest {
                             $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                         }
                     } else {
-                        Write-PScriboMessage "No Certificate Authority Issuer information found, Disabling this section."
+                        Write-PScriboMessage -Message "No Certificate Authority Issuer information found, Disabling this section."
                     }
                 }
                 if ($Options.EnableDiagrams) {
@@ -219,7 +219,7 @@ function Get-AbrADForest {
                         try {
                             $Graph = Get-AbrDiagrammer -DiagramType "CertificateAuthority" -DiagramOutput base64 -PSSessionObject $TempPssSession
                         } catch {
-                            Write-PScriboMessage -IsWarning "Certificate Authority Diagram Graph: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "Certificate Authority Diagram Graph: $($_.Exception.Message)"
                         }
 
                         if ($Graph) {
@@ -231,7 +231,7 @@ function Get-AbrADForest {
                             BlankLine -Count 2
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "Certificate Authority Diagram Section: $($_.Exception.Message)"
+                        Write-PScriboMessage -IsWarning -Message "Certificate Authority Diagram Section: $($_.Exception.Message)"
                     }
                 }
             }
@@ -288,7 +288,7 @@ function Get-AbrADForest {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Optional Feature information found in $ForestInfo, Disabling this section."
+                    Write-PScriboMessage -Message "No Optional Feature information found in $ForestInfo, Disabling this section."
                 }
             }
         } catch {

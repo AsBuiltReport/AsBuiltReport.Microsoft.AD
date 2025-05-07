@@ -93,7 +93,7 @@ function ConvertTo-FileSizeString {
 #         if ($DCPssSessionDCDiag) {
 #             Remove-PSSession -Session $DCPssSessionDCDiag -ErrorAction SilentlyContinue
 #         }
-#         Write-PScriboMessage "Invoke-DcDiag - Failed to get DCDiag for $DomainController with error: $($_.Exception.Message)"
+#         Write-PScriboMessage -Message "Invoke-DcDiag - Failed to get DCDiag for $DomainController with error: $($_.Exception.Message)"
 #         return
 #     }
 #     $result | Select-String -Pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
@@ -2519,7 +2519,7 @@ function Get-ValidPSSession {
     .DESCRIPTION
         Function to generate a valid WinRM session from a computer string.
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidPSSession -ComputerName 'server-dc-01v.pharmax.local'
@@ -2651,7 +2651,7 @@ function Get-ValidCIMSession {
     .DESCRIPTION
         Function to generate a valid CIM session from a computer string.
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidCIMSession -ComputerName 'server-dc-01v.pharmax.local'
@@ -2765,20 +2765,3 @@ function Get-ValidCIMSession {
         }
     }
 }# end
-
-function Format-Color([hashtable] $Colors = @{}, [switch] $SimpleMatch) {
-    # taken from https://www.bgreco.net/powershell/format-color/
-    $lines = ($Input | Out-String) -replace "`r", "" -split "`n"
-    foreach ($Line in $Lines) {
-        $Color = ''
-        foreach ($Pattern in $Colors.Keys) {
-            if ((-Not $SimpleMatch) -and $Line -match $Pattern) { $color = $Colors[$Pattern] }
-            elseif ($SimpleMatch -and $Line -like $Pattern) { $color = $Colors[$Pattern] }
-        }
-        if ($color) {
-            Write-Host -ForegroundColor $Colors $Line
-        } else {
-            Write-Host $Line
-        }
-    }
-}

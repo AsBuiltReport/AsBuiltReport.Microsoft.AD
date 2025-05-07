@@ -5,7 +5,7 @@ function Get-AbrADExchange {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,7 @@ function Get-AbrADExchange {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Exchange information of $($ForestInfo.toUpper())."
+        Write-PScriboMessage -Message "Collecting AD Exchange information of $($ForestInfo.toUpper())."
     }
 
     process {
@@ -40,7 +40,7 @@ function Get-AbrADExchange {
                             }
                             $EXInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Exchange Item)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Exchange Item)"
                         }
                     }
 
@@ -72,10 +72,10 @@ function Get-AbrADExchange {
                     }
                 }
             } else {
-                Write-PScriboMessage "No Exchange Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
+                Write-PScriboMessage -Message "No Exchange Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Exchabge Table)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Exchabge Table)"
         }
     }
 

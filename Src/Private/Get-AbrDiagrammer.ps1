@@ -6,7 +6,7 @@ function Get-AbrDiagrammer {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -50,7 +50,7 @@ function Get-AbrDiagrammer {
     )
 
     begin {
-        Write-PScriboMessage "Getting $($Global:Report) diagram for $DomainController ."
+        Write-PScriboMessage -Message "Getting $($Global:Report) diagram for $DomainController ."
     }
 
     process {
@@ -126,7 +126,7 @@ function Get-AbrDiagrammer {
                                 if (Test-Path -Path $FilePath) {
                                     $FilePath
                                 } else {
-                                    Write-PScriboMessage -IsWarning "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
+                                    Write-PScriboMessage -IsWarning -Message "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
                                 }
                             } else {
                                 Write-Information "Saved 'AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)' diagram to '$($OutputFolderPath)'." -InformationAction Continue
@@ -135,10 +135,10 @@ function Get-AbrDiagrammer {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning -Message "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
             }
         } catch {
-            Write-PScriboMessage -IsWarning "Unable to get the $DiagramType Diagram: $($_.Exception.Message)"
+            Write-PScriboMessage -IsWarning -Message "Unable to get the $DiagramType Diagram: $($_.Exception.Message)"
         }
     }
     end {}

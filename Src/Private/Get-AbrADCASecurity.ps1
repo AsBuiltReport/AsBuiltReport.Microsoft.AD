@@ -5,7 +5,7 @@ function Get-AbrADCASecurity {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,7 +23,7 @@ function Get-AbrADCASecurity {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Security information."
+        Write-PScriboMessage -Message "Collecting AD Certification Authority Security information."
     }
 
     process {
@@ -43,7 +43,7 @@ function Get-AbrADCASecurity {
                             }
                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Validity Period Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Validity Period Table)"
                         }
 
                         $TableParams = @{
@@ -58,7 +58,7 @@ function Get-AbrADCASecurity {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Validity Period Section)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Validity Period Section)"
             }
             try {
                 $ACLs = Get-CertificationAuthorityAcl -CertificationAuthority $CA
@@ -79,7 +79,7 @@ function Get-AbrADCASecurity {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Access Control List table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Access Control List table)"
                         }
 
                         $TableParams = @{
@@ -103,7 +103,7 @@ function Get-AbrADCASecurity {
                                         }
                                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Access Control List Rights table)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Access Control List Rights table)"
                                     }
                                 }
 
@@ -118,12 +118,12 @@ function Get-AbrADCASecurity {
                                 $OutObj | Sort-Object -Property 'Identity' | Table @TableParams
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Access Control List Rights section)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Access Control List Rights section)"
                         }
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Access Control List Section)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Access Control List Section)"
             }
         }
     }

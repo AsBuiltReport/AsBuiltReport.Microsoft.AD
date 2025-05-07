@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,7 @@ function Get-AbrADDNSInfrastructure {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory Domain Name System Infrastructure information for $($Domain.DNSRoot)"
+        Write-PScriboMessage -Message "Collecting Active Directory Domain Name System Infrastructure information for $($Domain.DNSRoot)"
     }
 
     process {
@@ -45,7 +45,7 @@ function Get-AbrADDNSInfrastructure {
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
-                                Write-PScriboMessage -IsWarning "DNS Infrastructure Summary Section: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "DNS Infrastructure Summary Section: $($_.Exception.Message)"
                             }
                         }
                     }
@@ -90,7 +90,7 @@ function Get-AbrADDNSInfrastructure {
                                                         }
                                                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                                     } catch {
-                                                        Write-PScriboMessage -IsWarning "Directory Partitions Item Section: $($_.Exception.Message)"
+                                                        Write-PScriboMessage -IsWarning -Message "Directory Partitions Item Section: $($_.Exception.Message)"
                                                     }
                                                 }
                                                 $TableParams = @{
@@ -104,13 +104,13 @@ function Get-AbrADDNSInfrastructure {
                                                 $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                                             }
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "Directory Partitions Table Section: $($_.Exception.Message)"
+                                            Write-PScriboMessage -IsWarning -Message "Directory Partitions Table Section: $($_.Exception.Message)"
                                         }
                                     }
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "Directory Partitions Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "Directory Partitions Section: $($_.Exception.Message)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -136,7 +136,7 @@ function Get-AbrADDNSInfrastructure {
                                             }
                                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
                                         }
                                     }
                                 }
@@ -152,7 +152,7 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Response Rate Limiting (RRL) Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Response Rate Limiting (RRL) Table)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -184,7 +184,7 @@ function Get-AbrADDNSInfrastructure {
                                             }
                                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Scavenging Item)"
                                         }
                                     }
                                 }
@@ -212,7 +212,7 @@ function Get-AbrADDNSInfrastructure {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Scavenging Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Scavenging Table)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -235,7 +235,7 @@ function Get-AbrADDNSInfrastructure {
                                         }
                                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Forwarder Item)"
                                     }
                                 }
                             }
@@ -279,7 +279,7 @@ function Get-AbrADDNSInfrastructure {
                             }
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Forwarder Table)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Forwarder Table)"
                     }
                     #---------------------------------------------------------------------------------------------#
                     #                                 DNS Root Hints Section                                      #
@@ -376,13 +376,13 @@ function Get-AbrADDNSInfrastructure {
                                                 }
                                             }
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Table)"
+                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Root Hints Table)"
                                         }
                                     }
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Root Hints Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Root Hints Section)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -407,7 +407,7 @@ function Get-AbrADDNSInfrastructure {
                                             }
                                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Scope Recursion Item)"
                                         }
                                     }
                                 }
@@ -423,13 +423,13 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Zone Scope Recursion Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Scope Recursion Table)"
                         }
                     }
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DNS Infrastructure Section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DNS Infrastructure Section)"
         }
     }
 
