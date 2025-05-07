@@ -50,7 +50,7 @@ function Get-AbrDiagrammer {
     )
 
     begin {
-        Write-PScriboMessage -Message "Getting $($Global:Report) diagram for $DomainController ."
+        Write-PScriboMessage -Message "Getting $($DiagramType) diagram from $DomainController ."
     }
 
     process {
