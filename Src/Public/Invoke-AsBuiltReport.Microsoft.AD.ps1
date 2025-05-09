@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,21 +30,21 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         break
     }
 
-    Write-PScriboMessage -Plugin "Module" -IsWarning "Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project."
-    Write-PScriboMessage -Plugin "Module" -IsWarning "Do not forget to update your report configuration file after each new release."
-    Write-PScriboMessage -Plugin "Module" -IsWarning "Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
-    Write-PScriboMessage -Plugin "Module" -IsWarning "Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues"
-    Write-PScriboMessage -Plugin "Module" -IsWarning "This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates."
+    Write-Host "- Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project." -ForegroundColor White
+    Write-Host "- Do not forget to update your report configuration file after each new release." -ForegroundColor White
+    Write-Host "- Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD" -ForegroundColor White
+    Write-Host "- Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues" -ForegroundColor White
+    Write-Host "- This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates." -ForegroundColor White
 
     Try {
         $InstalledVersion = Get-Module -ListAvailable -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
 
         if ($InstalledVersion) {
-            Write-PScriboMessage -IsWarning -Message "AsBuiltReport.Microsoft.AD $($InstalledVersion.ToString()) is currently installed."
+            Write-Host "- AsBuiltReport.Microsoft.AD v$($InstalledVersion.ToString()) is currently installed." -ForegroundColor White
             $LatestVersion = Find-Module -Name AsBuiltReport.Microsoft.AD -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
             if ([version]$LatestVersion -gt [version]$InstalledVersion) {
-                Write-PScriboMessage -IsWarning -Message "AsBuiltReport.Microsoft.AD $($LatestVersion.ToString()) is available."
-                Write-PScriboMessage -IsWarning -Message "Run 'Update-Module -Name AsBuiltReport.Microsoft.AD -Force' to install the latest version."
+                Write-Host "- AsBuiltReport.Microsoft.AD v$($LatestVersion.ToString()) update is available." -ForegroundColor Red
+                Write-Host "- Run 'Update-Module -Name AsBuiltReport.Microsoft.AD -Force' to install the latest version." -ForegroundColor Red
             }
         }
     } Catch {

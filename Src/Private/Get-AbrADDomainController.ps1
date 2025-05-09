@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -132,6 +132,7 @@ function Get-AbrADDomainController {
             }
             if ($OutObj) {
                 if ($chartFileItem) {
+                    BlankLine
                     Image -Text 'Domain Controller Object - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
                 }
                 $OutObj | Table @TableParams
