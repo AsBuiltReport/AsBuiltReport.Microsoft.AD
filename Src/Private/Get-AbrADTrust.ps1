@@ -22,6 +22,7 @@ function Get-AbrADTrust {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Trust information of $($Domain.DNSRoot.ToString().ToUpper())."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Trust"
     }
 
     process {
@@ -137,6 +138,8 @@ function Get-AbrADTrust {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Trust"
+    }
 
 }

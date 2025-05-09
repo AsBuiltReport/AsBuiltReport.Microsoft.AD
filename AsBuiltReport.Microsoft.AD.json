@@ -9,6 +9,7 @@
         "ShowTableCaptions": true
     },
     "Options": {
+        "ShowExecutionTime": false,
         "ShowDefinitionInfo": false,
         "PSDefaultAuthentication": "Negotiate",
         "Exclude": {

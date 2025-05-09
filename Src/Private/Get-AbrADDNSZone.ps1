@@ -23,6 +23,7 @@ function Get-AbrADDNSZone {
 
     begin {
         Write-PScriboMessage -Message "Collecting Actve Directory Domain Name System Zone information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "DNS Zones"
     }
 
     process {
@@ -311,6 +312,8 @@ function Get-AbrADDNSZone {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "DNS Zones"
+    }
 
 }

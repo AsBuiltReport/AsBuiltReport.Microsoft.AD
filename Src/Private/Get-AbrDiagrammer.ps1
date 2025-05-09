@@ -62,13 +62,6 @@ function Get-AbrDiagrammer {
                 $DiagramTheme = $Options.DiagramTheme
             }
             $DiagramTypeArray = @()
-            $DiagramTypeNameArray = @(
-                'Forest',
-                'CertificaAuthority',
-                'Site',
-                'SiteInventory',
-                'Trust'
-            )
 
             if (-Not $Options.DiagramType) {
                 $DiagramTypeArray += 'All'

@@ -20,6 +20,7 @@ function Get-AbrADCASummary {
 
     begin {
         Write-PScriboMessage -Message "Collecting Certification Authority information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Summary"
     }
 
     process {
@@ -55,6 +56,8 @@ function Get-AbrADCASummary {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Summary"
+    }
 
 }

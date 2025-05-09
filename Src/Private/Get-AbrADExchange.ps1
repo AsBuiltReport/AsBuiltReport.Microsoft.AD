@@ -20,6 +20,7 @@ function Get-AbrADExchange {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Exchange information of $($ForestInfo.toUpper())."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Exchange Infrastructure"
     }
 
     process {
@@ -79,6 +80,8 @@ function Get-AbrADExchange {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Exchange Infrastructure"
+    }
 
 }

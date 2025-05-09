@@ -23,7 +23,7 @@ function Get-AbrADCACRLSetting {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Certification Authority Certificate Revocation List information from $($CA.Name)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Certificate Revocation List Objects"
     }
 
     process {
@@ -190,6 +190,8 @@ function Get-AbrADCACRLSetting {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Certificate Revocation List Objects"
+    }
 
 }

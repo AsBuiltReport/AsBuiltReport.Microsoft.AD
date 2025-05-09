@@ -21,6 +21,7 @@ function Get-AbrDomainSection {
 
     begin {
         Write-PScriboMessage -Message "Collecting Domain information from $ForestInfo."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "Domain Section"
     }
 
     process {
@@ -117,10 +118,10 @@ function Get-AbrDomainSection {
                         }
                     } else {
                         $DomainStatus.Value += @{
-                            Name = $DomainInfo.DNSRoot
+                            Name = $Domain
                             Status = 'Offline'
                         }
-                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing it from the report."
+                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($Domain) domain. Removing it from the report."
                     }
                 }
             }
@@ -139,5 +140,7 @@ function Get-AbrDomainSection {
             }
         }
     }
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "Domain Section"
+    }
 }

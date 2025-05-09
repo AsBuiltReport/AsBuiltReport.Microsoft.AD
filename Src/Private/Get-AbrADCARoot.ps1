@@ -20,6 +20,7 @@ function Get-AbrADCARoot {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Certification Authority Per Domain information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Certification Authority Per Domain"
     }
 
     process {
@@ -66,6 +67,8 @@ function Get-AbrADCARoot {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Certification Authority Per Domain"
+    }
 
 }

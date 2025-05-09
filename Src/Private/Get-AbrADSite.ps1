@@ -20,6 +20,7 @@ function Get-AbrADSite {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory Sites information of forest $ForestInfo"
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Site"
     }
 
     process {
@@ -842,6 +843,8 @@ function Get-AbrADSite {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Site"
+    }
 
 }

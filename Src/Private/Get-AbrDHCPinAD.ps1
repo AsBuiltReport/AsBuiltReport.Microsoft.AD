@@ -21,6 +21,7 @@ function Get-AbrDHCPinAD {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD DHCP Servers information of $($ForestInfo.toUpper())."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "DHCP Infrastructure"
     }
 
     process {
@@ -90,6 +91,8 @@ function Get-AbrDHCPinAD {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "DHCP Infrastructure"
+    }
 
 }

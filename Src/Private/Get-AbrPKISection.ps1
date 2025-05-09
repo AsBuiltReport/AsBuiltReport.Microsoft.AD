@@ -20,6 +20,7 @@ function Get-AbrPKISection {
 
     begin {
         Write-PScriboMessage -Message "Collecting PKI infrastructure information from $ForestInfo."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "PKI Section"
     }
 
     process {
@@ -110,5 +111,7 @@ function Get-AbrPKISection {
             }
         }
     }
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "PKI Section"
+    }
 }

@@ -21,6 +21,7 @@ function Get-AbrADDomainLastBackup {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Domain last backup information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Last Backup"
     }
 
     process {
@@ -82,6 +83,8 @@ function Get-AbrADDomainLastBackup {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Last Backup"
+    }
 
 }

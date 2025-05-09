@@ -22,6 +22,7 @@ function Get-AbrADGPO {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory Group Policy Objects information for $($Domain.DNSRoot.ToString().ToUpper())."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Group Policy Objects"
     }
 
     process {
@@ -654,6 +655,8 @@ function Get-AbrADGPO {
     }
 
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Group Policy Objects"
+    }
 
 }

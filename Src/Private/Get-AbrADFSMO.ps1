@@ -22,6 +22,7 @@ function Get-AbrADFSMO {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory FSMO information of domain $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD FSMO Roles"
     }
 
     process {
@@ -88,6 +89,8 @@ function Get-AbrADFSMO {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Flexible Single Master Operations)"
         }
     }
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD FSMO Roles"
+    }
 
 }

@@ -24,6 +24,7 @@ function Get-AbrADCASecurity {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Certification Authority Security information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Security"
     }
 
     process {
@@ -128,6 +129,8 @@ function Get-AbrADCASecurity {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Security"
+    }
 
 }

@@ -22,6 +22,7 @@ function Get-AbrADDNSInfrastructure {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory Domain Name System Infrastructure information for $($Domain.DNSRoot)"
+        Show-AbrDebugExecutionTime -Start -TitleMessage "DNS Infrastructure"
     }
 
     process {
@@ -433,6 +434,8 @@ function Get-AbrADDNSInfrastructure {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "DNS Infrastructure"
+    }
 
 }

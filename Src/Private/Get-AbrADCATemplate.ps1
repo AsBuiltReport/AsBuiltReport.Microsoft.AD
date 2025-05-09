@@ -24,6 +24,7 @@ function Get-AbrADCATemplate {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Certification Authority Templates information from $($CA.ComputerName)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Certificate Templates"
     }
 
     process {
@@ -145,6 +146,8 @@ function Get-AbrADCATemplate {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Certificate Templates"
+    }
 
 }

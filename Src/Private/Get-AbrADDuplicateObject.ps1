@@ -21,6 +21,7 @@ function Get-AbrADDuplicateObject {
 
     begin {
         Write-PScriboMessage -Message "Collecting duplicate Objects information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Duplicate Objects"
     }
 
     process {
@@ -76,6 +77,8 @@ function Get-AbrADDuplicateObject {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Duplicate Objects"
+    }
 
 }

@@ -21,6 +21,7 @@ function Get-AbrADDCRoleFeature {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory DC Role & Features information of $DC."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "DC Role & Features"
     }
 
     process {
@@ -80,5 +81,7 @@ function Get-AbrADDCRoleFeature {
             Write-PScriboMessage -IsWarning -Message "Roles Section: $($_.Exception.Message)"
         }
     }
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "DC Role & Features"
+    }
 }

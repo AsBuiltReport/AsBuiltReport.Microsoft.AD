@@ -22,6 +22,7 @@ function Get-AbrADDomainController {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Domain Controller information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "Domain Controller Section"
     }
 
     process {
@@ -965,6 +966,8 @@ function Get-AbrADDomainController {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "Domain Controller"
+    }
 
 }

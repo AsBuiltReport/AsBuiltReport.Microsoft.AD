@@ -20,6 +20,7 @@ function Get-AbrForestSection {
 
     begin {
         Write-PScriboMessage -Message "Collecting Forest information from $ForestInfo."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "Forest Section"
     }
 
     process {
@@ -66,5 +67,7 @@ function Get-AbrForestSection {
             }
         }
     }
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "Forest Section"
+    }
 }

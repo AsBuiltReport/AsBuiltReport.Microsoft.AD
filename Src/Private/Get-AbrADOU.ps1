@@ -22,6 +22,7 @@ function Get-AbrADOU {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory Organizational Unit information on domain $($Domain.DNSRoot)"
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Organizational Unit"
     }
 
     process {
@@ -135,6 +136,8 @@ function Get-AbrADOU {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Organizational Unit"
+    }
 
 }

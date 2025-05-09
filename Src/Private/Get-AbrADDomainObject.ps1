@@ -21,6 +21,7 @@ function Get-AbrADDomainObject {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Domain Objects information on forest $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain Objects'
     }
 
     process {
@@ -29,17 +30,40 @@ function Get-AbrADDomainObject {
             try {
                 try {
                     $script:DomainSID = $Domain.domainsid
-                    $ADLimitedProperties = @("Name", "Enabled", "SAMAccountname", "DisplayName", "Enabled", "LastLogonDate", "PasswordLastSet", "PasswordNeverExpires", "PasswordNotRequired", "PasswordExpired", "SmartcardLogonRequired", "AccountExpirationDate", "AdminCount", "Created", "Modified", "LastBadPasswordAttempt", "badpwdcount", "mail", "CanonicalName", "DistinguishedName", "ServicePrincipalName", "SIDHistory", "PrimaryGroupID", "UserAccountControl", "CannotChangePassword", "PwdLastSet", "LockedOut", "TrustedForDelegation", "TrustedtoAuthForDelegation", "msds-keyversionnumber", "SID", "AccountNotDelegated", "EmailAddress")
-                    $script:Computers = Invoke-Command -Session $TempPssSession { (Get-ADComputer -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Properties Enabled, OperatingSystem, lastlogontimestamp, PasswordLastSet, SIDHistory -SearchBase ($using:Domain).distinguishedName) }
-                    $Servers = $Computers | Where-Object { $_.OperatingSystem -like "Windows Ser*" } | Measure-Object
-                    $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Property $using:ADLimitedProperties -SearchBase ($using:Domain).distinguishedName }
+
+                    $ADUsersLimitedProperties = @('Name', 'Enabled', 'SAMAccountname', 'DisplayName', 'Enabled', 'LastLogonDate', 'PasswordLastSet', 'PasswordNeverExpires', 'PasswordNotRequired', 'PasswordExpired', 'SmartcardLogonRequired', 'AccountExpirationDate', 'AdminCount', 'Created', 'Modified', 'LastBadPasswordAttempt', 'badpwdcount', 'mail', 'CanonicalName', 'DistinguishedName', 'ServicePrincipalName', 'SIDHistory', 'PrimaryGroupID', 'UserAccountControl', 'CannotChangePassword', 'PwdLastSet', 'LockedOut', 'TrustedForDelegation', 'TrustedtoAuthForDelegation', 'msds-keyversionnumber', 'SID', 'AccountNotDelegated', 'EmailAddress', 'ObjectClass')
+
+                    $ADGroupsLimitedProperties = @('Sid', 'Members', 'GroupCategory', 'GroupScope', 'Name', 'SamAccountName', 'DistinguishedName', 'admincount', 'ObjectClass')
+
+                    $ADComputerLimitedProperties = @('Enabled', 'OperatingSystem', 'lastlogontimestamp', 'PasswordLastSet', 'SIDHistory', 'PasswordNotRequired', 'Name', 'DistinguishedName')
+
+                    $script:Computers = Invoke-Command -Session $TempPssSession { (Get-ADComputer -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Properties $using:ADComputerLimitedProperties -SearchBase ($using:Domain).distinguishedName) }
+
+                    $Servers = $Computers | Where-Object { $_.OperatingSystem -like "*Serv*" } | Measure-Object
+
+                    $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Property $using:ADUsersLimitedProperties -SearchBase ($using:Domain).distinguishedName }
+
+                    $script:FSP = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:ValidDcFromDomain -Filter { ObjectClass -eq "foreignSecurityPrincipal" } -Properties msds-principalname, memberof }
+
                     $script:PrivilegedUsers = $Users | Where-Object { $_.AdminCount -eq 1 }
-                    $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:ValidDcFromDomain -Filter * -SearchBase ($using:Domain).distinguishedName) }
-                    $excludedDomainGroupsBySID = @("$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
+
+                    $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Properties $using:ADGroupsLimitedProperties -SearchBase ($using:Domain).distinguishedName) }
+
+                    $script:EmptyGroupOBj = $GroupOBj | Where-Object { (-Not $_.Members ) }
+
+                    $excludedDomainGroupsBySID = @("$DomainSID-571", "$DomainSID-572", "$DomainSID-553", "$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
+
+                    $excludedDomainGroupsByName = @('Domain Admins', 'Enterprise Admins', 'Schema Admins', 'Administrators', 'Account Operators', 'Backup Operators', 'Server Operators', 'Print Operators', 'Help Desk Operators', 'Domain Controllers', 'DNS Admins', 'Cert Publishers', 'Enterprise Read-Only Domain Controllers', 'Read-Only Domain Controllers', 'Group Policy Creator Owners', 'Key Admins', 'DHCP Administrators', 'DHCP Users', 'DnsAdmins', 'DnsUpdateProxy')
+
                     $excludedForestGroupsBySID = ($GroupOBj | Where-Object { $_.SID -like 'S-1-5-32-*' }).SID
+
                     $AdminGroupsBySID = "S-1-5-32-552", "$DomainSID-527", "$DomainSID-521", "$DomainSID-516", "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
+
                     $script:DomainController = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter *) | Select-Object name, OperatingSystem }
+
                     $script:GC = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name }
+
+                    $ADObjects = $Users + $GroupObj
 
                 } catch {
                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Object Stats)"
@@ -54,6 +78,7 @@ function Get-AbrADDomainObject {
                         $inObj = [ordered] @{
                             'Users' = ($Users | Measure-Object).Count
                             'Privileged Users' = ($PrivilegedUsers | Measure-Object).Count
+                            'Foreign Security Principals' = ($FSP | Measure-Object).Count
                         }
                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
@@ -89,19 +114,19 @@ function Get-AbrADDomainObject {
 
                     $OutObj = @()
                     $dormanttime = ((Get-Date).AddDays(-90)).Date
-                    $passwordtime = (Get-Date).Adddays(-42)
+                    $passwordtime = (Get-Date).Adddays(-180)
                     $CannotChangePassword = $Users | Where-Object { $_.CannotChangePassword }
                     $PasswordNextLogon = $Users | Where-Object { $_.PasswordLastSet -eq 0 -or $_.PwdLastSet -eq 0 }
                     $passwordNeverExpires = $Users | Where-Object { $_.passwordNeverExpires -eq "true" }
                     $SmartcardLogonRequired = $Users | Where-Object { $_.SmartcardLogonRequired -eq $True }
-                    $SidHistory = $Users | Select-Object -ExpandProperty SIDHistory
+                    $SidHistory = $Users  | Where-Object { $_.SIDHistory }
                     $PasswordLastSet = $Users | Where-Object { $_.PasswordNeverExpires -eq $false -and $_.PasswordNotRequired -eq $false }
                     $NeverloggedIn = $Users | Where-Object { -not $_.LastLogonDate }
                     $Dormant = $Users | Where-Object { ($_.LastLogonDate) -lt $dormanttime }
                     $PasswordNotRequired = $Users | Where-Object { $_.PasswordNotRequired -eq $true }
                     $AccountExpired = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:ValidDcFromDomain -AccountExpired }
                     $AccountLockout = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:ValidDcFromDomain -LockedOut }
-                    $Categories = @('Total Users', 'Cannot Change Password', 'Password Never Expires', 'Must Change Password at Logon', 'Password Age (> 42 days)', 'SmartcardLogonRequired', 'SidHistory', 'Never Logged in', 'Dormant (> 90 days)', 'Password Not Required', 'Account Expired', 'Account Lockout')
+                    $Categories = @('Total Users', 'Cannot Change Password', 'Password Never Expires', 'Must Change Password at Logon', 'Password Age (> 180 days)', 'SmartcardLogonRequired', 'SidHistory', 'Never Logged in', 'Dormant (> 90 days)', 'Password Not Required', 'Account Expired', 'Account Lockout')
                     if ($Categories) {
                         foreach ($Category in $Categories) {
                             try {
@@ -191,7 +216,7 @@ function Get-AbrADDomainObject {
                                 $OutObj = @()
                                 foreach ($User in $Users) {
                                     try {
-                                        $Groups = Invoke-Command -Session $TempPssSession -ScriptBlock { (Get-ADPrincipalGroupMembership ($using:User).SamAccountName | Sort-Object | Select-Object -ExpandProperty Name) -join ', ' }
+                                        $Groups = ($GroupOBj | Where-Object { $_.members -eq $User.DistinguishedName }).Name
                                         $inObj = [ordered] @{
                                             'Name' = $User.DisplayName
                                             'Logon Name' = $User.SamAccountName
@@ -308,7 +333,7 @@ function Get-AbrADDomainObject {
                                 $OutObj = @()
                                 foreach ($Group in $GroupOBj) {
                                     try {
-                                        $UserCount = Invoke-Command -Session $TempPssSession { (Get-ADGroupMember  -Server $using:ValidDcFromDomain  -Identity ($using:Group).Name  | Measure-Object).Count }
+                                        $UserCount = ($Group.Members | Measure-Object).Count
                                         $inObj = [ordered] @{
                                             'Name' = $Group.Name
                                             'Category' = $Group.GroupCategory
@@ -351,12 +376,10 @@ function Get-AbrADDomainObject {
                                     BlankLine
                                     foreach ($GroupSID in $GroupsSID) {
                                         try {
-                                            $Group = $GroupOBj | Where-Object { $_.SID -like $GroupSID }
-                                            if ($Group) {
-                                                $GroupObject = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:ValidDcFromDomain -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue }
+                                            if ($Group = $GroupOBj | Where-Object { $_.SID -like $GroupSID }) {
                                                 $inObj = [ordered] @{
                                                     'Group Name' = $Group.Name
-                                                    'Count' = ($GroupObject | Measure-Object).Count
+                                                    'Count' = ($Group.Members | Measure-Object).Count
                                                 }
                                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                             }
@@ -417,16 +440,15 @@ function Get-AbrADDomainObject {
                                     BlankLine
                                     foreach ($GroupSID in $GroupsSID) {
                                         try {
-                                            $Group = $GroupOBj | Where-Object { $_.SID -like $GroupSID }
-                                            if ($Group) {
-                                                $GroupObjects = Invoke-Command -Session $TempPssSession { Get-ADGroupMember -Server $using:ValidDcFromDomain  -Identity ($using:Group).Name -Recursive -ErrorAction SilentlyContinue | ForEach-Object { Get-ADUser -Filter 'SamAccountName -eq $_.SamAccountName' -Server $using:ValidDcFromDomain -Property SamAccountName, objectClass, LastLogonDate, passwordNeverExpires, Enabled -SearchBase ($using:Domain).distinguishedName } }
-                                                if ($GroupObjects) {
+                                            if ($Group = ($GroupOBj | Where-Object { $_.SID -like $GroupSID })) {
+                                                $GroupObjects = $Group.Members
+                                                if ($GroupObjFilter = $ADObjects | Where-Object { $_.distinguishedName -in $GroupObjects }) {
                                                     Section -ExcludeFromTOC -Style NOTOCHeading4 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) Members)" {
                                                         $OutObj = @()
-                                                        foreach ($GroupObject in $GroupObjects) {
+                                                        foreach ($GroupObject in $GroupObjFilter) {
                                                             try {
                                                                 $inObj = [ordered] @{
-                                                                    'Name' = $GroupObject.SamAccountName
+                                                                    'Name' = "$($GroupObject.SamAccountName) ($($GroupObject.ObjectClass.toUpper()))"
                                                                     'Last Logon Date' = Switch ([string]::IsNullOrEmpty($GroupObject.LastLogonDate)) {
                                                                         $true { "--" }
                                                                         $false { $GroupObject.LastLogonDate.ToShortDateString() }
@@ -514,8 +536,7 @@ function Get-AbrADDomainObject {
                     }
                     if ($HealthCheck.Domain.BestPractice) {
                         try {
-                            $AdminGroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -Server $using:ValidDcFromDomain -Filter "admincount -eq '1'" -SearchBase ($using:Domain).distinguishedName) }
-                            if ($AdminGroupOBj) {
+                            if ($AdminGroupOBj = $GroupOBj | Where-Object { $_.admincount -eq 1 }) {
                                 $OutObj = @()
                                 foreach ($Group in $AdminGroupOBj) {
                                     if ($Group.SID -notin $AdminGroupsBySID) {
@@ -559,39 +580,41 @@ function Get-AbrADDomainObject {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group (Non-Default) Section)"
                         }
                     }
-                    if ($HealthCheck.Domain.BestPractice -and ($GroupOBj | Where-Object { -Not $_.Members })) {
+                    if ($HealthCheck.Domain.BestPractice -and ($EmptyGroupOBj)) {
                         try {
-                            Section -Style Heading5 'Empty Groups (Non-Default)' {
-                                $OutObj = @()
-                                foreach ($Group in ($GroupOBj | Where-Object { -Not $_.Members }) ) {
-                                    if ($Group.SID -notin $excludedForestGroupsBySID -and $Group.SID -notin $excludedDomainGroupsBySID ) {
-                                        try {
-                                            $inObj = [ordered] @{
-                                                'Group Name' = $Group.Name
-                                                'Group SID' = $Group.SID
+                            if ($EmptyGroupArray = $EmptyGroupOBj | Where-Object { $_.SID -notin $excludedForestGroupsBySID -and $_.SID -notin $excludedDomainGroupsBySID -and $_.Name -notin $excludedDomainGroupsByName }) {
+                                Section -Style Heading5 'Empty Groups (Non-Default)' {
+                                    $OutObj = @()
+                                    foreach ($Group in $EmptyGroupArray) {
+                                        if ($Group.SID -notin $excludedForestGroupsBySID -and $Group.SID -notin $excludedDomainGroupsBySID -and $Group.Name -notin $excludedDomainGroupsByName) {
+                                            try {
+                                                $inObj = [ordered] @{
+                                                    'Group Name' = $Group.Name
+                                                    'Group SID' = $Group.SID
+                                                }
+                                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            } catch {
+                                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Empty Groups Objects Table)"
                                             }
-                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
-                                        } catch {
-                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Empty Groups Objects Table)"
                                         }
                                     }
-                                }
 
-                                $TableParams = @{
-                                    Name = "Empty Groups - $($Domain.DNSRoot.ToString().ToUpper())"
-                                    List = $false
-                                    ColumnWidths = 50, 50
-                                }
+                                    $TableParams = @{
+                                        Name = "Empty Groups - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        List = $false
+                                        ColumnWidths = 50, 50
+                                    }
 
-                                if ($Report.ShowTableCaptions) {
-                                    $TableParams['Caption'] = "- $($TableParams.Name)"
-                                }
-                                $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
-                                Paragraph "Health Check:" -Bold -Underline
-                                BlankLine
-                                Paragraph {
-                                    Text "Best Practice:" -Bold
-                                    Text "Remove empty or unused Active Directory Groups. An empty Active Directory security group causes two major problems. First, they add unnecessary clutter and make active directory administration difficult, even when paired with user friendly Active Directory tools. The second and most important point to note is that empty groups are a security risk to your network."
+                                    if ($Report.ShowTableCaptions) {
+                                        $TableParams['Caption'] = "- $($TableParams.Name)"
+                                    }
+                                    $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
+                                    Paragraph "Health Check:" -Bold -Underline
+                                    BlankLine
+                                    Paragraph {
+                                        Text "Best Practice:" -Bold
+                                        Text "Remove empty or unused Active Directory Groups. An empty Active Directory security group causes two major problems. First, they add unnecessary clutter and make active directory administration difficult, even when paired with user friendly Active Directory tools. The second and most important point to note is that empty groups are a security risk to your network."
+                                    }
                                 }
                             }
 
@@ -599,33 +622,27 @@ function Get-AbrADDomainObject {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Empty Groups Objects Section)"
                         }
                     }
-                    if ($HealthCheck.Domain.BestPractice -and $InfoLevel.Domain -ge 4) {
+                    if ($HealthCheck.Domain.BestPractice -and $InfoLevel.Domain -ge 2) {
                         try {
                             $OutObj = @()
+                            $NonEmptyGroups = ($GroupOBj | Where-Object { ( $_.Members ) })
                             # Loop through each parent group
-                            ForEach ($Parent in $GroupOBj) {
-                                [int]$Len = 0
+                            ForEach ($Parent in $NonEmptyGroups) {
                                 # Create an array of the group members, limited to sub-groups (not users)
                                 $Children = @(
-                                    Invoke-Command -Session $TempPssSession -ErrorAction SilentlyContinue { Get-ADGroupMember -Server $using:ValidDcFromDomain -Identity ($using:Parent).Name | Where-Object { $_.objectClass -eq "group" } }
+                                    $NonEmptyGroups | Where-Object { $_.distinguishedName -in $Parent.Members -and $_.objectClass -eq "group" }
                                 )
 
-                                $Len = @($Children).Count
-
-                                if ($Len -gt 0) {
+                                if ($Children) {
                                     ForEach ($Child in $Children) {
-                                        # Now find any member of $Child which is also the childs $Parent
                                         $nestedGroup = @(
-                                            Invoke-Command -Session $TempPssSession -ErrorAction SilentlyContinue { Get-ADGroupMember -Server $using:ValidDcFromDomain -Identity ($using:Child).Name | Where-Object { $_.objectClass -eq "group" -and ($_.Name -eq ($using:Parent).Name) } }
+                                            $NonEmptyGroups | Where-Object { $Parent.distinguishedName -in $_.Members -and $_.SID -eq $Child.SID }
                                         )
-
-                                        $NestCount = @($nestedGroup).Count
-
-                                        if ($NestCount -gt 0) {
+                                        if ($nestedGroup) {
                                             try {
                                                 $inObj = [ordered] @{
-                                                    'Parent Group Name' = $nestedGroup.Name
-                                                    'Child Group Name' = $Child.Name
+                                                    'Parent Group Name' = $Parent.Name
+                                                    'Child Group Name' = $nestedGroup.Name
                                                 }
                                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                             } catch {
@@ -678,7 +695,7 @@ function Get-AbrADDomainObject {
                     $OutObj = @()
                     $inObj = [ordered] @{
                         'Computers' = ($Computers | Measure-Object).Count
-                        'Servers' = ($Servers | Measure-Object).Count
+                        'Servers' = ($Servers).Count
                     }
                     $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
 
@@ -836,8 +853,7 @@ function Get-AbrADDomainObject {
                 }
                 try {
                     if ($HealthCheck.Domain.Security) {
-                        $ComputerObjects = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { PasswordNotRequired -eq $true } -Server $using:ValidDcFromDomain -Properties Name, DistinguishedName, Enabled }
-                        if ($ComputerObjects) {
+                        if ($ComputerObjects = $Computers | Where-Object { $_.PasswordNeverExpires }) {
                             Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers with Password-Not-Required Attribute Set' {
                                 $OutObj = @()
                                 try {
@@ -967,15 +983,14 @@ function Get-AbrADDomainObject {
             }
             try {
                 foreach ($Item in $Domain) {
-                    $PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADFineGrainedPasswordPolicy -Server ($using:Domain).PDCEmulator -Filter { Name -like "*" } -Properties * -SearchBase ($using:Domain).distinguishedName } | Sort-Object -Property Name
-                    if ($PasswordPolicy) {
+                    if ($PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADFineGrainedPasswordPolicy -Server ($using:Domain).PDCEmulator -Filter { Name -like "*" } -Properties * -SearchBase ($using:Domain).distinguishedName } | Sort-Object -Property Name) {
                         Section -Style Heading3 'Fined Grained Password Policies' {
                             $FGPPInfo = @()
                             foreach ($FGPP in $PasswordPolicy) {
                                 try {
                                     $Accounts = @()
                                     foreach ($ADObject in $FGPP.AppliesTo) {
-                                        $Accounts += Invoke-Command -Session $TempPssSession { Get-ADObject $using:ADObject -Server $using:ValidDcFromDomain -Properties sAMAccountName | Select-Object -ExpandProperty sAMAccountName }
+                                        $Accounts += ($Users | Where-Object { $_.distinguishedName -eq $ADObject }).sAMAccountName
                                     }
                                     $inObj = [ordered] @{
                                         'Name' = $FGPP.Name
@@ -1101,8 +1116,7 @@ function Get-AbrADDomainObject {
 
             try {
                 try {
-                    $GMSA = Invoke-Command -Session $TempPssSession { Get-ADServiceAccount -Server $using:ValidDcFromDomain -Filter * -Properties * }
-                    if ($GMSA) {
+                    if ($GMSA = Invoke-Command -Session $TempPssSession { Get-ADServiceAccount -Server $using:ValidDcFromDomain -Filter * -Properties * }) {
                         Section -Style Heading3 'gMSA Identities' {
                             $GMSAInfo = @()
                             foreach ($Account in $GMSA) {
@@ -1233,7 +1247,6 @@ function Get-AbrADDomainObject {
             }
             try {
                 try {
-                    $FSP = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:ValidDcFromDomain -Filter { ObjectClass -eq "foreignSecurityPrincipal" } -Properties msds-principalname, memberof }
                     if ($FSP) {
                         Section -Style Heading3 'Foreign Security Principals' {
                             $FSPInfo = @()
@@ -1276,6 +1289,8 @@ function Get-AbrADDomainObject {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Objects"
+    }
 
 }

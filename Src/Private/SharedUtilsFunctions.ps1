@@ -827,7 +827,7 @@ function Get-WinADDuplicateSPN {
         [pscredential] $Credential
     )
     $Excluded = @(
-        'kadmin/changepw'
+        # 'kadmin/changepw'
         foreach ($Item in $Exclude) {
             $iTEM
         }
@@ -837,9 +837,8 @@ function Get-WinADDuplicateSPN {
     $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation -Credential $Credential
     foreach ($Domain in $ForestInformation.Domains) {
         Write-PScriboMessage -Message "Get-WinADDuplicateSPN - Processing $Domain"
-        $Objects = (Get-ADObject -Credential $Credential -LDAPFilter "ServicePrincipalName=*" -Properties ServicePrincipalName -Server $ForestInformation['QueryServers'][$domain]['HostName'][0])
-        Write-PScriboMessage -Message "Get-WinADDuplicateSPN - Found $($Objects.Count) objects. Processing..."
-        foreach ($Object in $Objects) {
+        Write-PScriboMessage -Message "Get-WinADDuplicateSPN - Found $($Users.Count) objects. Processing..."
+        foreach ($Object in $Users) {
             foreach ($SPN in $Object.ServicePrincipalName) {
                 if (-not $SPNCache[$SPN]) {
                     $SPNCache[$SPN] = [PSCustomObject] @{
@@ -2545,8 +2544,8 @@ function Get-ValidPSSession {
     if ((-Not $Options.WinRMFallbackToNoSSL) -and ($PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'PSSessionSSL' })) {
         throw "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
     } elseif (($Options.WinRMFallbackToNoSSL) -and ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSession' })) {
-        Write-PScriboMessage -Message "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
-        Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM)."
+        # Write-PScriboMessage -Message "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
+        Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM)."
         return Get-PSSession $PSessionObj.Id
     }
 
@@ -2673,7 +2672,7 @@ function Get-ValidCIMSession {
         throw "Unable to connect to $ComputerName through CimSession (CIM with SSL)."
     } elseif (($Options.WinRMFallbackToNoSSL) -and ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSession' })) {
         Write-PScriboMessage -Message "Unable to connect to $ComputerName through CimSession (CIM with SSL)."
-        Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' CimSession id: $($PSessionObj.Id) (WinRM)."
+        Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' CimSession id: $($CIMSessionObj.Id) (WinRM)."
         return Get-CimSession $CIMSessionObj.Id
     }
 

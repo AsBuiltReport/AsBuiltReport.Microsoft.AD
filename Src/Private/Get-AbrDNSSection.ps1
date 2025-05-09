@@ -21,6 +21,7 @@ function Get-AbrDNSSection {
 
     begin {
         Write-PScriboMessage -Message "Collecting DNS server information from $ForestInfo."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "DNS Section"
     }
 
     process {
@@ -70,5 +71,7 @@ function Get-AbrDNSSection {
             }
         }
     }
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "DNS Section"
+    }
 }

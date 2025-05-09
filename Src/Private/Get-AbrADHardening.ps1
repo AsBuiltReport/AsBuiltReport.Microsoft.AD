@@ -22,6 +22,7 @@ function Get-AbrADHardening {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Hardening information from $($Domain.Name.toUpper())."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Hardening"
     }
 
     process {
@@ -183,6 +184,7 @@ function Get-AbrADHardening {
     }
 
     end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Hardening"
     }
 
 }

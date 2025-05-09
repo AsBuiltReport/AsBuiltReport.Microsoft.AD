@@ -23,7 +23,7 @@ function Get-AbrADCAAIA {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Active Directory Certification Authority Information Access details."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Authority Information Access Objects"
     }
 
     process {
@@ -67,6 +67,14 @@ function Get-AbrADCAAIA {
         }
     }
 
-    end {}
+    end {
+        if ($Options.ShowExecutionTime) {
+            $SectionEndTime = Get-Date
+            Write-Host "Ending CA Authority Information Access Objects section: $($SectionEndTime)" -ForegroundColor Cyan
+            $elapsedTime = New-TimeSpan -Start $SectionStartTime -End $SectionEndTime
+            Write-Host "CA Authority Information Access Objects Section execution time: $($elapsedTime.tostring("hh")) Hours $($elapsedTime.tostring("mm")) Minutes $($elapsedTime.tostring("ss")) Seconds"
+        }
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Authority Information Access Objects"
+    }
 
 }

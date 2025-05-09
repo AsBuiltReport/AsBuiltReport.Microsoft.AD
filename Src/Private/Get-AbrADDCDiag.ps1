@@ -27,6 +27,7 @@ function Get-AbrADDCDiag {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory $DC DCDiag information for domain $Domain."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "DCDiag"
     }
 
     process {
@@ -92,5 +93,7 @@ function Get-AbrADDCDiag {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "DCDiag"
+    }
 }

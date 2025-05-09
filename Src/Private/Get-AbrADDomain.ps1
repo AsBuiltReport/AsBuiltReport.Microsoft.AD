@@ -22,6 +22,7 @@ function Get-AbrADDomain {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Domain information on forest $Forestinfo."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain"
     }
 
     process {
@@ -95,6 +96,8 @@ function Get-AbrADDomain {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain"
+    }
 
 }

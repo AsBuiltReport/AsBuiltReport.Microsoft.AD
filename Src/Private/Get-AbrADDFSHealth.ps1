@@ -23,6 +23,7 @@ function Get-AbrADDFSHealth {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Domain DFS Health information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "DFS Health"
     }
 
     process {
@@ -247,6 +248,8 @@ function Get-AbrADDFSHealth {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "DFS Health"
+    }
 
 }

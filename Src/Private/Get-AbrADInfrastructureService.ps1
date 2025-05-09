@@ -21,6 +21,7 @@ function Get-AbrADInfrastructureService {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory DC Infrastructure Services information of $DC."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Controller Infrastructure Services"
     }
 
     process {
@@ -90,6 +91,8 @@ function Get-AbrADInfrastructureService {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Controller Infrastructure Services"
+    }
 
 }

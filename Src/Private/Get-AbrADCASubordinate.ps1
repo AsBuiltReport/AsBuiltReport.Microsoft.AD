@@ -20,6 +20,7 @@ function Get-AbrADCASubordinate {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Certification Authority Per Domain information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Subordinate"
     }
 
     process {
@@ -70,6 +71,8 @@ function Get-AbrADCASubordinate {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Subordinate"
+    }
 
 }

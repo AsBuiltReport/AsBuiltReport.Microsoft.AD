@@ -24,6 +24,7 @@ function Get-AbrADCAKeyRecoveryAgent {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Certification Authority Key Recovery Agent information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Key Recovery Agent"
     }
 
     process {
@@ -61,6 +62,8 @@ function Get-AbrADCAKeyRecoveryAgent {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Key Recovery Agent"
+    }
 
 }

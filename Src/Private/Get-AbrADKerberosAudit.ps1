@@ -22,6 +22,7 @@ function Get-AbrADKerberosAudit {
 
     begin {
         Write-PScriboMessage -Message "Collecting Kerberos Audit information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Kerberos Audit"
     }
 
     process {
@@ -169,6 +170,8 @@ function Get-AbrADKerberosAudit {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Kerberos Audit"
+    }
 
 }

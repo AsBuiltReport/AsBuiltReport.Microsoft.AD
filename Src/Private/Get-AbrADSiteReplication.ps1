@@ -23,6 +23,7 @@ function Get-AbrADSiteReplication {
     )
 
     begin {
+        Show-AbrDebugExecutionTime -Start -TitleMessage "Site Replication"
     }
 
     process {
@@ -178,6 +179,8 @@ function Get-AbrADSiteReplication {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "Site Replication"
+    }
 
 }

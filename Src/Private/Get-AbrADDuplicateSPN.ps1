@@ -21,6 +21,7 @@ function Get-AbrADDuplicateSPN {
 
     begin {
         Write-PScriboMessage -Message "Collecting duplicate SPN information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Duplicate SPN"
     }
 
     process {
@@ -77,6 +78,8 @@ function Get-AbrADDuplicateSPN {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Duplicate SPN"
+    }
 
 }

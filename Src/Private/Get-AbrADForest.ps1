@@ -20,6 +20,7 @@ function Get-AbrADForest {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory forest information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Forest'
     }
 
     process {
@@ -296,6 +297,8 @@ function Get-AbrADForest {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Forest'
+    }
 
 }

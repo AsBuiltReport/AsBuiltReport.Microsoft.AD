@@ -21,6 +21,7 @@ function Get-AbrADSecurityAssessment {
 
     begin {
         Write-PScriboMessage -Message "Collecting Account Security Assessment information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Account Security Assessment"
     }
 
     process {
@@ -313,5 +314,7 @@ function Get-AbrADSecurityAssessment {
             }
         }
     }
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Account Security Assessment"
+    }
 }
