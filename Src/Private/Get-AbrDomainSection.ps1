@@ -5,7 +5,7 @@ function Get-AbrDomainSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,7 +20,8 @@ function Get-AbrDomainSection {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Domain information from $ForestInfo."
+        Write-PScriboMessage -Message "Collecting Domain information from $ForestInfo."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "Domain Section"
     }
 
     process {
@@ -77,7 +78,7 @@ function Get-AbrDomainSection {
                                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                                         Get-AbrADDCRoleFeature -DC $DC
                                                     } else {
-                                                        Write-PScriboMessage -IsWarning "Unable to connect to $DC. Removing it from the $($DomainInfo.DNSRoot) report."
+                                                        Write-PScriboMessage -IsWarning -Message "Unable to connect to $DC. Removing it from the $($DomainInfo.DNSRoot) report."
                                                     }
                                                 }
                                                 if ($RolesObj) {
@@ -100,7 +101,7 @@ function Get-AbrDomainSection {
                                                     }
                                                 }
                                             } catch {
-                                                Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
+                                                Write-PScriboMessage -IsWarning -Message "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
                                                 Write-PScriboMessage -IsWarning $_.Exception.Message
                                             }
                                         }
@@ -110,17 +111,17 @@ function Get-AbrDomainSection {
                                     Get-AbrADOU -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                 }
                             } else {
-                                Write-PScriboMessage "$($DomainInfo.DNSRoot) disabled in Exclude.Domain variable"
+                                Write-PScriboMessage -Message "$($DomainInfo.DNSRoot) disabled in Exclude.Domain variable"
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Active Directory Domain)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Active Directory Domain)"
                         }
                     } else {
                         $DomainStatus.Value += @{
-                            Name = $DomainInfo.DNSRoot
+                            Name = $Domain
                             Status = 'Offline'
                         }
-                        Write-PScriboMessage -IsWarning "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing it from the report."
+                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($Domain) domain. Removing it from the report."
                     }
                 }
             }
@@ -139,5 +140,7 @@ function Get-AbrDomainSection {
             }
         }
     }
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "Domain Section"
+    }
 }

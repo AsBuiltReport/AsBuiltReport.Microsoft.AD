@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,21 +30,21 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         break
     }
 
-    Write-PScriboMessage -Plugin "Module" -IsWarning "Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project."
-    Write-PScriboMessage -Plugin "Module" -IsWarning "Do not forget to update your report configuration file after each new release."
-    Write-PScriboMessage -Plugin "Module" -IsWarning "Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD"
-    Write-PScriboMessage -Plugin "Module" -IsWarning "Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues"
-    Write-PScriboMessage -Plugin "Module" -IsWarning "This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates."
+    Write-Host "- Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project." -ForegroundColor White
+    Write-Host "- Do not forget to update your report configuration file after each new release." -ForegroundColor White
+    Write-Host "- Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD" -ForegroundColor White
+    Write-Host "- Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues" -ForegroundColor White
+    Write-Host "- This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates." -ForegroundColor White
 
     Try {
         $InstalledVersion = Get-Module -ListAvailable -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
 
         if ($InstalledVersion) {
-            Write-PScriboMessage -IsWarning "AsBuiltReport.Microsoft.AD $($InstalledVersion.ToString()) is currently installed."
+            Write-Host "- AsBuiltReport.Microsoft.AD v$($InstalledVersion.ToString()) is currently installed." -ForegroundColor White
             $LatestVersion = Find-Module -Name AsBuiltReport.Microsoft.AD -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
             if ([version]$LatestVersion -gt [version]$InstalledVersion) {
-                Write-PScriboMessage -IsWarning "AsBuiltReport.Microsoft.AD $($LatestVersion.ToString()) is available."
-                Write-PScriboMessage -IsWarning "Run 'Update-Module -Name AsBuiltReport.Microsoft.AD -Force' to install the latest version."
+                Write-Host "- AsBuiltReport.Microsoft.AD v$($LatestVersion.ToString()) update is available." -ForegroundColor Red
+                Write-Host "- Run 'Update-Module -Name AsBuiltReport.Microsoft.AD -Force' to install the latest version." -ForegroundColor Red
             }
         }
     } Catch {
@@ -117,11 +117,11 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             # By default, SSL is not used with New-CimSession. WsMan encrypts all content that is transmitted over the network, even when using HTTP.
             $script:TempCIMSession = Get-ValidCIMSession -ComputerName $System -SessionName $System -CIMTable ([ref]$CIMTable)
         } Catch {
-            Write-PScriboMessage -IsWarning "Unable to establish a CimSession ($CIMType) with the Domain Controller '$System'."
+            Write-PScriboMessage -IsWarning -Message "Unable to establish a CimSession ($CIMType) with the Domain Controller '$System'."
         }
 
         Try {
-            Write-PScriboMessage "Connecting to retrieve Forest information from Domain Controller '$System'."
+            Write-PScriboMessage -Message "Connecting to retrieve Forest information from Domain Controller '$System'."
             $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop }
         } Catch {
             throw "Unable to retrieve Forest information from Domain Controller '$System'."
@@ -162,7 +162,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         if ($PSSTable) {
             foreach ($PSSession in ($PSSTable | Where-Object { $_.Status -ne 'Offline' })) {
                 # Remove used CIMSession
-                Write-PScriboMessage "Clearing PSSession with ID $($PSSession.Id)"
+                Write-PScriboMessage -Message "Clearing PSSession with ID $($PSSession.Id)"
                 Remove-PSSession -Id $PSSession.id
             }
         }
@@ -170,7 +170,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         if ($CIMTable) {
             foreach ($CIMSession in ($CIMTable | Where-Object { $_.Status -ne 'Offline' })) {
                 # Remove used CIMSession
-                Write-PScriboMessage "Clearing CIM Session with ID $($CIMSession.Id)"
+                Write-PScriboMessage -Message "Clearing CIM Session with ID $($CIMSession.Id)"
                 Remove-CimSession -Id $CIMSession.id
             }
         }
@@ -182,20 +182,23 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $DCOffine = $DCStatus | Where-Object { $Null -ne $_.DCName -and $_.Status -eq 'Offline' } | Select-Object -Property @{N = 'Name'; E = { $_.DCName } }, @{N = 'WinRM Status'; E = { $_.Status } }, @{N = 'Ping Status'; E = { $_.PingStatus } }, @{N = 'Protocol'; E = { $_.Protocol } } | ForEach-Object { [pscustomobject]$_ }
         $DomainOffline = $DomainStatus | Where-Object { $Null -ne $_.Name -and $_.Status -eq 'Offline' }
         if ($DCOffine -or $DomainOffline) {
-            Write-Host "`r`n"
+            Write-Host " "
             Write-Host "The following Systems could not be reached:`n"
             if ($DCOffine) {
                 Write-Host "Domain Controllers"
                 Write-Host "------------------"
-                $DCOffine | Format-Table -AutoSize | Out-String | Write-Host
+                Write-Host " "
+                Write-PSObject $DCOffine -MatchMethod Query, Query, Query, Query -Column 'WinRM Status', 'WinRM Status', 'Ping Status', 'Ping Status' -Value "'WinRM Status' -eq 'Offline'", "'WinRM Status' -eq 'Online'", "'Ping Status' -eq 'Offline'", "'Ping Status' -eq 'Online'" -ValueForeColor Red, Green, Red, Green
+                Write-Host " "
             }
             if ($DomainOffline) {
                 Write-Host "Domains"
                 Write-Host "--------"
+                Write-Host " "
                 $DomainOffline | ForEach-Object {
-                    Write-Host "$($_.Name)"
+                    Write-Host "$($_.Name)" -ForegroundColor Red
                 }
-                Write-Host "`r`n"
+                Write-Host " "
             }
         }
     }#endregion foreach loop

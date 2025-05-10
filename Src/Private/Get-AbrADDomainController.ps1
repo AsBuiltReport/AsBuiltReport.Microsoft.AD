@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,8 @@ function Get-AbrADDomainController {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain Controller information."
+        Write-PScriboMessage -Message "Collecting AD Domain Controller information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "Domain Controller Section"
     }
 
     process {
@@ -33,12 +34,12 @@ function Get-AbrADDomainController {
                     $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                     if ($DCPssSession ) {
-                        $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Write-PScriboMessage -IsWarning "Unable to get $DC network interfaces information" }
+                        $DCNetSettings = try { Invoke-Command -Session $DCPssSession { Get-NetIPAddress } } catch { Write-PScriboMessage -IsWarning -Message "Unable to get $DC network interfaces information" }
                     } else {
                         if (-Not $_.Exception.MessageId) {
                             $ErrorMessage = $_.FullyQualifiedErrorId
                         } else { $ErrorMessage = $_.Exception.MessageId }
-                        Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                        Write-PScriboMessage -IsWarning -Message "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                     }
                     try {
                         $inObj = [ordered] @{
@@ -59,11 +60,11 @@ function Get-AbrADDomainController {
                         }
                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Item)"
                     }
                 } else {
                     try {
-                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                        Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                         $inObj = [ordered] @{
                             'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
                             'Status' = "Offline"
@@ -74,7 +75,7 @@ function Get-AbrADDomainController {
                         }
                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Item)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Item)"
                     }
                 }
             }
@@ -102,7 +103,7 @@ function Get-AbrADDomainController {
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Table)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Table)"
         }
         try {
             $OutObj = @()
@@ -127,10 +128,11 @@ function Get-AbrADDomainController {
                 $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'DomainControllerObject' -XField 'Name' -YField 'value' -ChartLegendName 'Category' -ChartTitleName 'DomainControllerObject' -ChartTitleText 'DC vs GC Distribution' -ReversePalette $True
 
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Count Chart)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Count Chart)"
             }
             if ($OutObj) {
                 if ($chartFileItem) {
+                    BlankLine
                     Image -Text 'Domain Controller Object - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
                 }
                 $OutObj | Table @TableParams
@@ -153,7 +155,7 @@ function Get-AbrADDomainController {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
                             } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                            Write-PScriboMessage -IsWarning -Message "DC Net Settings Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         try {
                             Section -Style Heading5 $DCInfo.Name {
@@ -205,7 +207,7 @@ function Get-AbrADDomainController {
                                         }
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (General Information Section)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (General Information Section)"
                                 }
                                 try {
                                     Section -ExcludeFromTOC -Style NOTOCHeading6 "Partitions" {
@@ -227,7 +229,7 @@ function Get-AbrADDomainController {
                                         $OutObj | Table @TableParams
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Partitions Section)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Partitions Section)"
                                 }
                                 try {
                                     if ($DCNetSettings) {
@@ -273,7 +275,7 @@ function Get-AbrADDomainController {
                                         }
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Networking Settings Section)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Networking Settings Section)"
                                 }
                                 try {
                                     $DCHWInfo = @()
@@ -342,14 +344,14 @@ function Get-AbrADDomainController {
                                             }
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Hardware Inventory Table)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Hardware Inventory Table)"
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Hardware Section)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Hardware Section)"
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Section)"
                         }
                     }
                 }
@@ -359,7 +361,7 @@ function Get-AbrADDomainController {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Section)"
             }
         }
         #---------------------------------------------------------------------------------------------#
@@ -380,7 +382,7 @@ function Get-AbrADDomainController {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
                             } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "DNS IP Configuration Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                            Write-PScriboMessage -IsWarning -Message "DNS IP Configuration Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         foreach ($DNSServer in $DNSSettings.ServerAddresses) {
                             if ($DCPssSession) {
@@ -402,15 +404,15 @@ function Get-AbrADDomainController {
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($DC.ToString().ToUpper().Split(".")[0]) DNS IP Configuration Section: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "$($DC.ToString().ToUpper().Split(".")[0]) DNS IP Configuration Section: $($_.Exception.Message)"
                             }
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "Domain Controller DNS IP Configuration Table Section: $($_.Exception.Message)"
+                        Write-PScriboMessage -IsWarning -Message "Domain Controller DNS IP Configuration Table Section: $($_.Exception.Message)"
                     }
                 } else {
                     try {
-                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                        Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                         $inObj = [ordered] @{
                             'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
                             'Interface' = '--'
@@ -421,7 +423,7 @@ function Get-AbrADDomainController {
                         }
                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DNS IP Configuration Item)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DNS IP Configuration Item)"
                     }
                 }
             }
@@ -481,7 +483,7 @@ function Get-AbrADDomainController {
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "Domain Controller DNS IP Configuration Section: $($_.Exception.Message)"
+            Write-PScriboMessage -IsWarning -Message "Domain Controller DNS IP Configuration Section: $($_.Exception.Message)"
         }
 
         try {
@@ -500,7 +502,7 @@ function Get-AbrADDomainController {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
                             } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "NTDS Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                            Write-PScriboMessage -IsWarning -Message "NTDS Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         if ( $NTDS -and $size ) {
                             $inObj = [ordered] @{
@@ -513,11 +515,11 @@ function Get-AbrADDomainController {
                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (NTDS Item)"
                     }
                 } else {
                     try {
-                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                        Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                         $inObj = [ordered] @{
                             'DC Name' = $DC.ToString().ToUpper().Split(".")[0]
                             'Database File' = "--"
@@ -527,7 +529,7 @@ function Get-AbrADDomainController {
                         }
                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (NTDS Item)"
                     }
                 }
             }
@@ -546,7 +548,7 @@ function Get-AbrADDomainController {
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (NTDS section)"
         }
         try {
             $OutObj = @()
@@ -562,7 +564,7 @@ function Get-AbrADDomainController {
                             if (-Not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
                             } else { $ErrorMessage = $_.Exception.MessageId }
-                            Write-PScriboMessage -IsWarning "Time Source Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                            Write-PScriboMessage -IsWarning -Message "Time Source Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                         }
                         if ( $NtpServer -and $SourceType ) {
                             try {
@@ -586,11 +588,11 @@ function Get-AbrADDomainController {
                             }
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Time Source Table)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Time Source Table)"
                     }
                 } else {
                     try {
-                        Write-PScriboMessage "Unable to collect infromation from $DC."
+                        Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                         $inObj = [ordered] @{
                             'Name' = $DC.ToString().ToUpper().Split(".")[0]
                             'Time Server' = "--"
@@ -598,7 +600,7 @@ function Get-AbrADDomainController {
                         }
                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (NTDS Item)"
                     }
                 }
             }
@@ -618,7 +620,7 @@ function Get-AbrADDomainController {
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Time Source)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Time Source)"
         }
         if ($HealthCheck.DomainController.Diagnostic) {
             try {
@@ -702,11 +704,11 @@ function Get-AbrADDomainController {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SRV Records Status Table)"
                         }
                     } else {
                         try {
-                            Write-PScriboMessage "Unable to collect infromation from $DC."
+                            Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                             $inObj = [ordered] @{
                                 'Name' = $DC.ToString().ToUpper().Split(".")[0]
                                 'A Record' = "--"
@@ -717,7 +719,7 @@ function Get-AbrADDomainController {
                             }
                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (NTDS Item)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (NTDS Item)"
                         }
                     }
                 }
@@ -745,7 +747,7 @@ function Get-AbrADDomainController {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SRV Records Status)"
             }
         }
         try {
@@ -762,7 +764,7 @@ function Get-AbrADDomainController {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
-                                Write-PScriboMessage -IsWarning "Domain Controllers File Shares Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                                Write-PScriboMessage -IsWarning -Message "Domain Controllers File Shares Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
                             if ($Shares) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
@@ -793,7 +795,7 @@ function Get-AbrADDomainController {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (File Shares Item)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (File Shares Item)"
                         }
                     }
                 }
@@ -812,7 +814,7 @@ function Get-AbrADDomainController {
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (File Shares Table)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (File Shares Table)"
         }
         if ($HealthCheck.DomainController.Software) {
             try {
@@ -830,7 +832,7 @@ function Get-AbrADDomainController {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
-                                Write-PScriboMessage -IsWarning "Domain Controller Installed Software Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                                Write-PScriboMessage -IsWarning -Message "Domain Controller Installed Software Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
 
                             If ($SoftwareX64) {
@@ -879,7 +881,7 @@ function Get-AbrADDomainController {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Installed Software Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Installed Software Table)"
                         }
                     }
                 }
@@ -891,7 +893,7 @@ function Get-AbrADDomainController {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Installed Software Section)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Installed Software Section)"
             }
             try {
                 $DCObj = @()
@@ -907,7 +909,7 @@ function Get-AbrADDomainController {
                                 if (-Not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
-                                Write-PScriboMessage -IsWarning "Domain Controller Pending Missing Patch Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                                Write-PScriboMessage -IsWarning -Message "Domain Controller Pending Missing Patch Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
 
                             if ( $Updates ) {
@@ -948,7 +950,7 @@ function Get-AbrADDomainController {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Installed Software Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Installed Software Table)"
                         }
                     }
                 }
@@ -960,11 +962,13 @@ function Get-AbrADDomainController {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Section)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Section)"
             }
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "Domain Controller"
+    }
 
 }

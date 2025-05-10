@@ -5,7 +5,7 @@ function Get-AbrADCASummary {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,8 @@ function Get-AbrADCASummary {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Certification Authority information."
+        Write-PScriboMessage -Message "Collecting Certification Authority information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Summary"
     }
 
     process {
@@ -55,6 +56,8 @@ function Get-AbrADCASummary {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Summary"
+    }
 
 }
