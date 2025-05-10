@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -22,7 +22,8 @@ function Get-AbrADDFSHealth {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain DFS Health information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message "Collecting AD Domain DFS Health information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "DFS Health"
     }
 
     process {
@@ -70,7 +71,7 @@ function Get-AbrADDFSHealth {
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
-                                Write-PScriboMessage -IsWarning "Sysvol Replication Status Iten Section: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "Sysvol Replication Status Iten Section: $($_.Exception.Message)"
                             }
                         }
 
@@ -112,10 +113,10 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No DFS information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message "No DFS information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "Sysvol Replication Status Table Section: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning -Message "Sysvol Replication Status Table Section: $($_.Exception.Message)"
             }
             try {
 
@@ -132,7 +133,7 @@ function Get-AbrADDFSHealth {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning "Sysvol Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
+                    Write-PScriboMessage -IsWarning -Message "Sysvol Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
                 }
                 if ($SYSVOLFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Content Status' {
@@ -148,7 +149,7 @@ function Get-AbrADDFSHealth {
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
-                                Write-PScriboMessage -IsWarning "Sysvol Health $($Extension.Extension) Section: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "Sysvol Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }
                         }
 
@@ -176,10 +177,10 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No SYSVOL folder information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message "No SYSVOL folder information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "Sysvol Health Table Section: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning -Message "Sysvol Health Table Section: $($_.Exception.Message)"
             }
             try {
                 $DCPssSession = Get-ValidPSSession -ComputerName $ValidDcFromDomain -SessionName $($ValidDcFromDomain) -PSSTable ([ref]$PSSTable)
@@ -195,7 +196,7 @@ function Get-AbrADDFSHealth {
                     if (-Not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning "Netlogon Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
+                    Write-PScriboMessage -IsWarning -Message "Netlogon Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
                 }
                 if ($NetlogonFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Netlogon Content Status' {
@@ -211,7 +212,7 @@ function Get-AbrADDFSHealth {
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
-                                Write-PScriboMessage -IsWarning "Netlogon Health $($Extension.Extension) Section: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "Netlogon Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }
                         }
 
@@ -239,14 +240,16 @@ function Get-AbrADDFSHealth {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No NETLOGON folder information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message "No NETLOGON folder information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "Netlogon Content Status Section: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning -Message "Netlogon Content Status Section: $($_.Exception.Message)"
             }
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "DFS Health"
+    }
 
 }

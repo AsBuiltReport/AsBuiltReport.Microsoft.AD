@@ -5,7 +5,7 @@ function Get-AbrADCATemplate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,7 +23,8 @@ function Get-AbrADCATemplate {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Templates information from $($CA.ComputerName)."
+        Write-PScriboMessage -Message "Collecting AD Certification Authority Templates information from $($CA.ComputerName)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Certificate Templates"
     }
 
     process {
@@ -44,7 +45,7 @@ function Get-AbrADCATemplate {
                             }
                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (CA Certificate Templates table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (CA Certificate Templates table)"
                         }
                     }
 
@@ -78,7 +79,7 @@ function Get-AbrADCATemplate {
                                                         }
                                                         $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                                     } catch {
-                                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Templates ACL Item)"
+                                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Templates ACL Item)"
                                                     }
                                                 }
                                                 $TableParams = @{
@@ -93,12 +94,12 @@ function Get-AbrADCATemplate {
                                             }
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Templates ACL Table)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Templates ACL Table)"
                                     }
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Issued Certificate Template ACLs Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Issued Certificate Template ACLs Section)"
                         }
                     }
                     if ($InfoLevel.CA -ge 2) {
@@ -119,7 +120,7 @@ function Get-AbrADCATemplate {
                                             }
                                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         } catch {
-                                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Template In Active Directory Item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Template In Active Directory Item)"
                                         }
                                     }
 
@@ -135,16 +136,18 @@ function Get-AbrADCATemplate {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Certificate Template In Active Directory Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Template In Active Directory Table)"
                         }
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (CA Certificate Templates section)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (CA Certificate Templates section)"
             }
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Certificate Templates"
+    }
 
 }

@@ -5,7 +5,7 @@ function Get-AbrADDuplicateSPN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,7 +20,8 @@ function Get-AbrADDuplicateSPN {
     )
 
     begin {
-        Write-PScriboMessage "Collecting duplicate SPN information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message "Collecting duplicate SPN information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Duplicate SPN"
     }
 
     process {
@@ -45,7 +46,7 @@ function Get-AbrADDuplicateSPN {
                                     $OutObj | Set-Style -Style Warning
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SPN Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SPN Item)"
                             }
                         }
 
@@ -69,14 +70,16 @@ function Get-AbrADDuplicateSPN {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Duplicate SPN information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message "No Duplicate SPN information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SPN Table)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SPN Table)"
             }
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Duplicate SPN"
+    }
 
 }

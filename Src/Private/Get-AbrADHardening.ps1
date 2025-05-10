@@ -5,7 +5,7 @@ function Get-AbrADHardening {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,8 @@ function Get-AbrADHardening {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Hardening information from $($Domain.Name.toUpper())."
+        Write-PScriboMessage -Message "Collecting AD Hardening information from $($Domain.Name.toUpper())."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Hardening"
     }
 
     process {
@@ -174,15 +175,16 @@ function Get-AbrADHardening {
                         }
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (ADHardening Item)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (ADHardening Item)"
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (ADHardening Section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (ADHardening Section)"
         }
     }
 
     end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Hardening"
     }
 
 }

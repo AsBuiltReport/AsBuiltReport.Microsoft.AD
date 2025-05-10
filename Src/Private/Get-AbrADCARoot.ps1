@@ -5,7 +5,7 @@ function Get-AbrADCARoot {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.3
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,8 @@ function Get-AbrADCARoot {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Per Domain information."
+        Write-PScriboMessage -Message "Collecting AD Certification Authority Per Domain information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Certification Authority Per Domain"
     }
 
     process {
@@ -66,6 +67,8 @@ function Get-AbrADCARoot {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Certification Authority Per Domain"
+    }
 
 }

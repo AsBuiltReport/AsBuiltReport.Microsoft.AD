@@ -5,7 +5,7 @@ function Get-AbrPKISection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.2
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,8 @@ function Get-AbrPKISection {
     )
 
     begin {
-        Write-PScriboMessage "Collecting PKI infrastructure information from $ForestInfo."
+        Write-PScriboMessage -Message "Collecting PKI infrastructure information from $ForestInfo."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "PKI Section"
     }
 
     process {
@@ -31,7 +32,7 @@ function Get-AbrPKISection {
                 Write-PScriboMessage -IsWarning $_.Exception.Message
             }
             if ($CurrentMachineADDomain.Name -in $ADSystem.Domains) {
-                Write-PScriboMessage "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
+                Write-PScriboMessage -Message "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
                 try {
                     $script:CAs = Get-CertificationAuthority -Enterprise
                 } catch {
@@ -106,9 +107,11 @@ function Get-AbrPKISection {
                     }
                 }
             } else {
-                Write-PScriboMessage -IsWarning "Current PC Domain $($CurrentMachineADDomain.Name) is not in the Forest Domain list of $($ADSystem.Name). Disabling Certificate Authority section"
+                Write-PScriboMessage -IsWarning -Message "Current PC Domain $($CurrentMachineADDomain.Name) is not in the Forest Domain list of $($ADSystem.Name). Disabling Certificate Authority section"
             }
         }
     }
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "PKI Section"
+    }
 }

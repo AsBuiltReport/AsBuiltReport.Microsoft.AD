@@ -5,7 +5,7 @@ function Get-AbrADDomainLastBackup {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,7 +20,8 @@ function Get-AbrADDomainLastBackup {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Domain last backup information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message "Collecting AD Domain last backup information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Last Backup"
     }
 
     process {
@@ -48,7 +49,7 @@ function Get-AbrADDomainLastBackup {
                                     $OutObj | Where-Object { $_.'Last Backup in Days' -gt 180 } | Set-Style -Style Warning -Property 'Last Backup in Days'
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Last Backup Item)"
                             }
                         }
 
@@ -74,14 +75,16 @@ function Get-AbrADDomainLastBackup {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Naming context last backup information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message "No Naming context last backup information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Last Backup Table)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Last Backup Table)"
             }
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Last Backup"
+    }
 
 }

@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,8 @@ function Get-AbrADOU {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory Organizational Unit information on domain $($Domain.DNSRoot)"
+        Write-PScriboMessage -Message "Collecting Active Directory Organizational Unit information on domain $($Domain.DNSRoot)"
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Organizational Unit"
     }
 
     process {
@@ -51,7 +52,7 @@ function Get-AbrADOU {
                             }
                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit Item)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Organizational Unit Item)"
                         }
                     }
 
@@ -93,7 +94,7 @@ function Get-AbrADOU {
                                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Blocked Inheritance GPO Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Blocked Inheritance GPO Item)"
                                     }
                                 }
                             }
@@ -123,18 +124,20 @@ function Get-AbrADOU {
                             }
 
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Blocked Inheritance GPO Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Blocked Inheritance GPO Section)"
                         }
                     }
                 }
             } else {
-                Write-PScriboMessage "No Organizational Units information found in $($Domain.DNSRoot), Disabling this section."
+                Write-PScriboMessage -Message "No Organizational Units information found in $($Domain.DNSRoot), Disabling this section."
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Organizational Unit Section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Organizational Unit Section)"
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Organizational Unit"
+    }
 
 }

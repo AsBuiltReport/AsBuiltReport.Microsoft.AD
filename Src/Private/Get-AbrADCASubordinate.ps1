@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,7 +19,8 @@ function Get-AbrADCASubordinate {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Per Domain information."
+        Write-PScriboMessage -Message "Collecting AD Certification Authority Per Domain information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Subordinate"
     }
 
     process {
@@ -70,6 +71,8 @@ function Get-AbrADCASubordinate {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Subordinate"
+    }
 
 }

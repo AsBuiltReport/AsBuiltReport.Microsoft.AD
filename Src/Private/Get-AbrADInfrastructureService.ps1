@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,7 +20,8 @@ function Get-AbrADInfrastructureService {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory DC Infrastructure Services information of $DC."
+        Write-PScriboMessage -Message "Collecting Active Directory DC Infrastructure Services information of $DC."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Controller Infrastructure Services"
     }
 
     process {
@@ -32,7 +33,7 @@ function Get-AbrADInfrastructureService {
                 if (-Not $_.Exception.MessageId) {
                     $ErrorMessage = $_.FullyQualifiedErrorId
                 } else { $ErrorMessage = $_.Exception.MessageId }
-                Write-PScriboMessage -IsWarning "Domain Controller Infrastructure Services Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                Write-PScriboMessage -IsWarning -Message "Domain Controller Infrastructure Services Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
             }
             if ($Available) {
                 $OutObj = @()
@@ -49,7 +50,7 @@ function Get-AbrADInfrastructureService {
                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Item)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Infrastructure Services Item)"
                     }
                 }
 
@@ -83,13 +84,15 @@ function Get-AbrADInfrastructureService {
                     }
                 }
             } else {
-                Write-PScriboMessage "No Infrastructure Services Status information found in $DC, Disabling this section."
+                Write-PScriboMessage -Message "No Infrastructure Services Status information found in $DC, Disabling this section."
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Domain Controller Infrastructure Services Section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Infrastructure Services Section)"
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Controller Infrastructure Services"
+    }
 
 }

@@ -5,7 +5,7 @@ function Get-AbrADCACryptographyConfig {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.1
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,7 +23,8 @@ function Get-AbrADCACryptographyConfig {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD Certification Authority Cryptography Config information."
+        Write-PScriboMessage -Message "Collecting CA Certification Authority Cryptography Config information."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Cryptography Configuration"
     }
 
     process {
@@ -63,6 +64,8 @@ function Get-AbrADCACryptographyConfig {
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "CA Cryptography Configuration"
+    }
 
 }

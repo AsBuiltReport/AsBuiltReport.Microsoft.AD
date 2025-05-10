@@ -5,7 +5,7 @@ function Get-AbrADDuplicateObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,7 +20,8 @@ function Get-AbrADDuplicateObject {
     )
 
     begin {
-        Write-PScriboMessage "Collecting duplicate Objects information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message "Collecting duplicate Objects information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Duplicate Objects"
     }
 
     process {
@@ -46,7 +47,7 @@ function Get-AbrADDuplicateObject {
                                     $OutObj | Set-Style -Style Warning
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Duplicate Object Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Duplicate Object Item)"
                             }
                         }
 
@@ -68,14 +69,16 @@ function Get-AbrADDuplicateObject {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Duplicate object information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message "No Duplicate object information found in $($Domain.DNSRoot), Disabling this section."
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Duplicate Object Table)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Duplicate Object Table)"
             }
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Duplicate Objects"
+    }
 
 }
