@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.5] - Unreleased
+## [0.9.5] - 2025-05-10
 
 ### Added
 
@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update PSScriptAnalyzer settings for enhanced code quality checks.
 - Bump module version to `0.9.5`.
 - Upgrade Diagrammer.Core module to version `0.2.26`.
-- Upgrade Diagrammer.Microsoft.AD module to version `0.2.16`.
+- Upgrade Diagrammer.Microsoft.AD module to version `0.2.15`.
 - Refactor the `Get-AbrDiagrammer` function to improve error handling.
 - Change watermark color from `DarkGreen` to `#565656` for better visibility.
 - Modified calls to Write-PScriboMessage to include the `-Message` parameter for clarity and consistency across scripts.
