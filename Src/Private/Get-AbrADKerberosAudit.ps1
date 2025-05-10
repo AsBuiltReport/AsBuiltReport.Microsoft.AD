@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,8 @@ function Get-AbrADKerberosAudit {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Kerberos Audit information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message "Collecting Kerberos Audit information on $($Domain.DNSRoot)."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Kerberos Audit"
     }
 
     process {
@@ -41,7 +42,7 @@ function Get-AbrADKerberosAudit {
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Item)"
                             }
                         }
 
@@ -67,7 +68,7 @@ function Get-AbrADKerberosAudit {
                         }
                     }
                 } else {
-                    Write-PScriboMessage "No Unconstrained Kerberos Delegation information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message "No Unconstrained Kerberos Delegation information found in $($Domain.DNSRoot), Disabling this section."
                 }
                 try {
                     $KRBTGT = $Users | Where-Object { $_.Name -eq 'krbtgt' }
@@ -85,7 +86,7 @@ function Get-AbrADKerberosAudit {
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (KRBTGT account Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (KRBTGT account Item)"
                             }
 
                             if ($HealthCheck.Domain.Security) {
@@ -110,10 +111,10 @@ function Get-AbrADKerberosAudit {
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No KRBTGT Account Audit information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message "No KRBTGT Account Audit information found in $($Domain.DNSRoot), Disabling this section."
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
                 try {
                     $SID = Invoke-Command -Session $TempPssSession { $($using:Domain).domainsid.ToString() + "-500" }
@@ -133,7 +134,7 @@ function Get-AbrADKerberosAudit {
                                 }
                                 $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                             } catch {
-                                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (ADMIN account Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (ADMIN account Item)"
                             }
 
                             if ($HealthCheck.Domain.Security) {
@@ -158,17 +159,19 @@ function Get-AbrADKerberosAudit {
                             }
                         }
                     } else {
-                        Write-PScriboMessage "No Administrator Account Audit information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message "No Administrator Account Audit information found in $($Domain.DNSRoot), Disabling this section."
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
             } catch {
-                Write-PScriboMessage -IsWarning "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
             }
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "AD Kerberos Audit"
+    }
 
 }

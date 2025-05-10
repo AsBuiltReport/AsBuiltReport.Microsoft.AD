@@ -5,7 +5,7 @@ function Get-AbrForestSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,14 +19,15 @@ function Get-AbrForestSection {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Forest information from $ForestInfo."
+        Write-PScriboMessage -Message "Collecting Forest information from $ForestInfo."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "Forest Section"
     }
 
     process {
         Section -Style Heading1 "$($ForestInfo.toUpper())" {
             Paragraph "The following section provides a summary of the Active Directory infrastructure configuration for $($ForestInfo)."
             BlankLine
-            Write-PScriboMessage "Forest InfoLevel set at $($InfoLevel.Forest)."
+            Write-PScriboMessage -Message "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -ge 1) {
                 try {
                     Section -Style Heading2 "Forest Configuration" {
@@ -60,11 +61,13 @@ function Get-AbrForestSection {
                         }
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning "Error: Unable to retreive Forest: $ForestInfo information."
+                    Write-PScriboMessage -IsWarning -Message "Error: Unable to retreive Forest: $ForestInfo information."
                     Write-PScriboMessage -IsWarning $_.Exception.Message
                 }
             }
         }
     }
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "Forest Section"
+    }
 }

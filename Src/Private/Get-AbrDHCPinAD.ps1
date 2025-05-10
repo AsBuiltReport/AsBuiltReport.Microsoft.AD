@@ -5,7 +5,7 @@ function Get-AbrDHCPinAD {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,7 +20,8 @@ function Get-AbrDHCPinAD {
     )
 
     begin {
-        Write-PScriboMessage "Collecting AD DHCP Servers information of $($ForestInfo.toUpper())."
+        Write-PScriboMessage -Message "Collecting AD DHCP Servers information of $($ForestInfo.toUpper())."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "DHCP Infrastructure"
     }
 
     process {
@@ -46,7 +47,7 @@ function Get-AbrDHCPinAD {
                                         Name = $Domain
                                         Status = 'Offline'
                                     }
-                                    Write-PScriboMessage -IsWarning "Unable to get an available DC in $Domain domain. Removing it from the report."
+                                    Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $Domain domain. Removing it from the report."
                                 }
                             } catch { Out-Null }
                         }
@@ -68,7 +69,7 @@ function Get-AbrDHCPinAD {
                             }
                             $DCHPInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
-                            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DHCP Item)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DHCP Item)"
                         }
                     }
 
@@ -83,13 +84,15 @@ function Get-AbrDHCPinAD {
                     $DCHPInfo | Sort-Object -Property 'Server Name' | Table @TableParams
                 }
             } else {
-                Write-PScriboMessage "No DHCP Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
+                Write-PScriboMessage -Message "No DHCP Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
             }
         } catch {
-            Write-PScriboMessage -IsWarning "$($_.Exception.Message) (DHCP Table)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DHCP Table)"
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "DHCP Infrastructure"
+    }
 
 }

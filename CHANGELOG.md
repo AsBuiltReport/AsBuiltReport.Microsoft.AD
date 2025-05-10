@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.5] - 2025-05-10
+
+### Added
+
+- Add Show-AbrDebugExecutionTime function to track execution time of operations
+
+### Changed
+
+- Update PSScriptAnalyzer settings for enhanced code quality checks.
+- Bump module version to `0.9.5`.
+- Upgrade Diagrammer.Core module to version `0.2.26`.
+- Upgrade Diagrammer.Microsoft.AD module to version `0.2.15`.
+- Refactor the `Get-AbrDiagrammer` function to improve error handling.
+- Change watermark color from `DarkGreen` to `#565656` for better visibility.
+- Modified calls to Write-PScriboMessage to include the `-Message` parameter for clarity and consistency across scripts.
+- Ensured that warning messages are properly formatted with the `-IsWarning` flag where applicable.
+- Enhanced logging messages to provide better context during execution, particularly in sections related to Active Directory, DHCP, DNS, and replication.
+- Added Show-AbrDebugExecutionTime function to track execution time for various AD reporting scripts.
+- Integrated execution time tracking in the following scripts:
+  - Get-AbrADDomainObject.ps1
+  - Get-AbrADDuplicateObject.ps1
+  - Get-AbrADDuplicateSPN.ps1
+  - Get-AbrADExchange.ps1
+  - Get-AbrADFSMO.ps1
+  - Get-AbrADForest.ps1
+  - Get-AbrADGPO.ps1
+  - Get-AbrADHardening.ps1
+  - Get-AbrADInfrastructureService.ps1
+  - Get-AbrADKerberosAudit.ps1
+  - Get-AbrADOU.ps1
+  - Get-AbrADSecurityAssessment.ps1
+  - Get-AbrADSite.ps1
+  - Get-AbrADSiteReplication.ps1
+  - Get-AbrADTrust.ps1
+  - Get-AbrDHCPinAD.ps1
+  - Get-AbrDNSSection.ps1
+  - Get-AbrDomainSection.ps1
+  - Get-AbrForestSection.ps1
+  - Get-AbrPKISection.ps1
+- Removed unnecessary comments and cleaned up code for better readability.
+
+### Fixed
+
+- Fix message in Get-AbrDiagrammer function to correctly reference DiagramType
+
 ## [0.9.4] - 2025-04-28
 
 ### Added

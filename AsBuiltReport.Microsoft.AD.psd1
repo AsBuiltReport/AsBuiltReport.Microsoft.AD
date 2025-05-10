@@ -12,7 +12,7 @@
     RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.9.4'
+    ModuleVersion = '0.9.5'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -66,11 +66,11 @@
         },
         @{
             ModuleName = 'Diagrammer.Microsoft.AD';
-            ModuleVersion = '0.2.14'
+            ModuleVersion = '0.2.15'
         },
         @{
             ModuleName = 'Diagrammer.Core';
-            ModuleVersion = '0.2.24'
+            ModuleVersion = '0.2.26'
         }
 
     )

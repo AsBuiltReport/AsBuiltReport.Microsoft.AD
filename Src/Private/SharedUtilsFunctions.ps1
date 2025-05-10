@@ -93,7 +93,7 @@ function ConvertTo-FileSizeString {
 #         if ($DCPssSessionDCDiag) {
 #             Remove-PSSession -Session $DCPssSessionDCDiag -ErrorAction SilentlyContinue
 #         }
-#         Write-PScriboMessage "Invoke-DcDiag - Failed to get DCDiag for $DomainController with error: $($_.Exception.Message)"
+#         Write-PScriboMessage -Message "Invoke-DcDiag - Failed to get DCDiag for $DomainController with error: $($_.Exception.Message)"
 #         return
 #     }
 #     $result | Select-String -Pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
@@ -827,7 +827,7 @@ function Get-WinADDuplicateSPN {
         [pscredential] $Credential
     )
     $Excluded = @(
-        'kadmin/changepw'
+        # 'kadmin/changepw'
         foreach ($Item in $Exclude) {
             $iTEM
         }
@@ -837,9 +837,8 @@ function Get-WinADDuplicateSPN {
     $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExtendedForestInformation $ExtendedForestInformation -Credential $Credential
     foreach ($Domain in $ForestInformation.Domains) {
         Write-PScriboMessage -Message "Get-WinADDuplicateSPN - Processing $Domain"
-        $Objects = (Get-ADObject -Credential $Credential -LDAPFilter "ServicePrincipalName=*" -Properties ServicePrincipalName -Server $ForestInformation['QueryServers'][$domain]['HostName'][0])
-        Write-PScriboMessage -Message "Get-WinADDuplicateSPN - Found $($Objects.Count) objects. Processing..."
-        foreach ($Object in $Objects) {
+        Write-PScriboMessage -Message "Get-WinADDuplicateSPN - Found $($Users.Count) objects. Processing..."
+        foreach ($Object in $Users) {
             foreach ($SPN in $Object.ServicePrincipalName) {
                 if (-not $SPNCache[$SPN]) {
                     $SPNCache[$SPN] = [PSCustomObject] @{
@@ -2519,7 +2518,7 @@ function Get-ValidPSSession {
     .DESCRIPTION
         Function to generate a valid WinRM session from a computer string.
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidPSSession -ComputerName 'server-dc-01v.pharmax.local'
@@ -2545,8 +2544,8 @@ function Get-ValidPSSession {
     if ((-Not $Options.WinRMFallbackToNoSSL) -and ($PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'PSSessionSSL' })) {
         throw "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
     } elseif (($Options.WinRMFallbackToNoSSL) -and ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSession' })) {
-        Write-PScriboMessage -Message "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
-        Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM)."
+        # Write-PScriboMessage -Message "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
+        Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM)."
         return Get-PSSession $PSessionObj.Id
     }
 
@@ -2651,7 +2650,7 @@ function Get-ValidCIMSession {
     .DESCRIPTION
         Function to generate a valid CIM session from a computer string.
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidCIMSession -ComputerName 'server-dc-01v.pharmax.local'
@@ -2673,7 +2672,7 @@ function Get-ValidCIMSession {
         throw "Unable to connect to $ComputerName through CimSession (CIM with SSL)."
     } elseif (($Options.WinRMFallbackToNoSSL) -and ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSession' })) {
         Write-PScriboMessage -Message "Unable to connect to $ComputerName through CimSession (CIM with SSL)."
-        Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' CimSession id: $($PSessionObj.Id) (WinRM)."
+        Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' CimSession id: $($CIMSessionObj.Id) (WinRM)."
         return Get-CimSession $CIMSessionObj.Id
     }
 
@@ -2765,20 +2764,3 @@ function Get-ValidCIMSession {
         }
     }
 }# end
-
-function Format-Color([hashtable] $Colors = @{}, [switch] $SimpleMatch) {
-    # taken from https://www.bgreco.net/powershell/format-color/
-    $lines = ($Input | Out-String) -replace "`r", "" -split "`n"
-    foreach ($Line in $Lines) {
-        $Color = ''
-        foreach ($Pattern in $Colors.Keys) {
-            if ((-Not $SimpleMatch) -and $Line -match $Pattern) { $color = $Colors[$Pattern] }
-            elseif ($SimpleMatch -and $Line -like $Pattern) { $color = $Colors[$Pattern] }
-        }
-        if ($color) {
-            Write-Host -ForegroundColor $Colors $Line
-        } else {
-            Write-Host $Line
-        }
-    }
-}

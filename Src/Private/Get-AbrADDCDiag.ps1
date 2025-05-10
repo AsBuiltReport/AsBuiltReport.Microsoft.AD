@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.4
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -26,7 +26,8 @@ function Get-AbrADDCDiag {
     )
 
     begin {
-        Write-PScriboMessage "Collecting Active Directory $DC DCDiag information for domain $Domain."
+        Write-PScriboMessage -Message "Collecting Active Directory $DC DCDiag information for domain $Domain."
+        Show-AbrDebugExecutionTime -Start -TitleMessage "DCDiag"
     }
 
     process {
@@ -68,7 +69,7 @@ function Get-AbrADDCDiag {
                             }
                             $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
                         } catch {
-                            Write-PScriboMessage -IsWarning "Active Directory DCDiag $($Result.TestName) Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "Active Directory DCDiag $($Result.TestName) Section: $($_.Exception.Message)"
                         }
                     }
                     if ($HealthCheck.DomainController.Diagnostic) {
@@ -85,12 +86,14 @@ function Get-AbrADDCDiag {
                     $OutObj | Sort-Object -Property 'Entity' | Table @TableParams
                 }
             } else {
-                Write-PScriboMessage "No DCDiag information found in $DC, Disabling this section."
+                Write-PScriboMessage -Message "No DCDiag information found in $DC, Disabling this section."
             }
         } catch {
-            Write-PScriboMessage -IsWarning "Active Directory DCDiag Section: $($_.Exception.Message)"
+            Write-PScriboMessage -IsWarning -Message "Active Directory DCDiag Section: $($_.Exception.Message)"
         }
     }
 
-    end {}
+    end {
+        Show-AbrDebugExecutionTime -End -TitleMessage "DCDiag"
+    }
 }
