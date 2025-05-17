@@ -36,19 +36,24 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-Host "- Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues" -ForegroundColor White
     Write-Host "- This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates." -ForegroundColor White
 
-    Try {
-        $InstalledVersion = Get-Module -ListAvailable -Name AsBuiltReport.Microsoft.AD -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
+    # Check the version of the dependency modules
+    $ModuleArray = @('AsBuiltReport.Microsoft.AD', 'Diagrammer.Microsoft.AD', 'Diagrammer.Core', 'PSPKI')
 
-        if ($InstalledVersion) {
-            Write-Host "- AsBuiltReport.Microsoft.AD v$($InstalledVersion.ToString()) is currently installed." -ForegroundColor White
-            $LatestVersion = Find-Module -Name AsBuiltReport.Microsoft.AD -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
-            if ([version]$LatestVersion -gt [version]$InstalledVersion) {
-                Write-Host "- AsBuiltReport.Microsoft.AD v$($LatestVersion.ToString()) update is available." -ForegroundColor Red
-                Write-Host "- Run 'Update-Module -Name AsBuiltReport.Microsoft.AD -Force' to install the latest version." -ForegroundColor Red
+    foreach ($Module in $ModuleArray) {
+        Try {
+            $InstalledVersion = Get-Module -ListAvailable -Name $Module -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
+
+            if ($InstalledVersion) {
+                Write-Host "- $Module module v$($InstalledVersion.ToString()) is currently installed."
+                $LatestVersion = Find-Module -Name $Module -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
+                if ($InstalledVersion -lt $LatestVersion) {
+                    Write-Host "  - $Module module v$($LatestVersion.ToString()) is available." -ForegroundColor Red
+                    Write-Host "  - Run 'Update-Module -Name $Module -Force' to install the latest version." -ForegroundColor Red
+                }
             }
+        } Catch {
+            Write-PScriboMessage -IsWarning $_.Exception.Message
         }
-    } Catch {
-        Write-PScriboMessage -IsWarning $_.Exception.Message
     }
 
     #Validate Required Modules and Features

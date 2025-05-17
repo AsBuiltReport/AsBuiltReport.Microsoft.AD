@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.6] - Unreleased
+
+### Changed
+
+Update module version to 0.9.6
+enhance execution time tracking in Get-AbrADDomainObject function
+
 ## [0.9.5] - 2025-05-10
 
 ### Added
