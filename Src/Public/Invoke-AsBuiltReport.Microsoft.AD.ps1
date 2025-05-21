@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -37,7 +37,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-Host "- This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates." -ForegroundColor White
 
     # Check the version of the dependency modules
-    $ModuleArray = @('AsBuiltReport.Microsoft.AD', 'Diagrammer.Microsoft.AD', 'Diagrammer.Core', 'PSPKI')
+    $ModuleArray = @('AsBuiltReport.Microsoft.AD', 'Diagrammer.Microsoft.AD', 'Diagrammer.Core')
 
     foreach ($Module in $ModuleArray) {
         Try {
@@ -158,6 +158,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #---------------------------------------------------------------------------------------------#
 
         if ($Options.ExportDiagrams) {
+            Write-Host " "
+            Write-Host "ExportDiagrams option enabled: Exporting diagrams:`n"
             $Options.DiagramType.PSobject.Properties | ForEach-Object { if ($_.Value) { Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $TempPssSession } }
         }
 
