@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update module version to 0.9.6
-- enhance execution time tracking in Get-AbrADDomainObject function
+- Enhance execution time tracking in Get-AbrADDomainObject function
+- Enhance output message in Invoke-AsBuiltReport function
 - Upgrade Diagrammer.Core module to version `0.2.27`.
 - Upgrade Diagrammer.Microsoft.AD module to version `0.2.16`.
 

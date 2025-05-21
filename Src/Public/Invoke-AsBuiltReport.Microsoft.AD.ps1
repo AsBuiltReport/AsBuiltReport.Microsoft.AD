@@ -159,7 +159,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         if ($Options.ExportDiagrams) {
             Write-Host " "
-            Write-Host "ExportDiagrams option enabled: Exporting diagrams:`n"
+            Write-Host "ExportDiagrams option enabled: Exporting diagrams:"
             $Options.DiagramType.PSobject.Properties | ForEach-Object { if ($_.Value) { Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $TempPssSession } }
         }
 
