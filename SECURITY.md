@@ -2,7 +2,7 @@ Thanks for helping make AsBuiltReport.Veeam.VBR safe for everyone.
 
 ## Security
 
-AsBuiltReport takes the security of our software products and services seriously, including all of the open source code repositories managed through our GitHub organizations, such as [GitHub](https://github.com/AsBuiltReport).
+AsBuiltReport takes the security of our software products and services seriously, including all of the open source code repositories managed through our GitHub organizations, such as [AsBuiltReport](https://github.com/AsBuiltReport).
 
 Even though "open source repositories are outside of the scope of bug bounty program and therefore not eligible for bounty rewards", we will ensure that your finding gets passed along to the appropriate maintainers for remediation. 
 
