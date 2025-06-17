@@ -5,7 +5,7 @@ function Get-AbrADCAAIA {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,10 +32,10 @@ function Get-AbrADCAAIA {
                 Paragraph "The following section provides the Certification Authority Information Access details."
                 BlankLine
                 try {
-                    $OutObj = @()
                     Write-PScriboMessage -Message "Collecting AD CA Authority Information Access information on $($CA.Name)."
                     $AIA = Get-AuthorityInformationAccess -CertificationAuthority $CA
                     foreach ($URI in $AIA.URI) {
+                        $OutObj = [System.Collections.ArrayList]::new()
                         try {
                             $inObj = [ordered] @{
                                 'Reg URI' = $URI.RegURI
@@ -45,7 +45,7 @@ function Get-AbrADCAAIA {
                                 'Include To Extension' = $URI.IncludeToExtension
                                 'OCSP' = $URI.OCSP
                             }
-                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                             $TableParams = @{
                                 Name = "Authority Information Access - $($CA.Name)"

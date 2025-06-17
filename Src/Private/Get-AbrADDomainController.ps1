@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,7 +27,7 @@ function Get-AbrADDomainController {
 
     process {
         try {
-            $OutObj = @()
+            $OutObj = [System.Collections.ArrayList]::new()
             foreach ($DC in $DCs) {
                 if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                     $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
@@ -58,7 +58,7 @@ function Get-AbrADDomainController {
                                 default { "Unknown" }
                             }
                         }
-                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Item)"
                     }
@@ -73,7 +73,7 @@ function Get-AbrADDomainController {
                             'Read Only' = "--"
                             'IP Address' = "--"
                         }
-                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Item)"
                     }
@@ -106,12 +106,12 @@ function Get-AbrADDomainController {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Table)"
         }
         try {
-            $OutObj = @()
+            $OutObj = [System.Collections.ArrayList]::new()
             $inObj = [ordered] @{
                 'Domain Controller' = ($DomainController | Measure-Object).Count
                 'Global Catalog' = ($GC | Measure-Object).Count
             }
-            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
             $TableParams = @{
                 Name = "Domain Controller Counts - $($Domain.DNSRoot.ToString().ToUpper())"
@@ -142,7 +142,6 @@ function Get-AbrADDomainController {
         }
         if ($InfoLevel.Domain -eq 2) {
             try {
-                $OutObj = @()
                 $DCConfiguration = foreach ($DC in $DCs) {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         $DCInfo = Invoke-Command -Session $TempPssSession { Get-ADDomainController -Identity $using:DC -Server $using:DC }
@@ -161,6 +160,7 @@ function Get-AbrADDomainController {
                             Section -Style Heading5 $DCInfo.Name {
                                 try {
                                     Section -ExcludeFromTOC -Style NOTOCHeading6 "General Information" {
+                                        $OutObj = [System.Collections.ArrayList]::new()
                                         $inObj = [ordered] @{
                                             'DC Name' = $DCInfo.Hostname
                                             'Domain Name' = Switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
@@ -182,7 +182,7 @@ function Get-AbrADDomainController {
                                             'SMB1 Status' = $DCNetSMBv1Setting.State
                                             'Description' = $DCComputerObject.Description
                                         }
-                                        $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.DomainController.BestPractice) {
                                             $OutObj | Where-Object { $_.'SMB1 Status' -eq 'Enabled' } | Set-Style -Style Critical -Property 'SMB1 Status'
@@ -211,11 +211,12 @@ function Get-AbrADDomainController {
                                 }
                                 try {
                                     Section -ExcludeFromTOC -Style NOTOCHeading6 "Partitions" {
+                                        $OutObj = [System.Collections.ArrayList]::new()
                                         $inObj = [ordered] @{
                                             'Default Partition' = $DCInfo.DefaultPartition
                                             'Partitions' = $DCInfo.Partitions
                                         }
-                                        $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
 
                                         $TableParams = @{
@@ -234,6 +235,7 @@ function Get-AbrADDomainController {
                                 try {
                                     if ($DCNetSettings) {
                                         Section -ExcludeFromTOC -Style NOTOCHeading6 "Networking Settings" {
+                                            $OutObj = [System.Collections.ArrayList]::new()
                                             $inObj = [ordered] @{
                                                 'IPv4 Addresses' = Switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv4' -or $_.AddressFamily -eq 2) -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address))) {
                                                     $true { "--" }
@@ -248,7 +250,7 @@ function Get-AbrADDomainController {
                                                 "LDAP Port" = $DCInfo.LdapPort
                                                 "LDAPS Port" = $DCInfo.SslPort
                                             }
-                                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                             if ($HealthCheck.DomainController.BestPractice) {
                                                 $OutObj | Where-Object { $_.'IPv4 Addresses'.Split(",").Count -gt 1 } | Set-Style -Style Warning -Property 'IPv4 Addresses'
@@ -278,7 +280,7 @@ function Get-AbrADDomainController {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Networking Settings Section)"
                                 }
                                 try {
-                                    $DCHWInfo = @()
+                                    $DCHWInfo = [System.Collections.ArrayList]::new()
                                     try {
                                         $CimSession = Get-ValidCIMSession -ComputerName $DC -SessionName $DC -CIMTable ([ref]$CIMTable)
                                         $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
@@ -312,7 +314,7 @@ function Get-AbrADDomainController {
                                                     } catch { '0.00 GB' }
                                                 }
                                             }
-                                            $DCHWInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            $DCHWInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         }
 
                                         if ($HealthCheck.DomainController.Diagnostic) {
@@ -368,8 +370,8 @@ function Get-AbrADDomainController {
         #                                 DNS IP Section                                              #
         #---------------------------------------------------------------------------------------------#
         try {
-            $OutObj = @()
-            $UnresolverDNS = @()
+            $OutObj = [System.Collections.ArrayList]::new()
+            $UnresolverDNS = [System.Collections.ArrayList]::new()
             foreach ($DC in $DCs) {
                 if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                     $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
@@ -389,7 +391,7 @@ function Get-AbrADDomainController {
                                 $Unresolver = Invoke-Command -Session $DCPssSession { Resolve-DnsName -Server $using:DNSServer -Name $using:PrimaryDNSSoA -DnsOnly -ErrorAction SilentlyContinue }
                             }
                             if ([string]::IsNullOrEmpty($Unresolver)) {
-                                $UnresolverDNS += $DNSServer
+                                $UnresolverDNS.Add($DNSServer) | Out-Null
                             }
                         }
                         foreach ($DNSSetting in $DNSSettings) {
@@ -402,7 +404,7 @@ function Get-AbrADDomainController {
                                     'DNS 3' = $DNSSetting.ServerAddresses[2]
                                     'DNS 4' = $DNSSetting.ServerAddresses[3]
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($DC.ToString().ToUpper().Split(".")[0]) DNS IP Configuration Section: $($_.Exception.Message)"
                             }
@@ -421,7 +423,7 @@ function Get-AbrADDomainController {
                             'DNS 3' = '--'
                             'DNS 4' = '--'
                         }
-                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DNS IP Configuration Item)"
                     }
@@ -487,7 +489,7 @@ function Get-AbrADDomainController {
         }
 
         try {
-            $OutObj = @()
+            $OutObj = [System.Collections.ArrayList]::new()
             foreach ($DC in $DCs) {
                 if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                     try {
@@ -512,7 +514,7 @@ function Get-AbrADDomainController {
                                 'Log Path' = $LogFiles
                                 'SysVol Path' = $SYSVOL
                             }
-                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (NTDS Item)"
@@ -527,7 +529,7 @@ function Get-AbrADDomainController {
                             'Log Path' = "--"
                             'SysVol Path' = "--"
                         }
-                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (NTDS Item)"
                     }
@@ -551,7 +553,7 @@ function Get-AbrADDomainController {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (NTDS section)"
         }
         try {
-            $OutObj = @()
+            $OutObj = [System.Collections.ArrayList]::new()
             foreach ($DC in $DCs) {
                 if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                     try {
@@ -582,7 +584,7 @@ function Get-AbrADDomainController {
                                         default { $SourceType }
                                     }
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
                                 Write-PScriboMessage -IsWarning  "$($_.Exception.Message) (Time Source Item)"
                             }
@@ -598,7 +600,7 @@ function Get-AbrADDomainController {
                             'Time Server' = "--"
                             'Type' = "--"
                         }
-                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (NTDS Item)"
                     }
@@ -624,7 +626,7 @@ function Get-AbrADDomainController {
         }
         if ($HealthCheck.DomainController.Diagnostic) {
             try {
-                $OutObj = @()
+                $OutObj = [System.Collections.ArrayList]::new()
                 foreach ($DC in $DCs) {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         try {
@@ -690,7 +692,7 @@ function Get-AbrADDomainController {
                                             default { 'OK' }
                                         }
                                     }
-                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
                                     Write-PScriboMessage -IsWarning  "$($_.Exception.Message) (SRV Records Status Item)"
                                 }
@@ -717,7 +719,7 @@ function Get-AbrADDomainController {
                                 'GC SRV' = "--"
                                 'DC SRV' = "--"
                             }
-                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (NTDS Item)"
                         }
@@ -752,7 +754,7 @@ function Get-AbrADDomainController {
         }
         try {
             if ($HealthCheck.DomainController.BestPractice) {
-                $OutObj = @()
+                $OutObj = [System.Collections.ArrayList]::new()
                 $OutObj = foreach ($DC in $DCs) {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         try {
@@ -768,14 +770,14 @@ function Get-AbrADDomainController {
                             }
                             if ($Shares) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
-                                    $FSObj = @()
+                                    $FSObj = [System.Collections.ArrayList]::new()
                                     foreach ($Share in $Shares) {
                                         $inObj = [ordered] @{
                                             'Name' = $Share.Name
                                             'Path' = $Share.Path
                                             'Description' = $Share.Description
                                         }
-                                        $FSObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $FSObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     }
 
                                     if ($HealthCheck.DomainController.BestPractice) {
@@ -818,11 +820,12 @@ function Get-AbrADDomainController {
         }
         if ($HealthCheck.DomainController.Software) {
             try {
+                # Todo: Fix arraylist issue with foreach
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         try {
-                            $Software = @()
+                            $Software = [System.Collections.ArrayList]::new()
                             $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                             if ($DCPssSession) {
@@ -836,15 +839,31 @@ function Get-AbrADDomainController {
                             }
 
                             If ($SoftwareX64) {
-                                $Software += $SoftwareX64
+                                foreach ($item in $SoftwareX64) {
+                                    $inObj = [ordered] @{
+                                        'Name' = $item.DisplayName
+                                        'Publisher' = $item.Publisher
+                                        'Install Date' = $item.InstallDate
+                                    }
+                                    $Software.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+
+                                }
                             }
                             If ($SoftwareX86) {
-                                $Software += $SoftwareX86
+                                foreach ($item in $SoftwareX86) {
+                                    $inObj = [ordered] @{
+                                        'Name' = $item.DisplayName
+                                        'Publisher' = $item.Publisher
+                                        'Install Date' = $item.InstallDate
+                                    }
+                                    $Software.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+
+                                }
                             }
 
                             if ( $Software ) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
-                                    $OutObj = @()
+                                    $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($APP in $Software) {
                                         try {
                                             $inObj = [ordered] @{
@@ -852,7 +871,7 @@ function Get-AbrADDomainController {
                                                 'Publisher' = $APP.Publisher
                                                 'Install Date' = $APP.InstallDate
                                             }
-                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                             if ($HealthCheck.DomainController.Software) {
                                                 $OutObj | Set-Style -Style Warning
@@ -896,11 +915,12 @@ function Get-AbrADDomainController {
                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Installed Software Section)"
             }
             try {
+                # Todo: Fix arraylist issue with foreach
                 $DCObj = @()
                 $DCObj += foreach ($DC in $DCs) {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         try {
-                            $Software = @()
+                            $Software = [System.Collections.ArrayList]::new()
                             $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
 
                             if ($DCPssSession ) {
@@ -914,14 +934,14 @@ function Get-AbrADDomainController {
 
                             if ( $Updates ) {
                                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
-                                    $OutObj = @()
+                                    $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($Update in $Updates) {
                                         try {
                                             $inObj = [ordered] @{
                                                 'KB Article' = "KB$($Update.KBArticleIDs)"
                                                 'Name' = $Update.Title
                                             }
-                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                             if ($HealthCheck.DomainController.Software) {
                                                 $OutObj | Set-Style -Style Warning

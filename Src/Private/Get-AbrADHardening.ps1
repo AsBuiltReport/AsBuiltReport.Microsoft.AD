@@ -5,7 +5,7 @@ function Get-AbrADHardening {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -107,7 +107,7 @@ function Get-AbrADHardening {
             Section -Style Heading3 'Active Directory Hardening' {
                 Paragraph "The following section provides a summary of the domain hardening configured in Active Directory."
                 BlankLine
-                $outObj = @()
+                $OutObj = [System.Collections.ArrayList]::new()
                 try {
                     $inObj = [ordered] @{
                         'NTLMv1 configuration' = $NTLMversion
@@ -116,7 +116,7 @@ function Get-AbrADHardening {
                         'Enforcing LDAP Signing' = $LDAPSigning
                         'Enforcing LDAP Channel Binding' = $LDAPChannelBinding
                     }
-                    $outObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                     if ($HealthCheck.Domain.BestPractice) {
                         $OutObj | Where-Object { $_.'NTLMv1 configuration' -in @('Send LM & NTLM responses', 'Send LM & NTLM - use NTLMv2 session security if negotiated', 'Send NTLM response only') } | Set-Style -Style Critical -Property 'NTLMv1 configuration'

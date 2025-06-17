@@ -5,7 +5,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,7 +28,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     }
 
     process {
-        $OutObj = @()
+        $OutObj = [System.Collections.ArrayList]::new()
         try {
             $KRA = Get-CAKRACertificate -CertificationAuthority $CA
             if ($KRA.Certificate) {
@@ -37,7 +37,7 @@ function Get-AbrADCAKeyRecoveryAgent {
                     'Server Name' = $KRA.ComputerName.ToString().ToUpper().Split(".")[0]
                     'Certificate' = $KRA.Certificate
                 }
-                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
             }
         } catch {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Key Recovery Agent Certificate Item)"

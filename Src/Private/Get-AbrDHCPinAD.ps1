@@ -5,7 +5,7 @@ function Get-AbrDHCPinAD {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -56,7 +56,7 @@ function Get-AbrDHCPinAD {
                 Section -Style Heading3 'DHCP Infrastructure' {
                     Paragraph "The following section provides a summary of the DHCP infrastructure configured on Active Directory."
                     BlankLine
-                    $DCHPInfo = @()
+                    $DCHPInfo = [System.Collections.ArrayList]::new()
                     foreach ($DHCPServer in $DHCPServers) {
                         try {
                             $inObj = [ordered] @{
@@ -67,7 +67,7 @@ function Get-AbrDHCPinAD {
                                     default { 'Unknown' }
                                 }
                             }
-                            $DCHPInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $DCHPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DHCP Item)"
                         }

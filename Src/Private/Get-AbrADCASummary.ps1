@@ -5,7 +5,7 @@ function Get-AbrADCASummary {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,7 +24,7 @@ function Get-AbrADCASummary {
     }
 
     process {
-        $OutObj = @()
+        $OutObj = [System.Collections.ArrayList]::new()
         if ($ForestInfo) {
             foreach ($CA in $CAs) {
                 try {
@@ -34,7 +34,7 @@ function Get-AbrADCASummary {
                         'Type' = $CA.Type
                         'Status' = $CA.ServiceStatus
                     }
-                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                 } catch {
                     Write-PScriboMessage -IsWarning $_.Exception.Message
                 }

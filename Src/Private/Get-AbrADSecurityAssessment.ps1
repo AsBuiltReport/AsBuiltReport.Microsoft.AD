@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -40,7 +40,7 @@ function Get-AbrADSecurityAssessment {
                 $DomainUserDoesNotRequirePreAuthArray = $DomainUsers | Where-Object { $_.DoesNotRequirePreAuth -eq $True } | Measure-Object
                 $DomainUsersWithSIDHistoryArray = $DomainUsers | Where-Object { $_.SIDHistory -like "*" } | Measure-Object
                 if ($DomainUsers) {
-                    $OutObj = @()
+                    $OutObj = [System.Collections.ArrayList]::new()
                     try {
                         $inObj = [ordered] @{
                             'Total Users' = $DomainUsers.Count
@@ -54,7 +54,7 @@ function Get-AbrADSecurityAssessment {
                             'Does Not Require Pre Auth' = $DomainUserDoesNotRequirePreAuthArray.Count
                             'Users With SID History' = $DomainUsersWithSIDHistoryArray.Count
                         }
-                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Account Security Assessment Item)"
                     }
@@ -112,7 +112,7 @@ function Get-AbrADSecurityAssessment {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Privileged Users Assessment' {
                             Paragraph "The following section details probable AD Admin accounts (user accounts with AdminCount set to 1) on Domain $($Domain.DNSRoot.ToString().ToUpper())"
                             BlankLine
-                            $OutObj = @()
+                            $OutObj = [System.Collections.ArrayList]::new()
                             $AccountNotDelegated = $PrivilegedUsers | Where-Object { -not $_.AccountNotDelegated -and $_.objectClass -eq "user" }
                             foreach ($PrivilegedUser in $PrivilegedUsers) {
                                 try {
@@ -137,7 +137,7 @@ function Get-AbrADSecurityAssessment {
                                             default { "Unknown" }
                                         }
                                     }
-                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Users Assessment Item)"
                                 }
@@ -197,7 +197,7 @@ function Get-AbrADSecurityAssessment {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Inactive Privileged Accounts' {
                             Paragraph "The following section details privileged accounts with the following filter (LastLogonDate >=30 days and PasswordLastSet >= 365 days) on Domain $($Domain.DNSRoot.ToString().ToUpper())"
                             BlankLine
-                            $OutObj = @()
+                            $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($InactivePrivilegedUser in $InactivePrivilegedUsers) {
                                 try {
                                     $inObj = [ordered] @{
@@ -215,7 +215,7 @@ function Get-AbrADSecurityAssessment {
                                             default { $InactivePrivilegedUser.LastLogonDate.ToShortDateString() }
                                         }
                                     }
-                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Inactive Privileged Accounts Item)"
                                 }
@@ -254,7 +254,7 @@ function Get-AbrADSecurityAssessment {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Service Accounts Assessment (Kerberoastable)' {
                             Paragraph "The following section details probable AD Service Accounts (user accounts with SPNs) on Domain $($Domain.DNSRoot.ToString().ToUpper())"
                             BlankLine
-                            $OutObj = @()
+                            $OutObj = [System.Collections.ArrayList]::new()
                             $AdminCount = ($UserSPNs | Where-Object { $_.AdminCount -eq 1 -and $_.SamAccountName -ne 'krbtgt' }).Name
                             foreach ($UserSPN in $UserSPNs) {
                                 try {
@@ -271,7 +271,7 @@ function Get-AbrADSecurityAssessment {
                                         }
                                         'Service Principal Name' = $UserSPN.ServicePrincipalName
                                     }
-                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Service Accounts Assessment Item)"
                                 }

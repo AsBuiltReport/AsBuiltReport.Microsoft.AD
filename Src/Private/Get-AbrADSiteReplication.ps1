@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,7 +30,7 @@ function Get-AbrADSiteReplication {
         if ($DCs) {
             Write-PScriboMessage -Message "Collecting Active Directory Sites Replication information on $($Domain.DNSRoot). (Sites Replication)"
             try {
-                $ReplInfo = @()
+                $ReplInfo = [System.Collections.ArrayList]::new()
                 foreach ($DC in $DCs) {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         $Replication = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Server $using:DC -Properties * }
@@ -57,7 +57,7 @@ function Get-AbrADSiteReplication {
                                             'Enabled' = $Repl.enabledConnection
                                             'Created' = ($Repl.Created).ToUniversalTime().toString("r")
                                         }
-                                        $ReplInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $ReplInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.Site.Replication) {
                                             $ReplInfo | Where-Object { $_.'Enabled' -ne 'Yes' } | Set-Style -Style Warning -Property 'Enabled'
@@ -129,7 +129,7 @@ function Get-AbrADSiteReplication {
                 }
                 if ($RepStatus) {
                     Section -Style Heading4 'Replication Status' {
-                        $OutObj = @()
+                        $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Status in $RepStatus) {
                             try {
                                 $inObj = [ordered] @{
@@ -141,7 +141,7 @@ function Get-AbrADSiteReplication {
                                     'Last Failure Time' = $Status.'Last Failure Time'
                                     'Failures' = $Status.'Number of Failures'
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Replication Status)"

@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,7 +34,7 @@ function Get-AbrADDCDiag {
         try {
             if ($DCDIAG = Invoke-DcDiag -DomainController $DC) {
                 Section -ExcludeFromTOC -Style NOTOCHeading4 $($DC.ToString().split('.')[0].ToUpper()) {
-                    $OutObj = @()
+                    $OutObj = [System.Collections.ArrayList]::new()
                     $Description = @{
                         "Advertising" = "Validates this Domain Controller can be correctly located through the KDC service. It does not validate the Kerberos tickets answer or the communication through the TCP and UDP port 88.", 'High'
                         "Connectivity" = "Initial connection validation, checks if the DC can be located in the DNS, validates the ICMP ping (1 hop), checks LDAP binding and also the RPC connection. This initial test requires ICMP, LDAP, DNS and RPC connectivity to work properly.", 'Medium'
@@ -67,7 +67,7 @@ function Get-AbrADDCDiag {
                                 'Impact' = $Description[$Result.TestName][1]
                                 'Description' = $Description[$Result.TestName][0]
                             }
-                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "Active Directory DCDiag $($Result.TestName) Section: $($_.Exception.Message)"
                         }

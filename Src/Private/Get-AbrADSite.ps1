@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -52,14 +52,14 @@ function Get-AbrADSite {
                         }
                     }
                     Section -Style Heading4 'Sites' {
-                        $OutObj = @()
+                        $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Item in $Site) {
                             try {
-                                $SubnetArray = @()
+                                $SubnetArray = [System.Collections.ArrayList]::new()
                                 $Subnets = $Item.Subnets
                                 foreach ($Object in $Subnets) {
                                     $SubnetName = Invoke-Command -Session $TempPssSession { Get-ADReplicationSubnet $using:Object }
-                                    $SubnetArray += $SubnetName.Name
+                                    $SubnetArray.Add($SubnetName.Name) | Out-Null
                                 }
                                 $inObj = [ordered] @{
                                     'Site Name' = $Item.Name
@@ -69,10 +69,10 @@ function Get-AbrADSite {
                                         default { $SubnetArray }
                                     }
                                     'Domain Controllers' = & {
-                                        $ServerArray = @()
+                                        $ServerArray = [System.Collections.ArrayList]::new()
                                         $Servers = try { Get-ADObjectSearch -DN "CN=Servers,$($Item.DistinguishedName)" -Filter { objectClass -eq "Server" } -Properties "DNSHostName" -SelectPrty 'DNSHostName', 'Name' -Session $TempPssSession } catch { 'Unknown' }
                                         foreach ($Object in $Servers) {
-                                            $ServerArray += $Object.Name
+                                            $ServerArray.Add($Object.Name) | Out-Null
                                         }
 
                                         if ($ServerArray) {
@@ -80,7 +80,7 @@ function Get-AbrADSite {
                                         } else { 'No DC assigned' }
                                     }
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Site)"
                             }
@@ -133,7 +133,7 @@ function Get-AbrADSite {
                         $Replications = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Properties * -Filter * }
                         if ($Replications) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Connection Objects' {
-                                $OutObj = @()
+                                $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($Repl in $Replications) {
                                     try {
                                         $inObj = [ordered] @{
@@ -148,7 +148,7 @@ function Get-AbrADSite {
                                             'To Server' = $Repl.ReplicateToDirectoryServer.Split(",")[0].SubString($Repl.ReplicateToDirectoryServer.Split(",")[0].IndexOf("=") + 1)
                                             'From Site' = $Repl.fromserver.Split(",")[3].SubString($Repl.fromserver.Split(",")[3].IndexOf("=") + 1)
                                         }
-                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.Site.Replication) {
                                             $OutObj | Where-Object { $_.'Name' -ne '<automatically generated>' } | Set-Style -Style Warning -Property 'Name'
@@ -188,7 +188,7 @@ function Get-AbrADSite {
                         $Subnet = Invoke-Command -Session $TempPssSession { Get-ADReplicationSubnet -Filter * -Properties * }
                         if ($Subnet) {
                             Section -Style Heading4 'Site Subnets' {
-                                $OutObj = @()
+                                $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($Item in $Subnet) {
                                     try {
                                         $inObj = [ordered] @{
@@ -200,7 +200,7 @@ function Get-AbrADSite {
                                                 default { 'Unknown' }
                                             }
                                         }
-                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.Site.BestPractice) {
                                             $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -247,7 +247,7 @@ function Get-AbrADSite {
                                 }
                                 if ($HealthCheck.Site.BestPractice) {
                                     try {
-                                        $OutObj = @()
+                                        $OutObj = [System.Collections.ArrayList]::new()
                                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
@@ -265,7 +265,7 @@ function Get-AbrADSite {
                                                                             'IP' = $Line.Split(":")[4].trim(" ").Split(" ")[1]
                                                                         }
 
-                                                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                                                     }
 
                                                                     if ($HealthCheck.Site.BestPractice) {
@@ -354,9 +354,9 @@ function Get-AbrADSite {
                                 Paragraph "Site links in Active Directory represent the inter-site connectivity and method used to transfer replication traffic. There are two transport protocols that can be used for replication via site links. The default protocol used in site link is IP, and it performs synchronous replication between available domain controllers. The SMTP method can be used when the link between sites is not reliable."
                                 BlankLine
                                 try {
-                                    $OutObj = @()
+                                    $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($Item in $InterSiteTransports) {
-                                        $SiteArray = @()
+                                        $SiteArray = [System.Collections.ArrayList]::new()
                                         Switch ($Item.options) {
                                             $null {
                                                 $BridgeAlSiteLinks = "Yes"
@@ -389,7 +389,7 @@ function Get-AbrADSite {
                                             'Bridge All Site Links' = $BridgeAlSiteLinks
                                             'Ignore Schedules' = $IgnoreSchedules
                                         }
-                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     }
 
                                     $TableParams = @{
@@ -410,14 +410,14 @@ function Get-AbrADSite {
                                             $IPLink = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "IP" } }
                                             if ($IPLink) {
                                                 Section -Style Heading5 'Site Links' {
-                                                    $OutObj = @()
                                                     foreach ($Item in $IPLink) {
+                                                        $OutObj = [System.Collections.ArrayList]::new()
                                                         try {
-                                                            $SiteArray = @()
+                                                            $SiteArray = [System.Collections.ArrayList]::new()
                                                             $Sites = $Item.siteList
                                                             foreach ($Object in $Sites) {
                                                                 $SiteName = Invoke-Command -Session $TempPssSession { Get-ADReplicationSite -Identity $using:Object }
-                                                                $SiteArray += $SiteName.Name
+                                                                $SiteArray.Add($SiteName.Name) | Out-Null
                                                             }
                                                             $inObj = [ordered] @{
                                                                 'Site Link Name' = $Item.Name
@@ -440,7 +440,7 @@ function Get-AbrADSite {
                                                                 'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
                                                                 'Description' = $Item.Description
                                                             }
-                                                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                                             if ($HealthCheck.Site.BestPractice) {
                                                                 $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -498,14 +498,14 @@ function Get-AbrADSite {
                                             $IPLinkBridges = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "IP" } }
                                             if ($IPLinkBridges) {
                                                 Section -Style Heading5 'Site Link Bridges' {
-                                                    $OutObj = @()
                                                     foreach ($Item in $IPLinkBridges) {
+                                                        $OutObj = [System.Collections.ArrayList]::new()
                                                         try {
-                                                            $SiteArray = @()
+                                                            $SiteArray = [System.Collections.ArrayList]::new()
                                                             $Sites = $Item.siteLinkList
                                                             foreach ($Object in $Sites) {
                                                                 $SiteName = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLink -Identity $using:Object }
-                                                                $SiteArray += $SiteName.Name
+                                                                $SiteArray.Add($SiteName.Name) | Out-Null
                                                             }
                                                             $inObj = [ordered] @{
                                                                 'Site Link Bridges Name' = $Item.Name
@@ -514,7 +514,7 @@ function Get-AbrADSite {
                                                                 'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
                                                                 'Description' = $Item.Description
                                                             }
-                                                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                                             if ($HealthCheck.Site.BestPractice) {
                                                                 $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -571,14 +571,14 @@ function Get-AbrADSite {
                                             Paragraph "SMTP replication is used for sites that cannot use the others, but as a general rule, it should never be used. It is reserved when network connections are not always available, therefore, you can schedule replication."
                                             try {
                                                 Section -Style Heading5 'Site Links' {
-                                                    $OutObj = @()
                                                     foreach ($Item in $IPLink) {
+                                                        $OutObj = [System.Collections.ArrayList]::new()
                                                         try {
-                                                            $SiteArray = @()
+                                                            $SiteArray = [System.Collections.ArrayList]::new()
                                                             $Sites = $Item.siteList
                                                             foreach ($Object in $Sites) {
                                                                 $SiteName = Invoke-Command -Session $TempPssSession { Get-ADReplicationSite -Identity $using:Object }
-                                                                $SiteArray += $SiteName.Name
+                                                                $SiteArray.Add($SiteName.Name) | Out-Null
                                                             }
                                                             $inObj = [ordered] @{
                                                                 'Site Link Name' = $Item.Name
@@ -601,7 +601,7 @@ function Get-AbrADSite {
                                                                 'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
                                                                 'Description' = $Item.Description
                                                             }
-                                                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                                             if ($HealthCheck.Site.BestPractice) {
                                                                 $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -656,14 +656,14 @@ function Get-AbrADSite {
                                                 $IPLinkBridges = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "SMTP" } }
                                                 if ($IPLinkBridges) {
                                                     Section -Style Heading5 'Site Link Bridges' {
-                                                        $OutObj = @()
                                                         foreach ($Item in $IPLinkBridges) {
+                                                            $OutObj = [System.Collections.ArrayList]::new()
                                                             try {
-                                                                $SiteArray = @()
+                                                                $SiteArray = [System.Collections.ArrayList]::new()
                                                                 $Sites = $Item.siteLinkList
                                                                 foreach ($Object in $Sites) {
                                                                     $SiteName = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLink -Identity $using:Object }
-                                                                    $SiteArray += $SiteName.Name
+                                                                    $SiteArray.Add($SiteName.Name) | Out-Null
                                                                 }
                                                                 $inObj = [ordered] @{
                                                                     'Site Link Bridges Name' = $Item.Name
@@ -672,7 +672,7 @@ function Get-AbrADSite {
                                                                     'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
                                                                     'Description' = $Item.Description
                                                                 }
-                                                                $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                                                 if ($HealthCheck.Site.BestPractice) {
                                                                     $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -687,7 +687,7 @@ function Get-AbrADSite {
                                                                 if ($Report.ShowTableCaptions) {
                                                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                                                 }
-                                                                $OutObj | Table @TableParamsSysvol Replication
+                                                                $OutObj | Table @TableParams
                                                                 if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' })))) {
                                                                     Paragraph "Health Check:" -Bold -Underline
                                                                     BlankLine
@@ -732,7 +732,7 @@ function Get-AbrADSite {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Site Subnets)"
                     }
                     try {
-                        $OutObj = @()
+                        $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
@@ -758,7 +758,7 @@ function Get-AbrADSite {
                                                 }
                                                 'Domain' = $Domain
                                             }
-                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "Sysvol Replication Item Section: $($_.Exception.Message)"
                                         }
@@ -798,7 +798,7 @@ function Get-AbrADSite {
                                             }
                                             'Domain' = $Domain
                                         }
-                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DNS IP Configuration Item)"
                                     }

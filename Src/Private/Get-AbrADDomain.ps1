@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -26,7 +26,7 @@ function Get-AbrADDomain {
     }
 
     process {
-        $OutObj = @()
+        $OutObj = [System.Collections.ArrayList]::new()
         if ($Domain) {
             try {
                 $RIDPool = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:ValidDcFromDomain -Identity "CN=RID Manager$,CN=System,$(($using:DomainInfo).DistinguishedName)" -Properties rIDAvailablePool -ErrorAction SilentlyContinue }
@@ -59,7 +59,7 @@ function Get-AbrADDomain {
                         'ms-DS-MachineAccountQuota' = Invoke-Command -Session $TempPssSession { (Get-ADObject -Server $using:ValidDcFromDomain -Identity (($using:Domain).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota' }
                         'RID Issued/Available' = try { "$($RIDsIssued) / $($RIDsRemaining) ($([math]::Truncate($CompleteSIDS / $RIDsRemaining))% Issued)" } catch { "$($RIDsIssued)/$($RIDsRemaining)" }
                     }
-                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                     if ($HealthCheck.Domain.BestPractice) {
                         if ([math]::Truncate($CompleteSIDS / $RIDsRemaining) -gt 80) {

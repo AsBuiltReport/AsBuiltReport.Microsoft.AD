@@ -5,7 +5,7 @@ function Get-AbrADDuplicateObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADDuplicateObject {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate Objects' {
                         Paragraph "The following section details Duplicate Objects discovered on Domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
-                        $OutObj = @()
+                        $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Object in $Objects) {
                             try {
                                 $inObj = [ordered] @{
@@ -41,7 +41,7 @@ function Get-AbrADDuplicateObject {
                                     'Changed' = $Object.WhenChanged.ToString("yyyy:MM:dd")
                                     'Conflict Changed' = $Object.ConflictWhenChanged.ToString("yyyy:MM:dd")
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                 if ($HealthCheck.Domain.DuplicateObject) {
                                     $OutObj | Set-Style -Style Warning

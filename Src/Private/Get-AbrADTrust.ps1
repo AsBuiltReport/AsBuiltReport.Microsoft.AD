@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADTrust {
                     $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:ValidDCFromDomain }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {
-                            $TrustInfo = @()
+                            $TrustInfo = [System.Collections.ArrayList]::new()
                             foreach ($Trust in $Trusts) {
                                 try {
                                     $inObj = [ordered] @{
@@ -73,7 +73,7 @@ function Get-AbrADTrust {
                                         'Kerberos RC4 Encryption' = $Trust.UsesRC4Encryption
                                         'Uplevel Only' = $Trust.UplevelOnly
                                     }
-                                    $TrustInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                    $TrustInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Trust Item)"
                                 }

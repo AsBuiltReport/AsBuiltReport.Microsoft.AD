@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,15 +32,15 @@ function Get-AbrADOU {
                 Section -Style Heading3 "Organizational Units" {
                     Paragraph "The following section provides a summary of Active Directory Organizational Unit information."
                     BlankLine
-                    $OutObj = @()
+                    $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($OU in $OUs) {
                         try {
-                            $GPOArray = @()
+                            $GPOArray = [System.Collections.ArrayList]::new()
                             [array]$GPOs = $OU.LinkedGroupPolicyObjects
                             foreach ($Object in $GPOs) {
                                 try {
                                     $GP = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:ValidDCFromDomain -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain ($using:Domain).DNSRoot }
-                                    $GPOArray += $GP.DisplayName
+                                    $GPOArray.Add($GP.DisplayName) | Out-Null
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
@@ -50,7 +50,7 @@ function Get-AbrADOU {
                                 'Linked GPO' = ($GPOArray -join ", ")
                                 'Protected' = $OU.ProtectedFromAccidentalDeletion
                             }
-                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Organizational Unit Item)"
                         }
@@ -79,7 +79,7 @@ function Get-AbrADOU {
                     }
                     if ($HealthCheck.Domain.GPO) {
                         try {
-                            $OutObj = @()
+                            $OutObj = [System.Collections.ArrayList]::new()
                             if ($OUs) {
                                 foreach ($OU in $OUs) {
                                     try {
@@ -91,7 +91,7 @@ function Get-AbrADOU {
                                                 'Inheritance Blocked' = $GpoInheritance.GpoInheritanceBlocked
                                                 'Path' = ConvertTo-ADCanonicalName -DN $GpoInheritance.Path -Domain $Domain.DNSRoot -DC $ValidDCFromDomain
                                             }
-                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         }
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Blocked Inheritance GPO Item)"

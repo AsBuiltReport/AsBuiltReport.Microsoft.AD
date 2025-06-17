@@ -5,7 +5,7 @@ function Get-AbrADCATemplate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,7 +34,7 @@ function Get-AbrADCATemplate {
                 Section -Style Heading3 "Certificate Template Summary" {
                     Paragraph "The following section provides the certificate templates that are assigned to a specified Certification Authority (CA). CA server can issue certificates only based on assigned templates."
                     BlankLine
-                    $OutObj = @()
+                    $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($Template in $Templates) {
                         try {
                             $inObj = [ordered] @{
@@ -43,7 +43,7 @@ function Get-AbrADCATemplate {
                                 'Supported CA' = $Template.SupportedCA
                                 'Autoenrollment' = $Template.AutoenrollmentAllowed
                             }
-                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (CA Certificate Templates table)"
                         }
@@ -68,7 +68,7 @@ function Get-AbrADCATemplate {
                                         $Rights = Get-CertificateTemplateAcl -Template $Template | Select-Object -ExpandProperty Access
                                         if ($Rights) {
                                             Section -ExcludeFromTOC -Style NOTOCHeading5 "$($Template.DisplayName)" {
-                                                $OutObj = @()
+                                                $OutObj = [System.Collections.ArrayList]::new()
                                                 foreach ($Right in $Rights) {
                                                     try {
                                                         $inObj = [ordered] @{
@@ -77,7 +77,7 @@ function Get-AbrADCATemplate {
                                                             'Rights' = $Right.Rights
                                                             'Inherited' = $Right.IsInherited
                                                         }
-                                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                                     } catch {
                                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Templates ACL Item)"
                                                     }
@@ -109,7 +109,7 @@ function Get-AbrADCATemplate {
                                 Section -Style Heading4 "Certificate Template In Active Directory" {
                                     Paragraph "The following section provides registered certificate templates from Active Directory."
                                     BlankLine
-                                    $OutObj = @()
+                                    $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($Template in $Templates) {
                                         try {
                                             $inObj = [ordered] @{
@@ -118,7 +118,7 @@ function Get-AbrADCATemplate {
                                                 'Supported CA' = $Template.SupportedCA
                                                 'Autoenrollment' = $Template.AutoenrollmentAllowed
                                             }
-                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Template In Active Directory Item)"
                                         }

@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,7 @@ function Get-AbrADDNSInfrastructure {
                 Section -Style Heading3 "Infrastructure Summary" {
                     Paragraph "The following section provides a summary of the DNS Infrastructure configuration."
                     BlankLine
-                    $OutObj = @()
+                    $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($DC in $DCs) {
                         if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                             try {
@@ -44,7 +44,7 @@ function Get-AbrADDNSInfrastructure {
                                     'ReadOnly DC' = ($DNSSetting.IsReadOnlyDC)
                                     'Listening IP' = $DNSSetting.ListeningIPAddress
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "DNS Infrastructure Summary Section: $($_.Exception.Message)"
                             }
@@ -72,7 +72,7 @@ function Get-AbrADDNSInfrastructure {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                         try {
                                             Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
-                                                $OutObj = @()
+                                                $OutObj = [System.Collections.ArrayList]::new()
                                                 $DNSSetting = Get-DnsServerDirectoryPartition -CimSession $TempCIMSession -ComputerName $DC
                                                 foreach ($Partition in $DNSSetting) {
                                                     try {
@@ -89,7 +89,7 @@ function Get-AbrADDNSInfrastructure {
                                                             'Flags' = $Partition.Flags
                                                             'Zone Count' = $Partition.ZoneCount
                                                         }
-                                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                                     } catch {
                                                         Write-PScriboMessage -IsWarning -Message "Directory Partitions Item Section: $($_.Exception.Message)"
                                                     }
@@ -120,7 +120,7 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading4 "Response Rate Limiting (RRL)" {
-                                $OutObj = @()
+                                $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                         try {
@@ -135,7 +135,7 @@ function Get-AbrADDNSInfrastructure {
                                                 'Truncate Rate' = $DNSSetting.TruncateRate
 
                                             }
-                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
                                         }
@@ -162,7 +162,7 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading4 "Scavenging Options" {
-                                $OutObj = @()
+                                $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                         try {
@@ -183,7 +183,7 @@ function Get-AbrADDNSInfrastructure {
                                                     default { $DNSSetting.ScavengingState }
                                                 }
                                             }
-                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Scavenging Item)"
                                         }
@@ -221,7 +221,7 @@ function Get-AbrADDNSInfrastructure {
                     #---------------------------------------------------------------------------------------------#
                     try {
                         Section -Style Heading4 "Forwarder Options" {
-                            $OutObj = @()
+                            $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($DC in $DCs) {
                                 if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                     try {
@@ -234,7 +234,7 @@ function Get-AbrADDNSInfrastructure {
                                             'Use Root Hint' = ($DNSSetting.UseRootHint)
                                             'Use Recursion' = ($Recursion)
                                         }
-                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Forwarder Item)"
                                     }
@@ -294,7 +294,7 @@ function Get-AbrADDNSInfrastructure {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                         try {
                                             Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
-                                                $OutObj = @()
+                                                $OutObj = [System.Collections.ArrayList]::new()
                                                 $DNSSetting = Get-DnsServerRootHint -CimSession $TempCIMSession -ComputerName $DC -ErrorAction SilentlyContinue | Select-Object @{Name = "Name"; E = { $_.NameServer.RecordData.Nameserver } }, @{ Name = "IPv4Address"; E = { $_.IPAddress.RecordData.IPv4Address.IPAddressToString } }, @{ Name = "IPv6Address"; E = { $_.IPAddress.RecordData.IPv6Address.IPAddressToString } }
                                                 if ($DNSSetting) {
                                                     foreach ($Hints in $DNSSetting) {
@@ -312,7 +312,7 @@ function Get-AbrADDNSInfrastructure {
                                                                     default { 'Unknown' }
                                                                 }
                                                             }
-                                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                                         } catch {
                                                             Write-PScriboMessage -IsWarning $_.Exception.Message
                                                         }
@@ -339,7 +339,7 @@ function Get-AbrADDNSInfrastructure {
                                                             'IPv4 Address' = "--"
                                                             'IPV6 Address' = "--"
                                                         }
-                                                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                                     }
 
                                                 }
@@ -392,7 +392,7 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading4 "Zone Scope Recursion" {
-                                $OutObj = @()
+                                $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                         try {
@@ -406,7 +406,7 @@ function Get-AbrADDNSInfrastructure {
                                                 'Forwarder' = $DNSSetting.Forwarder
                                                 'Use Recursion' = ($DNSSetting.EnableRecursion)
                                             }
-                                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Scope Recursion Item)"
                                         }

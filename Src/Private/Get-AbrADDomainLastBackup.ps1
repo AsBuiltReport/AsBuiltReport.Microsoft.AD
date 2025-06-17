@@ -5,7 +5,7 @@ function Get-AbrADDomainLastBackup {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADDomainLastBackup {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Naming Context Last Backup' {
                         Paragraph "The following section details naming context last backup time for Domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
-                        $OutObj = @()
+                        $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($LastBackup in $LastBackups) {
                             try {
                                 $inObj = [ordered] @{
@@ -43,7 +43,7 @@ function Get-AbrADDomainLastBackup {
                                     }
                                     'Last Backup in Days' = $LastBackup.LastBackupDaysAgo
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                 if ($HealthCheck.Domain.Backup) {
                                     $OutObj | Where-Object { $_.'Last Backup in Days' -gt 180 } | Set-Style -Style Warning -Property 'Last Backup in Days'

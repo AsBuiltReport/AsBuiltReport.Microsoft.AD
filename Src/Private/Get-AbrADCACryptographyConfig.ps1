@@ -5,7 +5,7 @@ function Get-AbrADCACryptographyConfig {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,7 +34,7 @@ function Get-AbrADCACryptographyConfig {
                 Section -Style Heading3 "Cryptography Configuration" {
                     Paragraph "The following section provides the Certification Authority Cryptography Configuration information."
                     BlankLine
-                    $OutObj = @()
+                    $OutObj = [System.Collections.ArrayList]::new()
                     try {
                         $inObj = [ordered] @{
                             'CA Name' = $CryptoConfig.Name
@@ -45,7 +45,7 @@ function Get-AbrADCACryptographyConfig {
                             'Alternate Signature Algorithm' = $CryptoConfig.AlternateSignatureAlgorithm
                             'Provider Is CNG' = $CryptoConfig.ProviderIsCNG
                         }
-                        $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                         $TableParams = @{
                             Name = "Cryptography Configuration - $($ForestInfo.ToString().ToUpper())"

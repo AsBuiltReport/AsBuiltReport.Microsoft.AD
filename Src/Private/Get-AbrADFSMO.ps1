@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,7 +34,7 @@ function Get-AbrADFSMO {
                     if ($DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)) {
                         Section -Style Heading3 'FSMO Roles' {
                             $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
-                            $OutObj = @()
+                            $OutObj = [System.Collections.ArrayList]::new()
                             try {
                                 $inObj = [ordered] @{
                                     'Infrastructure Master' = $DomainData.InfrastructureMaster
@@ -43,7 +43,7 @@ function Get-AbrADFSMO {
                                     'Domain Naming Master' = $ForestData.DomainNamingMaster
                                     'Schema Master' = $ForestData.SchemaMaster
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Flexible Single Master Operations)"
                             }

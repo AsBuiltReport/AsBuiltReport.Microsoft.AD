@@ -5,7 +5,7 @@ function Get-AbrADDuplicateSPN {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADDuplicateSPN {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate SPN' {
                         Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
-                        $OutObj = @()
+                        $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($SPN in $SPNs) {
                             try {
                                 $inObj = [ordered] @{
@@ -40,7 +40,7 @@ function Get-AbrADDuplicateSPN {
                                     'Count' = $SPN.Count
                                     'Distinguished Name' = $SPN.List
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                 if ($HealthCheck.Domain.SPN) {
                                     $OutObj | Set-Style -Style Warning
