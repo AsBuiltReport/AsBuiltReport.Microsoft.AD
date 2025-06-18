@@ -841,9 +841,9 @@ function Get-AbrADDomainController {
                             If ($SoftwareX64) {
                                 foreach ($item in $SoftwareX64) {
                                     $inObj = [ordered] @{
-                                        'Name' = $item.DisplayName
+                                        'DisplayName' = $item.DisplayName
                                         'Publisher' = $item.Publisher
-                                        'Install Date' = $item.InstallDate
+                                        'InstallDate' = $item.InstallDate
                                     }
                                     $Software.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
@@ -852,9 +852,9 @@ function Get-AbrADDomainController {
                             If ($SoftwareX86) {
                                 foreach ($item in $SoftwareX86) {
                                     $inObj = [ordered] @{
-                                        'Name' = $item.DisplayName
+                                        'DisplayName' = $item.DisplayName
                                         'Publisher' = $item.Publisher
-                                        'Install Date' = $item.InstallDate
+                                        'InstallDate' = $item.InstallDate
                                     }
                                     $Software.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
