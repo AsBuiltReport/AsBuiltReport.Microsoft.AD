@@ -35,7 +35,7 @@ function Get-AbrDomainSection {
                                 $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
-                                    Paragraph "The following section provides a summary of the Active Directory Domain Information."
+                                    Paragraph "This section provides a comprehensive summary of the Active Directory domain configuration and key details."
                                     BlankLine
                                     Get-AbrADDomain -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADFSMO -Domain $DomainInfo -ValidDcFromDomain $ValidDC
@@ -61,10 +61,10 @@ function Get-AbrDomainSection {
                                         }
                                         if (-Not $Options.ShowDefinitionInfo) {
                                             if ($InfoLevel.Domain -ge 2) {
-                                                Paragraph "The following section provides detailed information about Active Directory domain controllers."
+                                                Paragraph "The following section presents an in-depth overview of the Active Directory domain controllers, including their configuration and key details."
                                                 BlankLine
                                             } else {
-                                                Paragraph "The following section provides an overview of Active Directory domain controllers."
+                                                Paragraph "The following section provides a summary of the configuration and key details of the Active Directory domain controllers."
                                                 BlankLine
                                             }
                                         }
@@ -83,7 +83,7 @@ function Get-AbrDomainSection {
                                                 }
                                                 if ($RolesObj) {
                                                     Section -Style Heading4 "Roles" {
-                                                        Paragraph "The following section provides a summary of installed role & features on $($DomainInfo.DNSRoot) DCs."
+                                                        Paragraph "The following section provides a detailed overview of the installed roles and features on domain controllers in $($DomainInfo.DNSRoot)."
                                                         $RolesObj
                                                     }
                                                 }
@@ -96,7 +96,7 @@ function Get-AbrDomainSection {
                                                 }
                                                 if ($ADInfraServices) {
                                                     Section -Style Heading4 "Infrastructure Services" {
-                                                        Paragraph "The following section provides a summary of the Domain Controller Infrastructure services status."
+                                                        Paragraph "The following section provides a detailed overview of the status and configuration of infrastructure services on the domain controllers."
                                                         $ADInfraServices
                                                     }
                                                 }
@@ -132,7 +132,7 @@ function Get-AbrDomainSection {
                         BlankLine
                     }
                     if (-Not $Options.ShowDefinitionInfo) {
-                        Paragraph "The following section provides a summary of the Active Directory domain information."
+                        Paragraph "The following section presents an overview of the Active Directory domain configuration and key details."
                         BlankLine
                     }
                     $DomainObj

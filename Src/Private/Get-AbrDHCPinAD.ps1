@@ -54,7 +54,7 @@ function Get-AbrDHCPinAD {
                     )
                 } catch { Out-Null }
                 Section -Style Heading3 'DHCP Infrastructure' {
-                    Paragraph "The following section provides a summary of the DHCP infrastructure configured on Active Directory."
+                    Paragraph "The following section summarizes the DHCP infrastructure currently configured in Active Directory."
                     BlankLine
                     $DCHPInfo = [System.Collections.ArrayList]::new()
                     foreach ($DHCPServer in $DHCPServers) {

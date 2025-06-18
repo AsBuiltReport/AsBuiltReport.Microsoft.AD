@@ -142,7 +142,7 @@ function Get-AbrADForest {
                         BlankLine
                     }
                     if (-Not $Options.ShowDefinitionInfo) {
-                        Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
+                        Paragraph "The following section summarizes the Public Key Infrastructure (PKI) configuration within the Active Directory environment."
                         BlankLine
                     }
                     if ($rootCA) {

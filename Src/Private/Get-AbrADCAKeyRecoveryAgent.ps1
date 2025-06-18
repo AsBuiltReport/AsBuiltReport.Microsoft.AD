@@ -45,7 +45,7 @@ function Get-AbrADCAKeyRecoveryAgent {
 
         if ($OutObj) {
             Section -Style Heading3 "Key Recovery Agent Certificate" {
-                Paragraph "The following section provides the Key Recovery Agent certificate used to encrypt user's certificate private key and store it in CA database. In the case when user cannot access his or her certificate private key it is possible to recover it by Key Recovery Agent if Key Archival procedure was taken against particular certificate."
+                Paragraph "This section provides details about the Key Recovery Agent certificate, which is used to encrypt users' certificate private keys for storage in the CA database. If a user loses access to their certificate private key, the Key Recovery Agent can recover it, provided that key archival was performed for the certificate."
                 BlankLine
                 foreach ($Item in $OutObj) {
                     $TableParams = @{

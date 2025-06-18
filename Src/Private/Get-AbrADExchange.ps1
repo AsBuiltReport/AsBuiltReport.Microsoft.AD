@@ -28,7 +28,7 @@ function Get-AbrADExchange {
         try {
             if ($EXServers ) {
                 Section -Style Heading3 'Exchange Infrastructure' {
-                    Paragraph "The following section provides a summary of the Exchange Infrastructure configured on Active Directory."
+                    Paragraph "This section presents a detailed summary of the Exchange infrastructure configured within the Active Directory environment."
                     BlankLine
                     $EXInfo = [System.Collections.ArrayList]::new()
                     foreach ($EXServer in $EXServers) {

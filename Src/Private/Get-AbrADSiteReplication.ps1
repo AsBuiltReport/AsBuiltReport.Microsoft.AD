@@ -76,7 +76,7 @@ function Get-AbrADSiteReplication {
                 if ($ReplInfo) {
                     if ($InfoLevel.Domain -ge 2) {
                         Section -Style Heading4 'Replication Connection' {
-                            Paragraph "The following section provides detailed information about Replication Connection."
+                            Paragraph "This section provides comprehensive details about each Active Directory replication connection."
                             BlankLine
                             foreach ($Repl in ($ReplInfo | Sort-Object -Property 'Replicate From Directory Server')) {
                                 Section -Style NOTOCHeading4 -ExcludeFromTOC "Site: $($Repl.'From Site'): From: $($Repl.'From Server') To: $($Repl.'To Server')" {
@@ -94,7 +94,7 @@ function Get-AbrADSiteReplication {
                         }
                     } else {
                         Section -Style Heading4 'Replication Connection' {
-                            Paragraph "The following section provide connection objects to source server ."
+                            Paragraph "The following section provides details about the replication connection objects to the source servers."
                             BlankLine
                             $TableParams = @{
                                 Name = "Replication Connection - $($Domain.DNSRoot.ToString().ToUpper())"

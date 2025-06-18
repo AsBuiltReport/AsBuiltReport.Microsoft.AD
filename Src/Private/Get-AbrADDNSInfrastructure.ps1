@@ -29,7 +29,7 @@ function Get-AbrADDNSInfrastructure {
         try {
             if ($DCs) {
                 Section -Style Heading3 "Infrastructure Summary" {
-                    Paragraph "The following section provides a summary of the DNS Infrastructure configuration."
+                    Paragraph "This section provides an overview of the current DNS Infrastructure configuration for the domain."
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($DC in $DCs) {
@@ -66,7 +66,7 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading4 "Application Directory Partition" {
-                                Paragraph "The following section provides Directory Partition information."
+                                Paragraph "This section details the Application Directory Partitions configured on each DNS server."
                                 BlankLine
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
@@ -288,7 +288,7 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading4 "Root Hints" {
-                                Paragraph "The following section provides Root Hints information from domain $($Domain.DNSRoot)."
+                                Paragraph "This section provides detailed Root Hints information for the domain $($Domain.DNSRoot)."
                                 BlankLine
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {

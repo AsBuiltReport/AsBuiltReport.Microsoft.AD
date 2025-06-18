@@ -26,7 +26,7 @@ function Get-AbrADDomainObject {
 
     process {
         Section -Style Heading3 'Domain Objects' {
-            Paragraph "The following section details information about computers, groups and users objects found in $($Domain.DNSRoot) "
+            Paragraph "The following section provides detailed information about computer, group, and user objects found in the $($Domain.DNSRoot) domain."
             try {
                 try {
                     $script:DomainSID = $Domain.domainsid
@@ -386,7 +386,7 @@ function Get-AbrADDomainObject {
                             }
                             if ($GroupsSID) {
                                 if ($InfoLevel.Domain -eq 1) {
-                                    Paragraph "The following section summarizes the counts of users within the privileged groups."
+                                    Paragraph "The following section provides a summary of the number of users in each privileged group."
                                     BlankLine
                                     foreach ($GroupSID in $GroupsSID) {
                                         try {
@@ -450,7 +450,7 @@ function Get-AbrADDomainObject {
                                         }
                                     }
                                 } else {
-                                    Paragraph "The following section details the members users within the privilege groups. (Empty group are excluded)"
+                                    Paragraph "The following section provides detailed information about the user members of each privileged group. Groups without members are excluded."
                                     BlankLine
                                     foreach ($GroupSID in $GroupsSID) {
                                         try {
@@ -579,7 +579,7 @@ function Get-AbrADDomainObject {
                                 }
                                 if ($OutObj) {
                                     Section -Style Heading5 'Privileged Group (Non-Default)' {
-                                        Paragraph "The following section summarizes the privileged groups with AdminCount set to 1 (non-defaults)."
+                                        Paragraph "The following section provides a summary of privileged groups with the AdminCount attribute set to 1 (excluding default groups)."
                                         BlankLine
                                         $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
                                         Paragraph "Health Check:" -Bold -Underline

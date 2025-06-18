@@ -105,7 +105,7 @@ function Get-AbrADHardening {
 
         try {
             Section -Style Heading3 'Active Directory Hardening' {
-                Paragraph "The following section provides a summary of the domain hardening configured in Active Directory."
+                Paragraph "This section summarizes the current Active Directory domain hardening configurations and their security status."
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
                 try {

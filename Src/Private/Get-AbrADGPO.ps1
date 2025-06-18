@@ -28,7 +28,7 @@ function Get-AbrADGPO {
     process {
         try {
             Section -Style Heading4 "Group Policy Objects" {
-                Paragraph "The following section provides a summary of the Group Policy Objects for domain $($Domain.DNSRoot.ToString().ToUpper())."
+                Paragraph "The following section summarizes the Group Policy Objects (GPOs) configured in the $($Domain.DNSRoot.ToString().ToUpper()) domain."
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
                 $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Domain ($using:Domain).DNSRoot -All }
@@ -574,7 +574,7 @@ function Get-AbrADGPO {
                         $OrphanGPOs.Add($MissingSYSVOLGPOs) | Out-Null
                         if ($OrphanGPOs) {
                             Section -Style Heading5 "Orphaned GPO" {
-                                Paragraph "The following table summarizes the group policy objects that are orphaned or missing in the AD database or in the SYSVOL directory."
+                                Paragraph "The following table summarizes Group Policy Objects (GPOs) that are orphaned or missing either in the Active Directory database or in the SYSVOL directory. Review these entries to identify and remediate inconsistencies between AD and SYSVOL."
                                 BlankLine
                                 foreach ($OrphanGPO in $OrphanGPOs) {
                                     $OutObj = [System.Collections.ArrayList]::new()

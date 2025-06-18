@@ -29,7 +29,7 @@ function Get-AbrADSCCM {
         try {
             if ($SCCMMP ) {
                 Section -Style Heading3 'SCCM Infrastructure' {
-                    Paragraph "The following section summarizes the SCCM infrastructure currently configured in Active Directory."
+                    Paragraph "The following section provides a summary of the SCCM infrastructure configured in Active Directory."
                     BlankLine
                     $SCCMInfo = [System.Collections.ArrayList]::new()
                     foreach ($SCCMServer in $SCCMMP) {

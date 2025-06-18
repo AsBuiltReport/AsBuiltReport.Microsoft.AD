@@ -33,7 +33,7 @@ function Get-AbrADCASecurity {
                 $CFP = Get-CertificateValidityPeriod -CertificationAuthority $CA
                 if ($CFP) {
                     Section -Style Heading3 "Certificate Validity Period" {
-                        Paragraph "The following section provides the Certification Authority Certificate Validity Period information."
+                        Paragraph "The following section details the certificate validity period settings for the Certification Authority."
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {

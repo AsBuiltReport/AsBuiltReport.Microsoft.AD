@@ -30,7 +30,7 @@ function Get-AbrADOU {
             $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:ValidDCFromDomain -Properties * -SearchBase ($using:Domain).distinguishedName -Filter * }
             if ($OUs) {
                 Section -Style Heading3 "Organizational Units" {
-                    Paragraph "The following section provides a summary of Active Directory Organizational Unit information."
+                    Paragraph "The following section presents a detailed summary of Active Directory Organizational Units within the domain."
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($OU in $OUs) {

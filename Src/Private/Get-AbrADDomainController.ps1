@@ -804,7 +804,7 @@ function Get-AbrADDomainController {
 
                 if ($OutObj) {
                     Section -Style Heading4 "File Shares" {
-                        Paragraph "The following domain controllers have non-default file shares."
+                        Paragraph "The following domain controllers have file shares other than the default administrative, NETLOGON, or SYSVOL shares."
                         $OutObj
                         Paragraph "Health Check:" -Bold -Underline
                         BlankLine
@@ -906,7 +906,7 @@ function Get-AbrADDomainController {
                 }
                 if ($DCObj) {
                     Section -Style Heading4 'Installed Software' {
-                        Paragraph "The following section provides a summary of additional software running on Domain Controllers from domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Paragraph "This section summarizes non-Microsoft and non-default software installed on Domain Controllers in the $($Domain.DNSRoot.ToString().ToUpper()) domain."
                         BlankLine
                         $DCObj
                     }
@@ -976,7 +976,7 @@ function Get-AbrADDomainController {
                 }
                 if ($DCObj) {
                     Section -Style Heading4 'Missing Windows Updates' {
-                        Paragraph "The following section provides a summary of pending/missing windows updates on Domain Controllers from domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Paragraph "Below is a summary of pending or missing Windows updates detected on Domain Controllers in the $($Domain.DNSRoot.ToString().ToUpper()) domain."
                         BlankLine
                         $DCObj
                     }

@@ -29,7 +29,7 @@ function Get-AbrADCAAIA {
     process {
         if ($CA) {
             Section -Style Heading3 "Authority Information Access (AIA)" {
-                Paragraph "The following section provides the Certification Authority Information Access details."
+                Paragraph "This section details the Certification Authority's Authority Information Access (AIA) configuration."
                 BlankLine
                 try {
                     Write-PScriboMessage -Message "Collecting AD CA Authority Information Access information on $($CA.Name)."

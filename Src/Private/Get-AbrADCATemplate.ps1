@@ -32,7 +32,7 @@ function Get-AbrADCATemplate {
         if ($Templates) {
             try {
                 Section -Style Heading3 "Certificate Template Summary" {
-                    Paragraph "The following section provides the certificate templates that are assigned to a specified Certification Authority (CA). CA server can issue certificates only based on assigned templates."
+                    Paragraph "This section lists the certificate templates assigned to the specified Certification Authority (CA). The CA can issue certificates only for these assigned templates."
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($Template in $Templates) {
@@ -107,7 +107,7 @@ function Get-AbrADCATemplate {
                             $Templates = Get-CertificateTemplate
                             if ($Templates) {
                                 Section -Style Heading4 "Certificate Template In Active Directory" {
-                                    Paragraph "The following section provides registered certificate templates from Active Directory."
+                                    Paragraph "The following section lists all certificate templates currently registered in Active Directory."
                                     BlankLine
                                     $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($Template in $Templates) {

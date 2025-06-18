@@ -32,7 +32,7 @@ function Get-AbrADCACryptographyConfig {
             $CryptoConfig = Get-CACryptographyConfig -CertificationAuthority $CA
             if ($CryptoConfig) {
                 Section -Style Heading3 "Cryptography Configuration" {
-                    Paragraph "The following section provides the Certification Authority Cryptography Configuration information."
+                    Paragraph "This section provides detailed information about the cryptography configuration settings of the Certification Authority."
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     try {

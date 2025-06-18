@@ -30,7 +30,7 @@ function Get-AbrADSite {
                 Section -Style Heading3 'Replication' {
                     Paragraph 'Replication is the process of transferring and updating Active Directory objects between domain controllers in the Active Directory domain and forest.'
                     BlankLine
-                    Paragraph "The following section details Active Directory replication and its relationships."
+                    Paragraph "The following section provides detailed information about Active Directory replication and its associated relationships."
                     if ($Options.EnableDiagrams) {
                         try {
                             try {
@@ -289,7 +289,7 @@ function Get-AbrADSite {
                                         }
                                         if ($OutObj) {
                                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Missing Subnets in AD' {
-                                                Paragraph "The following table lists the NO_CLIENT_SITE entries found in the netlogon.log file at each Domain Controller in the forest."
+                                                Paragraph "The following table lists the NO_CLIENT_SITE entries found in the netlogon.log file on each Domain Controller in the forest. These entries indicate client IP addresses that could not be mapped to an Active Directory site."
                                                 BlankLine
                                                 $TableParams = @{
                                                     Name = "Missing Subnets - $($ForestInfo)"

@@ -29,7 +29,7 @@ function Get-AbrADCACRLSetting {
     process {
         try {
             Section -Style Heading3 "Certificate Revocation List (CRL)" {
-                Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
+                Paragraph "This section details the Certification Authority's Certificate Revocation List (CRL) Distribution Point configuration."
                 BlankLine
                 Section -Style Heading4 "CRL Validity Period" {
                     $OutObj = [System.Collections.ArrayList]::new()
@@ -101,7 +101,7 @@ function Get-AbrADCACRLSetting {
                 }
                 try {
                     Section -Style Heading4 "CRL Distribution Point" {
-                        Paragraph "The following section provides the Certification Authority CRL Distribution Point information."
+                        Paragraph "This section details the configuration of the Certification Authority's CRL Distribution Points."
                         BlankLine
                         Write-PScriboMessage -Message "Collecting AD CA CRL Distribution Point information on $($CA.NAme)."
                         $CRL = Get-CRLDistributionPoint -CertificationAuthority $CA
@@ -145,7 +145,7 @@ function Get-AbrADCACRLSetting {
         }
         try {
             Section -Style Heading3 "AIA and CDP Health Status" {
-                Paragraph "The following section is intended to perform Certification Authority health status checking by CA certificate chain status and validating all CRL Distribution Point (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain."
+                Paragraph "This section provides a health check of the Certification Authority by verifying the CA certificate chain status and validating all Certificate Revocation List (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain."
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
                 $CAHealth = Get-EnterprisePKIHealthStatus -CertificateAuthority $CA

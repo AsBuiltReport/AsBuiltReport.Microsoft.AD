@@ -5,7 +5,7 @@ function Get-AbrADDuplicateObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.5
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,7 +30,7 @@ function Get-AbrADDuplicateObject {
                 $Objects = Get-WinADDuplicateObject -Domain $Domain.DNSRoot -Credential $Credential
                 if ($Objects) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate Objects' {
-                        Paragraph "The following section details Duplicate Objects discovered on Domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Paragraph "The following section provides details about duplicate objects identified in the domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Object in $Objects) {

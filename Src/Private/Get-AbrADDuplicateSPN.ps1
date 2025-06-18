@@ -30,7 +30,7 @@ function Get-AbrADDuplicateSPN {
                 $SPNs = Get-WinADDuplicateSPN -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains
                 if ($SPNs) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate SPN' {
-                        Paragraph "The following section details Duplicate SPN discovered on Domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Paragraph "The following section provides details of duplicate SPNs identified in the $($Domain.DNSRoot.ToString().ToUpper()) domain."
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($SPN in $SPNs) {

@@ -27,7 +27,7 @@ function Get-AbrADCARoot {
         try {
             if ($CAs | Where-Object { $_.IsRoot -like 'True' }) {
                 Section -Style Heading2 "Enterprise Root Certificate Authority" {
-                    Paragraph "The following section provides the Enterprise Root CA information."
+                    Paragraph "The following section details the Enterprise Root Certificate Authority (CA) configuration and status."
                     BlankLine
                     foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'True' })) {
                         $OutObj = [System.Collections.ArrayList]::new()

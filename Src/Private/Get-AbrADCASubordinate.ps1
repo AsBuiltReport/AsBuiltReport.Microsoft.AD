@@ -27,7 +27,7 @@ function Get-AbrADCASubordinate {
         try {
             if ($CAs | Where-Object { $_.IsRoot -like 'False' }) {
                 Section -Style Heading2 "Enterprise Subordinate Certificate Authority" {
-                    Paragraph "The following section provides the Enterprise Subordinate CA information."
+                    Paragraph "The following section details information about the Enterprise Subordinate Certification Authorities."
                     BlankLine
                     foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'False' })) {
                         $OutObj = [System.Collections.ArrayList]::new()

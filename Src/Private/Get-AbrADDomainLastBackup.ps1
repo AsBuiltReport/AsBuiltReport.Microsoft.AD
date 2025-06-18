@@ -30,7 +30,7 @@ function Get-AbrADDomainLastBackup {
                 $LastBackups = Get-WinADLastBackup -Domain $Domain.DNSRoot -Credential $Credential -DCStatus ([ref]$DCStatus)
                 if ($LastBackups) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Naming Context Last Backup' {
-                        Paragraph "The following section details naming context last backup time for Domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Paragraph "The following section provides the last backup times for each naming context in the $($Domain.DNSRoot.ToString().ToUpper()) domain."
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($LastBackup in $LastBackups) {
