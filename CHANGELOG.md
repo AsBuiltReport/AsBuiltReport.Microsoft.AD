@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade Diagrammer.Microsoft.AD module to version `0.2.16`.
 - Refactor output object initialization to use ArrayList for improved performance and memory management across multiple scripts.
 - Updated instances of output object accumulation to utilize the Add method instead of the += operator, enhancing efficiency in data handling.
+- Refine section descriptions across multiple PowerShell scripts for clarity and consistency.
+- Updated wording to enhance readability and provide more precise information about the content of each section to better reflect the information presented.
 
 ### Fixed
 
