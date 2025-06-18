@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.6] - Unreleased
 
+### Added
+
+- Add System Center Configuration Manager (MEM) information
+
 ### Changed
 
 - Update module version to 0.9.6
@@ -18,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade Diagrammer.Microsoft.AD module to version `0.2.16`.
 - Refactor output object initialization to use ArrayList for improved performance and memory management across multiple scripts.
 - Updated instances of output object accumulation to utilize the Add method instead of the += operator, enhancing efficiency in data handling.
+
+### Fixed
+
+- Fix property names in software object initialization for consistency and clarity (Installed Software section)
+- Fix [#210](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/210)
 
 ## [0.9.5] - 2025-05-10
 
