@@ -47,7 +47,7 @@ function Get-AbrPKISection {
                                 BlankLine
                             }
                             if (-Not $Options.ShowDefinitionInfo) {
-                                Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
+                                Paragraph "The following section presents an overview of the Active Directory Public Key Infrastructure (PKI) configuration and components."
                                 BlankLine
                             }
                             try {

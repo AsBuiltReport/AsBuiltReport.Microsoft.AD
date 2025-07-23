@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,10 +27,10 @@ function Get-AbrADCASubordinate {
         try {
             if ($CAs | Where-Object { $_.IsRoot -like 'False' }) {
                 Section -Style Heading2 "Enterprise Subordinate Certificate Authority" {
-                    Paragraph "The following section provides the Enterprise Subordinate CA information."
+                    Paragraph "The following section details information about the Enterprise Subordinate Certification Authorities."
                     BlankLine
-                    $OutObj = @()
                     foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'False' })) {
+                        $OutObj = [System.Collections.ArrayList]::new()
                         try {
                             $inObj = [ordered] @{
                                 'CA Name' = $CA.DisplayName
@@ -44,7 +44,7 @@ function Get-AbrADCASubordinate {
                                 }
                                 'Status' = $CA.ServiceStatus
                             }
-                            $OutObj = [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                             if ($HealthCheck.CA.Status) {
                                 $OutObj | Where-Object { $_.'Service Status' -notlike 'Running' } | Set-Style -Style Critical -Property 'Service Status'

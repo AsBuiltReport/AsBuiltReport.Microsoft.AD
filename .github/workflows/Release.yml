@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish-to-gallery:
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
       - name: Set PSRepository to Trusted for PowerShell Gallery

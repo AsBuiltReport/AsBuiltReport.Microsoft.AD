@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -41,7 +41,7 @@ function Get-AbrADForest {
             ElseIf ($ADVersion -eq '44') { $server = 'Windows Server 2008' }
             ElseIf ($ADVersion -eq '31') { $server = 'Windows Server 2003 R2' }
             ElseIf ($ADVersion -eq '30') { $server = 'Windows Server 2003' }
-            $OutObj = @()
+            $OutObj = [System.Collections.ArrayList]::new()
             if ($Data) {
                 foreach ($Item in $Data) {
                     try {
@@ -67,7 +67,7 @@ function Get-AbrADForest {
                                 }
                             }
                         }
-                        $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
                         Write-PScriboMessage -IsWarning $_.Exception.Message
                     }
@@ -116,7 +116,7 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
-                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 20 } else { $ImagePrty = 50 }
+                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                             Section -Style Heading3 "Forest Diagram." {
                                 Image -Base64 $Graph -Text "Forest Diagram" -Percent $ImagePrty -Align Center
                                 Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
@@ -142,19 +142,19 @@ function Get-AbrADForest {
                         BlankLine
                     }
                     if (-Not $Options.ShowDefinitionInfo) {
-                        Paragraph "The following section provides a summary of the Active Directory PKI Infrastructure Information."
+                        Paragraph "The following section summarizes the Public Key Infrastructure (PKI) configuration within the Active Directory environment."
                         BlankLine
                     }
                     if ($rootCA) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Certificate Authority Root(s)' {
-                            $OutObj = @()
+                            $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($Item in $rootCA) {
                                 try {
                                     $inObj = [ordered] @{
                                         'Name' = $Item.Name
                                         'Distinguished Name' = $Item.DistinguishedName
                                     }
-                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
@@ -188,14 +188,14 @@ function Get-AbrADForest {
 
                     if ($subordinateCA) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Certificate Authority Issuer(s)' {
-                            $OutObj = @()
+                            $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($Item in $subordinateCA) {
                                 try {
                                     $inObj = [ordered] @{
                                         'Name' = $Item.Name
                                         'DNS Name' = $Item.dNSHostName
                                     }
-                                    $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
@@ -224,7 +224,7 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
-                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 1500) { $ImagePrty = 20 } else { $ImagePrty = 50 }
+                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                             Section -Style Heading4 "Certificate Authority Diagram." {
                                 Image -Base64 $Graph -Text "Certificate Authority Diagram" -Percent $ImagePrty -Align Center
                                 Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
@@ -242,7 +242,7 @@ function Get-AbrADForest {
         try {
             Section -Style Heading3 'Optional Features' {
                 $Data = Invoke-Command -Session $TempPssSession { Get-ADOptionalFeature -Filter * }
-                $OutObj = @()
+                $OutObj = [System.Collections.ArrayList]::new()
                 if ($Data) {
                     foreach ($Item in $Data) {
                         try {
@@ -254,7 +254,7 @@ function Get-AbrADForest {
                                     default { 'Yes' }
                                 }
                             }
-                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }

@@ -5,7 +5,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,7 +28,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     }
 
     process {
-        $OutObj = @()
+        $OutObj = [System.Collections.ArrayList]::new()
         try {
             $KRA = Get-CAKRACertificate -CertificationAuthority $CA
             if ($KRA.Certificate) {
@@ -37,7 +37,7 @@ function Get-AbrADCAKeyRecoveryAgent {
                     'Server Name' = $KRA.ComputerName.ToString().ToUpper().Split(".")[0]
                     'Certificate' = $KRA.Certificate
                 }
-                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
             }
         } catch {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Key Recovery Agent Certificate Item)"
@@ -45,7 +45,7 @@ function Get-AbrADCAKeyRecoveryAgent {
 
         if ($OutObj) {
             Section -Style Heading3 "Key Recovery Agent Certificate" {
-                Paragraph "The following section provides the Key Recovery Agent certificate used to encrypt user's certificate private key and store it in CA database. In the case when user cannot access his or her certificate private key it is possible to recover it by Key Recovery Agent if Key Archival procedure was taken against particular certificate."
+                Paragraph "This section provides details about the Key Recovery Agent certificate, which is used to encrypt users' certificate private keys for storage in the CA database. If a user loses access to their certificate private key, the Key Recovery Agent can recover it, provided that key archival was performed for the certificate."
                 BlankLine
                 foreach ($Item in $OutObj) {
                     $TableParams = @{

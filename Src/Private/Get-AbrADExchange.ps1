@@ -5,7 +5,7 @@ function Get-AbrADExchange {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,9 +28,9 @@ function Get-AbrADExchange {
         try {
             if ($EXServers ) {
                 Section -Style Heading3 'Exchange Infrastructure' {
-                    Paragraph "The following section provides a summary of the Exchange Infrastructure configured on Active Directory."
+                    Paragraph "This section presents a detailed summary of the Exchange infrastructure configured within the Active Directory environment."
                     BlankLine
-                    $EXInfo = @()
+                    $EXInfo = [System.Collections.ArrayList]::new()
                     foreach ($EXServer in $EXServers) {
                         try {
                             $inObj = [ordered] @{
@@ -39,7 +39,7 @@ function Get-AbrADExchange {
                                 'Server Roles' = $EXServer.ServerRoles -join ", "
                                 'Version' = $EXServer.Version
                             }
-                            $EXInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $EXInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Exchange Item)"
                         }

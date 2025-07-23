@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.6] - 2025-07-23
+
+### Added
+
+- Add System Center Configuration Manager (MEM) information
+
+### Changed
+
+- Update module version to 0.9.6
+- Enhance execution time tracking in Get-AbrADDomainObject function
+- Enhance output message in Invoke-AsBuiltReport function
+- Upgrade Diagrammer.Core module to version `0.2.27`.
+- Upgrade Diagrammer.Microsoft.AD module to version `0.2.17`.
+- Refactor output object initialization to use ArrayList for improved performance and memory management across multiple scripts.
+- Updated instances of output object accumulation to utilize the Add method instead of the += operator, enhancing efficiency in data handling.
+- Refine section descriptions across multiple PowerShell scripts for clarity and consistency.
+- Updated wording to enhance readability and provide more precise information about the content of each section to better reflect the information presented.
+
+### Fixed
+
+- Fix property names in software object initialization for consistency and clarity (Installed Software section)
+- Fix [#210](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/210)
+
 ## [0.9.5] - 2025-05-10
 
 ### Added
