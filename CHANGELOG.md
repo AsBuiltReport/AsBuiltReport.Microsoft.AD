@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhance execution time tracking in Get-AbrADDomainObject function
 - Enhance output message in Invoke-AsBuiltReport function
 - Upgrade Diagrammer.Core module to version `0.2.27`.
-- Upgrade Diagrammer.Microsoft.AD module to version `0.2.16`.
+- Upgrade Diagrammer.Microsoft.AD module to version `0.2.17`.
 - Refactor output object initialization to use ArrayList for improved performance and memory management across multiple scripts.
 - Updated instances of output object accumulation to utilize the Add method instead of the += operator, enhancing efficiency in data handling.
 - Refine section descriptions across multiple PowerShell scripts for clarity and consistency.
