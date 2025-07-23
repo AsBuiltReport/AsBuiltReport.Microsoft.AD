@@ -34,7 +34,7 @@ function Get-AbrDNSSection {
                                 $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
-                                    Paragraph "The following section provides a configuration summary of the DNS service."
+                                    Paragraph "The following section provides a detailed summary of the DNS service configuration."
                                     BlankLine
                                     if ($TempCIMSession) {
                                         Get-AbrADDNSInfrastructure -Domain $DomainInfo -DCs $DCs
@@ -63,7 +63,7 @@ function Get-AbrDNSSection {
                         BlankLine
                     }
                     if (-Not $Options.ShowDefinitionInfo) {
-                        Paragraph "The following section provides a summary of the Active Directory DNS Infrastructure Information."
+                        Paragraph "The following section provides an overview of the Active Directory DNS infrastructure configuration and settings."
                         BlankLine
                     }
                     $DNSDomainObj

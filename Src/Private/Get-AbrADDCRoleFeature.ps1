@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -37,7 +37,7 @@ function Get-AbrADDCRoleFeature {
             }
             if ($Features) {
                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
-                    $OutObj = @()
+                    $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($Feature in $Features) {
                         try {
                             $inObj = [ordered] @{
@@ -45,7 +45,7 @@ function Get-AbrADDCRoleFeature {
                                 'Parent' = $Feature.FeatureType
                                 'Description' = $Feature.Description
                             }
-                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "Roles $($Feature.DisplayName) Section: $($_.Exception.Message)"
                         }

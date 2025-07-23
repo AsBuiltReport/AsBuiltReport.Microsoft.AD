@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -36,7 +36,7 @@ function Get-AbrADInfrastructureService {
                 Write-PScriboMessage -IsWarning -Message "Domain Controller Infrastructure Services Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
             }
             if ($Available) {
-                $OutObj = @()
+                $OutObj = [System.Collections.ArrayList]::new()
                 $Services = @('CertSvc', 'DHCPServer', 'DNS', 'DFS Replication', 'Intersite Messaging', 'Kerberos Key Distribution Center', 'NetLogon', 'Active Directory Domain Services', 'W32Time', 'ADWS', 'RPCSS', 'EVENTSYSTEM', 'DNSCACHE', 'SAMSS', 'WORKSTATION', 'Spooler')
                 foreach ($Service in $Services) {
                     try {
@@ -47,7 +47,7 @@ function Get-AbrADInfrastructureService {
                                 'Short Name' = $Status.Name
                                 'Status' = $Status.Status
                             }
-                            $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Infrastructure Services Item)"

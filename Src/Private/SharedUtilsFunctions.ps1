@@ -202,9 +202,9 @@ function ConvertTo-ADObjectName {
         $Session,
         $DC
     )
-    $ADObject = @()
+    $ADObject = [System.Collections.ArrayList]::new()
     foreach ($Object in $DN) {
-        $ADObject += Invoke-Command -Session $Session { Get-ADObject $using:Object -Server $using:DC | Select-Object -ExpandProperty Name }
+        $ADObject.Add((Invoke-Command -Session $Session { Get-ADObject $using:Object -Server $using:DC | Select-Object -ExpandProperty Name })) | Out-Null
     }
     return $ADObject;
 }# end
@@ -234,9 +234,9 @@ function Get-ADObjectSearch {
         $SelectPrty
 
     )
-    $ADObject = @()
+    $ADObject = [System.Collections.ArrayList]::new()
     foreach ($Object in $DN) {
-        $ADObject += Invoke-Command -Session $Session { Get-ADObject -SearchBase $using:DN -SearchScope OneLevel -Filter $using:Filter -Properties $using:Properties -EA 0 | Select-Object $using:SelectPrty }
+        $ADObject.Add((Invoke-Command -Session $Session { Get-ADObject -SearchBase $using:DN -SearchScope OneLevel -Filter $using:Filter -Properties $using:Properties -EA 0 | Select-Object $using:SelectPrty })) | Out-Null
     }
     return $ADObject;
 }# end
@@ -263,10 +263,10 @@ function ConvertTo-ADCanonicalName {
         $Domain,
         $DC
     )
-    $ADObject = @()
+    $ADObject = [System.Collections.ArrayList]::new()
     $DC = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName }
     foreach ($Object in $DN) {
-        $ADObject += Invoke-Command -Session $TempPssSession { Get-ADObject $using:Object -Properties * -Server $using:DC | Select-Object -ExpandProperty CanonicalName }
+        $ADObject.Add((Invoke-Command -Session $TempPssSession { Get-ADObject $using:Object -Properties * -Server $using:DC | Select-Object -ExpandProperty CanonicalName })) | Out-Null
     }
     return $ADObject;
 }# end
@@ -604,7 +604,7 @@ function Get-WinADDFSHealth {
                 $DomainSummary['IdenticalCount'] = $DomainSummary['GroupPolicyCount'] -eq $DomainSummary['SYSVOLCount']
 
                 try {
-                    $Registry = Get-PSRegistry -RegistryPath "HKLM\SYSTEM\CurrentControlSet\Services\DFSR\Parameters" -ComputerName $Hostname -ErrorAction Stop
+                    # $Registry = Get-PSRegistry -RegistryPath "HKLM\SYSTEM\CurrentControlSet\Services\DFSR\Parameters" -ComputerName $Hostname -ErrorAction Stop
                 } catch {
                     #$ErrorMessage = $_.Exception.Message
                     $Registry = $null
@@ -2518,7 +2518,7 @@ function Get-ValidPSSession {
     .DESCRIPTION
         Function to generate a valid WinRM session from a computer string.
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidPSSession -ComputerName 'server-dc-01v.pharmax.local'
@@ -2650,7 +2650,7 @@ function Get-ValidCIMSession {
     .DESCRIPTION
         Function to generate a valid CIM session from a computer string.
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidCIMSession -ComputerName 'server-dc-01v.pharmax.local'

@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -34,9 +34,9 @@ function Get-AbrADDFSHealth {
                 } Else { $DFS = Get-WinADDFSHealth -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains }
                 if ($DFS) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Replication Status' {
-                        Paragraph "The following section details the sysvol folder replication status for Domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Paragraph "This section provides the replication status of the SYSVOL folder for domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
-                        $OutObj = @()
+                        $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Controller in $DCs) {
                             try {
                                 $RepState = $DFS | Where-Object { $_.DomainController -eq $Controller.Split('.')[0] } | Select-Object -Property ReplicationState, GroupPolicyCount, SysvolCount, IdenticalCount, StopReplicationOnAutoRecovery
@@ -69,7 +69,7 @@ function Get-AbrADDFSHealth {
                                     }
 
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "Sysvol Replication Status Iten Section: $($_.Exception.Message)"
                             }
@@ -137,9 +137,9 @@ function Get-AbrADDFSHealth {
                 }
                 if ($SYSVOLFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Content Status' {
-                        Paragraph "The following section details domain $($Domain.DNSRoot.ToString().ToUpper())) sysvol health status."
+                        Paragraph "The following section provides the SYSVOL health status for domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
-                        $OutObj = @()
+                        $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Extension in $SYSVOLFolder) {
                             try {
                                 $inObj = [ordered] @{
@@ -147,7 +147,7 @@ function Get-AbrADDFSHealth {
                                     'File Count' = $Extension.Count
                                     'Size' = "$($Extension.TotalSize) MB"
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "Sysvol Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }
@@ -200,9 +200,9 @@ function Get-AbrADDFSHealth {
                 }
                 if ($NetlogonFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Netlogon Content Status' {
-                        Paragraph "The following section details domain $($Domain.DNSRoot.ToString().ToUpper())) netlogon health status."
+                        Paragraph "The following section provides the Netlogon health status for domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
-                        $OutObj = @()
+                        $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Extension in $NetlogonFolder) {
                             try {
                                 $inObj = [ordered] @{
@@ -210,7 +210,7 @@ function Get-AbrADDFSHealth {
                                     'File Count' = $Extension.Count
                                     'Size' = "$($Extension.TotalSize) MB"
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "Netlogon Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }

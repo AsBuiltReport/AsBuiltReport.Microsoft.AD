@@ -25,7 +25,7 @@ function Get-AbrForestSection {
 
     process {
         Section -Style Heading1 "$($ForestInfo.toUpper())" {
-            Paragraph "The following section provides a summary of the Active Directory infrastructure configuration for $($ForestInfo)."
+            Paragraph "This section provides a comprehensive overview of the Active Directory infrastructure configuration for the $($ForestInfo) forest."
             BlankLine
             Write-PScriboMessage -Message "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -ge 1) {
@@ -36,7 +36,7 @@ function Get-AbrForestSection {
                             BlankLine
                         }
                         if (-Not $Options.ShowDefinitionInfo) {
-                            Paragraph "The following section provides a summary of the Active Directory Forest Information."
+                            Paragraph "The following section presents a detailed summary of the Active Directory Forest configuration."
                             BlankLine
                         }
                         try {
@@ -51,6 +51,11 @@ function Get-AbrForestSection {
                         }
                         try {
                             Get-AbrADExchange
+                        } catch {
+                            Write-PScriboMessage -IsWarning $_.Exception.Message
+                        }
+                        try {
+                            Get-AbrADSCCM
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }

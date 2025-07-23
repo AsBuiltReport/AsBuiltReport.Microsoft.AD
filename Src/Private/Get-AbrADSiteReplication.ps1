@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.6
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,7 +30,7 @@ function Get-AbrADSiteReplication {
         if ($DCs) {
             Write-PScriboMessage -Message "Collecting Active Directory Sites Replication information on $($Domain.DNSRoot). (Sites Replication)"
             try {
-                $ReplInfo = @()
+                $ReplInfo = [System.Collections.ArrayList]::new()
                 foreach ($DC in $DCs) {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         $Replication = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Server $using:DC -Properties * }
@@ -57,7 +57,7 @@ function Get-AbrADSiteReplication {
                                             'Enabled' = $Repl.enabledConnection
                                             'Created' = ($Repl.Created).ToUniversalTime().toString("r")
                                         }
-                                        $ReplInfo += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                        $ReplInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.Site.Replication) {
                                             $ReplInfo | Where-Object { $_.'Enabled' -ne 'Yes' } | Set-Style -Style Warning -Property 'Enabled'
@@ -76,7 +76,7 @@ function Get-AbrADSiteReplication {
                 if ($ReplInfo) {
                     if ($InfoLevel.Domain -ge 2) {
                         Section -Style Heading4 'Replication Connection' {
-                            Paragraph "The following section provides detailed information about Replication Connection."
+                            Paragraph "This section provides comprehensive details about each Active Directory replication connection."
                             BlankLine
                             foreach ($Repl in ($ReplInfo | Sort-Object -Property 'Replicate From Directory Server')) {
                                 Section -Style NOTOCHeading4 -ExcludeFromTOC "Site: $($Repl.'From Site'): From: $($Repl.'From Server') To: $($Repl.'To Server')" {
@@ -94,7 +94,7 @@ function Get-AbrADSiteReplication {
                         }
                     } else {
                         Section -Style Heading4 'Replication Connection' {
-                            Paragraph "The following section provide connection objects to source server ."
+                            Paragraph "The following section provides details about the replication connection objects to the source servers."
                             BlankLine
                             $TableParams = @{
                                 Name = "Replication Connection - $($Domain.DNSRoot.ToString().ToUpper())"
@@ -129,7 +129,7 @@ function Get-AbrADSiteReplication {
                 }
                 if ($RepStatus) {
                     Section -Style Heading4 'Replication Status' {
-                        $OutObj = @()
+                        $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Status in $RepStatus) {
                             try {
                                 $inObj = [ordered] @{
@@ -141,7 +141,7 @@ function Get-AbrADSiteReplication {
                                     'Last Failure Time' = $Status.'Last Failure Time'
                                     'Failures' = $Status.'Number of Failures'
                                 }
-                                $OutObj += [pscustomobject](ConvertTo-HashToYN $inObj)
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Replication Status)"
