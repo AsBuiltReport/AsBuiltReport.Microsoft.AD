@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.7] - 2025-09-??
+
+### Changed
+
+- Update module version to 0.9.6
+- Upgrade Diagrammer.Core module to version `0.2.30`.
+- Upgrade Diagrammer.Microsoft.AD module to version `0.2.18`.
+
 ## [0.9.6] - 2025-07-23
 
 ### Added
