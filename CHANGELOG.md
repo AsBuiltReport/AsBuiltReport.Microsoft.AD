@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update module version to 0.9.6
 - Upgrade Diagrammer.Core module to version `0.2.30`.
 - Upgrade Diagrammer.Microsoft.AD module to version `0.2.18`.
+- Upgrade zentered/bluesky-post-action to v0.3.0
 
 ## [0.9.6] - 2025-07-23
 
