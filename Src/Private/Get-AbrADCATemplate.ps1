@@ -5,7 +5,7 @@ function Get-AbrADCATemplate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADCATemplate {
         if ($Templates) {
             try {
                 Section -Style Heading3 "Certificate Template Summary" {
-                    Paragraph "This section lists the certificate templates assigned to the specified Certification Authority (CA). The CA can issue certificates only for these assigned templates."
+                    Paragraph "The following section lists certificate templates assigned to the Certification Authority. The CA can only issue certificates based on these assigned templates."
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($Template in $Templates) {
@@ -61,7 +61,7 @@ function Get-AbrADCATemplate {
                     if ($InfoLevel.CA -ge 3) {
                         try {
                             Section -Style Heading4 "Issued Certificate Template ACLs" {
-                                Paragraph "The following section provides the certificate templates Access Control List that are assigned to a specified Certification Authority (CA)."
+                                Paragraph "The following section provides the Access Control List (ACL) for certificate templates assigned to the Certification Authority."
                                 BlankLine
                                 foreach ($Template in $Templates) {
                                     try {
@@ -107,7 +107,7 @@ function Get-AbrADCATemplate {
                             $Templates = Get-CertificateTemplate
                             if ($Templates) {
                                 Section -Style Heading4 "Certificate Template In Active Directory" {
-                                    Paragraph "The following section lists all certificate templates currently registered in Active Directory."
+                                    Paragraph "The following section lists all certificate templates registered in Active Directory, regardless of whether they are assigned to any Certification Authority."
                                     BlankLine
                                     $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($Template in $Templates) {

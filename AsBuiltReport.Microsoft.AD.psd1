@@ -12,7 +12,7 @@
     RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.9.6'
+    ModuleVersion = '0.9.7'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -54,11 +54,11 @@
     RequiredModules = @(
         @{
             ModuleName = 'AsBuiltReport.Core';
-            ModuleVersion = '1.4.3'
+            ModuleVersion = '1.5.0'
         },
         @{
             ModuleName = 'PSPKI';
-            ModuleVersion = '4.2.0'
+            ModuleVersion = '4.3.0'
         },
         @{
             ModuleName = 'PScriboCharts';
@@ -66,11 +66,11 @@
         },
         @{
             ModuleName = 'Diagrammer.Microsoft.AD';
-            ModuleVersion = '0.2.17'
+            ModuleVersion = '0.2.18'
         },
         @{
             ModuleName = 'Diagrammer.Core';
-            ModuleVersion = '0.2.27'
+            ModuleVersion = '0.2.34'
         }
 
     )

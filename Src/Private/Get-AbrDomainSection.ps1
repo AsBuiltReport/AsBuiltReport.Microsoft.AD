@@ -5,7 +5,7 @@ function Get-AbrDomainSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,7 +35,7 @@ function Get-AbrDomainSection {
                                 $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
-                                    Paragraph "This section provides a comprehensive summary of the Active Directory domain configuration and key details."
+                                    Paragraph "This section provides a comprehensive overview of the Active Directory domain configuration, including key settings and critical details."
                                     BlankLine
                                     Get-AbrADDomain -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADFSMO -Domain $DomainInfo -ValidDcFromDomain $ValidDC
@@ -132,7 +132,7 @@ function Get-AbrDomainSection {
                         BlankLine
                     }
                     if (-Not $Options.ShowDefinitionInfo) {
-                        Paragraph "The following section presents an overview of the Active Directory domain configuration and key details."
+                        Paragraph "The following section provides a comprehensive overview of the Active Directory domain configuration, including critical settings and key operational details."
                         BlankLine
                     }
                     $DomainObj

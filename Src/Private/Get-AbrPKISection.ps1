@@ -5,7 +5,7 @@ function Get-AbrPKISection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -47,7 +47,7 @@ function Get-AbrPKISection {
                                 BlankLine
                             }
                             if (-Not $Options.ShowDefinitionInfo) {
-                                Paragraph "The following section presents an overview of the Active Directory Public Key Infrastructure (PKI) configuration and components."
+                                Paragraph "The following section provides a comprehensive overview of the Active Directory Public Key Infrastructure (PKI) configuration and its components."
                                 BlankLine
                             }
                             try {

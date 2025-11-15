@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -87,7 +87,7 @@ function Get-AbrADSecurityAssessment {
                     }
                     if ($OutObj) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Account Security Assessment' {
-                            Paragraph "The following section provides a summary of the Account Security Assessment for the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                            Paragraph "The following section provides a comprehensive summary of account security posture and potential vulnerabilities within the domain $($Domain.DNSRoot.ToString().ToUpper())."
                             BlankLine
                             if ($chartFileItem) {
                                 Image -Text 'Account Security Assessment - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
@@ -110,7 +110,7 @@ function Get-AbrADSecurityAssessment {
                 try {
                     if ($PrivilegedUsers) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Privileged Users Assessment' {
-                            Paragraph "The following section provides details on likely AD administrative accounts (user accounts with AdminCount set to 1) in the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                            Paragraph "The following section provides a detailed assessment of privileged administrative accounts (user accounts with AdminCount attribute set to 1) within the domain $($Domain.DNSRoot.ToString().ToUpper())."
                             BlankLine
                             $OutObj = [System.Collections.ArrayList]::new()
                             $AccountNotDelegated = $PrivilegedUsers | Where-Object { -not $_.AccountNotDelegated -and $_.objectClass -eq "user" }
@@ -195,7 +195,7 @@ function Get-AbrADSecurityAssessment {
                     $InactivePrivilegedUsers = $PrivilegedUsers | Where-Object { ($_.LastLogonDate -le (Get-Date).AddDays(-30)) -AND ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
                     if ($InactivePrivilegedUsers) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Inactive Privileged Accounts' {
-                            Paragraph "The following section lists privileged accounts in domain $($Domain.DNSRoot.ToString().ToUpper()) that have not logged on in the last 30 days and have not changed their password in at least 365 days."
+                            Paragraph "The following section identifies privileged accounts in domain $($Domain.DNSRoot.ToString().ToUpper()) that have remained inactive for over 30 days and have not had their passwords changed in at least 365 days."
                             BlankLine
                             $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($InactivePrivilegedUser in $InactivePrivilegedUsers) {
@@ -252,7 +252,7 @@ function Get-AbrADSecurityAssessment {
                     $UserSPNs = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server ($using:Domain).DNSRoot -Filter { ServicePrincipalName -like '*' } -Properties AdminCount, PasswordLastSet, LastLogonDate, ServicePrincipalName, TrustedForDelegation, TrustedtoAuthForDelegation }
                     if ($UserSPNs) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Service Accounts Assessment (Kerberoastable)' {
-                            Paragraph "The following section provides an overview of likely AD service accounts (user accounts with Service Principal Names, or SPNs) in the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                            Paragraph "The following section provides an overview of service accounts (user accounts with Service Principal Names) that are potentially vulnerable to Kerberoasting attacks in domain $($Domain.DNSRoot.ToString().ToUpper())."
                             BlankLine
                             $OutObj = [System.Collections.ArrayList]::new()
                             $AdminCount = ($UserSPNs | Where-Object { $_.AdminCount -eq 1 -and $_.SamAccountName -ne 'krbtgt' }).Name

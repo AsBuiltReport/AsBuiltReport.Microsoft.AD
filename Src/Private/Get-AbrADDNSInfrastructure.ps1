@@ -5,7 +5,7 @@ function Get-AbrADDNSInfrastructure {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADDNSInfrastructure {
         try {
             if ($DCs) {
                 Section -Style Heading3 "Infrastructure Summary" {
-                    Paragraph "This section provides an overview of the current DNS Infrastructure configuration for the domain."
+                    Paragraph "This section provides a comprehensive overview of the DNS infrastructure configuration for the domain."
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($DC in $DCs) {
@@ -66,7 +66,7 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading4 "Application Directory Partition" {
-                                Paragraph "This section details the Application Directory Partitions configured on each DNS server."
+                                Paragraph "This section provides detailed information about the Application Directory Partitions configured on each DNS server in the domain."
                                 BlankLine
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
@@ -288,7 +288,7 @@ function Get-AbrADDNSInfrastructure {
                     if ($InfoLevel.DNS -ge 2) {
                         try {
                             Section -Style Heading4 "Root Hints" {
-                                Paragraph "This section provides detailed Root Hints information for the domain $($Domain.DNSRoot)."
+                                Paragraph "This section provides detailed information about the Root Hints configuration for each DNS server in the $($Domain.DNSRoot) domain."
                                 BlankLine
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {

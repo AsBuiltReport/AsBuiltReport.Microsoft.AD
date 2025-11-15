@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,7 +27,7 @@ function Get-AbrADCASubordinate {
         try {
             if ($CAs | Where-Object { $_.IsRoot -like 'False' }) {
                 Section -Style Heading2 "Enterprise Subordinate Certificate Authority" {
-                    Paragraph "The following section details information about the Enterprise Subordinate Certification Authorities."
+                    Paragraph "The following section provides detailed information about Enterprise Subordinate Certification Authorities within the domain."
                     BlankLine
                     foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'False' })) {
                         $OutObj = [System.Collections.ArrayList]::new()

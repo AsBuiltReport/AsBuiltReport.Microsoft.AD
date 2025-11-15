@@ -5,7 +5,7 @@ function Get-AbrForestSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.5
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -25,7 +25,7 @@ function Get-AbrForestSection {
 
     process {
         Section -Style Heading1 "$($ForestInfo.toUpper())" {
-            Paragraph "This section provides a comprehensive overview of the Active Directory infrastructure configuration for the $($ForestInfo) forest."
+            Paragraph "This section provides a comprehensive overview of the Active Directory infrastructure and configuration for the $($ForestInfo) forest."
             BlankLine
             Write-PScriboMessage -Message "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -ge 1) {
@@ -36,7 +36,7 @@ function Get-AbrForestSection {
                             BlankLine
                         }
                         if (-Not $Options.ShowDefinitionInfo) {
-                            Paragraph "The following section presents a detailed summary of the Active Directory Forest configuration."
+                            Paragraph "The following section provides a detailed summary of the Active Directory Forest infrastructure and configuration."
                             BlankLine
                         }
                         try {

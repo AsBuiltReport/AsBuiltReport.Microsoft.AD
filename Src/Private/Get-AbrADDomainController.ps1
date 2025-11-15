@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -804,7 +804,7 @@ function Get-AbrADDomainController {
 
                 if ($OutObj) {
                     Section -Style Heading4 "File Shares" {
-                        Paragraph "The following domain controllers have file shares other than the default administrative, NETLOGON, or SYSVOL shares."
+                        Paragraph "The following Domain Controllers contain non-default file shares beyond the standard administrative, NETLOGON, and SYSVOL shares:"
                         $OutObj
                         Paragraph "Health Check:" -Bold -Underline
                         BlankLine
@@ -906,7 +906,7 @@ function Get-AbrADDomainController {
                 }
                 if ($DCObj) {
                     Section -Style Heading4 'Installed Software' {
-                        Paragraph "This section summarizes non-Microsoft and non-default software installed on Domain Controllers in the $($Domain.DNSRoot.ToString().ToUpper()) domain."
+                        Paragraph "This section provides an overview of third-party and non-default software installations detected on Domain Controllers within the $($Domain.DNSRoot.ToString().ToUpper()) domain."
                         BlankLine
                         $DCObj
                     }

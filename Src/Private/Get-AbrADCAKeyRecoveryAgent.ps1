@@ -5,7 +5,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -45,7 +45,7 @@ function Get-AbrADCAKeyRecoveryAgent {
 
         if ($OutObj) {
             Section -Style Heading3 "Key Recovery Agent Certificate" {
-                Paragraph "This section provides details about the Key Recovery Agent certificate, which is used to encrypt users' certificate private keys for storage in the CA database. If a user loses access to their certificate private key, the Key Recovery Agent can recover it, provided that key archival was performed for the certificate."
+                Paragraph "This section provides details about the Key Recovery Agent certificate, which encrypts users' certificate private keys for storage in the CA database. If a user loses access to their certificate private key, the Key Recovery Agent can recover it when key archival was configured for the certificate."
                 BlankLine
                 foreach ($Item in $OutObj) {
                     $TableParams = @{

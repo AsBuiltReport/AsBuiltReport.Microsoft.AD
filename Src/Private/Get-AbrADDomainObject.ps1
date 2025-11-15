@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -386,7 +386,7 @@ function Get-AbrADDomainObject {
                             }
                             if ($GroupsSID) {
                                 if ($InfoLevel.Domain -eq 1) {
-                                    Paragraph "The following section provides a summary of the number of users in each privileged group."
+                                    Paragraph "The following section provides a summary of privileged group membership counts."
                                     BlankLine
                                     foreach ($GroupSID in $GroupsSID) {
                                         try {

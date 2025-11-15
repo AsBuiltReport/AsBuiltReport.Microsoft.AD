@@ -5,7 +5,7 @@ function Get-AbrADCARoot {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,7 +27,7 @@ function Get-AbrADCARoot {
         try {
             if ($CAs | Where-Object { $_.IsRoot -like 'True' }) {
                 Section -Style Heading2 "Enterprise Root Certificate Authority" {
-                    Paragraph "The following section details the Enterprise Root Certificate Authority (CA) configuration and status."
+                    Paragraph "The following section provides detailed information about the Enterprise Root Certificate Authority (CA) configuration and operational status."
                     BlankLine
                     foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'True' })) {
                         $OutObj = [System.Collections.ArrayList]::new()
