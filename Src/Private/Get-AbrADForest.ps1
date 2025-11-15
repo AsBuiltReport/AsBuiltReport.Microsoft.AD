@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -142,7 +142,7 @@ function Get-AbrADForest {
                         BlankLine
                     }
                     if (-Not $Options.ShowDefinitionInfo) {
-                        Paragraph "The following section summarizes the Public Key Infrastructure (PKI) configuration within the Active Directory environment."
+                        Paragraph "The following section provides an overview of the Public Key Infrastructure (PKI) configuration deployed within the Active Directory environment."
                         BlankLine
                     }
                     if ($rootCA) {

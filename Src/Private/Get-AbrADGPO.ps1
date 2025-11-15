@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,7 +28,7 @@ function Get-AbrADGPO {
     process {
         try {
             Section -Style Heading4 "Group Policy Objects" {
-                Paragraph "The following section summarizes the Group Policy Objects (GPOs) configured in the $($Domain.DNSRoot.ToString().ToUpper()) domain."
+                Paragraph "The following section provides an overview of the Group Policy Objects (GPOs) configured within the $($Domain.DNSRoot.ToString().ToUpper()) domain."
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
                 $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Domain ($using:Domain).DNSRoot -All }

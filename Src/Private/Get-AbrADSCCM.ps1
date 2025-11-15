@@ -5,7 +5,7 @@ function Get-AbrADSCCM {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADSCCM {
         try {
             if ($SCCMMP ) {
                 Section -Style Heading3 'SCCM Infrastructure' {
-                    Paragraph "The following section provides a summary of the SCCM infrastructure configured in Active Directory."
+                    Paragraph "The following section provides a summary of the System Center Configuration Manager (SCCM) infrastructure registered in Active Directory."
                     BlankLine
                     $SCCMInfo = [System.Collections.ArrayList]::new()
                     foreach ($SCCMServer in $SCCMMP) {

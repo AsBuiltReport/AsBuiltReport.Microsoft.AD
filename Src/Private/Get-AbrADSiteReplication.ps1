@@ -5,7 +5,7 @@ function Get-AbrADSiteReplication {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -76,7 +76,7 @@ function Get-AbrADSiteReplication {
                 if ($ReplInfo) {
                     if ($InfoLevel.Domain -ge 2) {
                         Section -Style Heading4 'Replication Connection' {
-                            Paragraph "This section provides comprehensive details about each Active Directory replication connection."
+                            Paragraph "The following section provides comprehensive details about each Active Directory replication connection object configured in the domain."
                             BlankLine
                             foreach ($Repl in ($ReplInfo | Sort-Object -Property 'Replicate From Directory Server')) {
                                 Section -Style NOTOCHeading4 -ExcludeFromTOC "Site: $($Repl.'From Site'): From: $($Repl.'From Server') To: $($Repl.'To Server')" {
@@ -94,7 +94,7 @@ function Get-AbrADSiteReplication {
                         }
                     } else {
                         Section -Style Heading4 'Replication Connection' {
-                            Paragraph "The following section provides details about the replication connection objects to the source servers."
+                            Paragraph "The following section provides details about Active Directory replication connection objects between domain controllers."
                             BlankLine
                             $TableParams = @{
                                 Name = "Replication Connection - $($Domain.DNSRoot.ToString().ToUpper())"

@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,23 +35,26 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-Host "- Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD" -ForegroundColor White
     Write-Host "- Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues" -ForegroundColor White
     Write-Host "- This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates." -ForegroundColor White
+    Write-Host "- To sponsor this project, please visit: " -NoNewline
+    Write-Host "https://ko-fi.com/F1F8DEV80" -ForegroundColor Cyan
+    Write-Host "- Getting dependency information:"
 
     # Check the version of the dependency modules
     $ModuleArray = @('AsBuiltReport.Microsoft.AD', 'Diagrammer.Microsoft.AD', 'Diagrammer.Core')
 
     foreach ($Module in $ModuleArray) {
-        Try {
+        try {
             $InstalledVersion = Get-Module -ListAvailable -Name $Module -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
 
             if ($InstalledVersion) {
-                Write-Host "- $Module module v$($InstalledVersion.ToString()) is currently installed."
+                Write-Host "  - $Module module v$($InstalledVersion.ToString()) is currently installed."
                 $LatestVersion = Find-Module -Name $Module -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
                 if ($InstalledVersion -lt $LatestVersion) {
-                    Write-Host "  - $Module module v$($LatestVersion.ToString()) is available." -ForegroundColor Red
-                    Write-Host "  - Run 'Update-Module -Name $Module -Force' to install the latest version." -ForegroundColor Red
+                    Write-Host "    - $Module module v$($LatestVersion.ToString()) is available." -ForegroundColor Red
+                    Write-Host "    - Run 'Update-Module -Name $Module -Force' to install the latest version." -ForegroundColor Red
                 }
             }
-        } Catch {
+        } catch {
             Write-PScriboMessage -IsWarning $_.Exception.Message
         }
     }
@@ -72,7 +75,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Get-RequiredFeature -Name GPMC -OSType $OSType
     }
 
-    Get-RequiredModule -Name PSPKI -Version '4.2.0'
+    Get-RequiredModule -Name PSPKI -Version '4.3.0'
 
     # Import Report Configuration
     $script:Report = $ReportConfig.Report
@@ -84,7 +87,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
     if ($Healthcheck) {
         Section -Style TOC -ExcludeFromTOC 'DISCLAIMER' {
-            Paragraph "The information in this report has been gathered through automation and observations. Opinions, recommendations, and conclusions are provided based on insight, knowledge, training, and experience. This assessment is not exhaustive, but we have aimed to capture the most relevant opportunities for improvement. It is expected that the implementation of these recommendations will be reviewed and carried out by someone with the necessary knowledge, experience, or expertise. The author(s) shall not be liable for any damages (including, but not limited to, loss of business profits, business interruption, loss of business information, or other financial loss) arising from the use or inability to use these recommendations or the statements made in this documentation."
+            Paragraph "The information in this report has been gathered through automation and direct observation. Recommendations and conclusions are based on industry best practices, technical expertise, and empirical data. While comprehensive, this assessment may not cover every possible scenario or configuration. Implementation of these recommendations should be performed by qualified personnel with appropriate knowledge and experience. The author(s) assume no liability for any damages, including but not limited to loss of business profits, business interruption, loss of data, or other financial losses arising from the use of or reliance upon this report."
         }
         PageBreak
     }
@@ -112,23 +115,23 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $CIMTable = @()
         $PSSTable = @()
 
-        Try {
+        try {
             $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable)
-        } Catch {
+        } catch {
             throw "Failed to establish a PSSession ($WinRMType) with the Domain Controller '$System': $($_.Exception.Message)"
         }
 
-        Try {
+        try {
             # By default, SSL is not used with New-CimSession. WsMan encrypts all content that is transmitted over the network, even when using HTTP.
             $script:TempCIMSession = Get-ValidCIMSession -ComputerName $System -SessionName $System -CIMTable ([ref]$CIMTable)
-        } Catch {
+        } catch {
             Write-PScriboMessage -IsWarning -Message "Unable to establish a CimSession ($CIMType) with the Domain Controller '$System'."
         }
 
-        Try {
+        try {
             Write-PScriboMessage -Message "Connecting to retrieve Forest information from Domain Controller '$System'."
             $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop }
-        } Catch {
+        } catch {
             throw "Unable to retrieve Forest information from Domain Controller '$System'."
         }
 

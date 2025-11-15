@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,7 @@ function Get-AbrADKerberosAudit {
                 $Unconstrained = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:ValidDCFromDomain -SearchBase $($using:Domain).distinguishedName }
                 if ($Unconstrained) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Unconstrained Kerberos Delegation' {
-                        Paragraph "The following section provides a summary of unconstrained Kerberos delegation in the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Paragraph "The following section identifies systems configured with unconstrained Kerberos delegation, which represents a significant security risk in the domain $($Domain.DNSRoot.ToString().ToUpper())."
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Item in $Unconstrained) {
@@ -74,7 +74,7 @@ function Get-AbrADKerberosAudit {
                     $KRBTGT = $Users | Where-Object { $_.Name -eq 'krbtgt' }
                     if ($KRBTGT) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'KRBTGT Account Audit' {
-                            Paragraph "The following section provides a summary of the KRBTGT account in the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                            Paragraph "The following section provides a comprehensive audit of the KRBTGT account, which is critical for Kerberos ticket-granting services in the domain $($Domain.DNSRoot.ToString().ToUpper())."
                             BlankLine
                             $OutObj = [System.Collections.ArrayList]::new()
                             try {
@@ -121,7 +121,7 @@ function Get-AbrADKerberosAudit {
                     $ADMIN = $Users | Where-Object { $_.SID -eq $SID }
                     if ($ADMIN) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Administrator Account Audit' {
-                            Paragraph "The following section provides a summary of the Administrator account in the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                            Paragraph "The following section provides a comprehensive audit of the built-in Administrator account, which is a critical privileged account in the domain $($Domain.DNSRoot.ToString().ToUpper())."
                             BlankLine
                             $OutObj = [System.Collections.ArrayList]::new()
                             try {
