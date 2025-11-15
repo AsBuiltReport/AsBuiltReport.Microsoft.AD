@@ -5,7 +5,7 @@ function Get-AbrADCACryptographyConfig {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADCACryptographyConfig {
             $CryptoConfig = Get-CACryptographyConfig -CertificationAuthority $CA
             if ($CryptoConfig) {
                 Section -Style Heading3 "Cryptography Configuration" {
-                    Paragraph "This section provides detailed information about the cryptography configuration settings of the Certification Authority."
+                    Paragraph "The following section provides detailed information about the cryptography configuration settings for the Certification Authority, including algorithms, providers, and key specifications."
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     try {

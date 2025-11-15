@@ -5,7 +5,7 @@ function Get-AbrADExchange {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,7 +28,7 @@ function Get-AbrADExchange {
         try {
             if ($EXServers ) {
                 Section -Style Heading3 'Exchange Infrastructure' {
-                    Paragraph "This section presents a detailed summary of the Exchange infrastructure configured within the Active Directory environment."
+                    Paragraph "The following section provides a comprehensive overview of the Exchange infrastructure deployed in the Active Directory environment."
                     BlankLine
                     $EXInfo = [System.Collections.ArrayList]::new()
                     foreach ($EXServer in $EXServers) {

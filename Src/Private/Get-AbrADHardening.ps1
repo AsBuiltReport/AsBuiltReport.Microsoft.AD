@@ -5,7 +5,7 @@ function Get-AbrADHardening {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -105,7 +105,7 @@ function Get-AbrADHardening {
 
         try {
             Section -Style Heading3 'Active Directory Hardening' {
-                Paragraph "This section summarizes the current Active Directory domain hardening configurations and their security status."
+                Paragraph "The following section provides an overview of critical Active Directory security hardening settings, including authentication protocols, SMB configurations, and LDAP security enforcement mechanisms."
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
                 try {

@@ -5,7 +5,7 @@ function Get-AbrDHCPinAD {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -54,7 +54,7 @@ function Get-AbrDHCPinAD {
                     )
                 } catch { Out-Null }
                 Section -Style Heading3 'DHCP Infrastructure' {
-                    Paragraph "The following section summarizes the DHCP infrastructure currently configured in Active Directory."
+                    Paragraph "The following section provides an overview of the DHCP servers registered in Active Directory."
                     BlankLine
                     $DCHPInfo = [System.Collections.ArrayList]::new()
                     foreach ($DHCPServer in $DHCPServers) {

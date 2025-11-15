@@ -7,14 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.7] - 2025-09-??
+## [0.9.7] - Unreleased
 
 ### Changed
 
-- Update module version to 0.9.6
-- Upgrade Diagrammer.Core module to version `0.2.32`.
+- Update module version to 0.9.7
+- Upgrade Diagrammer.Core module to version `0.2.34`.
 - Upgrade Diagrammer.Microsoft.AD module to version `0.2.18`.
 - Upgrade zentered/bluesky-post-action to v0.3.0
+- Improve section paragraphs in multiple scripts for better clarity and understanding.
+
+### Fixed
+
+- Fix HealthChack in Get-AbrADDomainLastBackup script to correctly evaluate the 'Last Backup in Days' property as an integer.
 
 ## [0.9.6] - 2025-07-23
 

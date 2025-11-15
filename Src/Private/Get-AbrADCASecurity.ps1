@@ -5,7 +5,7 @@ function Get-AbrADCASecurity {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrADCASecurity {
                 $CFP = Get-CertificateValidityPeriod -CertificationAuthority $CA
                 if ($CFP) {
                     Section -Style Heading3 "Certificate Validity Period" {
-                        Paragraph "The following section details the certificate validity period settings for the Certification Authority."
+                        Paragraph "The following section provides certificate validity period configuration for the Certification Authority."
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {

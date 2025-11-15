@@ -5,7 +5,7 @@ function Get-AbrADCAAIA {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.7
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADCAAIA {
     process {
         if ($CA) {
             Section -Style Heading3 "Authority Information Access (AIA)" {
-                Paragraph "This section details the Certification Authority's Authority Information Access (AIA) configuration."
+                Paragraph "This section provides the Authority Information Access (AIA) configuration for the Certification Authority, which specifies where certificates and certificate revocation information can be retrieved."
                 BlankLine
                 try {
                     Write-PScriboMessage -Message "Collecting AD CA Authority Information Access information on $($CA.Name)."
