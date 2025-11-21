@@ -26,18 +26,18 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     #Requires -RunAsAdministrator
 
     if ($psISE) {
-        Write-Error -Message "This script cannot be run inside the PowerShell ISE. Please execute it from the PowerShell Command Window."
+        Write-Error -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.PwshISE
         break
     }
 
-    Write-Host "- Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project." -ForegroundColor White
-    Write-Host "- Do not forget to update your report configuration file after each new release." -ForegroundColor White
-    Write-Host "- Documentation: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD" -ForegroundColor White
-    Write-Host "- Issues or bug reporting: https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues" -ForegroundColor White
-    Write-Host "- This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates." -ForegroundColor White
-    Write-Host "- To sponsor this project, please visit: " -NoNewline
-    Write-Host "https://ko-fi.com/F1F8DEV80" -ForegroundColor Cyan
-    Write-Host "- Getting dependency information:"
+    Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ProjectWebsite -ForegroundColor White
+    Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo3 -f 'Microsoft.AD') -ForegroundColor White
+    Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo1 -f 'Microsoft.AD') -ForegroundColor White
+    Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo2 -f 'Microsoft.AD') -ForegroundColor White
+    Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.CommunityProject -ForegroundColor White
+    Write-Host "$($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo4) " -NoNewline
+    Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo5 -ForegroundColor Cyan
+    Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo6
 
     # Check the version of the dependency modules
     $ModuleArray = @('AsBuiltReport.Microsoft.AD', 'Diagrammer.Microsoft.AD', 'Diagrammer.Core')
@@ -87,7 +87,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
     if ($Healthcheck) {
         Section -Style TOC -ExcludeFromTOC 'DISCLAIMER' {
-            Paragraph "The information in this report has been gathered through automation and direct observation. Recommendations and conclusions are based on industry best practices, technical expertise, and empirical data. While comprehensive, this assessment may not cover every possible scenario or configuration. Implementation of these recommendations should be performed by qualified personnel with appropriate knowledge and experience. The author(s) assume no liability for any damages, including but not limited to loss of business profits, business interruption, loss of data, or other financial losses arising from the use of or reliance upon this report."
+            Paragraph $reportTranslate.InvokeAsBuiltReportMicrosoftAD.DISCLAIMER
         }
         PageBreak
     }
