@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -37,18 +37,16 @@ function Get-AbrADDomainObject {
 
                     $ADComputerLimitedProperties = @('Enabled', 'OperatingSystem', 'lastlogontimestamp', 'PasswordLastSet', 'SIDHistory', 'PasswordNotRequired', 'Name', 'DistinguishedName')
 
-                    $script:Computers = Invoke-Command -Session $TempPssSession { (Get-ADComputer -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Properties $using:ADComputerLimitedProperties -SearchBase ($using:Domain).distinguishedName) }
+                    $script:Computers = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADComputer -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Properties $using:ADComputerLimitedProperties -SearchBase ($using:Domain).distinguishedName) }
 
                     $Servers = $Computers | Where-Object { $_.OperatingSystem -like "*Serv*" } | Measure-Object
 
-                    $script:Users = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Property $using:ADUsersLimitedProperties -SearchBase ($using:Domain).distinguishedName }
-
-                    $script:FSP = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:ValidDcFromDomain -Filter { ObjectClass -eq "foreignSecurityPrincipal" } -Properties msds-principalname, memberof }
+                    $script:Users = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADUser -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Property $using:ADUsersLimitedProperties -SearchBase ($using:Domain).distinguishedName }
+                    $script:FSP = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:ValidDcFromDomain -Filter { ObjectClass -eq "foreignSecurityPrincipal" } -Properties msds-principalname, memberof }
 
                     $script:PrivilegedUsers = $Users | Where-Object { $_.AdminCount -eq 1 }
 
-                    $script:GroupOBj = Invoke-Command -Session $TempPssSession { (Get-ADGroup -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Properties $using:ADGroupsLimitedProperties -SearchBase ($using:Domain).distinguishedName) }
-
+                    $script:GroupOBj = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADGroup -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Properties $using:ADGroupsLimitedProperties -SearchBase ($using:Domain).distinguishedName) }
                     $script:EmptyGroupOBj = $GroupOBj | Where-Object { (-Not $_.Members ) }
 
                     $excludedDomainGroupsBySID = @("$DomainSID-571", "$DomainSID-572", "$DomainSID-553", "$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
@@ -59,9 +57,9 @@ function Get-AbrADDomainObject {
 
                     $AdminGroupsBySID = "S-1-5-32-552", "$DomainSID-527", "$DomainSID-521", "$DomainSID-516", "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
 
-                    $script:DomainController = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter *) | Select-Object name, OperatingSystem }
+                    $script:DomainController = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter *) | Select-Object name, OperatingSystem }
 
-                    $script:GC = Invoke-Command -Session $TempPssSession { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name }
+                    $script:GC = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name }
 
                     $ADObjects = $Users + $GroupObj
 
@@ -125,8 +123,8 @@ function Get-AbrADDomainObject {
                     $NeverloggedIn = $Users | Where-Object { -not $_.LastLogonDate }
                     $Dormant = $Users | Where-Object { ($_.LastLogonDate) -lt $dormanttime }
                     $PasswordNotRequired = $Users | Where-Object { $_.PasswordNotRequired -eq $true }
-                    $AccountExpired = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:ValidDcFromDomain -AccountExpired }
-                    $AccountLockout = Invoke-Command -Session $TempPssSession { Search-ADAccount -Server $using:ValidDcFromDomain -LockedOut }
+                    $AccountExpired = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Search-ADAccount -Server $using:ValidDcFromDomain -AccountExpired }
+                    $AccountLockout = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Search-ADAccount -Server $using:ValidDcFromDomain -LockedOut }
                     $Categories = @('Total Users', 'Cannot Change Password', 'Password Never Expires', 'Must Change Password at Logon', 'Password Age (> 180 days)', 'SmartcardLogonRequired', 'SidHistory', 'Never Logged in', 'Dormant (> 90 days)', 'Password Not Required', 'Account Expired', 'Account Lockout')
                     if ($Categories) {
                         foreach ($Category in $Categories) {
@@ -970,7 +968,7 @@ function Get-AbrADDomainObject {
                     Show-AbrDebugExecutionTime -Start -TitleMessage 'Default Domain Password Policy'
                     $OutObj = [System.Collections.ArrayList]::new()
                     try {
-                        $PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADDefaultDomainPasswordPolicy -Identity ($using:Domain).DNSRoot }
+                        $PasswordPolicy = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDefaultDomainPasswordPolicy -Identity ($using:Domain).DNSRoot }
                         if ($PasswordPolicy) {
                             $inObj = [ordered] @{
                                 'Password Must Meet Complexity Requirements' = $PasswordPolicy.ComplexityEnabled
@@ -1019,7 +1017,7 @@ function Get-AbrADDomainObject {
             }
             try {
                 foreach ($Item in $Domain) {
-                    if ($PasswordPolicy = Invoke-Command -Session $TempPssSession { Get-ADFineGrainedPasswordPolicy -Server ($using:Domain).PDCEmulator -Filter { Name -like "*" } -Properties * -SearchBase ($using:Domain).distinguishedName } | Sort-Object -Property Name) {
+                    if ($PasswordPolicy = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADFineGrainedPasswordPolicy -Server ($using:Domain).PDCEmulator -Filter { Name -like "*" } -Properties * -SearchBase ($using:Domain).distinguishedName } | Sort-Object -Property Name) {
                         Section -Style Heading3 'Fined Grained Password Policies' {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Fined Grained Password Policies'
                             $FGPPInfo = [System.Collections.ArrayList]::new()
@@ -1088,7 +1086,7 @@ function Get-AbrADDomainObject {
             try {
                 if ($Domain.DNSRoot -eq $ADSystem.RootDomain) {
                     foreach ($Item in $Domain) {
-                        $LAPS = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Server ($using:Domain).PDCEmulator "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:Domain).distinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
+                        $LAPS = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Server ($using:Domain).PDCEmulator "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:Domain).distinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
                         Section -Style Heading3 'Microsoft LAPS' {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Microsoft LAPS'
                             $LAPSInfo = [System.Collections.ArrayList]::new()
@@ -1156,7 +1154,7 @@ function Get-AbrADDomainObject {
 
             try {
                 try {
-                    if ($GMSA = Invoke-Command -Session $TempPssSession { Get-ADServiceAccount -Server $using:ValidDcFromDomain -Filter * -Properties * }) {
+                    if ($GMSA = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADServiceAccount -Server $using:ValidDcFromDomain -Filter * -Properties * }) {
                         Section -Style Heading3 'gMSA Identities' {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'gMSA Identities'
                             $GMSAInfo = [System.Collections.ArrayList]::new()

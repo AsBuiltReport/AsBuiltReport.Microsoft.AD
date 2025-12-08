@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,7 +31,7 @@ function Get-AbrADDFSHealth {
             try {
                 if ($Options.Exclude.DCs) {
                     $DFS = Get-WinADDFSHealth -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains -ExcludeDomainControllers $Options.Exclude.DCs
-                } Else { $DFS = Get-WinADDFSHealth -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains }
+                } else { $DFS = Get-WinADDFSHealth -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains }
                 if ($DFS) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Replication Status' {
                         Paragraph "This section provides the replication status of the SYSVOL folder for domain $($Domain.DNSRoot.ToString().ToUpper())."
@@ -42,7 +42,7 @@ function Get-AbrADDFSHealth {
                                 $RepState = $DFS | Where-Object { $_.DomainController -eq $Controller.Split('.')[0] } | Select-Object -Property ReplicationState, GroupPolicyCount, SysvolCount, IdenticalCount, StopReplicationOnAutoRecovery
                                 $inObj = [ordered] @{
                                     'DC Name' = $Controller.Split('.')[0]
-                                    'Replication Status' = Switch ([string]::IsNullOrEmpty($RepState.ReplicationState)) {
+                                    'Replication Status' = switch ([string]::IsNullOrEmpty($RepState.ReplicationState)) {
                                         $true { "Offline" }
                                         $false { $RepState.ReplicationState }
                                         default { "--" }
@@ -123,14 +123,14 @@ function Get-AbrADDFSHealth {
                 $DCPssSession = Get-ValidPSSession -ComputerName $ValidDcFromDomain -SessionName $($ValidDcFromDomain) -PSSTable ([ref]$PSSTable)
                 if ($DCPssSession) {
                     # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
-                    $SYSVOLFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + ($using:Domain).DNSRoot + '\SYSVOL\' + ($using:Domain).DNSRoot) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
+                    $SYSVOLFolder = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-ChildItem -Path $('\\' + ($using:Domain).DNSRoot + '\SYSVOL\' + ($using:Domain).DNSRoot) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
                             New-Object -TypeName PSObject -Property @{
                                 'Extension' = $_.name
                                 'Count' = $_.count
                                 'TotalSize' = '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) / 1MB)
                             } } | Sort-Object -Descending -Property 'Totalsize' }
                 } else {
-                    if (-Not $_.Exception.MessageId) {
+                    if (-not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
                     Write-PScriboMessage -IsWarning -Message "Sysvol Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
@@ -186,14 +186,14 @@ function Get-AbrADDFSHealth {
                 $DCPssSession = Get-ValidPSSession -ComputerName $ValidDcFromDomain -SessionName $($ValidDcFromDomain) -PSSTable ([ref]$PSSTable)
                 if ($DCPssSession) {
                     # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
-                    $NetlogonFolder = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path $('\\' + ($using:Domain).DNSRoot + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
+                    $NetlogonFolder = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-ChildItem -Path $('\\' + ($using:Domain).DNSRoot + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
                             New-Object -TypeName PSObject -Property @{
                                 'Extension' = $_.name
                                 'Count' = $_.count
                                 'TotalSize' = '{0:N2}' -f ((($_.group | Measure-Object length -Sum).Sum) / 1MB)
                             } } | Sort-Object -Descending -Property 'Totalsize' }
                 } else {
-                    if (-Not $_.Exception.MessageId) {
+                    if (-not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
                     Write-PScriboMessage -IsWarning -Message "Netlogon Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"

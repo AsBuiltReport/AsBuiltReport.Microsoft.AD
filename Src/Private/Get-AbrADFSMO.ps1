@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,13 +27,13 @@ function Get-AbrADFSMO {
 
     process {
         try {
-            $DomainData = Invoke-Command -Session $TempPssSession { Get-ADDomain ($using:Domain).DNSRoot | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator }
-            $ForestData = Invoke-Command -Session $TempPssSession { Get-ADForest ($using:Domain).DNSRoot | Select-Object DomainNamingMaster, SchemaMaster }
+            $DomainData = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain ($using:Domain).DNSRoot | Select-Object InfrastructureMaster, RIDMaster, PDCEmulator }
+            $ForestData = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADForest ($using:Domain).DNSRoot | Select-Object DomainNamingMaster, SchemaMaster }
             if ($DomainData -and $ForestData) {
                 if ($ValidDCFromDomain) {
                     if ($DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)) {
                         Section -Style Heading3 'FSMO Roles' {
-                            $IsInfraMasterGC = (Invoke-Command -Session $DCPssSession -ErrorAction Stop { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
+                            $IsInfraMasterGC = (Invoke-CommandWithTimeout -Session $DCPssSession -ErrorAction Stop -ScriptBlock { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
                             $OutObj = [System.Collections.ArrayList]::new()
                             try {
                                 $inObj = [ordered] @{
@@ -78,7 +78,7 @@ function Get-AbrADFSMO {
                             }
                         }
                     } else {
-                        if (-Not $_.Exception.MessageId) {
+                        if (-not $_.Exception.MessageId) {
                             $ErrorMessage = $_.FullyQualifiedErrorId
                         } else { $ErrorMessage = $_.Exception.MessageId }
                         Write-PScriboMessage -IsWarning -Message "FSMO Roles Section: New-PSSession: Unable to connect to $($Domain.DNSRoot): $ErrorMessage"

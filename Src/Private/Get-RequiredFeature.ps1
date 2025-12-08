@@ -5,7 +5,7 @@ function Get-RequiredFeature {
     .DESCRIPTION
         Function to check if the required version of windows feature is installed
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -15,7 +15,7 @@ function Get-RequiredFeature {
         The version of the required windows feature
     #>
 
-    Param
+    param
     (
         [CmdletBinding()]
         [Parameter(Mandatory = $true, ValueFromPipeline = $false)]

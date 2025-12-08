@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -25,7 +25,7 @@ function Get-AbrADSite {
 
     process {
         try {
-            $Site = Invoke-Command -Session $TempPssSession { Get-ADReplicationSite -Filter * -Properties * }
+            $Site = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSite -Filter * -Properties * }
             if ($Site) {
                 Section -Style Heading3 'Replication' {
                     Paragraph "Replication is the process by which Active Directory objects are transferred and synchronized between domain controllers within the domain and forest, ensuring consistency across the infrastructure."
@@ -40,7 +40,7 @@ function Get-AbrADSite {
                             }
 
                             if ($Graph) {
-                                If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
+                                if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                                 Section -Style Heading4 "Site Inventory Diagram." {
                                     Image -Base64 $Graph -Text "Site Inventory Diagram" -Percent $ImagePrty -Align Center
                                     Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
@@ -58,13 +58,13 @@ function Get-AbrADSite {
                                 $SubnetArray = [System.Collections.ArrayList]::new()
                                 $Subnets = $Item.Subnets
                                 foreach ($Object in $Subnets) {
-                                    $SubnetName = Invoke-Command -Session $TempPssSession { Get-ADReplicationSubnet $using:Object }
+                                    $SubnetName = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSubnet $using:Object }
                                     $SubnetArray.Add($SubnetName.Name) | Out-Null
                                 }
                                 $inObj = [ordered] @{
                                     'Site Name' = $Item.Name
                                     'Description' = $Item.Description
-                                    'Subnets' = Switch (($SubnetArray).count) {
+                                    'Subnets' = switch (($SubnetArray).count) {
                                         0 { "No subnet assigned" }
                                         default { $SubnetArray }
                                     }
@@ -130,7 +130,7 @@ function Get-AbrADSite {
                         }
                     }
                     try {
-                        $Replications = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Properties * -Filter * }
+                        $Replications = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Properties * -Filter * }
                         if ($Replications) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Connection Objects' {
                                 $OutObj = [System.Collections.ArrayList]::new()
@@ -185,7 +185,7 @@ function Get-AbrADSite {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Connection Objects)"
                     }
                     try {
-                        $Subnet = Invoke-Command -Session $TempPssSession { Get-ADReplicationSubnet -Filter * -Properties * }
+                        $Subnet = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSubnet -Filter * -Properties * }
                         if ($Subnet) {
                             Section -Style Heading4 'Site Subnets' {
                                 $OutObj = [System.Collections.ArrayList]::new()
@@ -194,7 +194,7 @@ function Get-AbrADSite {
                                         $inObj = [ordered] @{
                                             'Subnet' = $Item.Name
                                             'Description' = $Item.Description
-                                            'Sites' = Switch ([string]::IsNullOrEmpty($Item.Site)) {
+                                            'Sites' = switch ([string]::IsNullOrEmpty($Item.Site)) {
                                                 $true { "No site assigned" }
                                                 $false { $Item.Site.Split(",")[0].SubString($Item.Site.Split(",")[0].IndexOf("=") + 1) }
                                                 default { 'Unknown' }
@@ -249,15 +249,15 @@ function Get-AbrADSite {
                                     try {
                                         $OutObj = [System.Collections.ArrayList]::new()
                                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
-                                            $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
+                                            $DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain $using:Domain -ErrorAction Stop }
                                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
                                                 if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                                     try {
                                                         $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
                                                         if ($DCPssSession) {
                                                             $Path = "\\$DC\admin`$\debug\netlogon.log"
-                                                            if ((Invoke-Command -Session $DCPssSession { Test-Path -Path $using:path }) -and (Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0 })) {
-                                                                $NetLogonContents = Invoke-Command -Session $DCPssSession { (Get-Content -Path $using:Path)[-200..-1] }
+                                                            if ((Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Test-Path -Path $using:path }) -and (Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { (Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0 })) {
+                                                                $NetLogonContents = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { (Get-Content -Path $using:Path)[-200..-1] }
                                                                 foreach ($Line in $NetLogonContents) {
                                                                     if ($Line -match "NO_CLIENT_SITE") {
                                                                         $inObj = [ordered] @{
@@ -276,7 +276,7 @@ function Get-AbrADSite {
                                                                 Write-PScriboMessage -Message "Unable to read $Path on $DC"
                                                             }
                                                         } else {
-                                                            if (-Not $_.Exception.MessageId) {
+                                                            if (-not $_.Exception.MessageId) {
                                                                 $ErrorMessage = $_.FullyQualifiedErrorId
                                                             } else { $ErrorMessage = $_.Exception.MessageId }
                                                             Write-PScriboMessage -IsWarning -Message "Missing Subnet in AD Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
@@ -335,7 +335,7 @@ function Get-AbrADSite {
                             }
 
                             if ($Graph) {
-                                If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
+                                if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                                 Section -Style Heading4 "Site Topology Diagram." {
                                     Image -Base64 $Graph -Text "Site Topology Diagram" -Percent $ImagePrty -Align Center
                                     Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
@@ -347,8 +347,8 @@ function Get-AbrADSite {
                         }
                     }
                     try {
-                        $DomainDN = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
-                        $InterSiteTransports = try { Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADObject -Filter { (objectClass -eq "interSiteTransport") } -SearchBase "CN=Inter-Site Transports,CN=Sites,CN=Configuration,$using:DomainDN" -Properties * } } catch { Out-Null }
+                        $DomainDN = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
+                        $InterSiteTransports = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Filter { (objectClass -eq "interSiteTransport") } -SearchBase "CN=Inter-Site Transports,CN=Sites,CN=Configuration,$using:DomainDN" -Properties * } } catch { Out-Null }
                         if ($InterSiteTransports) {
                             Section -Style Heading4 'Inter-Site Transports' {
                                 Paragraph "Site links in Active Directory represent the inter-site connectivity and method used to transfer replication traffic. There are two transport protocols that can be used for replication via site links. The default protocol used in site link is IP, and it performs synchronous replication between available domain controllers. The SMTP method can be used when the link between sites is not reliable."
@@ -357,7 +357,7 @@ function Get-AbrADSite {
                                     $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($Item in $InterSiteTransports) {
                                         $SiteArray = [System.Collections.ArrayList]::new()
-                                        Switch ($Item.options) {
+                                        switch ($Item.options) {
                                             $null {
                                                 $BridgeAlSiteLinks = "Yes"
                                                 $IgnoreSchedules = "No"
@@ -407,7 +407,7 @@ function Get-AbrADSite {
                                 try {
                                     Section -Style Heading4 'IP' {
                                         try {
-                                            $IPLink = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "IP" } }
+                                            $IPLink = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "IP" } }
                                             if ($IPLink) {
                                                 Section -Style Heading5 'Site Links' {
                                                     foreach ($Item in $IPLink) {
@@ -416,7 +416,7 @@ function Get-AbrADSite {
                                                             $SiteArray = [System.Collections.ArrayList]::new()
                                                             $Sites = $Item.siteList
                                                             foreach ($Object in $Sites) {
-                                                                $SiteName = Invoke-Command -Session $TempPssSession { Get-ADReplicationSite -Identity $using:Object }
+                                                                $SiteName = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSite -Identity $using:Object }
                                                                 $SiteArray.Add($SiteName.Name) | Out-Null
                                                             }
                                                             $inObj = [ordered] @{
@@ -424,7 +424,7 @@ function Get-AbrADSite {
                                                                 'Cost' = $Item.Cost
                                                                 'Replication Frequency' = "$($Item.ReplicationFrequencyInMinutes) min"
                                                                 'Transport Protocol' = $Item.InterSiteTransportProtocol
-                                                                'Options' = Switch ($Item.Options) {
+                                                                'Options' = switch ($Item.Options) {
                                                                     $null { 'Change Notification is Disabled' }
                                                                     '0' { '(0) Change Notification is Disabled' }
                                                                     '1' { '(1) Change Notification is Enabled with Compression' }
@@ -434,7 +434,7 @@ function Get-AbrADSite {
                                                                     '5' { '(5) Change Notification is Enabled without Compression' }
                                                                     '6' { '(6) Force sync in opposite direction at end of sync and Disable compression of Change Notification messages' }
                                                                     '7' { '(7) Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync' }
-                                                                    Default { "Unknown siteLink option: $($Item.Options)" }
+                                                                    default { "Unknown siteLink option: $($Item.Options)" }
                                                                 }
                                                                 'Sites' = $SiteArray -join "; "
                                                                 'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
@@ -495,7 +495,7 @@ function Get-AbrADSite {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (IP Site Links Section)"
                                         }
                                         try {
-                                            $IPLinkBridges = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "IP" } }
+                                            $IPLinkBridges = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "IP" } }
                                             if ($IPLinkBridges) {
                                                 Section -Style Heading5 'Site Link Bridges' {
                                                     foreach ($Item in $IPLinkBridges) {
@@ -504,7 +504,7 @@ function Get-AbrADSite {
                                                             $SiteArray = [System.Collections.ArrayList]::new()
                                                             $Sites = $Item.siteLinkList
                                                             foreach ($Object in $Sites) {
-                                                                $SiteName = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLink -Identity $using:Object }
+                                                                $SiteName = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Identity $using:Object }
                                                                 $SiteArray.Add($SiteName.Name) | Out-Null
                                                             }
                                                             $inObj = [ordered] @{
@@ -565,7 +565,7 @@ function Get-AbrADSite {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (IP)"
                                 }
                                 try {
-                                    $IPLink = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "SMTP" } }
+                                    $IPLink = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "SMTP" } }
                                     if ($IPLink) {
                                         Section -Style Heading4 'SMTP' {
                                             Paragraph "SMTP replication is used for sites that cannot use the others, but as a general rule, it should never be used. It is reserved when network connections are not always available, therefore, you can schedule replication."
@@ -577,7 +577,7 @@ function Get-AbrADSite {
                                                             $SiteArray = [System.Collections.ArrayList]::new()
                                                             $Sites = $Item.siteList
                                                             foreach ($Object in $Sites) {
-                                                                $SiteName = Invoke-Command -Session $TempPssSession { Get-ADReplicationSite -Identity $using:Object }
+                                                                $SiteName = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSite -Identity $using:Object }
                                                                 $SiteArray.Add($SiteName.Name) | Out-Null
                                                             }
                                                             $inObj = [ordered] @{
@@ -585,7 +585,7 @@ function Get-AbrADSite {
                                                                 'Cost' = $Item.Cost
                                                                 'Replication Frequency' = "$($Item.ReplicationFrequencyInMinutes) min"
                                                                 'Transport Protocol' = $Item.InterSiteTransportProtocol
-                                                                'Options' = Switch ($Item.Options) {
+                                                                'Options' = switch ($Item.Options) {
                                                                     $null { 'Change Notification is Disabled' }
                                                                     '0' { '(0)Change Notification is Disabled' }
                                                                     '1' { '(1)Change Notification is Enabled with Compression' }
@@ -595,7 +595,7 @@ function Get-AbrADSite {
                                                                     '5' { '(5)Change Notification is Enabled without Compression' }
                                                                     '6' { '(6)Force sync in opposite direction at end of sync and Disable compression of Change Notification messages' }
                                                                     '7' { '(7)Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync' }
-                                                                    Default { "Unknown siteLink option: $($Item.Options)" }
+                                                                    default { "Unknown siteLink option: $($Item.Options)" }
                                                                 }
                                                                 'Sites' = $SiteArray -join "; "
                                                                 'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
@@ -653,7 +653,7 @@ function Get-AbrADSite {
                                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SMTP Site Links Section)"
                                             }
                                             try {
-                                                $IPLinkBridges = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "SMTP" } }
+                                                $IPLinkBridges = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "SMTP" } }
                                                 if ($IPLinkBridges) {
                                                     Section -Style Heading5 'Site Link Bridges' {
                                                         foreach ($Item in $IPLinkBridges) {
@@ -662,7 +662,7 @@ function Get-AbrADSite {
                                                                 $SiteArray = [System.Collections.ArrayList]::new()
                                                                 $Sites = $Item.siteLinkList
                                                                 foreach ($Object in $Sites) {
-                                                                    $SiteName = Invoke-Command -Session $TempPssSession { Get-ADReplicationSiteLink -Identity $using:Object }
+                                                                    $SiteName = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Identity $using:Object }
                                                                     $SiteArray.Add($SiteName.Name) | Out-Null
                                                                 }
                                                                 $inObj = [ordered] @{
@@ -734,7 +734,7 @@ function Get-AbrADSite {
                     try {
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
-                            $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain $using:Domain -ErrorAction Stop }
+                            $DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain $using:Domain -ErrorAction Stop }
                             foreach ($DC in ($DomainInfo.ReplicaDirectoryServers | Where-Object { $_ -notin $Options.Exclude.DCs })) {
                                 if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                     $DCCIMSession = Get-ValidCIMSession -ComputerName $DC -SessionName $DC -CIMTable ([ref]$CIMTable)
@@ -745,7 +745,7 @@ function Get-AbrADSite {
                                         try {
                                             $inObj = [ordered] @{
                                                 'DC Name' = $DC.split(".", 2)[0]
-                                                'Replication Status' = Switch ($Replication.State) {
+                                                'Replication Status' = switch ($Replication.State) {
                                                     0 { 'Uninitialized' }
                                                     1 { 'Initialized' }
                                                     2 { 'Initial synchronization' }
@@ -785,7 +785,7 @@ function Get-AbrADSite {
                                         Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                                         $inObj = [ordered] @{
                                             'DC Name' = $DC.split(".", 2)[0]
-                                            'Replication Status' = Switch ($Replication.State) {
+                                            'Replication Status' = switch ($Replication.State) {
                                                 0 { 'Uninitialized' }
                                                 1 { 'Initialized' }
                                                 2 { 'Initial synchronization' }

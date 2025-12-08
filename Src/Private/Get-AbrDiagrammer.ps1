@@ -6,7 +6,7 @@ function Get-AbrDiagrammer {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -56,14 +56,14 @@ function Get-AbrDiagrammer {
     process {
         try {
             # Set default theme styles
-            if (-Not $Options.DiagramTheme) {
+            if (-not $Options.DiagramTheme) {
                 $DiagramTheme = 'White'
             } else {
                 $DiagramTheme = $Options.DiagramTheme
             }
             $DiagramTypeArray = [System.Collections.ArrayList]::new()
 
-            if (-Not $Options.DiagramType) {
+            if (-not $Options.DiagramType) {
                 $DiagramTypeArray.Add('All') | Out-Null
             } elseif ($Options.DiagramType) {
                 $DiagramTypeArray = $Options.DiagramType
@@ -71,7 +71,7 @@ function Get-AbrDiagrammer {
                 $DiagramType = 'Forest'
             }
 
-            if (-Not $Options.ExportDiagramsFormat) {
+            if (-not $Options.ExportDiagramsFormat) {
                 $DiagramFormat = 'png'
             } elseif ($DiagramOutput) {
                 $DiagramFormat = $DiagramOutput

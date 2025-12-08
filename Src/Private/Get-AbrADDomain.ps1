@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADDomain {
         $OutObj = [System.Collections.ArrayList]::new()
         if ($Domain) {
             try {
-                $RIDPool = Invoke-Command -Session $TempPssSession { Get-ADObject -Server $using:ValidDcFromDomain -Identity "CN=RID Manager$,CN=System,$(($using:DomainInfo).DistinguishedName)" -Properties rIDAvailablePool -ErrorAction SilentlyContinue }
+                $RIDPool = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:ValidDcFromDomain -Identity "CN=RID Manager$,CN=System,$(($using:DomainInfo).DistinguishedName)" -Properties rIDAvailablePool -ErrorAction SilentlyContinue }
                 $RIDavailable = $RIDPool.rIDAvailablePool
                 [int32] $CompleteSIDS = $($RIDavailable) / ([math]::Pow(2, 32))
                 [int64] $TEMP = $CompleteSIDS * ([math]::Pow(2, 32))
@@ -56,7 +56,7 @@ function Get-AbrADDomain {
                         'Lost And Found Container' = $Domain.LostAndFoundContainer
                         'Quotas Container' = $Domain.QuotasContainer
                         'ReadOnly Replica Directory Servers' = $Domain.ReadOnlyReplicaDirectoryServers
-                        'ms-DS-MachineAccountQuota' = Invoke-Command -Session $TempPssSession { (Get-ADObject -Server $using:ValidDcFromDomain -Identity (($using:Domain).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota' }
+                        'ms-DS-MachineAccountQuota' = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADObject -Server $using:ValidDcFromDomain -Identity (($using:Domain).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota' }
                         'RID Issued/Available' = try { "$($RIDsIssued) / $($RIDsRemaining) ($([math]::Truncate($CompleteSIDS / $RIDsRemaining))% Issued)" } catch { "$($RIDsIssued)/$($RIDsRemaining)" }
                     }
                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null

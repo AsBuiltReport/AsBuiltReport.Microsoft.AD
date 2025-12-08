@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -26,12 +26,12 @@ function Get-AbrADForest {
 
     process {
         try {
-            $Data = Invoke-Command -Session $TempPssSession { Get-ADForest }
+            $Data = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADForest }
             $ForestInfo = $Data.RootDomain.toUpper()
-            $DomainDN = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
-            $TombstoneLifetime = Invoke-Command -Session $TempPssSession { Get-ADObject "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$using:DomainDN" -Properties tombstoneLifetime | Select-Object -ExpandProperty tombstoneLifetime }
-            $ADVersion = Invoke-Command -Session $TempPssSession { Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion }
-            $ValuedsHeuristics = Invoke-Command -Session $TempPssSession { Get-ADObject -Identity "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$(($using:DomainDN))" -Properties dsHeuristics -ErrorAction SilentlyContinue }
+            $DomainDN = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
+            $TombstoneLifetime = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$using:DomainDN" -Properties tombstoneLifetime | Select-Object -ExpandProperty tombstoneLifetime }
+            $ADVersion = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion }
+            $ValuedsHeuristics = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Identity "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$(($using:DomainDN))" -Properties dsHeuristics -ErrorAction SilentlyContinue }
 
             if ($ADVersion -eq '88') { $server = 'Windows Server 2019' }
             elseif ($ADVersion -eq '91') { $server = 'Windows Server 2025' }
@@ -242,7 +242,7 @@ function Get-AbrADForest {
         }
         try {
             Section -Style Heading3 'Optional Features' {
-                $Data = Invoke-Command -Session $TempPssSession { Get-ADOptionalFeature -Filter * }
+                $Data = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADOptionalFeature -Filter * }
                 $OutObj = [System.Collections.ArrayList]::new()
                 if ($Data) {
                     foreach ($Item in $Data) {

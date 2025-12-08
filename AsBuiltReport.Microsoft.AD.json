@@ -37,11 +37,12 @@
         },
         "ExportDiagrams": false,
         "ExportDiagramsFormat": [
-            "png"
+            "pdf"
         ],
         "EnableDiagramSignature": false,
         "SignatureAuthorName": "",
-        "SignatureCompanyName": ""
+        "SignatureCompanyName": "",
+        "JobsTimeOut": 500
     },
     "InfoLevel": {
         "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",

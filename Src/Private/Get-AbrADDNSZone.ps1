@@ -5,7 +5,7 @@ function Get-AbrADDNSZone {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -117,9 +117,9 @@ function Get-AbrADDNSZone {
                         try {
                             $DNSSetting = $Null
                             if ($DCPssSession) {
-                                $DNSSetting = Invoke-Command -Session $DCPssSession { Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object { $_ -match 'SecondaryServers' } }
+                                $DNSSetting = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object { $_ -match 'SecondaryServers' } }
                             } else {
-                                if (-Not $_.Exception.MessageId) {
+                                if (-not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
                                 Write-PScriboMessage -IsWarning -Message "DNS Zones Transfers Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
@@ -133,7 +133,7 @@ function Get-AbrADDNSZone {
                                                 'Zone Name' = $Zone.PSChildName
                                                 'Secondary Servers' = ($Zone.SecondaryServers -join ", ")
                                                 'Notify Servers' = $Zone.NotifyServers
-                                                'Secure Secondaries' = Switch ($Zone.SecureSecondaries) {
+                                                'Secure Secondaries' = switch ($Zone.SecureSecondaries) {
                                                     "0" { "Send zone transfers to all secondary servers that request them." }
                                                     "1" { "Send zone transfers only to name servers that are authoritative for the zone." }
                                                     "2" { "Send zone transfers only to servers you specify in Secondary Servers." }
@@ -264,7 +264,7 @@ function Get-AbrADDNSZone {
                                                 'Aging Enabled' = ($Settings.AgingEnabled)
                                                 'Refresh Interval' = $Settings.RefreshInterval
                                                 'NoRefresh Interval' = $Settings.NoRefreshInterval
-                                                'Available For Scavenge' = Switch ($Settings.AvailForScavengeTime) {
+                                                'Available For Scavenge' = switch ($Settings.AvailForScavengeTime) {
                                                     "" { "--"; break }
                                                     $Null { "--"; break }
                                                     default { (($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")); break }

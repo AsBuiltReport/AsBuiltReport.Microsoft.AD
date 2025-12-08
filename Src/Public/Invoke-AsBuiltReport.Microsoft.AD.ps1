@@ -21,8 +21,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         [PSCredential] $Credential
     )
 
-    #Requires -Version 5.1
-    #Requires -PSEdition Desktop
     #Requires -RunAsAdministrator
 
     if ($psISE) {
@@ -130,7 +128,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         try {
             Write-PScriboMessage -Message "Connecting to retrieve Forest information from Domain Controller '$System'."
-            $script:ADSystem = Invoke-Command -Session $TempPssSession { Get-ADForest -ErrorAction Stop }
+            $script:ADSystem = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADForest -ErrorAction Stop }
         } catch {
             throw "Unable to retrieve Forest information from Domain Controller '$System'."
         }

@@ -5,7 +5,7 @@ function Get-AbrPKISection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -46,7 +46,7 @@ function Get-AbrPKISection {
                                 Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
                                 BlankLine
                             }
-                            if (-Not $Options.ShowDefinitionInfo) {
+                            if (-not $Options.ShowDefinitionInfo) {
                                 Paragraph "The following section provides a comprehensive overview of the Active Directory Public Key Infrastructure (PKI) configuration and its components."
                                 BlankLine
                             }

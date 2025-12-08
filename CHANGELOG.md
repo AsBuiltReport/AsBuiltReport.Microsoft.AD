@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.7] - Unreleased
+## [0.9.8] - Unreleased
+
+### Added
+
+- Add support for PowerShell 7
+- Add function to Invoke-Command with timeout support (Jobs Scheduler)
 
 ### Changed
 
@@ -17,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade AsBuiltReport.Core module to version `1.5.1`
 - Change Psscriptanalyzer action to alagoutte/github-action-psscriptanalyzer
 - Update CodeQL action to v4
+- Migrate function located in SharedUtilsFunctions.ps1 to its own file for better modularity and maintainability
+- Change export diagrams format to "PDF" by default
+
+### Fixed
+
+- Fix HealthCheck in Get-AbrADDomainLastBackup script to correctly evaluate the 'Last Backup in Days' property as an integer.
+- Fix 'Orphaned GPO' section displaying data when no orphaned GPOs are found in Get-AbrADGPO script.
 
 ## [0.9.7] - 2025-11-14
 
