@@ -46,8 +46,6 @@ function Invoke-CommandWithTimeout {
         [int]$TimeoutSeconds = $Options.JobsTimeOut
     )
 
-    Write-PScriboMessage -Message "Invoking '$ScriptBlock' with timeout of $(if ($TimeoutSeconds) {$TimeoutSeconds / 60} else {'Unknown'} ) minutes."
-
     # Start the command as a job
     $job = Invoke-Command -Session $Session -ScriptBlock $ScriptBlock -AsJob
 
