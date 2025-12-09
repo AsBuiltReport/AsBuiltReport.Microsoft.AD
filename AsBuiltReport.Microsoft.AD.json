@@ -29,11 +29,11 @@
         "DiagramObjDebug": false,
         "DiagramWaterMark": "",
         "DiagramType": {
-            "CertificateAuthority": false,
-            "Forest": false,
-            "Sites": false,
-            "SitesInventory": false,
-            "Trusts": false
+            "CertificateAuthority": true,
+            "Forest": true,
+            "Sites": true,
+            "SitesInventory": true,
+            "Trusts": true
         },
         "ExportDiagrams": false,
         "ExportDiagramsFormat": [

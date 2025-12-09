@@ -161,7 +161,21 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         if ($Options.ExportDiagrams) {
             Write-Host " "
             Write-Host "ExportDiagrams option enabled: Exporting diagrams:"
-            $Options.DiagramType.PSobject.Properties | ForEach-Object { if ($_.Value) { Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $TempPssSession } }
+            $Options.DiagramType.PSobject.Properties | ForEach-Object {
+                if ($_.Value -and $_.Name -eq 'Trusts') {
+                    foreach ($Domain in $OrderedDomains) {
+                        $ValidDC = Get-ValidDCfromDomain -Domain $Domain[0] -DCStatus ([ref]$DCStatus)
+                        if ($ValidDC) {
+                            $DCPssSession = Get-ValidPSSession -ComputerName $ValidDC -SessionName $($ValidDC) -PSSTable ([ref]$PSSTable)
+                            if ($DCPssSession) {
+                                Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $DCPssSession -Domain $Domain[0] -FileName "AsBuiltReport.$($Global:Report)-($($_.Name))-$($Domain[0])"
+                            }
+                        }
+                    }
+                } elseif ($_.Value) {
+                    Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $TempPssSession
+                }
+            }
         }
 
         #---------------------------------------------------------------------------------------------#

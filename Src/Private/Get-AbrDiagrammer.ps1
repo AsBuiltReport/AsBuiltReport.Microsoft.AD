@@ -46,7 +46,18 @@ function Get-AbrDiagrammer {
         )]
         [ValidateNotNullOrEmpty()]
         $PSSessionObject,
-        [string]$DomainController = $System
+        [Parameter(
+            Position = 5,
+            Mandatory = $false,
+            HelpMessage = 'Plea'
+        )]
+        [string]$DomainController = $System,
+        [Parameter(
+            Position = 6,
+            Mandatory = $false,
+            HelpMessage = 'Please provide file name without extension to use for the diagram output'
+        )]
+        [string]$FileName
     )
 
     begin {
@@ -112,17 +123,23 @@ function Get-AbrDiagrammer {
                             $Graph
                         }
                     } else {
-                        $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename "AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)"
+                        if ($FileName) {
+                            $FileName = "$($FileName).$($Format)"
+                            $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
+                        } else {
+                            $FileName = "AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)"
+                            $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
+                        }
                         if ($Graph) {
                             if ($ExportPath) {
-                                $FilePath = Join-Path -Path $OutputFolderPath -ChildPath "AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)"
+                                $FilePath = Join-Path -Path $OutputFolderPath -ChildPath $FileName
                                 if (Test-Path -Path $FilePath) {
                                     $FilePath
                                 } else {
                                     Write-PScriboMessage -IsWarning -Message "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
                                 }
                             } else {
-                                Write-Information "Saved 'AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)' diagram to '$($OutputFolderPath)'." -InformationAction Continue
+                                Write-Information "Saved '$FileName' diagram to '$($OutputFolderPath)'." -InformationAction Continue
                             }
                         }
                     }
