@@ -46,6 +46,10 @@ function Invoke-CommandWithTimeout {
         [int]$TimeoutSeconds = $Options.JobsTimeOut
     )
 
+    if (-not $TimeoutSeconds) {
+        $TimeoutSeconds = 900
+    }
+
     # Start the command as a job
     $job = Invoke-Command -Session $Session -ScriptBlock $ScriptBlock -AsJob
 

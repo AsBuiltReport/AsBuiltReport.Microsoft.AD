@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrate function located in SharedUtilsFunctions.ps1 to its own file for better modularity and maintainability
 - Change export diagrams format to "PDF" by default
 - Improve Get-RequiredFeatures function to better handle feature retrieval and error handling
+- Improve timeout warning message in Invoke-CommandWithTimeout
 
 ### Fixed
 

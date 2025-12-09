@@ -184,7 +184,7 @@ The **Options** schema allows certain options within the report to be toggled on
 | Exclude.Domains         | Array List         | Empty     | Allow to filter on AD Domain FQDN                                             |
 | Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                |
 | Include.Domains         | Array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.     |
-| JobsTimeOut             | Int                | 600       | Allow to set the timeout (in seconds) for remote jobs execution               |
+| JobsTimeOut             | Int                | 900       | Allow to set the timeout (in seconds) for remote jobs execution               |
 | PSDefaultAuthentication | Negotiate/Kerberos | Negotiate | Allow to set the value of the PSRemoting authentication method.               |
 |                         |                    |           | For Workgroup authentication Negotiate value is required.                     |
 | ShowDefinitionInfo      | true/false         | False     | Toggle to enable/disable Microsoft AD term explanations                       |
