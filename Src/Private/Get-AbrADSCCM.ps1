@@ -5,7 +5,7 @@ function Get-AbrADSCCM {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -24,8 +24,8 @@ function Get-AbrADSCCM {
     }
 
     process {
-        $DomainDN = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
-        $SCCMMP = try { Invoke-Command -Session $TempPssSession { Get-ADObject -Filter { (objectClass -eq "mSSMSManagementPoint") -and (Name -like "SMS-MP-*") } -SearchBase "CN=System Management,CN=System,$using:DomainDN" -Properties * } } catch { Out-Null }
+        $DomainDN = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
+        $SCCMMP = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction SilentlyContinue -ScriptBlock { Get-ADObject -Filter { (objectClass -eq "mSSMSManagementPoint") -and (Name -like "SMS-MP-*") } -SearchBase "CN=System Management,CN=System,$using:DomainDN" -Properties * } } catch { Out-Null }
         try {
             if ($SCCMMP ) {
                 Section -Style Heading3 'SCCM Infrastructure' {

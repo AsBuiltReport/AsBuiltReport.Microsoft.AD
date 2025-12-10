@@ -5,7 +5,7 @@ function Get-RequiredModule {
     .DESCRIPTION
     Function to check if the required version of Module is installed
     .NOTES
-        Version:        0.8.1
+        Version:        0.9.8
         Author:         Tim Carman
         Twitter:        @tpcarman
         Github:         tpcarman
@@ -15,7 +15,7 @@ function Get-RequiredModule {
     The version of the required PowerShell module
     #>
 
-    Param
+    param
     (
         [CmdletBinding()]
         [Parameter(Mandatory = $true, ValueFromPipeline = $false)]

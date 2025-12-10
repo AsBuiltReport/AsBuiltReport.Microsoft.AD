@@ -70,7 +70,6 @@ function Get-AbrADCAAIA {
     end {
         if ($Options.ShowExecutionTime) {
             $SectionEndTime = Get-Date
-            Write-Host "Ending CA Authority Information Access Objects section: $($SectionEndTime)" -ForegroundColor Cyan
             $elapsedTime = New-TimeSpan -Start $SectionStartTime -End $SectionEndTime
             Write-Host "CA Authority Information Access Objects Section execution time: $($elapsedTime.tostring("hh")) Hours $($elapsedTime.tostring("mm")) Minutes $($elapsedTime.tostring("ss")) Seconds"
         }

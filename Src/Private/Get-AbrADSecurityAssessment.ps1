@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrADSecurityAssessment {
                 $DomainUsers = $Users
                 $DomainEnabledUsers = $DomainUsers | Where-Object { $_.Enabled -eq $True } | Measure-Object
                 $DomainDisabledUsers = $DomainUsers | Where-Object { $_.Enabled -eq $false } | Measure-Object
-                $DomainEnabledInactiveUsers = $DomainEnabledUsers | Where-Object { ($_.LastLogonDate -le $LastLoggedOnDate) -AND ($_.PasswordLastSet -le $PasswordStaleDate) } | Measure-Object
+                $DomainEnabledInactiveUsers = $DomainEnabledUsers | Where-Object { ($_.LastLogonDate -le $LastLoggedOnDate) -and ($_.PasswordLastSet -le $PasswordStaleDate) } | Measure-Object
                 $DomainUsersWithReversibleEncryptionPasswordArray = $DomainUsers | Where-Object { $_.UserAccountControl -band 0x0080 } | Measure-Object
                 $DomainUserPasswordNotRequiredArray = $DomainUsers | Where-Object { $_.PasswordNotRequired -eq $True } | Measure-Object
                 $DomainUserPasswordNeverExpiresArray = $DomainUsers | Where-Object { $_.PasswordNeverExpires -eq $True } | Measure-Object
@@ -118,20 +118,20 @@ function Get-AbrADSecurityAssessment {
                                 try {
                                     $inObj = [ordered] @{
                                         'Username' = $PrivilegedUser.SamAccountName
-                                        'Password Last Set' = Switch ($PrivilegedUser.PasswordLastSet) {
+                                        'Password Last Set' = switch ($PrivilegedUser.PasswordLastSet) {
                                             $Null { '--' }
                                             default { $PrivilegedUser.PasswordLastSet.ToShortDateString() }
                                         }
-                                        'Last Logon Date' = Switch ($PrivilegedUser.LastLogonDate) {
+                                        'Last Logon Date' = switch ($PrivilegedUser.LastLogonDate) {
                                             $Null { '--' }
                                             default { $PrivilegedUser.LastLogonDate.ToShortDateString() }
                                         }
-                                        'Email Enabled?' = Switch ([string]::IsNullOrEmpty($PrivilegedUser.EmailAddress)) {
+                                        'Email Enabled?' = switch ([string]::IsNullOrEmpty($PrivilegedUser.EmailAddress)) {
                                             $true { 'No' }
                                             $false { "Yes" }
                                             default { "Unknown" }
                                         }
-                                        'Trusted for Delegation' = Switch ([string]::IsNullOrEmpty(($AccountNotDelegated | Where-Object { $_.SamAccountName -eq $PrivilegedUser.SamAccountName }))) {
+                                        'Trusted for Delegation' = switch ([string]::IsNullOrEmpty(($AccountNotDelegated | Where-Object { $_.SamAccountName -eq $PrivilegedUser.SamAccountName }))) {
                                             $true { "No" }
                                             $false { "Yes" }
                                             default { "Unknown" }
@@ -192,7 +192,7 @@ function Get-AbrADSecurityAssessment {
                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Users Table)"
                 }
                 try {
-                    $InactivePrivilegedUsers = $PrivilegedUsers | Where-Object { ($_.LastLogonDate -le (Get-Date).AddDays(-30)) -AND ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
+                    $InactivePrivilegedUsers = $PrivilegedUsers | Where-Object { ($_.LastLogonDate -le (Get-Date).AddDays(-30)) -and ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
                     if ($InactivePrivilegedUsers) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Inactive Privileged Accounts' {
                             Paragraph "The following section identifies privileged accounts in domain $($Domain.DNSRoot.ToString().ToUpper()) that have remained inactive for over 30 days and have not had their passwords changed in at least 365 days."
@@ -202,15 +202,15 @@ function Get-AbrADSecurityAssessment {
                                 try {
                                     $inObj = [ordered] @{
                                         'Username' = $InactivePrivilegedUser.SamAccountName
-                                        'Created' = Switch ($InactivePrivilegedUser.Created) {
+                                        'Created' = switch ($InactivePrivilegedUser.Created) {
                                             $Null { '--' }
                                             default { $InactivePrivilegedUser.Created.ToShortDateString() }
                                         }
-                                        'Password Last Set' = Switch ($InactivePrivilegedUser.PasswordLastSet) {
+                                        'Password Last Set' = switch ($InactivePrivilegedUser.PasswordLastSet) {
                                             $Null { '--' }
                                             default { $InactivePrivilegedUser.PasswordLastSet.ToShortDateString() }
                                         }
-                                        'Last Logon Date' = Switch ($InactivePrivilegedUser.LastLogonDate) {
+                                        'Last Logon Date' = switch ($InactivePrivilegedUser.LastLogonDate) {
                                             $Null { '--' }
                                             default { $InactivePrivilegedUser.LastLogonDate.ToShortDateString() }
                                         }
@@ -249,7 +249,7 @@ function Get-AbrADSecurityAssessment {
                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Inactive Privileged Accounts Table)"
                 }
                 try {
-                    $UserSPNs = Invoke-Command -Session $TempPssSession { Get-ADUser -ResultPageSize 1000 -Server ($using:Domain).DNSRoot -Filter { ServicePrincipalName -like '*' } -Properties AdminCount, PasswordLastSet, LastLogonDate, ServicePrincipalName, TrustedForDelegation, TrustedtoAuthForDelegation }
+                    $UserSPNs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADUser -ResultPageSize 1000 -Server ($using:Domain).DNSRoot -Filter { ServicePrincipalName -like '*' } -Properties AdminCount, PasswordLastSet, LastLogonDate, ServicePrincipalName, TrustedForDelegation, TrustedtoAuthForDelegation }
                     if ($UserSPNs) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Service Accounts Assessment (Kerberoastable)' {
                             Paragraph "The following section provides an overview of service accounts (user accounts with Service Principal Names) that are potentially vulnerable to Kerberoasting attacks in domain $($Domain.DNSRoot.ToString().ToUpper())."
@@ -261,11 +261,11 @@ function Get-AbrADSecurityAssessment {
                                     $inObj = [ordered] @{
                                         'Username' = $UserSPN.SamAccountName
                                         'Enabled' = $UserSPN.Enabled
-                                        'Password Last Set' = Switch ($UserSPN.PasswordLastSet) {
+                                        'Password Last Set' = switch ($UserSPN.PasswordLastSet) {
                                             $Null { '--' }
                                             default { $UserSPN.PasswordLastSet.ToShortDateString() }
                                         }
-                                        'Last Logon Date' = Switch ($UserSPN.LastLogonDate) {
+                                        'Last Logon Date' = switch ($UserSPN.LastLogonDate) {
                                             $Null { '--' }
                                             default { $UserSPN.LastLogonDate.ToShortDateString() }
                                         }

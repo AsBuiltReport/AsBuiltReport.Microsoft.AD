@@ -5,7 +5,7 @@ function Get-AbrForestSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,7 +35,7 @@ function Get-AbrForestSection {
                             Paragraph "The Active Directory framework that holds the objects can be viewed at several levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest, which is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are contained."
                             BlankLine
                         }
-                        if (-Not $Options.ShowDefinitionInfo) {
+                        if (-not $Options.ShowDefinitionInfo) {
                             Paragraph "The following section provides a detailed summary of the Active Directory Forest infrastructure and configuration."
                             BlankLine
                         }

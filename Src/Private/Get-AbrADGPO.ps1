@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -31,18 +31,18 @@ function Get-AbrADGPO {
                 Paragraph "The following section provides an overview of the Group Policy Objects (GPOs) configured within the $($Domain.DNSRoot.ToString().ToUpper()) domain."
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
-                $GPOs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Domain ($using:Domain).DNSRoot -All }
+                $GPOs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPO -Domain ($using:Domain).DNSRoot -All }
                 if ($GPOs) {
                     if ($InfoLevel.Domain -eq 1) {
                         try {
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain ($using:Domain).DNSRoot -ReportType XML }
+                                    [xml]$Links = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain ($using:Domain).DNSRoot -ReportType XML }
                                     $inObj = [ordered] @{
                                         'GPO Name' = $GPO.DisplayName
                                         'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
                                         'Security Filtering' = & {
-                                            $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName ($using:Domain).DNSRoot -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
+                                            $GPOSECFILTER = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName ($using:Domain).DNSRoot -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
                                             if ($GPOSECFILTER) {
 
                                                 return $GPOSECFILTER
@@ -108,7 +108,7 @@ function Get-AbrADGPO {
                                 Section -ExcludeFromTOC -Style NOTOCHeading5 "$($GPO.DisplayName)" {
                                     $OutObj = [System.Collections.ArrayList]::new()
                                     try {
-                                        [xml]$Links = Invoke-Command -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain ($using:Domain).DNSRoot -ReportType XML }
+                                        [xml]$Links = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain ($using:Domain).DNSRoot -ReportType XML }
                                         $inObj = [ordered] @{
                                             'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
                                             'GUID' = $GPO.Id
@@ -118,20 +118,20 @@ function Get-AbrADGPO {
                                             'Computer Version' = "$($Links.GPO.Computer.VersionDirectory) (AD), $($Links.GPO.Computer.VersionSysvol) (SYSVOL)"
                                             'User Version' = "$($Links.GPO.User.VersionDirectory) (AD), $($Links.GPO.User.VersionSysvol) (SYSVOL)"
                                             'WMI Filter' = & {
-                                                $WMIFilter = Invoke-Command -Session $TempPssSession -ScriptBlock { ((Get-GPO -DomainName $($using:Domain).DNSROot  -Name $using:GPO.DisplayName).WMifilter.Name) }
+                                                $WMIFilter = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { ((Get-GPO -DomainName $($using:Domain).DNSROot  -Name $using:GPO.DisplayName).WMifilter.Name) }
                                                 if ($WMIFilter) {
                                                     $WMIFilter
                                                 } else { '--' }
                                             }
                                             'Security Filtering' = & {
-                                                $GPOSECFILTER = Invoke-Command -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName ($using:Domain).DNSROot -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
+                                                $GPOSECFILTER = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName ($using:Domain).DNSROot -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
                                                 if ($GPOSECFILTER) {
 
                                                     return $GPOSECFILTER
 
                                                 } else { 'No Security Filtering' }
                                             }
-                                            'Linked Target' = Switch ([string]::IsNullOrEmpty($Links.GPO.LinksTo.SOMPath)) {
+                                            'Linked Target' = switch ([string]::IsNullOrEmpty($Links.GPO.LinksTo.SOMPath)) {
                                                 'True' { '--' }
                                                 'False' { $Links.GPO.LinksTo.SOMPath }
                                                 default { 'Unknown' }
@@ -200,7 +200,7 @@ function Get-AbrADGPO {
                                 $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($Domain.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
 
                             } else {
-                                if (-Not $_.Exception.MessageId) {
+                                if (-not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
                                 Write-PScriboMessage -IsWarning -Message "Wmi Filters Section: New-PSSession: Unable to connect to $($ValidDCFromDomain): $ErrorMessage"
@@ -243,7 +243,7 @@ function Get-AbrADGPO {
                     }
                     try {
                         $PATH = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\PolicyDefinitions"
-                        $CentralStore = Invoke-Command -Session $TempPssSession -ScriptBlock { Test-Path $using:PATH }
+                        $CentralStore = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Test-Path $using:PATH }
                         if ($PATH) {
                             Section -Style Heading5 "Central Store Repository" {
                                 $OutObj = [System.Collections.ArrayList]::new()
@@ -288,7 +288,7 @@ function Get-AbrADGPO {
                             $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSRoot -ReportType Xml -Guid ($using:GPO).Id }
+                                    [xml]$Gpoxml = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSRoot -ReportType Xml -Guid ($using:GPO).Id }
                                     $UserScripts = $Gpoxml.GPO.User.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
                                     if ($UserScripts.extension.Script) {
                                         foreach ($Script in $UserScripts.extension.Script) {
@@ -338,7 +338,7 @@ function Get-AbrADGPO {
                             $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
+                                    [xml]$Gpoxml = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
                                     $ComputerScripts = $Gpoxml.GPO.Computer.ExtensionData | Where-Object { $_.Name -eq 'Scripts' }
                                     if ($ComputerScripts.extension.Script) {
                                         foreach ($Script in $ComputerScripts.extension.Script) {
@@ -391,7 +391,7 @@ function Get-AbrADGPO {
                         if ($GPOs) {
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
+                                    [xml]$Gpoxml = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
                                     if (($Null -ne $Gpoxml.GPO.Name) -and ($Null -eq $Gpoxml.GPO.LinksTo.SOMPath)) {
                                         $inObj = [ordered] @{
                                             'GPO Name' = $Gpoxml.GPO.Name
@@ -441,7 +441,7 @@ function Get-AbrADGPO {
                         if ($GPOs) {
                             foreach ($GPO in $GPOs) {
                                 try {
-                                    [xml]$Gpoxml = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
+                                    [xml]$Gpoxml = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
                                     if (($Null -eq ($Gpoxml.GPO.Computer.ExtensionData)) -and ($Null -eq ($Gpoxml.GPO.User.extensionData))) {
                                         $inObj = [ordered] @{
                                             'GPO Name' = $Gpoxml.GPO.Name
@@ -488,17 +488,17 @@ function Get-AbrADGPO {
                     try {
                         $OutObj = [System.Collections.ArrayList]::new()
 
-                        $OUs = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:ValidDCFromDomain -Filter * }).DistinguishedName
+                        $OUs = (Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:ValidDCFromDomain -Filter * }).DistinguishedName
                         if ($OUs) {
                             $OUs += $Domain.DistinguishedName
                         }
                         if ($OUs) {
                             foreach ($OU in $OUs) {
                                 try {
-                                    $GpoEnforces = Invoke-Command -Session $TempPssSession -ErrorAction Stop  -ScriptBlock { Get-GPInheritance -Domain ($using:Domain).DNSRoot -Server $using:ValidDCFromDomain -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
+                                    $GpoEnforces = Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop  -ScriptBlock { Get-GPInheritance -Domain ($using:Domain).DNSRoot -Server $using:ValidDCFromDomain -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
                                     foreach ($GpoEnforced in $GpoEnforces) {
                                         if ($GpoEnforced.Enforced -eq "True") {
-                                            $TargetCanonical = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:ValidDCFromDomain -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
+                                            $TargetCanonical = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:ValidDCFromDomain -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
                                             $inObj = [ordered] @{
                                                 'GPO Name' = $GpoEnforced.DisplayName
                                                 'Target' = $TargetCanonical
@@ -549,19 +549,18 @@ function Get-AbrADGPO {
 
                         if ($DCPssSession) {
                             $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($Domain.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
-
                         } else {
-                            if (-Not $_.Exception.MessageId) {
+                            if (-not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
                             } else { $ErrorMessage = $_.Exception.MessageId }
                             Write-PScriboMessage -IsWarning -Message "Orphaned GPO Section: New-PSSession: Unable to connect to $($ValidDCFromDomain): $ErrorMessage"
                         }
                         $GPOPoliciesSYSVOLUNC = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies"
                         $OrphanGPOs = [System.Collections.ArrayList]::new()
-                        $GPOPoliciesSYSVOL = (Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object }).Name.Trim("{}")
+                        $GPOPoliciesSYSVOL = (Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object }).Name.Trim("{}")
                         $SYSVOLGPOList = [System.Collections.ArrayList]::new()
-                        ForEach ($GPOinSYSVOL in $GPOPoliciesSYSVOL) {
-                            If ($GPOinSYSVOL -ne "PolicyDefinitions") {
+                        foreach ($GPOinSYSVOL in $GPOPoliciesSYSVOL) {
+                            if ($GPOinSYSVOL -ne "PolicyDefinitions") {
                                 $SYSVOLGPOList.Add($GPOinSYSVOL) | Out-Null
                             }
                         }
@@ -570,8 +569,12 @@ function Get-AbrADGPO {
                             $MissingSYSVOLGPOs = Compare-Object $GPOPoliciesADSI $SYSVOLGPOList -PassThru | Where-Object { $_.SideIndicator -eq '<=' }
                         }
 
-                        $OrphanGPOs.Add($MissingADGPOs) | Out-Null
-                        $OrphanGPOs.Add($MissingSYSVOLGPOs) | Out-Null
+                        if ($MissingADGPOs) {
+                            $OrphanGPOs.Add($MissingADGPOs) | Out-Null
+                        }
+                        if ($MissingSYSVOLGPOs) {
+                            $OrphanGPOs.Add($MissingSYSVOLGPOs) | Out-Null
+                        }
                         if ($OrphanGPOs) {
                             Section -Style Heading5 "Orphaned GPO" {
                                 Paragraph "The following table summarizes Group Policy Objects (GPOs) that are orphaned or missing either in the Active Directory database or in the SYSVOL directory. Review these entries to identify and remediate inconsistencies between AD and SYSVOL."
@@ -579,7 +582,7 @@ function Get-AbrADGPO {
                                 foreach ($OrphanGPO in $OrphanGPOs) {
                                     $OutObj = [System.Collections.ArrayList]::new()
                                     $inObj = [ordered] @{
-                                        'Name' = Switch (($GPOs | Where-Object { $_.id -eq $OrphanGPO }).DisplayName) {
+                                        'Name' = switch (($GPOs | Where-Object { $_.id -eq $OrphanGPO }).DisplayName) {
                                             $Null { 'Unknown' }
                                             default { ($GPOs | Where-Object { $_.id -eq $OrphanGPO }).DisplayName }
                                         }

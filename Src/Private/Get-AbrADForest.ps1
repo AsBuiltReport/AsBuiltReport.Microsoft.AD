@@ -5,7 +5,7 @@ function Get-AbrADForest {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,51 +19,52 @@ function Get-AbrADForest {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Active Directory forest information."
+        $reportTranslate = $reportTranslate.GetAbrADForest
+        Write-PScriboMessage -Message $reportTranslate.Collecting
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Forest'
     }
 
     process {
         try {
-            $Data = Invoke-Command -Session $TempPssSession { Get-ADForest }
+            $Data = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADForest }
             $ForestInfo = $Data.RootDomain.toUpper()
-            $DomainDN = Invoke-Command -Session $TempPssSession { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
-            $TombstoneLifetime = Invoke-Command -Session $TempPssSession { Get-ADObject "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$using:DomainDN" -Properties tombstoneLifetime | Select-Object -ExpandProperty tombstoneLifetime }
-            $ADVersion = Invoke-Command -Session $TempPssSession { Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion }
-            $ValuedsHeuristics = Invoke-Command -Session $TempPssSession { Get-ADObject -Identity "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$(($using:DomainDN))" -Properties dsHeuristics -ErrorAction SilentlyContinue }
+            $DomainDN = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
+            $TombstoneLifetime = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$using:DomainDN" -Properties tombstoneLifetime | Select-Object -ExpandProperty tombstoneLifetime }
+            $ADVersion = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject (Get-ADRootDSE).schemaNamingContext -property objectVersion | Select-Object -ExpandProperty objectVersion }
+            $ValuedsHeuristics = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Identity "CN=Directory Service,CN=Windows NT,CN=Services,CN=Configuration,$(($using:DomainDN))" -Properties dsHeuristics -ErrorAction SilentlyContinue }
 
-            If ($ADVersion -eq '88') { $server = 'Windows Server 2019' }
-            ElseIf ($ADVersion -eq '91') { $server = 'Windows Server 2025' }
-            ElseIf ($ADVersion -eq '87') { $server = 'Windows Server 2016' }
-            ElseIf ($ADVersion -eq '69') { $server = 'Windows Server 2012 R2' }
-            ElseIf ($ADVersion -eq '56') { $server = 'Windows Server 2012' }
-            ElseIf ($ADVersion -eq '47') { $server = 'Windows Server 2008 R2' }
-            ElseIf ($ADVersion -eq '44') { $server = 'Windows Server 2008' }
-            ElseIf ($ADVersion -eq '31') { $server = 'Windows Server 2003 R2' }
-            ElseIf ($ADVersion -eq '30') { $server = 'Windows Server 2003' }
+            if ($ADVersion -eq '88') { $server = 'Windows Server 2019' }
+            elseif ($ADVersion -eq '91') { $server = 'Windows Server 2025' }
+            elseif ($ADVersion -eq '87') { $server = 'Windows Server 2016' }
+            elseif ($ADVersion -eq '69') { $server = 'Windows Server 2012 R2' }
+            elseif ($ADVersion -eq '56') { $server = 'Windows Server 2012' }
+            elseif ($ADVersion -eq '47') { $server = 'Windows Server 2008 R2' }
+            elseif ($ADVersion -eq '44') { $server = 'Windows Server 2008' }
+            elseif ($ADVersion -eq '31') { $server = 'Windows Server 2003 R2' }
+            elseif ($ADVersion -eq '30') { $server = 'Windows Server 2003' }
             $OutObj = [System.Collections.ArrayList]::new()
             if ($Data) {
                 foreach ($Item in $Data) {
                     try {
                         $inObj = [ordered] @{
-                            'Forest Name' = $Item.RootDomain
-                            'Forest Functional Level' = $Item.ForestMode
-                            'Schema Version' = "ObjectVersion $ADVersion, Correspond to $server"
-                            'Tombstone Lifetime (days)' = $TombstoneLifetime
-                            'Domains' = $Item.Domains -join '; '
-                            'Global Catalogs' = $Item.GlobalCatalogs -join '; '
-                            'Domains Count' = $Item.Domains.Count
-                            'Global Catalogs Count' = $Item.GlobalCatalogs.Count
-                            'Sites Count' = $Item.Sites.Count
-                            'Application Partitions' = $Item.ApplicationPartitions
-                            'Partitions Container' = [string]$Item.PartitionsContainer
-                            'SPN Suffixes' = $Item.SPNSuffixes
-                            'UPN Suffixes' = ($Item.UPNSuffixes -join ', ')
-                            'Anonymous Access (dsHeuristics)' = & {
+                            $reportTranslate.ForestName = $Item.RootDomain
+                            $reportTranslate.ForestFunctionalLevel = $Item.ForestMode
+                            $reportTranslate.SchemaVersion = $reportTranslate.SchemaVersionValue -f $ADVersion, $server
+                            $reportTranslate.TombstoneLifetime = $TombstoneLifetime
+                            $reportTranslate.Domains = $Item.Domains -join '; '
+                            $reportTranslate.GlobalCatalogs = $Item.GlobalCatalogs -join '; '
+                            $reportTranslate.DomainsCount = $Item.Domains.Count
+                            $reportTranslate.GlobalCatalogsCount = $Item.GlobalCatalogs.Count
+                            $reportTranslate.SitesCount = $Item.Sites.Count
+                            $reportTranslate.ApplicationPartitions = $Item.ApplicationPartitions
+                            $reportTranslate.PartitionsContainer = [string]$Item.PartitionsContainer
+                            $reportTranslate.SPNSuffixes = $Item.SPNSuffixes
+                            $reportTranslate.UPNSuffixes = ($Item.UPNSuffixes -join ', ')
+                            $reportTranslate.AnonymousAccess = & {
                                 if (($ValuedsHeuristics.dsHeuristics -eq "") -or ($ValuedsHeuristics.dsHeuristics.Length -lt 7)) {
-                                    "Disabled"
+                                    $reportTranslate.AnonymousAccessDisabled
                                 } elseif (($ValuedsHeuristics.dsHeuristics.Length -ge 7) -and ($ValuedsHeuristics.dsHeuristics[6] -eq "2")) {
-                                    "Enabled"
+                                    $reportTranslate.AnonymousAccessEnabled
                                 }
                             }
                         }
@@ -116,7 +117,7 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
-                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
+                            if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                             Section -Style Heading3 "Forest Diagram." {
                                 Image -Base64 $Graph -Text "Forest Diagram" -Percent $ImagePrty -Align Center
                                 Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
@@ -141,7 +142,7 @@ function Get-AbrADForest {
                         Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
                         BlankLine
                     }
-                    if (-Not $Options.ShowDefinitionInfo) {
+                    if (-not $Options.ShowDefinitionInfo) {
                         Paragraph "The following section provides an overview of the Public Key Infrastructure (PKI) configuration deployed within the Active Directory environment."
                         BlankLine
                     }
@@ -224,7 +225,7 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
-                            If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
+                            if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                             Section -Style Heading4 "Certificate Authority Diagram." {
                                 Image -Base64 $Graph -Text "Certificate Authority Diagram" -Percent $ImagePrty -Align Center
                                 Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
@@ -241,7 +242,7 @@ function Get-AbrADForest {
         }
         try {
             Section -Style Heading3 'Optional Features' {
-                $Data = Invoke-Command -Session $TempPssSession { Get-ADOptionalFeature -Filter * }
+                $Data = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADOptionalFeature -Filter * }
                 $OutObj = [System.Collections.ArrayList]::new()
                 if ($Data) {
                     foreach ($Item in $Data) {
@@ -249,7 +250,7 @@ function Get-AbrADForest {
                             $inObj = [ordered] @{
                                 'Name' = $Item.Name
                                 'Required Forest Mode' = $Item.RequiredForestMode
-                                'Enabled' = Switch (($Item.EnabledScopes).count) {
+                                'Enabled' = switch (($Item.EnabledScopes).count) {
                                     0 { 'No' }
                                     default { 'Yes' }
                                 }

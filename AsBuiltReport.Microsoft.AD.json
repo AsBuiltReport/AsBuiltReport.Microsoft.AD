@@ -29,19 +29,20 @@
         "DiagramObjDebug": false,
         "DiagramWaterMark": "",
         "DiagramType": {
-            "CertificateAuthority": false,
-            "Forest": false,
-            "Sites": false,
-            "SitesInventory": false,
-            "Trusts": false
+            "CertificateAuthority": true,
+            "Forest": true,
+            "Sites": true,
+            "SitesInventory": true,
+            "Trusts": true
         },
         "ExportDiagrams": false,
         "ExportDiagramsFormat": [
-            "png"
+            "pdf"
         ],
         "EnableDiagramSignature": false,
         "SignatureAuthorName": "",
-        "SignatureCompanyName": ""
+        "SignatureCompanyName": "",
+        "JobsTimeOut": 900
     },
     "InfoLevel": {
         "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",

@@ -5,7 +5,7 @@ function Get-AbrADDomainLastBackup {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -63,7 +63,7 @@ function Get-AbrADDomainLastBackup {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Sort-Object -Property 'Naming Context' | Table @TableParams
-                        if ($OutObj | Where-Object { $_.'Last Backup in Days' -gt 180 }) {
+                        if ($OutObj | Where-Object { [int]$_.'Last Backup in Days' -gt 180 }) {
                             Paragraph "Health Check:" -Bold -Underline
                             BlankLine
                             Paragraph {

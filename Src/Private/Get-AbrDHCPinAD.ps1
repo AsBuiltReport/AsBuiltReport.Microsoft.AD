@@ -5,7 +5,7 @@ function Get-AbrDHCPinAD {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -25,7 +25,7 @@ function Get-AbrDHCPinAD {
     }
 
     process {
-        $DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain ($using:ADSystem).RootDomain -ErrorAction Stop }
+        $DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain ($using:ADSystem).RootDomain -ErrorAction Stop }
         if ($DomainInfo) {
             $DHCPServers = try {
                 Get-ADObjectSearch -DN "CN=NetServices,CN=Services,CN=Configuration,$(($DomainInfo).DistinguishedName)" -Filter { objectclass -eq 'dHCPClass' -AND Name -ne 'dhcproot' } -Properties "*" -SelectPrty 'Name' -Session $TempPssSession
@@ -41,7 +41,7 @@ function Get-AbrDHCPinAD {
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             try {
                                 if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
-                                    (Invoke-Command -Session $TempPssSession -ErrorAction Stop { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
+                                    (Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
                                 } else {
                                     $DomainStatus.Value += @{
                                         Name = $Domain
@@ -61,7 +61,7 @@ function Get-AbrDHCPinAD {
                         try {
                             $inObj = [ordered] @{
                                 'Server Name' = $DHCPServer.Name
-                                'Is Domain Controller?' = Switch ($DHCPServer.Name -in $DCServersinAD) {
+                                'Is Domain Controller?' = switch ($DHCPServer.Name -in $DCServersinAD) {
                                     $True { 'Yes' }
                                     $false { 'No' }
                                     default { 'Unknown' }

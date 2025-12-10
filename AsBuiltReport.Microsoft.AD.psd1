@@ -12,7 +12,7 @@
     RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.9.7'
+    ModuleVersion = '0.9.8'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -54,7 +54,7 @@
     RequiredModules = @(
         @{
             ModuleName = 'AsBuiltReport.Core';
-            ModuleVersion = '1.5.0'
+            ModuleVersion = '1.5.1'
         },
         @{
             ModuleName = 'PSPKI';
@@ -70,7 +70,7 @@
         },
         @{
             ModuleName = 'Diagrammer.Core';
-            ModuleVersion = '0.2.34'
+            ModuleVersion = '0.2.35'
         }
 
     )

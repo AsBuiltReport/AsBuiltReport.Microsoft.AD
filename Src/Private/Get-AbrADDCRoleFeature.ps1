@@ -5,7 +5,7 @@ function Get-AbrADDCRoleFeature {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,9 +28,9 @@ function Get-AbrADDCRoleFeature {
         try {
             $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
             if ($DCPssSession) {
-                $Features = Invoke-Command -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq "True" -and $_.FeatureType -eq 'Role' } }
+                $Features = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq "True" -and $_.FeatureType -eq 'Role' } }
             } else {
-                if (-Not $_.Exception.MessageId) {
+                if (-not $_.Exception.MessageId) {
                     $ErrorMessage = $_.FullyQualifiedErrorId
                 } else { $ErrorMessage = $_.Exception.MessageId }
                 Write-PScriboMessage -IsWarning -Message "Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
