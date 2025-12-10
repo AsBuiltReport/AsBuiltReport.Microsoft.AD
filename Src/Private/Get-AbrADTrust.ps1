@@ -5,7 +5,7 @@ function Get-AbrADTrust {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -29,7 +29,7 @@ function Get-AbrADTrust {
         try {
             if ($Domain) {
                 try {
-                    $Trusts = Invoke-Command -Session $TempPssSession { Get-ADTrust -Filter * -Properties * -Server $using:ValidDCFromDomain }
+                    $Trusts = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADTrust -Filter * -Properties * -Server $using:ValidDCFromDomain }
                     if ($Trusts) {
                         Section -Style Heading3 'Domain and Trusts' {
                             $TrustInfo = [System.Collections.ArrayList]::new()
@@ -40,7 +40,7 @@ function Get-AbrADTrust {
                                         'Path' = $Trust.CanonicalName
                                         'Source' = ConvertTo-ADObjectName $Trust.Source -Session $TempPssSession -DC $ValidDCFromDomain
                                         'Target' = $Trust.Target
-                                        'Trust Type' = Switch ($Trust.TrustType) {
+                                        'Trust Type' = switch ($Trust.TrustType) {
                                             1 { "Downlevel (NT domain)" }
                                             2 { "Uplevel (Active Directory)" }
                                             3 { "MIT (Kerberos Realm Trust )" }
@@ -57,7 +57,7 @@ function Get-AbrADTrust {
                                             64 { "Inter-Forest Trust (trust with another forest)" }
                                             default { $Trust.TrustAttributes }
                                         }
-                                        'Trust Direction' = Switch ($Trust.TrustDirection) {
+                                        'Trust Direction' = switch ($Trust.TrustDirection) {
                                             0 { "Disabled (The trust relationship exists but has been disabled)" }
                                             1 { "Inbound (Trusting domain)" }
                                             2 { "Outbound (Trusted domain)" }
@@ -114,7 +114,7 @@ function Get-AbrADTrust {
                                     }
 
                                     if ($Graph) {
-                                        If ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
+                                        if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                                         Section -Style Heading3 "Domain and Trusts Diagram." {
                                             Image -Base64 $Graph -Text "Domain and Trusts Diagram" -Percent $ImagePrty -Align Center
                                             Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2

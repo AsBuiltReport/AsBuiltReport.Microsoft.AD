@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.8] - 2025-12-09
+
+### Added
+
+- Add support for PowerShell 7
+- Add function to Invoke-Command with timeout support (Jobs Scheduler)
+- Add FileName parameter to Get-AbrDiagrammer to allow custom file names for diagram outputs
+
+### Changed
+
+- Update module version to 0.9.8
+- Upgrade Diagrammer.Core module to version `0.2.35`
+- Upgrade AsBuiltReport.Core module to version `1.5.1`
+- Change Psscriptanalyzer action to alagoutte/github-action-psscriptanalyzer
+- Update CodeQL action to v4
+- Migrate function located in SharedUtilsFunctions.ps1 to its own file for better modularity and maintainability
+- Change export diagrams format to "PDF" by default
+- Improve Get-RequiredFeatures function to better handle feature retrieval and error handling
+- Improve timeout warning message in Invoke-CommandWithTimeout
+
+### Fixed
+
+- Fix HealthCheck in Get-AbrADDomainLastBackup script to correctly evaluate the 'Last Backup in Days' property as an integer
+- Fix 'Orphaned GPO' section displaying data when no orphaned GPOs are found in Get-AbrADGPO script
+- Fix diagram export to allow generate Trusts diagrams per child domain
+
 ## [0.9.7] - 2025-11-14
 
 ### Changed

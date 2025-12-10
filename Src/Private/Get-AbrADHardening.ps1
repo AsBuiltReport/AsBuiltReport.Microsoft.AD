@@ -5,7 +5,7 @@ function Get-AbrADHardening {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,7 +28,7 @@ function Get-AbrADHardening {
     process {
         $DCPssSession = Get-ValidPSSession -ComputerName $ValidDcFromDomain -SessionName $($ValidDcFromDomain) -PSSTable ([ref]$PSSTable)
 
-        $NTLMversion = Invoke-Command -Session $DCPssSession -ScriptBlock {
+        $NTLMversion = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock {
             $NTLMversion = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name 'LmCompatibilityLevel' -ErrorAction SilentlyContinue
             if ($NTLMversion) {
                 $NTLMversion = switch ($NTLMversion.LmCompatibilityLevel) {
@@ -46,7 +46,7 @@ function Get-AbrADHardening {
             $NTLMversion
         }
 
-        $SMBv1 = Invoke-Command -Session $DCPssSession -ScriptBlock {
+        $SMBv1 = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock {
             $SMBv1 = Get-SmbServerConfiguration -ErrorAction SilentlyContinue | Select-Object -ExpandProperty EnableSMB1Protocol
             if ($SMBv1) {
                 $SMBv1 = switch ($SMBv1) {
@@ -60,7 +60,7 @@ function Get-AbrADHardening {
             $SMBv1
         }
 
-        $SMBSigning = Invoke-Command -Session $DCPssSession -ScriptBlock {
+        $SMBSigning = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock {
             $SMBSigning = Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Services\LanManServer\Parameters' -Name 'requiresecuritysignature' -ErrorAction SilentlyContinue
             if ($SMBSigning.requiresecuritysignature) {
                 $SMBSigning = switch ($SMBSigning.requiresecuritysignature) {
@@ -74,7 +74,7 @@ function Get-AbrADHardening {
             $SMBSigning
         }
 
-        $LDAPSigning = Invoke-Command -Session $DCPssSession -ScriptBlock {
+        $LDAPSigning = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock {
             $LDAPSigning = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters' -Name 'ldapserverintegrity' -ErrorAction SilentlyContinue
             if ($LDAPSigning.ldapserverintegrity) {
                 $LDAPSigning = switch ($LDAPSigning.ldapserverintegrity) {
@@ -88,7 +88,7 @@ function Get-AbrADHardening {
             $LDAPSigning
         }
 
-        $LDAPChannelBinding = Invoke-Command -Session $DCPssSession -ScriptBlock {
+        $LDAPChannelBinding = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock {
             $LDAPChannelBinding = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters' -Name 'LdapEnforceChannelBinding' -ErrorAction SilentlyContinue
             if ($LDAPChannelBinding.ldapserverintegrity) {
                 $LDAPChannelBinding = switch ($LDAPChannelBinding.ldapserverintegrity) {

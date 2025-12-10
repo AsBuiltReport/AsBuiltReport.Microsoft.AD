@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -28,7 +28,7 @@ function Get-AbrADKerberosAudit {
     process {
         if ($HealthCheck.Domain.Security) {
             try {
-                $Unconstrained = Invoke-Command -Session $TempPssSession { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -AND (PrimaryGroupID -ne '516') -AND (PrimaryGroupID -ne '521') } -Server $using:ValidDCFromDomain -SearchBase $($using:Domain).distinguishedName }
+                $Unconstrained = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -and (PrimaryGroupID -ne '516') -and (PrimaryGroupID -ne '521') } -Server $using:ValidDCFromDomain -SearchBase $($using:Domain).distinguishedName }
                 if ($Unconstrained) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 'Unconstrained Kerberos Delegation' {
                         Paragraph "The following section identifies systems configured with unconstrained Kerberos delegation, which represents a significant security risk in the domain $($Domain.DNSRoot.ToString().ToUpper())."
@@ -117,7 +117,7 @@ function Get-AbrADKerberosAudit {
                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
                 try {
-                    $SID = Invoke-Command -Session $TempPssSession { $($using:Domain).domainsid.ToString() + "-500" }
+                    $SID = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { $($using:Domain).domainsid.ToString() + "-500" }
                     $ADMIN = $Users | Where-Object { $_.SID -eq $SID }
                     if ($ADMIN) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Administrator Account Audit' {

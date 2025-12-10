@@ -5,7 +5,7 @@ function Get-AbrDNSSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -30,8 +30,8 @@ function Get-AbrDNSSection {
                 if ($Domain -and ($Domain -notin $DomainStatus.Value.Name)) {
                     if ($ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         try {
-                            if ($DomainInfo = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain }) {
-                                $DCs = Invoke-Command -Session $TempPssSession { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
+                            if ($DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain }) {
+                                $DCs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
                                     Paragraph "The following section provides a comprehensive summary of the DNS service configuration and settings for this domain."
@@ -62,7 +62,7 @@ function Get-AbrDNSSection {
                         Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
                         BlankLine
                     }
-                    if (-Not $Options.ShowDefinitionInfo) {
+                    if (-not $Options.ShowDefinitionInfo) {
                         Paragraph "The following section provides a comprehensive overview of the DNS infrastructure configuration and settings within the Active Directory environment."
                         BlankLine
                     }

@@ -5,7 +5,7 @@ function Get-AbrADOU {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.8
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,7 +27,7 @@ function Get-AbrADOU {
 
     process {
         try {
-            $OUs = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:ValidDCFromDomain -Properties * -SearchBase ($using:Domain).distinguishedName -Filter * }
+            $OUs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:ValidDCFromDomain -Properties * -SearchBase ($using:Domain).distinguishedName -Filter * }
             if ($OUs) {
                 Section -Style Heading3 "Organizational Units" {
                     Paragraph "The following section provides a comprehensive overview of Active Directory Organizational Units within the domain."
@@ -39,7 +39,7 @@ function Get-AbrADOU {
                             [array]$GPOs = $OU.LinkedGroupPolicyObjects
                             foreach ($Object in $GPOs) {
                                 try {
-                                    $GP = Invoke-Command -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:ValidDCFromDomain -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain ($using:Domain).DNSRoot }
+                                    $GP = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:ValidDCFromDomain -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain ($using:Domain).DNSRoot }
                                     $GPOArray.Add($GP.DisplayName) | Out-Null
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
@@ -83,7 +83,7 @@ function Get-AbrADOU {
                             if ($OUs) {
                                 foreach ($OU in $OUs) {
                                     try {
-                                        $GpoInheritance = Invoke-Command -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-GPInheritance -Domain ($using:Domain).DNSRoot -Server $using:ValidDCFromDomain -Target ($using:OU).DistinguishedName }
+                                        $GpoInheritance = Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-GPInheritance -Domain ($using:Domain).DNSRoot -Server $using:ValidDCFromDomain -Target ($using:OU).DistinguishedName }
                                         if ( $GpoInheritance.GPOInheritanceBlocked -eq "True") {
                                             $inObj = [ordered] @{
                                                 'OU Name' = $GpoInheritance.Name
