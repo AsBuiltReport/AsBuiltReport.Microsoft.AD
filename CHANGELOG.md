@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.8] - Unreleased
+## [0.9.8] - 2025-12-09
 
 ### Added
 
@@ -19,7 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update module version to 0.9.8
 - Upgrade Diagrammer.Core module to version `0.2.35`
-- Upgrade Diagrammer.Microsoft.AD module to version `0.2.19`
 - Upgrade AsBuiltReport.Core module to version `1.5.1`
 - Change Psscriptanalyzer action to alagoutte/github-action-psscriptanalyzer
 - Update CodeQL action to v4
