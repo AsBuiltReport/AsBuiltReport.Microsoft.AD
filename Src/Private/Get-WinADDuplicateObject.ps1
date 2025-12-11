@@ -42,48 +42,48 @@ function Get-WinADDuplicateObject {
             Credential = $Credential
         }
         $Objects = Get-ADObject @getADObjectSplat
-        foreach ($_ in $Objects) {
+        foreach ($Object in $Objects) {
             # Lets allow users to filter on it
             if ($ExcludeObjectClass) {
-                if ($ExcludeObjectClass -contains $_.ObjectClass) {
+                if ($ExcludeObjectClass -contains $Object.ObjectClass) {
                     continue
                 }
             }
             if ($IncludeObjectClass) {
-                if ($IncludeObjectClass -notcontains $_.ObjectClass) {
+                if ($IncludeObjectClass -notcontains $Object.ObjectClass) {
                     continue
                 }
             }
             if ($PartialMatchDistinguishedName) {
-                if ($_.DistinguishedName -notlike $PartialMatchDistinguishedName) {
+                if ($Object.DistinguishedName -notlike $PartialMatchDistinguishedName) {
                     continue
                 }
             }
             if ($NoPostProcessing) {
-                $_
+                $Object
                 continue
             }
-            $DomainName = ConvertFrom-DistinguishedName -DistinguishedName $_.DistinguishedName -ToDomainCN
+            $DomainName = ConvertFrom-DistinguishedName -DistinguishedName $Object.DistinguishedName -ToDomainCN
             # Lets create separate objects for different purpoeses
             $ConflictObject = [ordered] @{
-                ConflictDN = $_.DistinguishedName
-                ConflictWhenChanged = $_.WhenChanged
+                ConflictDN = $Object.DistinguishedName
+                ConflictWhenChanged = $Object.WhenChanged
                 DomainName = $DomainName
-                ObjectClass = $_.ObjectClass
+                ObjectClass = $Object.ObjectClass
             }
             $LiveObjectData = [ordered] @{
                 LiveDn = "N/A"
                 LiveWhenChanged = "N/A"
             }
             $RestData = [ordered] @{
-                DisplayName = $_.DisplayName
-                Name = $_.Name.Replace("`n", ' ')
-                SamAccountName = $_.SamAccountName
-                ObjectCategory = $_.ObjectCategory
-                WhenCreated = $_.WhenCreated
-                WhenChanged = $_.WhenChanged
-                ProtectedFromAccidentalDeletion = $_.ProtectedFromAccidentalDeletion
-                ObjectGUID = $_.ObjectGUID.Guid
+                DisplayName = $Object.DisplayName
+                Name = $Object.Name.Replace("`n", ' ')
+                SamAccountName = $Object.SamAccountName
+                ObjectCategory = $Object.ObjectCategory
+                WhenCreated = $Object.WhenCreated
+                WhenChanged = $Object.WhenChanged
+                ProtectedFromAccidentalDeletion = $Object.ProtectedFromAccidentalDeletion
+                ObjectGUID = $Object.ObjectGUID.Guid
             }
             if ($Extended) {
                 $LiveObject = $null

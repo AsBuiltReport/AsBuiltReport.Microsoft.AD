@@ -114,7 +114,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $PSSTable = @()
 
         try {
-            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable)
+            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable) -InitialForrestConnection $true
         } catch {
             throw "Failed to establish a PSSession ($WinRMType) with the Domain Controller '$System': $($_.Exception.Message)"
         }
@@ -140,7 +140,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         } else {
             [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
         }
-        [array] $script:OrderedDomains = @($RootDomains, $ChildDomains)
+
+        [array] $script:OrderedDomains = @($RootDomains)
+
+        if ($ChildDomains) {
+            $OrderedDomains.Add($ChildDomains)
+        }
 
         # Forest Section
         Get-AbrForestSection
@@ -164,12 +169,16 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $Options.DiagramType.PSobject.Properties | ForEach-Object {
                 if ($_.Value -and $_.Name -eq 'Trusts') {
                     foreach ($Domain in $OrderedDomains) {
-                        $ValidDC = Get-ValidDCfromDomain -Domain $Domain[0] -DCStatus ([ref]$DCStatus)
-                        if ($ValidDC) {
-                            $DCPssSession = Get-ValidPSSession -ComputerName $ValidDC -SessionName $($ValidDC) -PSSTable ([ref]$PSSTable)
-                            if ($DCPssSession) {
-                                Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $DCPssSession -Domain $Domain[0] -FileName "AsBuiltReport.$($Global:Report)-($($_.Name))-$($Domain[0])"
+                        try {
+                            $ValidDC = Get-ValidDCfromDomain -Domain $Domain[0] -DCStatus ([ref]$DCStatus)
+                            if ($ValidDC) {
+                                $DCPssSession = Get-ValidPSSession -ComputerName $ValidDC -SessionName $($ValidDC) -PSSTable ([ref]$PSSTable)
+                                if ($DCPssSession) {
+                                    Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $DCPssSession -Domain $Domain[0] -FileName "AsBuiltReport.$($Global:Report)-($($_.Name))-$($Domain[0])"
+                                }
                             }
+                        } catch {
+                            Write-PScriboMessage -IsWarning -Message "Unable to generate 'Trusts' diagram for domain '$Domain': $($_.Exception.Message)"
                         }
                     }
                 } elseif ($_.Value) {

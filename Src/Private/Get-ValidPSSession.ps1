@@ -24,8 +24,8 @@ function Get-ValidPSSession {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$SessionName,
-        [ref]$PSSTable
-
+        [ref]$PSSTable,
+        [bool]$InitialForrestConnection = $false
     )
 
     if ((-not $Options.WinRMFallbackToNoSSL) -and ($PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'PSSessionSSL' })) {
@@ -85,12 +85,16 @@ function Get-ValidPSSession {
                                 return $SessionObject
                             }
                         } catch {
-                            Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession."
                             $PSSTable.Value += @{
                                 DCName = $ComputerName
                                 Status = 'Offline'
                                 Protocol = 'PSSession'
                                 Id = 'None'
+                            }
+                            if ($InitialForrestConnection) {
+                                throw "Unable to Connect to '$ComputerName' through PSSession. Error details: $($_.Exception.Message)"
+                            } else {
+                                Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession."
                             }
                         }
                     }
@@ -118,12 +122,16 @@ function Get-ValidPSSession {
                     return $SessionObject
                 }
             } catch {
-                Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession."
                 $PSSTable.Value += @{
                     DCName = $ComputerName
                     Status = 'Offline'
                     Protocol = 'PSSession'
                     Id = 'None'
+                }
+                if ($InitialForrestConnection) {
+                    throw "Unable to Connect to '$ComputerName' through PSSession. Error details: $($_.Exception.Message)"
+                } else {
+                    Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession."
                 }
             }
         }
