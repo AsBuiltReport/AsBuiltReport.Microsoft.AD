@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -114,7 +114,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $PSSTable = @()
 
         try {
-            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable)
+            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable) -InitialForrestConnection $true
         } catch {
             throw "Failed to establish a PSSession ($WinRMType) with the Domain Controller '$System': $($_.Exception.Message)"
         }
@@ -130,7 +130,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             Write-PScriboMessage -Message "Connecting to retrieve Forest information from Domain Controller '$System'."
             $script:ADSystem = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADForest -ErrorAction Stop }
         } catch {
-            throw "Unable to retrieve Forest information from Domain Controller '$System'."
+            throw "Unable to retrieve Forest information from Domain Controller '$System'. Please ensure that the provided system is a Domain Controller and that the provided credentials have sufficient permissions to query Active Directory Forest information. Error Details: $($_.Exception.Message)"
         }
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
@@ -140,7 +140,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         } else {
             [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
         }
-        [array] $script:OrderedDomains = @($RootDomains, $ChildDomains)
+
+        $script:OrderedDomains = @($RootDomains)
+
+        if ($ChildDomains) {
+            $OrderedDomains += $ChildDomains
+        }
 
         # Forest Section
         Get-AbrForestSection
@@ -164,12 +169,16 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $Options.DiagramType.PSobject.Properties | ForEach-Object {
                 if ($_.Value -and $_.Name -eq 'Trusts') {
                     foreach ($Domain in $OrderedDomains) {
-                        $ValidDC = Get-ValidDCfromDomain -Domain $Domain[0] -DCStatus ([ref]$DCStatus)
-                        if ($ValidDC) {
-                            $DCPssSession = Get-ValidPSSession -ComputerName $ValidDC -SessionName $($ValidDC) -PSSTable ([ref]$PSSTable)
-                            if ($DCPssSession) {
-                                Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $DCPssSession -Domain $Domain[0] -FileName "AsBuiltReport.$($Global:Report)-($($_.Name))-$($Domain[0])"
+                        try {
+                            $ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
+                            if ($ValidDC) {
+                                $DCPssSession = Get-ValidPSSession -ComputerName $ValidDC -SessionName $($ValidDC) -PSSTable ([ref]$PSSTable)
+                                if ($DCPssSession) {
+                                    Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $DCPssSession -Domain $Domain -FileName "AsBuiltReport.Microsoft.AD-($($_.Name))-$($Domain)"
+                                }
                             }
+                        } catch {
+                            Write-PScriboMessage -IsWarning -Message "Unable to generate 'Trusts' diagram for domain '$Domain': $($_.Exception.Message)"
                         }
                     }
                 } elseif ($_.Value) {

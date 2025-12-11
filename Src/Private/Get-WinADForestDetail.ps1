@@ -278,22 +278,22 @@ function Get-WinADForestDetail {
         # this makes sure we ask once for all AD stuff and then subsequent calls just filter out things
         # this should be much faster then asking again and again for stuff from AD
         $Findings = Copy-DictionaryManual -Dictionary $ExtendedForestInformation
-        [Array] $Findings['Domains'] = foreach ($_ in $Findings.Domains) {
+        [Array] $Findings['Domains'] = foreach ($Dom in $Findings.Domains) {
             if ($IncludeDomains) {
-                if ($_ -in $IncludeDomains) {
-                    $_.ToLower()
+                if ($Dom -in $IncludeDomains) {
+                    $Dom.ToLower()
                 }
                 # We skip checking for exclusions
                 continue
             }
-            if ($_ -notin $ExcludeDomains) {
-                $_.ToLower()
+            if ($Dom -notin $ExcludeDomains) {
+                $Dom.ToLower()
             }
         }
         # Now that we have Domains we need to remove all DCs that are not from domains we excluded or included
-        foreach ($_ in [string[]] $Findings.DomainDomainControllers.Keys) {
-            if ($_ -notin $Findings.Domains) {
-                $Findings.DomainDomainControllers.Remove($_)
+        foreach ($DCkey in [string[]] $Findings.DomainDomainControllers.Keys) {
+            if ($DCkey -notin $Findings.Domains) {
+                $Findings.DomainDomainControllers.Remove($DCkey)
             }
         }
         # Same as above but for query servers - we don't remove queried servers
@@ -303,10 +303,10 @@ function Get-WinADForestDetail {
         #    }
         #}
         # Now that we have Domains we need to remove all Domains that are excluded or included
-        foreach ($_ in [string[]] $Findings.DomainsExtended.Keys) {
-            if ($_ -notin $Findings.Domains) {
-                $Findings.DomainsExtended.Remove($_)
-                $NetBiosName = $Findings.DomainsExtended.$_.'NetBIOSName'
+        foreach ($DomainExtendedKey in [string[]] $Findings.DomainsExtended.Keys) {
+            if ($DomainExtendedKey -notin $Findings.Domains) {
+                $Findings.DomainsExtended.Remove($DomainExtendedKey)
+                $NetBiosName = $Findings.DomainsExtended.$DomainExtendedKey.'NetBIOSName'
                 if ($NetBiosName) {
                     $Findings.DomainsExtendedNetBIOS.Remove($NetBiosName)
                 }

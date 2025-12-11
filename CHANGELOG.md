@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.9] - Unreleased
+
+### Added
+
+- Add disclaimer warning to README.md about report usage and liability
+
+### Changed
+
+- Improve error logging and handling for initial Forest and Domain discovery process
+- Update module version to 0.9.9
+
+### Fixed
+
+- Fix cannot index into a null array error when generating Trusts diagrams for domains with no trusts defined
+- Fix Trusts diagram generation when multiple domains are present in the report
+- Fix issue with Global:Report variable
+
 ## [0.9.8] - 2025-12-09
 
 ### Added

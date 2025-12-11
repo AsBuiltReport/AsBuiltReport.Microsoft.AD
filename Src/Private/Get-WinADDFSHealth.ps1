@@ -21,14 +21,11 @@ function Get-WinADDFSHealth {
         [alias('Domain', 'Domains')][string[]] $IncludeDomains,
         [alias('DomainControllers')][string[]] $IncludeDomainControllers,
         [switch] $SkipRODC,
-        [int] $EventDays = 1,
         [switch] $SkipGPO,
         [switch] $SkipAutodetection,
         [System.Collections.IDictionary] $ExtendedForestInformation,
         [pscredential] $Credential
     )
-    $Today = (Get-Date)
-    $Yesterday = (Get-Date -Hour 0 -Second 0 -Minute 0 -Millisecond 0).AddDays(-$EventDays)
 
     if (-not $SkipAutodetection) {
         $ForestInformation = Get-WinADForestDetail -Forest $Forest -IncludeDomains $IncludeDomains -ExcludeDomains $ExcludeDomains -ExcludeDomainControllers $ExcludeDomainControllers -IncludeDomainControllers $IncludeDomainControllers -SkipRODC:$SkipRODC -ExtendedForestInformation $ExtendedForestInformation -Extended -Credential $Credential
