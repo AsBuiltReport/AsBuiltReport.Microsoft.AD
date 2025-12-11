@@ -11,7 +11,7 @@
     ReportModuleInfo6 = - Getting dependency information:
     ProjectWebsite = - Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project.
     CommunityProject = - AsBuiltReport is a community-maintained open source project. It has no sponsorship, endorsement, or affiliation with any technology vendors, their employees, or affiliates.
-    DISCLAIMER = The information in this report has been gathered through automation and direct observation. The recommendations and conclusions are based on industry best practices, technical expertise, and empirical data. While comprehensive, this assessment may not cover all possible scenarios or configurations. Implementation of these recommendations should be carried out by qualified personnel with the appropriate knowledge and experience. The author(s) assume no responsibility for any damages, including but not limited to loss of business profits, business interruption, loss of data, or other financial losses resulting from the use of or reliance on this report.
+    DISCLAIMER = This report synthesizes information from automated analysis and direct observation, applying industry best practices and empirical data. While comprehensive, it may not address all scenarios or configurations. Implementation should be performed by qualified personnel. The author(s) disclaim responsibility for damages arising from the use of or reliance on this report, including loss of profits, business interruption, data loss, or other financial losses.
 '@
 
     # Get-AbrADForest

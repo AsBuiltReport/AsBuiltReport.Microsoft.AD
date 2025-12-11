@@ -130,7 +130,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             Write-PScriboMessage -Message "Connecting to retrieve Forest information from Domain Controller '$System'."
             $script:ADSystem = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADForest -ErrorAction Stop }
         } catch {
-            throw "Unable to retrieve Forest information from Domain Controller '$System'."
+            throw "Unable to retrieve Forest information from Domain Controller '$System'. Please ensure that the provided system is a Domain Controller and that the provided credentials have sufficient permissions to query Active Directory Forest information. Error Details: $($_.Exception.Message)"
         }
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
@@ -141,10 +141,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
         }
 
-        [array] $script:OrderedDomains = @($RootDomains)
+        $script:OrderedDomains = @($RootDomains)
 
         if ($ChildDomains) {
-            $OrderedDomains.Add($ChildDomains)
+            $OrderedDomains += $ChildDomains
         }
 
         # Forest Section
@@ -170,11 +170,11 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                 if ($_.Value -and $_.Name -eq 'Trusts') {
                     foreach ($Domain in $OrderedDomains) {
                         try {
-                            $ValidDC = Get-ValidDCfromDomain -Domain $Domain[0] -DCStatus ([ref]$DCStatus)
+                            $ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
                             if ($ValidDC) {
                                 $DCPssSession = Get-ValidPSSession -ComputerName $ValidDC -SessionName $($ValidDC) -PSSTable ([ref]$PSSTable)
                                 if ($DCPssSession) {
-                                    Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $DCPssSession -Domain $Domain[0] -FileName "AsBuiltReport.$($Global:Report)-($($_.Name))-$($Domain[0])"
+                                    Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $DCPssSession -Domain $Domain -FileName "AsBuiltReport.Microsoft.AD-($($_.Name))-$($Domain)"
                                 }
                             }
                         } catch {

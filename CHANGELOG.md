@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.9] - Unreleased
 
+### Added
+
+- Add disclaimer warning about report usage and liability
+
 ### Changed
 
 - Improve error logging and handling in initial Forest and Domain discovery process
@@ -16,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix cannot index into a null array error when generating Trusts diagrams for domains with no trusts defined
+- Fix Trusts diagram generation when multiple domains are present in the report
+- Fix issue with Global:Report variable
 
 ### Changed
 

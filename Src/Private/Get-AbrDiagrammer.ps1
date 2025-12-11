@@ -127,7 +127,7 @@ function Get-AbrDiagrammer {
                             $FileName = "$($FileName).$($Format)"
                             $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
                         } else {
-                            $FileName = "AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)"
+                            $FileName = "AsBuiltReport.Microsoft.AD-($($DiagramType)).$($Format)"
                             $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
                         }
                         if ($Graph) {

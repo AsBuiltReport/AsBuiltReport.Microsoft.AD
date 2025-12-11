@@ -25,6 +25,10 @@
 </p>
 <!-- ********** DO NOT EDIT THESE LINKS ********** -->
 
+> [!WARNING]
+> This report synthesizes information from automated analysis and direct observation, applying industry best practices and empirical data. While comprehensive, it may not address all scenarios or configurations. Implementation should be performed by qualified personnel. The author(s) disclaim responsibility for damages arising from the use of or reliance on this report, including loss of profits, business interruption, data loss, or other financial losses.
+
+
 #### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
 # Microsoft AD As Built Report
