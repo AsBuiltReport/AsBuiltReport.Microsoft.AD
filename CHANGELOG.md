@@ -24,7 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Trusts diagram generation when multiple domains are present in the report
 - Fix issue with Global:Report variable
 
-
 ## [0.9.8] - 2025-12-09
 
 ### Added
