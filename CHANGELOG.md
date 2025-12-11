@@ -11,11 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add disclaimer warning about report usage and liability
+- Add disclaimer warning to README.md about report usage and liability
 
 ### Changed
 
-- Improve error logging and handling in initial Forest and Domain discovery process
+- Improve error logging and handling for initial Forest and Domain discovery process
+- Update module version to 0.9.9
 
 ### Fixed
 
@@ -23,9 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Trusts diagram generation when multiple domains are present in the report
 - Fix issue with Global:Report variable
 
-### Changed
-
-- Update module version to 0.9.9
 
 ## [0.9.8] - 2025-12-09
 
