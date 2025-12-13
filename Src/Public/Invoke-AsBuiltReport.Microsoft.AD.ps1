@@ -182,7 +182,11 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         }
                     }
                 } elseif ($_.Value) {
-                    Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $TempPssSession
+                    try {
+                        Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $TempPssSession
+                    } catch {
+                        Write-PScriboMessage -IsWarning -Message "Unable to export $($_.Name) diagram: $($_.Exception.Message)"
+                    }
                 }
             }
         }
