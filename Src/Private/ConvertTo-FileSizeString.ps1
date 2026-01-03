@@ -27,5 +27,5 @@ function ConvertTo-FileSizeString {
         { $Size -gt 1Mb } { 'MB' ; break }
         default { 'KB' }
     }
-    return "$([math]::Round(($Size / $("1" + $Unit)), 0)) $Unit"
+    return "$([math]::Round(($Size / $('1' + $Unit)), 0)) $Unit"
 } # end

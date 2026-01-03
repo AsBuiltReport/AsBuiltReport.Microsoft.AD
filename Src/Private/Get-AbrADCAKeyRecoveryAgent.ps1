@@ -5,7 +5,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,8 +23,8 @@ function Get-AbrADCAKeyRecoveryAgent {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Certification Authority Key Recovery Agent information."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Key Recovery Agent"
+        Write-PScriboMessage -Message 'Collecting AD Certification Authority Key Recovery Agent information.'
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'CA Key Recovery Agent'
     }
 
     process {
@@ -34,7 +34,7 @@ function Get-AbrADCAKeyRecoveryAgent {
             if ($KRA.Certificate) {
                 $inObj = [ordered] @{
                     'CA Name' = $KRA.DisplayName
-                    'Server Name' = $KRA.ComputerName.ToString().ToUpper().Split(".")[0]
+                    'Server Name' = $KRA.ComputerName.ToString().ToUpper().Split('.')[0]
                     'Certificate' = $KRA.Certificate
                 }
                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -44,7 +44,7 @@ function Get-AbrADCAKeyRecoveryAgent {
         }
 
         if ($OutObj) {
-            Section -Style Heading3 "Key Recovery Agent Certificate" {
+            Section -Style Heading3 'Key Recovery Agent Certificate' {
                 Paragraph "This section provides details about the Key Recovery Agent certificate, which encrypts users' certificate private keys for storage in the CA database. If a user loses access to their certificate private key, the Key Recovery Agent can recover it when key archival was configured for the certificate."
                 BlankLine
                 foreach ($Item in $OutObj) {
@@ -63,7 +63,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "CA Key Recovery Agent"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'CA Key Recovery Agent'
     }
 
 }

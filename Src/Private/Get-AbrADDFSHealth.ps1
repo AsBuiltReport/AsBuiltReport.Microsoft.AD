@@ -5,7 +5,7 @@ function Get-AbrADDFSHealth {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,7 +23,7 @@ function Get-AbrADDFSHealth {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Domain DFS Health information on $($Domain.DNSRoot)."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "DFS Health"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'DFS Health'
     }
 
     process {
@@ -43,29 +43,29 @@ function Get-AbrADDFSHealth {
                                 $inObj = [ordered] @{
                                     'DC Name' = $Controller.Split('.')[0]
                                     'Replication Status' = switch ([string]::IsNullOrEmpty($RepState.ReplicationState)) {
-                                        $true { "Offline" }
+                                        $true { 'Offline' }
                                         $false { $RepState.ReplicationState }
-                                        default { "--" }
+                                        default { '--' }
                                     }
                                     'GPO Count' = switch ([string]::IsNullOrEmpty($RepState.GroupPolicyCount)) {
-                                        $true { "0" }
+                                        $true { '0' }
                                         $false { $RepState.GroupPolicyCount }
-                                        default { "--" }
+                                        default { '--' }
                                     }
                                     'Sysvol Count' = switch ([string]::IsNullOrEmpty($RepState.SysvolCount)) {
-                                        $true { "0" }
+                                        $true { '0' }
                                         $false { $RepState.SysvolCount }
-                                        default { "--" }
+                                        default { '--' }
                                     }
                                     'Identical Count' = switch ([string]::IsNullOrEmpty($RepState.IdenticalCount)) {
-                                        $true { "0" }
+                                        $true { '0' }
                                         $false { $RepState.IdenticalCount }
-                                        default { "--" }
+                                        default { '--' }
                                     }
                                     'Stop Replication On AutoRecovery' = switch ([string]::IsNullOrEmpty($RepState.StopReplicationOnAutoRecovery)) {
-                                        $true { "0" }
+                                        $true { '0' }
                                         $false { $RepState.StopReplicationOnAutoRecovery }
-                                        default { "--" }
+                                        default { '--' }
                                     }
 
                                 }
@@ -103,11 +103,11 @@ function Get-AbrADDFSHealth {
                         }
                         $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                         if ($HealthCheck.Domain.DFS -and (($OutObj | Where-Object { $_.'Identical Count' -like 'No' }) -or ($OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError }))) {
-                            Paragraph "Health Check:" -Bold -Underline
+                            Paragraph 'Health Check:' -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text "Corrective Actions:" -Bold
-                                Text "SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains."
+                                Text 'Corrective Actions:' -Bold
+                                Text 'SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains.'
                             }
                             BlankLine
                         }
@@ -168,11 +168,11 @@ function Get-AbrADDFSHealth {
                         }
                         $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
                         if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') }) {
-                            Paragraph "Health Check:" -Bold -Underline
+                            Paragraph 'Health Check:' -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text "Corrective Actions:" -Bold
-                                Text "Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Sysvol folder to maintain a healthy and secure Active Directory environment."
+                                Text 'Corrective Actions:' -Bold
+                                Text 'Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Sysvol folder to maintain a healthy and secure Active Directory environment.'
                             }
                         }
                     }
@@ -231,11 +231,11 @@ function Get-AbrADDFSHealth {
                         }
                         $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
                         if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') }) {
-                            Paragraph "Health Check:" -Bold -Underline
+                            Paragraph 'Health Check:' -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text "Corrective Actions:" -Bold
-                                Text "Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Netlogon folder to maintain a healthy and secure Active Directory environment."
+                                Text 'Corrective Actions:' -Bold
+                                Text 'Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Netlogon folder to maintain a healthy and secure Active Directory environment.'
                             }
                         }
                     }
@@ -249,7 +249,7 @@ function Get-AbrADDFSHealth {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "DFS Health"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'DFS Health'
     }
 
 }

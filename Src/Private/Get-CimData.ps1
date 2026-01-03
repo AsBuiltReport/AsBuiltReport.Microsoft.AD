@@ -68,7 +68,7 @@ function Get-CimData {
         # Process local computer
         $Computers = $ComputersSplit[0]
         if ($Computers.Count -gt 0) {
-            $Info = Get-CimInstance  -CimSession $CimSession  -ClassName $Class -ErrorAction SilentlyContinue -Property $PropertiesOnly -Namespace $NameSpace -Verbose:$false -ErrorVariable ErrorsLocal | Select-Object -Property $Properties -ExcludeProperty $ExcludeProperties
+            $Info = Get-CimInstance -CimSession $CimSession -ClassName $Class -ErrorAction SilentlyContinue -Property $PropertiesOnly -Namespace $NameSpace -Verbose:$false -ErrorVariable ErrorsLocal | Select-Object -Property $Properties -ExcludeProperty $ExcludeProperties
             $Info | Add-Member -Name 'PSComputerName' -Value $Computers -MemberType NoteProperty -Force
             $Info
         }

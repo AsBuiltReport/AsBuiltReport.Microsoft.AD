@@ -5,7 +5,7 @@ function Get-RequiredFeature {
     .DESCRIPTION
         Function to check if the required version of windows feature is installed
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux

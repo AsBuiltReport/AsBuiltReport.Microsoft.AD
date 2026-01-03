@@ -5,7 +5,7 @@ function Get-AbrADCASecurity {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,8 +23,8 @@ function Get-AbrADCASecurity {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Certification Authority Security information."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Security"
+        Write-PScriboMessage -Message 'Collecting AD Certification Authority Security information.'
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'CA Security'
     }
 
     process {
@@ -32,8 +32,8 @@ function Get-AbrADCASecurity {
             try {
                 $CFP = Get-CertificateValidityPeriod -CertificationAuthority $CA
                 if ($CFP) {
-                    Section -Style Heading3 "Certificate Validity Period" {
-                        Paragraph "The following section provides certificate validity period configuration for the Certification Authority."
+                    Section -Style Heading3 'Certificate Validity Period' {
+                        Paragraph 'The following section provides certificate validity period configuration for the Certification Authority.'
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {
@@ -64,7 +64,7 @@ function Get-AbrADCASecurity {
             try {
                 $ACLs = Get-CertificationAuthorityAcl -CertificationAuthority $CA
                 if ($ACLs) {
-                    Section -Style Heading4 "Access Control List (ACL)" {
+                    Section -Style Heading4 'Access Control List (ACL)' {
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {
                             foreach ($ACL in $ACLs) {
@@ -93,7 +93,7 @@ function Get-AbrADCASecurity {
                         }
                         $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
                         try {
-                            Section -Style Heading5 "Access Rights" {
+                            Section -Style Heading5 'Access Rights' {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($ACL in $ACLs.Access) {
                                     try {
@@ -130,7 +130,7 @@ function Get-AbrADCASecurity {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "CA Security"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'CA Security'
     }
 
 }

@@ -5,7 +5,7 @@ function Get-AbrADSCCM {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,16 +20,16 @@ function Get-AbrADSCCM {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD SCCM information of $($ForestInfo.toUpper())."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD SCCM Infrastructure"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD SCCM Infrastructure'
     }
 
     process {
         $DomainDN = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
-        $SCCMMP = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction SilentlyContinue -ScriptBlock { Get-ADObject -Filter { (objectClass -eq "mSSMSManagementPoint") -and (Name -like "SMS-MP-*") } -SearchBase "CN=System Management,CN=System,$using:DomainDN" -Properties * } } catch { Out-Null }
+        $SCCMMP = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction SilentlyContinue -ScriptBlock { Get-ADObject -Filter { (objectClass -eq 'mSSMSManagementPoint') -and (Name -like 'SMS-MP-*') } -SearchBase "CN=System Management,CN=System,$using:DomainDN" -Properties * } } catch { Out-Null }
         try {
             if ($SCCMMP ) {
                 Section -Style Heading3 'SCCM Infrastructure' {
-                    Paragraph "The following section provides a summary of the System Center Configuration Manager (SCCM) infrastructure registered in Active Directory."
+                    Paragraph 'The following section provides a summary of the System Center Configuration Manager (SCCM) infrastructure registered in Active Directory.'
                     BlankLine
                     $SCCMInfo = [System.Collections.ArrayList]::new()
                     foreach ($SCCMServer in $SCCMMP) {
@@ -82,7 +82,7 @@ function Get-AbrADSCCM {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD SCCM Infrastructure"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD SCCM Infrastructure'
     }
 
 }

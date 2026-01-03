@@ -6,7 +6,7 @@ function Get-AbrDiagrammer {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -117,7 +117,7 @@ function Get-AbrDiagrammer {
 
             try {
                 foreach ($Format in $DiagramFormat) {
-                    if ($Format -eq "base64") {
+                    if ($Format -eq 'base64') {
                         $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format
                         if ($Graph) {
                             $Graph

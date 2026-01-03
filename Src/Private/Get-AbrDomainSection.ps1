@@ -5,7 +5,7 @@ function Get-AbrDomainSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,7 @@ function Get-AbrDomainSection {
 
     begin {
         Write-PScriboMessage -Message "Collecting Domain information from $ForestInfo."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "Domain Section"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'Domain Section'
     }
 
     process {
@@ -35,7 +35,7 @@ function Get-AbrDomainSection {
                                 $DCs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
-                                    Paragraph "This section provides a comprehensive overview of the Active Directory domain configuration, including key settings and critical details."
+                                    Paragraph 'This section provides a comprehensive overview of the Active Directory domain configuration, including key settings and critical details.'
                                     BlankLine
                                     Get-AbrADDomain -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADFSMO -Domain $DomainInfo -ValidDcFromDomain $ValidDC
@@ -56,15 +56,15 @@ function Get-AbrDomainSection {
                                     }
                                     Section -Style Heading3 'Domain Controllers' {
                                         if ($Options.ShowDefinitionInfo) {
-                                            Paragraph "A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain."
+                                            Paragraph 'A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain.'
                                             BlankLine
                                         }
                                         if (-not $Options.ShowDefinitionInfo) {
                                             if ($InfoLevel.Domain -ge 2) {
-                                                Paragraph "The following section presents an in-depth overview of the Active Directory domain controllers, including their configuration and key details."
+                                                Paragraph 'The following section presents an in-depth overview of the Active Directory domain controllers, including their configuration and key details.'
                                                 BlankLine
                                             } else {
-                                                Paragraph "The following section provides a summary of the configuration and key details of the Active Directory domain controllers."
+                                                Paragraph 'The following section provides a summary of the configuration and key details of the Active Directory domain controllers.'
                                                 BlankLine
                                             }
                                         }
@@ -82,7 +82,7 @@ function Get-AbrDomainSection {
                                                     }
                                                 }
                                                 if ($RolesObj) {
-                                                    Section -Style Heading4 "Roles" {
+                                                    Section -Style Heading4 'Roles' {
                                                         Paragraph "The following section provides a detailed overview of the installed roles and features on domain controllers in $($DomainInfo.DNSRoot)."
                                                         $RolesObj
                                                     }
@@ -114,8 +114,8 @@ function Get-AbrDomainSection {
                                                     }
                                                 }
                                                 if ($ADInfraServices) {
-                                                    Section -Style Heading4 "Infrastructure Services" {
-                                                        Paragraph "The following section provides a detailed overview of the status and configuration of infrastructure services on the domain controllers."
+                                                    Section -Style Heading4 'Infrastructure Services' {
+                                                        Paragraph 'The following section provides a detailed overview of the status and configuration of infrastructure services on the domain controllers.'
                                                         $ADInfraServices
                                                     }
                                                 }
@@ -145,13 +145,13 @@ function Get-AbrDomainSection {
                 }
             }
             if ($DomainObj) {
-                Section -Style Heading1 "AD Domain Configuration" {
+                Section -Style Heading1 'AD Domain Configuration' {
                     if ($Options.ShowDefinitionInfo) {
                         Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user, a group, or a hardware component such as a computer or printer. Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain, or an alternate version (which may end in .local)."
                         BlankLine
                     }
                     if (-not $Options.ShowDefinitionInfo) {
-                        Paragraph "The following section provides a comprehensive overview of the Active Directory domain configuration, including critical settings and key operational details."
+                        Paragraph 'The following section provides a comprehensive overview of the Active Directory domain configuration, including critical settings and key operational details.'
                         BlankLine
                     }
                     $DomainObj
@@ -160,6 +160,6 @@ function Get-AbrDomainSection {
         }
     }
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "Domain Section"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'Domain Section'
     }
 }

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improve error logging and handling for initial Forest and Domain discovery process
 - Update module version to 0.9.9
+- Improve overall code with pwsh best practices
 
 ### Fixed
 

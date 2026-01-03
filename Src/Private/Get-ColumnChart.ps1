@@ -39,73 +39,73 @@ function Get-ColumnChart {
         [Parameter (
             Position = 0,
             Mandatory,
-            HelpMessage = "Provide the sample data as an array."
+            HelpMessage = 'Provide the sample data as an array.'
         )]
         [System.Array]
         $SampleData,
 
         [Parameter (
-            HelpMessage = "Specify the name of the chart."
+            HelpMessage = 'Specify the name of the chart.'
         )]
         [String]
         $ChartName,
 
         [Parameter (
-            HelpMessage = "Specify the title for the X axis."
+            HelpMessage = 'Specify the title for the X axis.'
         )]
         [String]
         $AxisXTitle,
 
         [Parameter (
-            HelpMessage = "Specify the title for the Y axis."
+            HelpMessage = 'Specify the title for the Y axis.'
         )]
         [String]
         $AxisYTitle,
 
         [Parameter (
-            HelpMessage = "Specify the field for the X axis."
+            HelpMessage = 'Specify the field for the X axis.'
         )]
         [String]
         $XField,
 
         [Parameter (
-            HelpMessage = "Specify the field for the Y axis."
+            HelpMessage = 'Specify the field for the Y axis.'
         )]
         [String]
         $YField,
 
         [Parameter (
-            HelpMessage = "Specify the name of the chart area."
+            HelpMessage = 'Specify the name of the chart area.'
         )]
         [String]
         $ChartAreaName,
 
         [Parameter (
-            HelpMessage = "Specify the name of the chart title."
+            HelpMessage = 'Specify the name of the chart title.'
         )]
         [String]
         $ChartTitleName = '',
 
         [Parameter (
-            HelpMessage = "Specify the text for the chart title."
+            HelpMessage = 'Specify the text for the chart title.'
         )]
         [String]
         $ChartTitleText = ' ',
 
         [Parameter (
-            HelpMessage = "Specify the width of the chart."
+            HelpMessage = 'Specify the width of the chart.'
         )]
         [int]
         $Width = 600,
 
         [Parameter (
-            HelpMessage = "Specify the height of the chart."
+            HelpMessage = 'Specify the height of the chart.'
         )]
         [int]
         $Height = 400,
 
         [Parameter (
-            HelpMessage = "Specify whether to reverse the color palette."
+            HelpMessage = 'Specify whether to reverse the color palette.'
         )]
         [bool]
         $ReversePalette = $false
@@ -159,7 +159,7 @@ function Get-ColumnChart {
 
     $TempPath = Resolve-Path ([System.IO.Path]::GetTempPath())
 
-    $ChartImage = Export-Chart -Chart $exampleChart -Path $TempPath.Path -Format "PNG" -PassThru
+    $ChartImage = Export-Chart -Chart $exampleChart -Path $TempPath.Path -Format 'PNG' -PassThru
 
     if ($PassThru) {
         Write-Output -InputObject $chartFileItem

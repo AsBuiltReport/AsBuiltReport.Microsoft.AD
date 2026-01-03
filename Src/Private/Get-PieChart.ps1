@@ -154,7 +154,7 @@ function Get-PieChart {
 
     $TempPath = Resolve-Path ([System.IO.Path]::GetTempPath())
 
-    $ChartImage = Export-Chart -Chart $exampleChart -Path $TempPath.Path -Format "PNG" -PassThru
+    $ChartImage = Export-Chart -Chart $exampleChart -Path $TempPath.Path -Format 'PNG' -PassThru
 
     $ChartImageByte = switch ($PSVersionTable.PSEdition) {
         'Desktop' { Get-Content $ChartImage -Encoding byte }

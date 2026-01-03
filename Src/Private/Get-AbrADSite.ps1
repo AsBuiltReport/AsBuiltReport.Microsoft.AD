@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,7 +20,7 @@ function Get-AbrADSite {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory Sites information of forest $ForestInfo"
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Site"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Site'
     }
 
     process {
@@ -28,22 +28,22 @@ function Get-AbrADSite {
             $Site = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSite -Filter * -Properties * }
             if ($Site) {
                 Section -Style Heading3 'Replication' {
-                    Paragraph "Replication is the process by which Active Directory objects are transferred and synchronized between domain controllers within the domain and forest, ensuring consistency across the infrastructure."
+                    Paragraph 'Replication is the process by which Active Directory objects are transferred and synchronized between domain controllers within the domain and forest, ensuring consistency across the infrastructure.'
                     BlankLine
-                    Paragraph "The following section provides detailed information about Active Directory replication and its associated relationships."
+                    Paragraph 'The following section provides detailed information about Active Directory replication and its associated relationships.'
                     if ($Options.EnableDiagrams) {
                         try {
                             try {
-                                $Graph = Get-AbrDiagrammer -DiagramType "SitesInventory" -DiagramOutput base64 -PSSessionObject $TempPssSession
+                                $Graph = Get-AbrDiagrammer -DiagramType 'SitesInventory' -DiagramOutput base64 -PSSessionObject $TempPssSession
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "Site Inventory Diagram Graph: $($_.Exception.Message)"
                             }
 
                             if ($Graph) {
                                 if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
-                                Section -Style Heading4 "Site Inventory Diagram." {
-                                    Image -Base64 $Graph -Text "Site Inventory Diagram" -Percent $ImagePrty -Align Center
-                                    Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                                Section -Style Heading4 'Site Inventory Diagram.' {
+                                    Image -Base64 $Graph -Text 'Site Inventory Diagram' -Percent $ImagePrty -Align Center
+                                    Paragraph 'Image preview: Opens the image in a new tab to view it at full resolution.' -Tabs 2
                                 }
                                 BlankLine -Count 2
                             }
@@ -65,12 +65,12 @@ function Get-AbrADSite {
                                     'Site Name' = $Item.Name
                                     'Description' = $Item.Description
                                     'Subnets' = switch (($SubnetArray).count) {
-                                        0 { "No subnet assigned" }
+                                        0 { 'No subnet assigned' }
                                         default { $SubnetArray }
                                     }
                                     'Domain Controllers' = & {
                                         $ServerArray = [System.Collections.ArrayList]::new()
-                                        $Servers = try { Get-ADObjectSearch -DN "CN=Servers,$($Item.DistinguishedName)" -Filter { objectClass -eq "Server" } -Properties "DNSHostName" -SelectPrty 'DNSHostName', 'Name' -Session $TempPssSession } catch { 'Unknown' }
+                                        $Servers = try { Get-ADObjectSearch -DN "CN=Servers,$($Item.DistinguishedName)" -Filter { objectClass -eq 'Server' } -Properties 'DNSHostName' -SelectPrty 'DNSHostName', 'Name' -Session $TempPssSession } catch { 'Unknown' }
                                         foreach ($Object in $Servers) {
                                             $ServerArray.Add($Object.Name) | Out-Null
                                         }
@@ -95,7 +95,7 @@ function Get-AbrADSite {
                                 foreach ( $OBJ in ($OutObj | Where-Object { $_.'Description' -eq '--' }) ) {
                                     $OBJ.'Description' = $OBJ.'Description' + " ($Num)"
                                 }
-                                $List += "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
+                                $List += 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
                             }
                             if ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' }) {
                                 $OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' } | Set-Style -Style Warning -Property 'Subnets'
@@ -103,7 +103,7 @@ function Get-AbrADSite {
                                 foreach ( $OBJ in ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' }) ) {
                                     $OBJ.'Subnets' = $OBJ.'Subnets' + " ($Num)"
                                 }
-                                $List += "Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller."
+                                $List += 'Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller.'
                             }
                             if ($OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' }) {
                                 $OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' } | Set-Style -Style Warning -Property 'Domain Controllers'
@@ -111,7 +111,7 @@ function Get-AbrADSite {
                                 foreach ( $OBJ in ($OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' } ) ) {
                                     $OBJ.'Domain Controllers' = $OBJ.'Domain Controllers' + " ($Num)"
                                 }
-                                $List += "It is important to ensure that each site has at least one assigned domain controller. Missing domain controllers can lead to authentication delays and potential service disruptions for users in the site."
+                                $List += 'It is important to ensure that each site has at least one assigned domain controller. Missing domain controllers can lead to authentication delays and potential service disruptions for users in the site.'
                             }
                         }
 
@@ -139,14 +139,14 @@ function Get-AbrADSite {
                                         $inObj = [ordered] @{
                                             'Name' = & {
                                                 if ($Repl.AutoGenerated) {
-                                                    "<automatically generated>"
+                                                    '<automatically generated>'
                                                 } else {
                                                     $Repl.Name
                                                 }
                                             }
-                                            'From Server' = $Repl.ReplicateFromDirectoryServer.Split(",")[1].SubString($Repl.ReplicateFromDirectoryServer.Split(",")[1].IndexOf("=") + 1)
-                                            'To Server' = $Repl.ReplicateToDirectoryServer.Split(",")[0].SubString($Repl.ReplicateToDirectoryServer.Split(",")[0].IndexOf("=") + 1)
-                                            'From Site' = $Repl.fromserver.Split(",")[3].SubString($Repl.fromserver.Split(",")[3].IndexOf("=") + 1)
+                                            'From Server' = $Repl.ReplicateFromDirectoryServer.Split(',')[1].SubString($Repl.ReplicateFromDirectoryServer.Split(',')[1].IndexOf('=') + 1)
+                                            'To Server' = $Repl.ReplicateToDirectoryServer.Split(',')[0].SubString($Repl.ReplicateToDirectoryServer.Split(',')[0].IndexOf('=') + 1)
+                                            'From Site' = $Repl.fromserver.Split(',')[3].SubString($Repl.fromserver.Split(',')[3].IndexOf('=') + 1)
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
@@ -168,12 +168,12 @@ function Get-AbrADSite {
                                 }
                                 $OutObj | Sort-Object -Property 'From Site' | Table @TableParams
                                 if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Name' -ne '<automatically generated>' })) {
-                                    Paragraph "Health Check:" -Bold -Underline
+                                    Paragraph 'Health Check:' -Bold -Underline
                                     BlankLine
                                     if ($OutObj | Where-Object { $_.'Name' -ne '<automatically generated>' }) {
                                         Paragraph {
-                                            Text "Best Practice:" -Bold
-                                            Text "By default, the replication topology is managed automatically and optimizes existing connections. However, manual connections created by an administrator are not modified or optimized. Verify that all topology information is entered for Site Links and delete all manual connection objects."
+                                            Text 'Best Practice:' -Bold
+                                            Text 'By default, the replication topology is managed automatically and optimizes existing connections. However, manual connections created by an administrator are not modified or optimized. Verify that all topology information is entered for Site Links and delete all manual connection objects.'
                                         }
                                     }
                                 }
@@ -195,8 +195,8 @@ function Get-AbrADSite {
                                             'Subnet' = $Item.Name
                                             'Description' = $Item.Description
                                             'Sites' = switch ([string]::IsNullOrEmpty($Item.Site)) {
-                                                $true { "No site assigned" }
-                                                $false { $Item.Site.Split(",")[0].SubString($Item.Site.Split(",")[0].IndexOf("=") + 1) }
+                                                $true { 'No site assigned' }
+                                                $false { $Item.Site.Split(',')[0].SubString($Item.Site.Split(',')[0].IndexOf('=') + 1) }
                                                 default { 'Unknown' }
                                             }
                                         }
@@ -220,7 +220,7 @@ function Get-AbrADSite {
                                         foreach ( $OBJ in ($OutObj | Where-Object { $_.'Description' -eq '--' }) ) {
                                             $OBJ.'Description' = $OBJ.'Description' + " ($Num)"
                                         }
-                                        $List += "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
+                                        $List += 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
                                     }
                                     if ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }) {
                                         $OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' } | Set-Style -Style Warning -Property 'Sites'
@@ -228,7 +228,7 @@ function Get-AbrADSite {
                                         foreach ( $OBJ in ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }) ) {
                                             $OBJ.'Sites' = $OBJ.'Sites' + " ($Num)"
                                         }
-                                        $List += "Ensure Subnet have an associated site. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication. This can lead to increased latency and potential performance issues for users authenticating against a domain controller that is not local to their site."
+                                        $List += 'Ensure Subnet have an associated site. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication. This can lead to increased latency and potential performance issues for users authenticating against a domain controller that is not local to their site.'
                                     }
                                 }
 
@@ -259,10 +259,10 @@ function Get-AbrADSite {
                                                             if ((Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Test-Path -Path $using:path }) -and (Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { (Get-Content -Path $using:path | Measure-Object -Line).lines -gt 0 })) {
                                                                 $NetLogonContents = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { (Get-Content -Path $using:Path)[-200..-1] }
                                                                 foreach ($Line in $NetLogonContents) {
-                                                                    if ($Line -match "NO_CLIENT_SITE") {
+                                                                    if ($Line -match 'NO_CLIENT_SITE') {
                                                                         $inObj = [ordered] @{
                                                                             'DC' = $DC
-                                                                            'IP' = $Line.Split(":")[4].trim(" ").Split(" ")[1]
+                                                                            'IP' = $Line.Split(':')[4].trim(' ').Split(' ')[1]
                                                                         }
 
                                                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -289,7 +289,7 @@ function Get-AbrADSite {
                                         }
                                         if ($OutObj) {
                                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Missing Subnets in AD' {
-                                                Paragraph "The following table lists the NO_CLIENT_SITE entries found in the netlogon.log file on each Domain Controller in the forest. These entries indicate client IP addresses that could not be mapped to an Active Directory site."
+                                                Paragraph 'The following table lists the NO_CLIENT_SITE entries found in the netlogon.log file on each Domain Controller in the forest. These entries indicate client IP addresses that could not be mapped to an Active Directory site.'
                                                 BlankLine
                                                 $TableParams = @{
                                                     Name = "Missing Subnets - $($ForestInfo)"
@@ -303,10 +303,10 @@ function Get-AbrADSite {
 
                                                 $OutObj | Sort-Object -Property 'DC', 'IP' | Get-Unique -AsString | Table @TableParams
                                                 if ($HealthCheck.Site.BestPractice) {
-                                                    Paragraph "Health Check:" -Bold -Underline
+                                                    Paragraph 'Health Check:' -Bold -Underline
                                                     BlankLine
                                                     Paragraph {
-                                                        Text "Best Practice:" -Bold
+                                                        Text 'Best Practice:' -Bold
                                                         Text "Ensure that all subnets at each site are properly defined. Missing subnets can cause clients to not use the site's local Domain Controllers."
                                                     }
                                                     BlankLine
@@ -329,16 +329,16 @@ function Get-AbrADSite {
                     if ($Options.EnableDiagrams) {
                         try {
                             try {
-                                $Graph = Get-AbrDiagrammer -DiagramType "Sites" -DiagramOutput base64 -PSSessionObject $TempPssSession
+                                $Graph = Get-AbrDiagrammer -DiagramType 'Sites' -DiagramOutput base64 -PSSessionObject $TempPssSession
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "Site Topology Diagram Graph: $($_.Exception.Message)"
                             }
 
                             if ($Graph) {
                                 if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
-                                Section -Style Heading4 "Site Topology Diagram." {
-                                    Image -Base64 $Graph -Text "Site Topology Diagram" -Percent $ImagePrty -Align Center
-                                    Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                                Section -Style Heading4 'Site Topology Diagram.' {
+                                    Image -Base64 $Graph -Text 'Site Topology Diagram' -Percent $ImagePrty -Align Center
+                                    Paragraph 'Image preview: Opens the image in a new tab to view it at full resolution.' -Tabs 2
                                 }
                                 BlankLine -Count 2
                             }
@@ -348,10 +348,10 @@ function Get-AbrADSite {
                     }
                     try {
                         $DomainDN = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
-                        $InterSiteTransports = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Filter { (objectClass -eq "interSiteTransport") } -SearchBase "CN=Inter-Site Transports,CN=Sites,CN=Configuration,$using:DomainDN" -Properties * } } catch { Out-Null }
+                        $InterSiteTransports = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Filter { (objectClass -eq 'interSiteTransport') } -SearchBase "CN=Inter-Site Transports,CN=Sites,CN=Configuration,$using:DomainDN" -Properties * } } catch { Out-Null }
                         if ($InterSiteTransports) {
                             Section -Style Heading4 'Inter-Site Transports' {
-                                Paragraph "Site links in Active Directory represent the inter-site connectivity and method used to transfer replication traffic. There are two transport protocols that can be used for replication via site links. The default protocol used in site link is IP, and it performs synchronous replication between available domain controllers. The SMTP method can be used when the link between sites is not reliable."
+                                Paragraph 'Site links in Active Directory represent the inter-site connectivity and method used to transfer replication traffic. There are two transport protocols that can be used for replication via site links. The default protocol used in site link is IP, and it performs synchronous replication between available domain controllers. The SMTP method can be used when the link between sites is not reliable.'
                                 BlankLine
                                 try {
                                     $OutObj = [System.Collections.ArrayList]::new()
@@ -359,28 +359,28 @@ function Get-AbrADSite {
                                         $SiteArray = [System.Collections.ArrayList]::new()
                                         switch ($Item.options) {
                                             $null {
-                                                $BridgeAlSiteLinks = "Yes"
-                                                $IgnoreSchedules = "No"
+                                                $BridgeAlSiteLinks = 'Yes'
+                                                $IgnoreSchedules = 'No'
                                             }
                                             0 {
-                                                $BridgeAlSiteLinks = "Yes"
-                                                $IgnoreSchedules = "No"
+                                                $BridgeAlSiteLinks = 'Yes'
+                                                $IgnoreSchedules = 'No'
                                             }
                                             1 {
-                                                $BridgeAlSiteLinks = "Yes"
-                                                $IgnoreSchedules = "Yes"
+                                                $BridgeAlSiteLinks = 'Yes'
+                                                $IgnoreSchedules = 'Yes'
                                             }
                                             2 {
-                                                $BridgeAlSiteLinks = "No"
-                                                $IgnoreSchedules = "No"
+                                                $BridgeAlSiteLinks = 'No'
+                                                $IgnoreSchedules = 'No'
                                             }
                                             3 {
-                                                $BridgeAlSiteLinks = "No"
-                                                $IgnoreSchedules = "Yes"
+                                                $BridgeAlSiteLinks = 'No'
+                                                $IgnoreSchedules = 'Yes'
                                             }
                                             default {
-                                                $BridgeAlSiteLinks = "Unknown"
-                                                $IgnoreSchedules = "Unknown"
+                                                $BridgeAlSiteLinks = 'Unknown'
+                                                $IgnoreSchedules = 'Unknown'
                                             }
                                         }
 
@@ -407,7 +407,7 @@ function Get-AbrADSite {
                                 try {
                                     Section -Style Heading4 'IP' {
                                         try {
-                                            $IPLink = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "IP" } }
+                                            $IPLink = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq 'IP' } }
                                             if ($IPLink) {
                                                 Section -Style Heading5 'Site Links' {
                                                     foreach ($Item in $IPLink) {
@@ -436,7 +436,7 @@ function Get-AbrADSite {
                                                                     '7' { '(7) Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync' }
                                                                     default { "Unknown siteLink option: $($Item.Options)" }
                                                                 }
-                                                                'Sites' = $SiteArray -join "; "
+                                                                'Sites' = $SiteArray -join '; '
                                                                 'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
                                                                 'Description' = $Item.Description
                                                             }
@@ -458,26 +458,26 @@ function Get-AbrADSite {
                                                             }
                                                             $OutObj | Sort-Object -Property 'Site Link Name' | Table @TableParams
                                                             if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' }) -or ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' })))) {
-                                                                Paragraph "Health Check:" -Bold -Underline
+                                                                Paragraph 'Health Check:' -Bold -Underline
                                                                 BlankLine
                                                                 if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                                                     Paragraph {
-                                                                        Text "Best Practice:" -Bold
-                                                                        Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
+                                                                        Text 'Best Practice:' -Bold
+                                                                        Text 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
                                                                     }
                                                                     BlankLine
                                                                 }
                                                                 if ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' }) {
                                                                     Paragraph {
-                                                                        Text "Best Practice:" -Bold
-                                                                        Text "Enabling change notification treats an inter-site replication connection like an intra-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an option number value of 5 (Change Notification is Enabled without Compression)."
+                                                                        Text 'Best Practice:' -Bold
+                                                                        Text 'Enabling change notification treats an inter-site replication connection like an intra-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an option number value of 5 (Change Notification is Enabled without Compression).'
                                                                     }
                                                                     BlankLine
                                                                 }
                                                                 if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) {
                                                                     Paragraph {
-                                                                        Text "Best Practice:" -Bold
-                                                                        Text "If the Site Links in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects."
+                                                                        Text 'Best Practice:' -Bold
+                                                                        Text 'If the Site Links in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects.'
                                                                     }
                                                                     BlankLine
                                                                 }
@@ -495,7 +495,7 @@ function Get-AbrADSite {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (IP Site Links Section)"
                                         }
                                         try {
-                                            $IPLinkBridges = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "IP" } }
+                                            $IPLinkBridges = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq 'IP' } }
                                             if ($IPLinkBridges) {
                                                 Section -Style Heading5 'Site Link Bridges' {
                                                     foreach ($Item in $IPLinkBridges) {
@@ -510,7 +510,7 @@ function Get-AbrADSite {
                                                             $inObj = [ordered] @{
                                                                 'Site Link Bridges Name' = $Item.Name
                                                                 'Transport Protocol' = $Item.InterSiteTransportProtocol
-                                                                'Site Links' = $SiteArray -join "; "
+                                                                'Site Links' = $SiteArray -join '; '
                                                                 'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
                                                                 'Description' = $Item.Description
                                                             }
@@ -531,19 +531,19 @@ function Get-AbrADSite {
                                                             }
                                                             $OutObj | Table @TableParams
                                                             if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' })))) {
-                                                                Paragraph "Health Check:" -Bold -Underline
+                                                                Paragraph 'Health Check:' -Bold -Underline
                                                                 BlankLine
                                                                 if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                                                     Paragraph {
-                                                                        Text "Best Practice:" -Bold
-                                                                        Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
+                                                                        Text 'Best Practice:' -Bold
+                                                                        Text 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
                                                                     }
                                                                     BlankLine
                                                                 }
                                                                 if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) {
                                                                     Paragraph {
-                                                                        Text "Best Practice:" -Bold
-                                                                        Text "If the Site Links Bridges in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects."
+                                                                        Text 'Best Practice:' -Bold
+                                                                        Text 'If the Site Links Bridges in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects.'
                                                                     }
                                                                     BlankLine
                                                                 }
@@ -565,10 +565,10 @@ function Get-AbrADSite {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (IP)"
                                 }
                                 try {
-                                    $IPLink = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "SMTP" } }
+                                    $IPLink = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq 'SMTP' } }
                                     if ($IPLink) {
                                         Section -Style Heading4 'SMTP' {
-                                            Paragraph "SMTP replication is used for sites that cannot use the others, but as a general rule, it should never be used. It is reserved when network connections are not always available, therefore, you can schedule replication."
+                                            Paragraph 'SMTP replication is used for sites that cannot use the others, but as a general rule, it should never be used. It is reserved when network connections are not always available, therefore, you can schedule replication.'
                                             try {
                                                 Section -Style Heading5 'Site Links' {
                                                     foreach ($Item in $IPLink) {
@@ -597,7 +597,7 @@ function Get-AbrADSite {
                                                                     '7' { '(7)Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync' }
                                                                     default { "Unknown siteLink option: $($Item.Options)" }
                                                                 }
-                                                                'Sites' = $SiteArray -join "; "
+                                                                'Sites' = $SiteArray -join '; '
                                                                 'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
                                                                 'Description' = $Item.Description
                                                             }
@@ -619,26 +619,26 @@ function Get-AbrADSite {
                                                             }
                                                             $OutObj | Sort-Object -Property 'Site Link Name' | Table @TableParams
                                                             if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' }) -or ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' })))) {
-                                                                Paragraph "Health Check:" -Bold -Underline
+                                                                Paragraph 'Health Check:' -Bold -Underline
                                                                 BlankLine
                                                                 if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                                                     Paragraph {
-                                                                        Text "Best Practice:" -Bold
-                                                                        Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
+                                                                        Text 'Best Practice:' -Bold
+                                                                        Text 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
                                                                     }
                                                                     BlankLine
                                                                 }
                                                                 if ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' }) {
                                                                     Paragraph {
-                                                                        Text "Best Practice:" -Bold
-                                                                        Text "Enabling change notification treats an INTER-site replication connection like an INTRA-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an Option number value of 5 (Change Notification is Enabled without Compression)."
+                                                                        Text 'Best Practice:' -Bold
+                                                                        Text 'Enabling change notification treats an INTER-site replication connection like an INTRA-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an Option number value of 5 (Change Notification is Enabled without Compression).'
                                                                     }
                                                                     BlankLine
                                                                 }
                                                                 if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) {
                                                                     Paragraph {
-                                                                        Text "Best Practice:" -Bold
-                                                                        Text "If the Site Links in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects."
+                                                                        Text 'Best Practice:' -Bold
+                                                                        Text 'If the Site Links in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects.'
                                                                     }
                                                                     BlankLine
                                                                 }
@@ -653,7 +653,7 @@ function Get-AbrADSite {
                                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SMTP Site Links Section)"
                                             }
                                             try {
-                                                $IPLinkBridges = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq "SMTP" } }
+                                                $IPLinkBridges = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq 'SMTP' } }
                                                 if ($IPLinkBridges) {
                                                     Section -Style Heading5 'Site Link Bridges' {
                                                         foreach ($Item in $IPLinkBridges) {
@@ -668,7 +668,7 @@ function Get-AbrADSite {
                                                                 $inObj = [ordered] @{
                                                                     'Site Link Bridges Name' = $Item.Name
                                                                     'Transport Protocol' = $Item.InterSiteTransportProtocol
-                                                                    'Site Links' = $SiteArray -join "; "
+                                                                    'Site Links' = $SiteArray -join '; '
                                                                     'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
                                                                     'Description' = $Item.Description
                                                                 }
@@ -689,19 +689,19 @@ function Get-AbrADSite {
                                                                 }
                                                                 $OutObj | Table @TableParams
                                                                 if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' })))) {
-                                                                    Paragraph "Health Check:" -Bold -Underline
+                                                                    Paragraph 'Health Check:' -Bold -Underline
                                                                     BlankLine
                                                                     if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                                                         Paragraph {
-                                                                            Text "Best Practice:" -Bold
-                                                                            Text "It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment."
+                                                                            Text 'Best Practice:' -Bold
+                                                                            Text 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
                                                                         }
                                                                         BlankLine
                                                                     }
                                                                     if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) {
                                                                         Paragraph {
-                                                                            Text "Best Practice:" -Bold
-                                                                            Text "If the Site Links Bridges in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects."
+                                                                            Text 'Best Practice:' -Bold
+                                                                            Text 'If the Site Links Bridges in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects.'
                                                                         }
                                                                         BlankLine
                                                                     }
@@ -740,11 +740,11 @@ function Get-AbrADSite {
                                     $DCCIMSession = Get-ValidCIMSession -ComputerName $DC -SessionName $DC -CIMTable ([ref]$CIMTable)
 
                                     if ($DCCIMSession) {
-                                        $Replication = Get-CimInstance -CimSession $DCCIMSession -Namespace "root/microsoftdfs" -Class "dfsrreplicatedfolderinfo" -Filter "ReplicatedFolderName = 'SYSVOL Share'" -EA 0 -Verbose:$False | Select-Object State
+                                        $Replication = Get-CimInstance -CimSession $DCCIMSession -Namespace 'root/microsoftdfs' -Class 'dfsrreplicatedfolderinfo' -Filter "ReplicatedFolderName = 'SYSVOL Share'" -EA 0 -Verbose:$False | Select-Object State
 
                                         try {
                                             $inObj = [ordered] @{
-                                                'DC Name' = $DC.split(".", 2)[0]
+                                                'DC Name' = $DC.split('.', 2)[0]
                                                 'Replication Status' = switch ($Replication.State) {
                                                     0 { 'Uninitialized' }
                                                     1 { 'Initialized' }
@@ -784,7 +784,7 @@ function Get-AbrADSite {
                                     try {
                                         Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                                         $inObj = [ordered] @{
-                                            'DC Name' = $DC.split(".", 2)[0]
+                                            'DC Name' = $DC.split('.', 2)[0]
                                             'Replication Status' = switch ($Replication.State) {
                                                 0 { 'Uninitialized' }
                                                 1 { 'Initialized' }
@@ -819,11 +819,11 @@ function Get-AbrADSite {
 
                                 $OutObj | Sort-Object -Property 'Domain' | Table @TableParams
                                 if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Identical Count' -like 'No' }) -or ($OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError }))) {
-                                    Paragraph "Health Check:" -Bold -Underline
+                                    Paragraph 'Health Check:' -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text "Best Practice:" -Bold
-                                        Text "SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains."
+                                        Text 'Best Practice:' -Bold
+                                        Text 'SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains.'
                                     }
                                     BlankLine
                                 }
@@ -844,7 +844,7 @@ function Get-AbrADSite {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Site"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Site'
     }
 
 }

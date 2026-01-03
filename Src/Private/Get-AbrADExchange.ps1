@@ -5,7 +5,7 @@ function Get-AbrADExchange {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -20,7 +20,7 @@ function Get-AbrADExchange {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Exchange information of $($ForestInfo.toUpper())."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Exchange Infrastructure"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Exchange Infrastructure'
     }
 
     process {
@@ -28,7 +28,7 @@ function Get-AbrADExchange {
         try {
             if ($EXServers ) {
                 Section -Style Heading3 'Exchange Infrastructure' {
-                    Paragraph "The following section provides a comprehensive overview of the Exchange infrastructure deployed in the Active Directory environment."
+                    Paragraph 'The following section provides a comprehensive overview of the Exchange infrastructure deployed in the Active Directory environment.'
                     BlankLine
                     $EXInfo = [System.Collections.ArrayList]::new()
                     foreach ($EXServer in $EXServers) {
@@ -36,7 +36,7 @@ function Get-AbrADExchange {
                             $inObj = [ordered] @{
                                 'Name' = $EXServer.Name
                                 'Dns Name' = $EXServer.DnsHostName
-                                'Server Roles' = $EXServer.ServerRoles -join ", "
+                                'Server Roles' = $EXServer.ServerRoles -join ', '
                                 'Version' = $EXServer.Version
                             }
                             $EXInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -81,7 +81,7 @@ function Get-AbrADExchange {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Exchange Infrastructure"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Exchange Infrastructure'
     }
 
 }

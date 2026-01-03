@@ -19,7 +19,7 @@ function Get-ADObjectSearch {
         $DN,
         $Session,
         $Filter,
-        $Properties = "*",
+        $Properties = '*',
         $SelectPrty
 
     )

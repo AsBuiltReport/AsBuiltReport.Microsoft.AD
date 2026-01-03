@@ -50,7 +50,7 @@ function Get-WinADLastBackup {
                 $NameUsed.Add($Name)
             }
             $domainControllerMetadata = $domainController.GetReplicationMetadata($Name)
-            $dsaSignature = $domainControllerMetadata.Item("dsaSignature")
+            $dsaSignature = $domainControllerMetadata.Item('dsaSignature')
             $LastBackup = [DateTime] $($dsaSignature.LastOriginatingChangeTime)
             [PSCustomObject] @{
                 Domain = $Domain

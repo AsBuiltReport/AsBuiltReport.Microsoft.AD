@@ -5,7 +5,7 @@ function Get-AbrADDCDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -27,7 +27,7 @@ function Get-AbrADDCDiag {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory $DC DCDiag information for domain $Domain."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "DCDiag"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'DCDiag'
     }
 
     process {
@@ -36,8 +36,8 @@ function Get-AbrADDCDiag {
                 Section -ExcludeFromTOC -Style NOTOCHeading4 $($DC.ToString().split('.')[0].ToUpper()) {
                     $OutObj = [System.Collections.ArrayList]::new()
                     $Description = @{
-                        "Advertising" = "Validates this Domain Controller can be correctly located through the KDC service. It does not validate the Kerberos tickets answer or the communication through the TCP and UDP port 88.", 'High'
-                        "Connectivity" = "Initial connection validation, checks if the DC can be located in the DNS, validates the ICMP ping (1 hop), checks LDAP binding and also the RPC connection. This initial test requires ICMP, LDAP, DNS and RPC connectivity to work properly.", 'Medium'
+                        'Advertising' = 'Validates this Domain Controller can be correctly located through the KDC service. It does not validate the Kerberos tickets answer or the communication through the TCP and UDP port 88.', 'High'
+                        'Connectivity' = 'Initial connection validation, checks if the DC can be located in the DNS, validates the ICMP ping (1 hop), checks LDAP binding and also the RPC connection. This initial test requires ICMP, LDAP, DNS and RPC connectivity to work properly.', 'Medium'
                         'VerifyReferences' = 'Validates that several attributes are present for the domain in the container and subcontainers in the DC objects. This test will fail if any attribute is missing.', 'High'
                         'FrsEvent' = 'Checks if there any errors in the event logs regarding FRS replication. If running Windows Server 2008 R2 or newer on all Domain Controllers is possible SYSVOL were already migrated to DFSR, in this case errors found here can be ignored.', 'Medium'
                         'DFSREvent' = 'Checks if there any errors in the event logs regarding DFSR replication. If running Windows Server 2008 or older on all Domain Controllers is possible SYSVOL is still using FRS, and in this case errors found here can be ignored. Obs. is highly recommended to migrate SYSVOL to DFSR.', 'Medium'
@@ -94,6 +94,6 @@ function Get-AbrADDCDiag {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "DCDiag"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'DCDiag'
     }
 }

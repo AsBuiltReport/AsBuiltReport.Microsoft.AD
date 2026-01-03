@@ -5,7 +5,7 @@ function Get-AbrADCASummary {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,8 +19,8 @@ function Get-AbrADCASummary {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Certification Authority information."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Summary"
+        Write-PScriboMessage -Message 'Collecting Certification Authority information.'
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'CA Summary'
     }
 
     process {
@@ -30,7 +30,7 @@ function Get-AbrADCASummary {
                 try {
                     $inObj = [ordered] @{
                         'CA Name' = $CA.DisplayName
-                        'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]
+                        'Server Name' = $CA.ComputerName.ToString().ToUpper().Split('.')[0]
                         'Type' = $CA.Type
                         'Status' = $CA.ServiceStatus
                     }
@@ -52,12 +52,12 @@ function Get-AbrADCASummary {
             if ($Report.ShowTableCaptions) {
                 $TableParams['Caption'] = "- $($TableParams.Name)"
             }
-            $OutObj  | Sort-Object -Property 'CA Name' | Table @TableParams
+            $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
         }
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "CA Summary"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'CA Summary'
     }
 
 }

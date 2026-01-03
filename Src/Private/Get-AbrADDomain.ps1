@@ -5,7 +5,7 @@ function Get-AbrADDomain {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -22,7 +22,7 @@ function Get-AbrADDomain {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Domain information on forest $Forestinfo."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain'
     }
 
     process {
@@ -77,16 +77,16 @@ function Get-AbrADDomain {
                     }
                     $OutObj | Table @TableParams
                     if ($HealthCheck.Domain.BestPractice -and ([math]::Truncate($CompleteSIDS / $RIDsRemaining) -gt 80)) {
-                        Paragraph "Health Check:" -Bold -Underline
+                        Paragraph 'Health Check:' -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text "Best Practice:" -Bold
-                            Text "The RID Issued percentage exceeds 80%. It is recommended to evaluate the utilization of RIDs to prevent potential exhaustion and ensure the stability of the domain. The Relative Identifier (RID) is a crucial component in the SID (Security Identifier) for objects within the domain. Exhaustion of the RID pool can lead to the inability to create new security principals, such as user or computer accounts. Regular monitoring and proactive management of the RID pool are essential to maintain domain health and avoid disruptions."
+                            Text 'Best Practice:' -Bold
+                            Text 'The RID Issued percentage exceeds 80%. It is recommended to evaluate the utilization of RIDs to prevent potential exhaustion and ensure the stability of the domain. The Relative Identifier (RID) is a crucial component in the SID (Security Identifier) for objects within the domain. Exhaustion of the RID pool can lead to the inability to create new security principals, such as user or computer accounts. Regular monitoring and proactive management of the RID pool are essential to maintain domain health and avoid disruptions.'
                         }
                         BlankLine
                         Paragraph {
-                            Text "Reference:" -Bold
-                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736" -Color blue
+                            Text 'Reference:' -Bold
+                            Text 'https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736' -Color blue
                         }
                     }
                 }
@@ -97,7 +97,7 @@ function Get-AbrADDomain {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Domain'
     }
 
 }

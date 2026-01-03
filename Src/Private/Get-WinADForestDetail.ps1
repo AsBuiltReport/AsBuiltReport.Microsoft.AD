@@ -201,7 +201,7 @@ function Get-WinADForestDetail {
                     Pingable = $null
                     WinRM = $null
                     PortOpen = $null
-                    Comment = $_.Exception.Message -replace "`n", " " -replace "`r", " "
+                    Comment = $_.Exception.Message -replace "`n", ' ' -replace "`r", ' '
                 }
             }
             if ($SkipRODC) {

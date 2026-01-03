@@ -5,7 +5,7 @@ function Get-AbrADCACRLSetting {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -23,15 +23,15 @@ function Get-AbrADCACRLSetting {
     )
 
     begin {
-        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Certificate Revocation List Objects"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'CA Certificate Revocation List Objects'
     }
 
     process {
         try {
-            Section -Style Heading3 "Certificate Revocation List (CRL)" {
-                Paragraph "This section provides detailed information about the Certificate Revocation List (CRL) distribution settings and health status for the Certification Authority."
+            Section -Style Heading3 'Certificate Revocation List (CRL)' {
+                Paragraph 'This section provides detailed information about the Certificate Revocation List (CRL) distribution settings and health status for the Certification Authority.'
                 BlankLine
-                Section -Style Heading4 "CRL Validity Period" {
+                Section -Style Heading4 'CRL Validity Period' {
                     $OutObj = [System.Collections.ArrayList]::new()
                     try {
                         Write-PScriboMessage -Message "Collecting AD CA CRL Validity Period information on $($CA.Name)."
@@ -65,7 +65,7 @@ function Get-AbrADCACRLSetting {
                     $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
                 }
                 try {
-                    Section -Style Heading4 "CRL Flags Settings" {
+                    Section -Style Heading4 'CRL Flags Settings' {
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {
                             Write-PScriboMessage -Message "Collecting AD CA CRL Distribution Point information on $($CA.Name)."
@@ -74,7 +74,7 @@ function Get-AbrADCACRLSetting {
                                 try {
                                     $inObj = [ordered] @{
                                         'CA Name' = $Flag.Name
-                                        'Server Name' = $Flag.ComputerName.ToString().ToUpper().Split(".")[0]
+                                        'Server Name' = $Flag.ComputerName.ToString().ToUpper().Split('.')[0]
                                         'CRL Flags' = $Flag.CRLFlags
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -100,8 +100,8 @@ function Get-AbrADCACRLSetting {
                     Write-PScriboMessage -IsWarning -Message "CRL Validity Period Section: $($_.Exception.Message)"
                 }
                 try {
-                    Section -Style Heading4 "CRL Distribution Point" {
-                        Paragraph "This section provides detailed information about the Certificate Revocation List (CRL) Distribution Points configured on the Certification Authority, including URI locations and publication settings."
+                    Section -Style Heading4 'CRL Distribution Point' {
+                        Paragraph 'This section provides detailed information about the Certificate Revocation List (CRL) Distribution Points configured on the Certification Authority, including URI locations and publication settings.'
                         BlankLine
                         Write-PScriboMessage -Message "Collecting AD CA CRL Distribution Point information on $($CA.NAme)."
                         $CRL = Get-CRLDistributionPoint -CertificationAuthority $CA
@@ -113,7 +113,7 @@ function Get-AbrADCACRLSetting {
                                     'Config URI' = $URI.ConfigURI
                                     'Url Scheme' = $URI.UrlScheme
                                     'ProjectedURI' = $URI.ProjectedURI
-                                    'Flags' = ($URI.Flags -join ", ")
+                                    'Flags' = ($URI.Flags -join ', ')
                                     'CRL Publish' = $URI.IncludeToExtension
                                     'Delta CRL Publish' = $URI.DeltaCRLPublish
                                     'Add To Cert CDP' = $URI.AddToCertCDP
@@ -144,8 +144,8 @@ function Get-AbrADCACRLSetting {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (CRL Distribution Point)"
         }
         try {
-            Section -Style Heading3 "AIA and CDP Health Status" {
-                Paragraph "This section provides a comprehensive health check of the Certification Authority by verifying the CA certificate chain status and validating the accessibility of all Certificate Revocation List (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain."
+            Section -Style Heading3 'AIA and CDP Health Status' {
+                Paragraph 'This section provides a comprehensive health check of the Certification Authority by verifying the CA certificate chain status and validating the accessibility of all Certificate Revocation List (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain.'
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
                 $CAHealth = Get-EnterprisePKIHealthStatus -CertificateAuthority $CA
@@ -183,7 +183,7 @@ function Get-AbrADCACRLSetting {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "CA Certificate Revocation List Objects"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'CA Certificate Revocation List Objects'
     }
 
 }

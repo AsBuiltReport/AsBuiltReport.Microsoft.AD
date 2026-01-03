@@ -5,7 +5,7 @@ function Get-AbrDNSSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,7 @@ function Get-AbrDNSSection {
 
     begin {
         Write-PScriboMessage -Message "Collecting DNS server information from $ForestInfo."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "DNS Section"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'DNS Section'
     }
 
     process {
@@ -34,7 +34,7 @@ function Get-AbrDNSSection {
                                 $DCs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
-                                    Paragraph "The following section provides a comprehensive summary of the DNS service configuration and settings for this domain."
+                                    Paragraph 'The following section provides a comprehensive summary of the DNS service configuration and settings for this domain.'
                                     BlankLine
                                     if ($TempCIMSession) {
                                         Get-AbrADDNSInfrastructure -Domain $DomainInfo -DCs $DCs
@@ -57,13 +57,13 @@ function Get-AbrDNSSection {
                 }
             }
             if ($DNSDomainObj) {
-                Section -Style Heading1 "DNS Configuration" {
+                Section -Style Heading1 'DNS Configuration' {
                     if ($Options.ShowDefinitionInfo) {
-                        Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
+                        Paragraph 'The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols.'
                         BlankLine
                     }
                     if (-not $Options.ShowDefinitionInfo) {
-                        Paragraph "The following section provides a comprehensive overview of the DNS infrastructure configuration and settings within the Active Directory environment."
+                        Paragraph 'The following section provides a comprehensive overview of the DNS infrastructure configuration and settings within the Active Directory environment.'
                         BlankLine
                     }
                     $DNSDomainObj
@@ -72,6 +72,6 @@ function Get-AbrDNSSection {
         }
     }
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "DNS Section"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'DNS Section'
     }
 }
