@@ -21,7 +21,7 @@ function Get-AbrADDuplicateSPN {
 
     begin {
         Write-PScriboMessage -Message "Collecting duplicate SPN information on $($Domain.DNSRoot)."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Duplicate SPN"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain Duplicate SPN'
     }
 
     process {
@@ -61,10 +61,10 @@ function Get-AbrADDuplicateSPN {
                         }
                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                         if ($HealthCheck.Domain.SPN) {
-                            Paragraph "Health Check:" -Bold -Underline
+                            Paragraph 'Health Check:' -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text "Corrective Actions:" -Bold
+                                Text 'Corrective Actions:' -Bold
                                 Text "Ensure there aren't any duplicate SPNs (other than krbtgt). Duplicate SPNs can cause authentication issues and should be resolved promptly. Use the `setspn -X` command to identify duplicate SPNs. Remove or reassign duplicate SPNs as necessary to maintain a healthy AD environment."
                             }
                         }
@@ -79,7 +79,7 @@ function Get-AbrADDuplicateSPN {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Duplicate SPN"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Domain Duplicate SPN'
     }
 
 }

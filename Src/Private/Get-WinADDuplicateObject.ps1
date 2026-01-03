@@ -35,7 +35,7 @@ function Get-WinADDuplicateObject {
         $DC = $ForestInformation['QueryServers']["$Domain"].HostName[0]
         #Get conflict objects
         $getADObjectSplat = @{
-            LDAPFilter = "(|(cn=*\0ACNF:*)(ou=*CNF:*))"
+            LDAPFilter = '(|(cn=*\0ACNF:*)(ou=*CNF:*))'
             Properties = 'DistinguishedName', 'ObjectClass', 'DisplayName', 'SamAccountName', 'Name', 'ObjectCategory', 'WhenCreated', 'WhenChanged', 'ProtectedFromAccidentalDeletion', 'ObjectGUID'
             Server = $DC
             SearchScope = 'Subtree'
@@ -72,8 +72,8 @@ function Get-WinADDuplicateObject {
                 ObjectClass = $Object.ObjectClass
             }
             $LiveObjectData = [ordered] @{
-                LiveDn = "N/A"
-                LiveWhenChanged = "N/A"
+                LiveDn = 'N/A'
+                LiveWhenChanged = 'N/A'
             }
             $RestData = [ordered] @{
                 DisplayName = $Object.DisplayName
@@ -89,12 +89,12 @@ function Get-WinADDuplicateObject {
                 $LiveObject = $null
                 $ConflictObject = $ConflictObject + $LiveObjectData + $RestData
                 #See if we are dealing with a 'cn' conflict object
-                if (Select-String -SimpleMatch "\0ACNF:" -InputObject $ConflictObject.ConflictDn) {
+                if (Select-String -SimpleMatch '\0ACNF:' -InputObject $ConflictObject.ConflictDn) {
                     #Split the conflict object DN so we can remove the conflict notation
-                    $SplitConfDN = $ConflictObject.ConflictDn -split "0ACNF:"
+                    $SplitConfDN = $ConflictObject.ConflictDn -split '0ACNF:'
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
-                        $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0].TrimEnd("\"))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
+                        $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0].TrimEnd('\'))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
                     } catch { Out-Null }
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
@@ -102,7 +102,7 @@ function Get-WinADDuplicateObject {
                     }
                 } else {
                     #Split the conflict object DN so we can remove the conflict notation for OUs
-                    $SplitConfDN = $ConflictObject.ConflictDn -split "CNF:"
+                    $SplitConfDN = $ConflictObject.ConflictDn -split 'CNF:'
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
                         $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0])$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop

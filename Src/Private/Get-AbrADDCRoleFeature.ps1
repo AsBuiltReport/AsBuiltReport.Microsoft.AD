@@ -21,14 +21,14 @@ function Get-AbrADDCRoleFeature {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory DC Role & Features information of $DC."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "DC Role & Features"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'DC Role & Features'
     }
 
     process {
         try {
             $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
             if ($DCPssSession) {
-                $Features = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq "True" -and $_.FeatureType -eq 'Role' } }
+                $Features = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-WindowsFeature | Where-Object { $_.installed -eq 'True' -and $_.FeatureType -eq 'Role' } }
             } else {
                 if (-not $_.Exception.MessageId) {
                     $ErrorMessage = $_.FullyQualifiedErrorId
@@ -36,7 +36,7 @@ function Get-AbrADDCRoleFeature {
                 Write-PScriboMessage -IsWarning -Message "Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
             }
             if ($Features) {
-                Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
+                Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split('.')[0]) {
                     $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($Feature in $Features) {
                         try {
@@ -55,8 +55,8 @@ function Get-AbrADDCRoleFeature {
                         $List = @()
                         $OutObj | Where-Object { $_.'Name' -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') } | Set-Style -Style Warning
                         foreach ( $OBJ in ($OutObj | Where-Object { $_.'Name' -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') })) {
-                            $OBJ.'Name' = $OBJ.'Name' + " (1)"
-                            $List = "Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation."
+                            $OBJ.'Name' = $OBJ.'Name' + ' (1)'
+                            $List = 'Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation.'
                         }
                     }
 
@@ -70,9 +70,9 @@ function Get-AbrADDCRoleFeature {
                     }
                     $OutObj | Table @TableParams
                     if ($HealthCheck.DomainController.Software -and $List) {
-                        Paragraph "Health Check:" -Bold -Underline
+                        Paragraph 'Health Check:' -Bold -Underline
                         BlankLine
-                        Paragraph "Best Practices:" -Bold
+                        Paragraph 'Best Practices:' -Bold
                         List -Item $List -Numbered
                     }
                 }
@@ -82,6 +82,6 @@ function Get-AbrADDCRoleFeature {
         }
     }
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "DC Role & Features"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'DC Role & Features'
     }
 }

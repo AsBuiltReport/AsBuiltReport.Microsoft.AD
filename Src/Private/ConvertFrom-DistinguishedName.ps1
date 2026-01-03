@@ -88,7 +88,7 @@ function ConvertFrom-DistinguishedName {
         foreach ($Distinguished in $DistinguishedName) {
             if ($ToDomainCN) {
                 $DN = $Distinguished -replace '.*?((DC=[^=]+,)+DC=[^=]+)$', '$1'
-                $CN = $DN -replace ',DC=', '.' -replace "DC="
+                $CN = $DN -replace ',DC=', '.' -replace 'DC='
                 if ($CN) {
                     $CN
                 }
@@ -114,11 +114,11 @@ function ConvertFrom-DistinguishedName {
                     $Value
                 }
             } elseif ($ToLastName) {
-                $NewDN = $Distinguished -split ",DC="
-                if ($NewDN[0].Contains(",OU=")) {
-                    [Array] $ChangedDN = $NewDN[0] -split ",OU="
-                } elseif ($NewDN[0].Contains(",CN=")) {
-                    [Array] $ChangedDN = $NewDN[0] -split ",CN="
+                $NewDN = $Distinguished -split ',DC='
+                if ($NewDN[0].Contains(',OU=')) {
+                    [Array] $ChangedDN = $NewDN[0] -split ',OU='
+                } elseif ($NewDN[0].Contains(',CN=')) {
+                    [Array] $ChangedDN = $NewDN[0] -split ',CN='
                 } else {
                     [Array] $ChangedDN = $NewDN[0]
                 }

@@ -39,15 +39,15 @@ function Get-AbrADDomainObject {
 
                     $script:Computers = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADComputer -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Properties $using:ADComputerLimitedProperties -SearchBase ($using:Domain).distinguishedName) }
 
-                    $Servers = $Computers | Where-Object { $_.OperatingSystem -like "*Serv*" } | Measure-Object
+                    $Servers = $Computers | Where-Object { $_.OperatingSystem -like '*Serv*' } | Measure-Object
 
                     $script:Users = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADUser -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Property $using:ADUsersLimitedProperties -SearchBase ($using:Domain).distinguishedName }
-                    $script:FSP = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:ValidDcFromDomain -Filter { ObjectClass -eq "foreignSecurityPrincipal" } -Properties msds-principalname, memberof }
+                    $script:FSP = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:ValidDcFromDomain -Filter { ObjectClass -eq 'foreignSecurityPrincipal' } -Properties msds-principalname, memberof }
 
                     $script:PrivilegedUsers = $Users | Where-Object { $_.AdminCount -eq 1 }
 
                     $script:GroupOBj = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADGroup -ResultPageSize 1000 -Server $using:ValidDcFromDomain -Filter * -Properties $using:ADGroupsLimitedProperties -SearchBase ($using:Domain).distinguishedName) }
-                    $script:EmptyGroupOBj = $GroupOBj | Where-Object { (-Not $_.Members ) }
+                    $script:EmptyGroupOBj = $GroupOBj | Where-Object { (-not $_.Members ) }
 
                     $excludedDomainGroupsBySID = @("$DomainSID-571", "$DomainSID-572", "$DomainSID-553", "$DomainSID-525", "$DomainSID-522", "$DomainSID-572", "$DomainSID-571", "$DomainSID-514", "$DomainSID-553", "$DomainSID-513", "$DomainSID-515", "$DomainSID-512", "$DomainSID-498", "$DomainSID-527", "$DomainSID-520", "$DomainSID-521", "$DomainSID-519", "$DomainSID-526", "$DomainSID-516", "$DomainSID-517", "$DomainSID-518")
 
@@ -55,11 +55,11 @@ function Get-AbrADDomainObject {
 
                     $excludedForestGroupsBySID = ($GroupOBj | Where-Object { $_.SID -like 'S-1-5-32-*' }).SID
 
-                    $AdminGroupsBySID = "S-1-5-32-552", "$DomainSID-527", "$DomainSID-521", "$DomainSID-516", "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
+                    $AdminGroupsBySID = 'S-1-5-32-552', "$DomainSID-527", "$DomainSID-521", "$DomainSID-516", "$DomainSID-1107", "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', "$DomainSID-1101", 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
 
                     $script:DomainController = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter *) | Select-Object name, OperatingSystem }
 
-                    $script:GC = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter { IsGlobalCatalog -eq "True" }) | Select-Object name }
+                    $script:GC = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomainController -Server $using:ValidDcFromDomain -Filter { IsGlobalCatalog -eq 'True' }) | Select-Object name }
 
                     $ADObjects = $Users + $GroupObj
 
@@ -116,9 +116,9 @@ function Get-AbrADDomainObject {
                     $passwordtime = (Get-Date).Adddays(-180)
                     $CannotChangePassword = $Users | Where-Object { $_.CannotChangePassword }
                     $PasswordNextLogon = $Users | Where-Object { $_.PasswordLastSet -eq 0 -or $_.PwdLastSet -eq 0 }
-                    $passwordNeverExpires = $Users | Where-Object { $_.passwordNeverExpires -eq "true" }
+                    $passwordNeverExpires = $Users | Where-Object { $_.passwordNeverExpires -eq 'true' }
                     $SmartcardLogonRequired = $Users | Where-Object { $_.SmartcardLogonRequired -eq $True }
-                    $SidHistory = $Users  | Where-Object { $_.SIDHistory }
+                    $SidHistory = $Users | Where-Object { $_.SIDHistory }
                     $PasswordLastSet = $Users | Where-Object { $_.PasswordNeverExpires -eq $false -and $_.PasswordNotRequired -eq $false }
                     $NeverloggedIn = $Users | Where-Object { -not $_.LastLogonDate }
                     $Dormant = $Users | Where-Object { ($_.LastLogonDate) -lt $dormanttime }
@@ -157,19 +157,19 @@ function Get-AbrADDomainObject {
                                 $inObj = [ordered] @{
                                     'Category' = $Category
                                     'Enabled' = ($Values.Enabled -eq $True | Measure-Object).Count
-                                    'Enabled %' = Switch ($Users.Count) {
+                                    'Enabled %' = switch ($Users.Count) {
                                         0 { '0' }
                                         $Null { '0' }
                                         default { [math]::Round((($Values.Enabled -eq $True | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
                                     'Disabled' = ($Values.Enabled -eq $False | Measure-Object).Count
-                                    'Disabled %' = Switch ($Users.Count) {
+                                    'Disabled %' = switch ($Users.Count) {
                                         0 { '0' }
                                         $Null { '0' }
                                         default { [math]::Round((($Values.Enabled -eq $False | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
                                     'Total' = ($Values | Measure-Object).Count
-                                    'Total %' = Switch ($Users.Count) {
+                                    'Total %' = switch ($Users.Count) {
                                         0 { '0' }
                                         $Null { '0' }
                                         default { [math]::Round((($Values | Measure-Object).Count / $Users.Count * 100), 2) }
@@ -220,13 +220,13 @@ function Get-AbrADDomainObject {
                                     try {
                                         $Groups = ($GroupOBj | Where-Object { $_.members -eq $User.DistinguishedName }).Name
                                         $inObj = [ordered] @{
-                                            'Name' = Switch ([string]::IsNullOrEmpty($User.DisplayName)) {
+                                            'Name' = switch ([string]::IsNullOrEmpty($User.DisplayName)) {
                                                 $true { $User.Name }
                                                 $false { $User.DisplayName }
                                                 default { 'Unknown' }
                                             }
                                             'Logon Name' = $User.SamAccountName
-                                            'Member Of Groups' = Switch ([string]::IsNullOrEmpty($Groups)) {
+                                            'Member Of Groups' = switch ([string]::IsNullOrEmpty($Groups)) {
                                                 $true { '--' }
                                                 $false { $Groups }
                                                 default { 'Unknown' }
@@ -266,8 +266,8 @@ function Get-AbrADDomainObject {
                     try {
                         $OutObj = [System.Collections.ArrayList]::new()
                         $inObj = [ordered] @{
-                            'Security Groups' = ($GroupOBj | Where-Object { $_.GroupCategory -eq "Security" } | Measure-Object).Count
-                            'Distribution Groups' = ($GroupOBj | Where-Object { $_.GroupCategory -eq "Distribution" } | Measure-Object).Count
+                            'Security Groups' = ($GroupOBj | Where-Object { $_.GroupCategory -eq 'Security' } | Measure-Object).Count
+                            'Distribution Groups' = ($GroupOBj | Where-Object { $_.GroupCategory -eq 'Distribution' } | Measure-Object).Count
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
@@ -302,9 +302,9 @@ function Get-AbrADDomainObject {
                     try {
                         $OutObj = [System.Collections.ArrayList]::new()
                         $inObj = [ordered] @{
-                            'Domain Locals' = ($GroupOBj | Where-Object { $_.GroupScope -eq "DomainLocal" } | Measure-Object).Count
-                            'Globals' = ($GroupOBj | Where-Object { $_.GroupScope -eq "Global" } | Measure-Object).Count
-                            'Universal' = ($GroupOBj | Where-Object { $_.GroupScope -eq "Universal" } | Measure-Object).Count
+                            'Domain Locals' = ($GroupOBj | Where-Object { $_.GroupScope -eq 'DomainLocal' } | Measure-Object).Count
+                            'Globals' = ($GroupOBj | Where-Object { $_.GroupScope -eq 'Global' } | Measure-Object).Count
+                            'Universal' = ($GroupOBj | Where-Object { $_.GroupScope -eq 'Universal' } | Measure-Object).Count
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
@@ -384,7 +384,7 @@ function Get-AbrADDomainObject {
                             }
                             if ($GroupsSID) {
                                 if ($InfoLevel.Domain -eq 1) {
-                                    Paragraph "The following section provides a summary of privileged group membership counts."
+                                    Paragraph 'The following section provides a summary of privileged group membership counts.'
                                     BlankLine
                                     foreach ($GroupSID in $GroupsSID) {
                                         try {
@@ -402,13 +402,13 @@ function Get-AbrADDomainObject {
 
                                     if ($HealthCheck.Domain.Security) {
                                         foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 })) {
-                                            $OBJ.'Group Name' = "*" + $OBJ.'Group Name'
+                                            $OBJ.'Group Name' = '*' + $OBJ.'Group Name'
                                         }
                                         foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Enterprise Admins' -and $_.Count -gt 1 })) {
-                                            $OBJ.'Group Name' = "**" + $OBJ.'Group Name'
+                                            $OBJ.'Group Name' = '**' + $OBJ.'Group Name'
                                         }
                                         foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Domain Admins' -and $_.Count -gt 5 })) {
-                                            $OBJ.'Group Name' = "***" + $OBJ.'Group Name'
+                                            $OBJ.'Group Name' = '***' + $OBJ.'Group Name'
                                         }
                                         $OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
                                         $OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
@@ -425,30 +425,30 @@ function Get-AbrADDomainObject {
                                     }
                                     $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
                                     if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 })) {
-                                        Paragraph "Health Check:" -Bold -Underline
+                                        Paragraph 'Health Check:' -Bold -Underline
                                         BlankLine
-                                        Paragraph "Security Best Practice:" -Bold
+                                        Paragraph 'Security Best Practice:' -Bold
                                         if ($OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 }) {
                                             BlankLine
                                             Paragraph {
-                                                Text "*The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed."
+                                                Text '*The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed.'
                                             }
                                         }
                                         if ($OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 }) {
                                             BlankLine
                                             Paragraph {
-                                                Text "**Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically."
+                                                Text '**Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically.'
                                             }
                                         }
                                         if ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 }) {
                                             BlankLine
                                             Paragraph {
-                                                Text "***Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access."
+                                                Text '***Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access.'
                                             }
                                         }
                                     }
                                 } else {
-                                    Paragraph "The following section provides detailed information about the user members of each privileged group. Groups without members are excluded."
+                                    Paragraph 'The following section provides detailed information about the user members of each privileged group. Groups without members are excluded.'
                                     BlankLine
                                     foreach ($GroupSID in $GroupsSID) {
                                         try {
@@ -461,10 +461,10 @@ function Get-AbrADDomainObject {
                                                             try {
                                                                 $inObj = [ordered] @{
                                                                     'Name' = "$($GroupObject.SamAccountName) ($($GroupObject.ObjectClass.toUpper()))"
-                                                                    'Last Logon Date' = Switch ([string]::IsNullOrEmpty($GroupObject.LastLogonDate)) {
-                                                                        $true { "--" }
+                                                                    'Last Logon Date' = switch ([string]::IsNullOrEmpty($GroupObject.LastLogonDate)) {
+                                                                        $true { '--' }
                                                                         $false { $GroupObject.LastLogonDate.ToShortDateString() }
-                                                                        default { "Unknown" }
+                                                                        default { 'Unknown' }
                                                                     }
                                                                     'Password Never Expires' = $GroupObject.passwordNeverExpires
                                                                     'Account Enabled' = $GroupObject.Enabled
@@ -479,12 +479,12 @@ function Get-AbrADDomainObject {
                                                         if ($HealthCheck.Domain.Security) {
                                                             $OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Never Expires'
                                                             foreach ( $OBJ in ($OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' })) {
-                                                                $OBJ.'Password Never Expires' = "**Yes"
+                                                                $OBJ.'Password Never Expires' = '**Yes'
                                                             }
                                                             $OutObj | Where-Object { $_.'Account Enabled' -eq 'No' } | Set-Style -Style Warning -Property 'Account Enabled'
-                                                            $OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) } | Set-Style -Style Warning -Property 'Last Logon Date'
-                                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) })) {
-                                                                $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
+                                                            $OutObj | Where-Object { $_.'Last Logon Date' -ne '--' -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) } | Set-Style -Style Warning -Property 'Last Logon Date'
+                                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.'Last Logon Date' -ne '--' -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) })) {
+                                                                $OBJ.'Last Logon Date' = '*' + $OBJ.'Last Logon Date'
                                                             }
                                                         }
 
@@ -497,39 +497,39 @@ function Get-AbrADDomainObject {
                                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                                         }
                                                         $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                                                        if ($HealthCheck.Domain.Security -and ((($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or ($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) -or ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) -or ($OutObj | Where-Object { $_.'Last Logon Date' -ne "--" -and $_.'Last Logon Date' -match "\*" })) {
-                                                            Paragraph "Health Check:" -Bold -Underline
+                                                        if ($HealthCheck.Domain.Security -and ((($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or ($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) -or ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) -or ($OutObj | Where-Object { $_.'Last Logon Date' -ne '--' -and $_.'Last Logon Date' -match '\*' })) {
+                                                            Paragraph 'Health Check:' -Bold -Underline
                                                             BlankLine
-                                                            Paragraph "Security Best Practice:" -Bold
+                                                            Paragraph 'Security Best Practice:' -Bold
 
                                                             if (($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
                                                                 BlankLine
                                                                 Paragraph {
-                                                                    Text "The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed."
+                                                                    Text 'The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed.'
                                                                 }
                                                             }
                                                             if (($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
                                                                 BlankLine
                                                                 Paragraph {
-                                                                    Text "Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically."
+                                                                    Text 'Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically.'
                                                                 }
                                                             }
                                                             if (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) {
                                                                 BlankLine
                                                                 Paragraph {
-                                                                    Text "Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access."
+                                                                    Text 'Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access.'
                                                                 }
                                                             }
                                                             if ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) {
                                                                 BlankLine
                                                                 Paragraph {
-                                                                    Text "**Accounts with passwords set to never expire were found in the environment. Ensure there are no accounts with weak security postures. Accounts with passwords that never expire can pose a significant security risk as they may not be updated regularly. It is recommended to enforce password expiration policies to enhance security."
+                                                                    Text '**Accounts with passwords set to never expire were found in the environment. Ensure there are no accounts with weak security postures. Accounts with passwords that never expire can pose a significant security risk as they may not be updated regularly. It is recommended to enforce password expiration policies to enhance security.'
                                                                 }
                                                             }
-                                                            if ($OutObj | Where-Object { $_.'Last Logon Date' -match "\*" }) {
+                                                            if ($OutObj | Where-Object { $_.'Last Logon Date' -match '\*' }) {
                                                                 BlankLine
                                                                 Paragraph {
-                                                                    Text "*Regularly check for and remove inactive privileged user accounts in Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts have privileged access helps maintain a secure environment."
+                                                                    Text '*Regularly check for and remove inactive privileged user accounts in Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts have privileged access helps maintain a secure environment.'
                                                                 }
                                                             }
                                                         }
@@ -577,14 +577,14 @@ function Get-AbrADDomainObject {
                                 }
                                 if ($OutObj) {
                                     Section -Style Heading5 'Privileged Group (Non-Default)' {
-                                        Paragraph "The following section provides a summary of privileged groups with the AdminCount attribute set to 1 (excluding default groups)."
+                                        Paragraph 'The following section provides a summary of privileged groups with the AdminCount attribute set to 1 (excluding default groups).'
                                         BlankLine
                                         $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
-                                        Paragraph "Health Check:" -Bold -Underline
+                                        Paragraph 'Health Check:' -Bold -Underline
                                         BlankLine
                                         Paragraph {
-                                            Text "Best Practice:" -Bold
-                                            Text "Regularly validate and remove unneeded privileged group members in Active Directory. Ensuring that only necessary accounts have privileged access helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation. Regular audits and reviews of group memberships can help identify and mitigate potential security risks."
+                                            Text 'Best Practice:' -Bold
+                                            Text 'Regularly validate and remove unneeded privileged group members in Active Directory. Ensuring that only necessary accounts have privileged access helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation. Regular audits and reviews of group memberships can help identify and mitigate potential security risks.'
                                         }
                                         Show-AbrDebugExecutionTime -End -TitleMessage 'Privileged Group (Non-Default)'
                                     }
@@ -625,11 +625,11 @@ function Get-AbrADDomainObject {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
-                                    Paragraph "Health Check:" -Bold -Underline
+                                    Paragraph 'Health Check:' -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text "Best Practice:" -Bold
-                                        Text "Remove empty or unused Active Directory Groups. An empty Active Directory security group causes two major problems. First, they add unnecessary clutter and make active directory administration difficult, even when paired with user friendly Active Directory tools. The second and most important point to note is that empty groups are a security risk to your network."
+                                        Text 'Best Practice:' -Bold
+                                        Text 'Remove empty or unused Active Directory Groups. An empty Active Directory security group causes two major problems. First, they add unnecessary clutter and make active directory administration difficult, even when paired with user friendly Active Directory tools. The second and most important point to note is that empty groups are a security risk to your network.'
                                     }
                                     Show-AbrDebugExecutionTime -End -TitleMessage 'Empty Groups (Non-Default)'
                                 }
@@ -645,14 +645,14 @@ function Get-AbrADDomainObject {
                             $OutObj = [System.Collections.ArrayList]::new()
                             $NonEmptyGroups = ($GroupOBj | Where-Object { ( $_.Members ) })
                             # Loop through each parent group
-                            ForEach ($Parent in $NonEmptyGroups) {
+                            foreach ($Parent in $NonEmptyGroups) {
                                 # Create an array of the group members, limited to sub-groups (not users)
                                 $Children = @(
-                                    $NonEmptyGroups | Where-Object { $_.distinguishedName -in $Parent.Members -and $_.objectClass -eq "group" }
+                                    $NonEmptyGroups | Where-Object { $_.distinguishedName -in $Parent.Members -and $_.objectClass -eq 'group' }
                                 )
 
                                 if ($Children) {
-                                    ForEach ($Child in $Children) {
+                                    foreach ($Child in $Children) {
                                         $nestedGroup = @(
                                             $NonEmptyGroups | Where-Object { $Parent.distinguishedName -in $_.Members -and $_.SID -eq $Child.SID }
                                         )
@@ -673,11 +673,11 @@ function Get-AbrADDomainObject {
 
                             if ($OutObj) {
                                 Section -Style Heading5 'Circular Group Membership' {
-                                    Paragraph "If an Active Directory (AD) group has another AD group as both its parent and as a child member you have a circular nested reference."
+                                    Paragraph 'If an Active Directory (AD) group has another AD group as both its parent and as a child member you have a circular nested reference.'
                                     BlankLine
-                                    Paragraph "Why would that matter?"
+                                    Paragraph 'Why would that matter?'
                                     BlankLine
-                                    Paragraph "There is no technical reason preventing the use of circular references between AD groups, Active Directory can still calculate and grant access. The main reason that circular references are considered harmful is that they tend to make management more difficult."
+                                    Paragraph 'There is no technical reason preventing the use of circular references between AD groups, Active Directory can still calculate and grant access. The main reason that circular references are considered harmful is that they tend to make management more difficult.'
                                     BlankLine
 
                                     $OutObj | Set-Style -Style Warning
@@ -692,11 +692,11 @@ function Get-AbrADDomainObject {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Sort-Object -Property 'Parent Group Name' | Table @TableParams
-                                    Paragraph "Health Check:" -Bold -Underline
+                                    Paragraph 'Health Check:' -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text "Best Practice:" -Bold
-                                        Text "In a well structured Active Directory every group will have a single purpose, ideally with people and resources in separate groups and following a clear hierarchy. If the personnel group is a member of the color_printing group and the color_printing group is also a member of the personnel group, then neither group has a single clear purpose, both groups are now granting two permissions. Circular references are often the cause of unintended privilege escalation."
+                                        Text 'Best Practice:' -Bold
+                                        Text 'In a well structured Active Directory every group will have a single purpose, ideally with people and resources in separate groups and following a clear hierarchy. If the personnel group is a member of the color_printing group and the color_printing group is also a member of the personnel group, then neither group has a single clear purpose, both groups are now granting two permissions. Circular references are often the cause of unintended privilege escalation.'
                                     }
                                     Show-AbrDebugExecutionTime -End -TitleMessage 'Circular Group Membership'
                                 }
@@ -774,19 +774,19 @@ function Get-AbrADDomainObject {
                                 $inObj = [ordered] @{
                                     'Category' = $Category
                                     'Enabled' = ($Values.Enabled -eq $True | Measure-Object).Count
-                                    'Enabled %' = Switch ($Computers.Count) {
+                                    'Enabled %' = switch ($Computers.Count) {
                                         0 { '0' }
                                         $Null { '0' }
                                         default { [math]::Round((($Values.Enabled -eq $True | Measure-Object).Count / $Computers.Count * 100), 2) }
                                     }
                                     'Disabled' = ($Values.Enabled -eq $False | Measure-Object).Count
-                                    'Disabled %' = Switch ($Computers.Count) {
+                                    'Disabled %' = switch ($Computers.Count) {
                                         0 { '0' }
                                         $Null { '0' }
                                         default { [math]::Round((($Values.Enabled -eq $False | Measure-Object).Count / $Computers.Count * 100), 2) }
                                     }
                                     'Total' = ($Values | Measure-Object).Count
-                                    'Total %' = Switch ($Computers.Count) {
+                                    'Total %' = switch ($Computers.Count) {
                                         0 { '0' }
                                         $Null { '0' }
                                         default { [math]::Round((($Values | Measure-Object).Count / $Computers.Count * 100), 2) }
@@ -840,7 +840,7 @@ function Get-AbrADDomainObject {
                             if ($OSObjects) {
                                 foreach ($OSObject in $OSObjects) {
                                     $inObj = [ordered] @{
-                                        'Operating System' = Switch ([string]::IsNullOrEmpty($OSObject.Name)) {
+                                        'Operating System' = switch ([string]::IsNullOrEmpty($OSObject.Name)) {
                                             $True { 'No OS Specified' }
                                             default { $OSObject.Name }
                                         }
@@ -860,13 +860,13 @@ function Get-AbrADDomainObject {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'Operating System' |  Table @TableParams
+                                $OutObj | Sort-Object -Property 'Operating System' | Table @TableParams
                                 if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' })) {
-                                    Paragraph "Health Check:" -Bold -Underline
+                                    Paragraph 'Health Check:' -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text "Security Best Practice:" -Bold
-                                        Text "Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture."
+                                        Text 'Security Best Practice:' -Bold
+                                        Text 'Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture.'
                                     }
                                 }
                             }
@@ -904,12 +904,12 @@ function Get-AbrADDomainObject {
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Sort-Object -Property 'Computer Name' |  Table @TableParams
-                                    Paragraph "Health Check:" -Bold -Underline
+                                    $OutObj | Sort-Object -Property 'Computer Name' | Table @TableParams
+                                    Paragraph 'Health Check:' -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text "Security Best Practice:" -Bold
-                                        Text "Computers with Password-Not-Required attribute set can pose a significant security risk. This setting allows computer accounts to have no password, which can be exploited by malicious actors to gain unauthorized access to the network. It is recommended to review and update these accounts to ensure they comply with security policies and have strong, complex passwords set."
+                                        Text 'Security Best Practice:' -Bold
+                                        Text 'Computers with Password-Not-Required attribute set can pose a significant security risk. This setting allows computer accounts to have no password, which can be exploited by malicious actors to gain unauthorized access to the network. It is recommended to review and update these accounts to ensure they comply with security policies and have strong, complex passwords set.'
                                     }
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers with Password-Not-Required table)"
@@ -932,7 +932,7 @@ function Get-AbrADDomainObject {
                                         'Name' = $Computer.Name
                                         'DNS HostName' = $Computer.DNSHostName
                                         'Operating System' = $Computer.operatingSystem
-                                        'Status' = Switch ($Computer.Enabled) {
+                                        'Status' = switch ($Computer.Enabled) {
                                             'True' { 'Enabled' }
                                             'False' { 'Disabled' }
                                             default { 'Unknown' }
@@ -999,11 +999,11 @@ function Get-AbrADDomainObject {
                             $OutObj | Table @TableParams
 
                             if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
-                                Paragraph "Health Check:" -Bold -Underline
+                                Paragraph 'Health Check:' -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text "Security Best Practice:" -Bold
-                                    Text "The MS-ISAC recommends organizations establish a standard for the creation, maintenance, and storage of strong passwords. A Password policies should enforce a maximum password age of between 30 and 90 days."
+                                    Text 'Security Best Practice:' -Bold
+                                    Text 'The MS-ISAC recommends organizations establish a standard for the creation, maintenance, and storage of strong passwords. A Password policies should enforce a maximum password age of between 30 and 90 days.'
                                 }
                             }
                         }
@@ -1017,7 +1017,7 @@ function Get-AbrADDomainObject {
             }
             try {
                 foreach ($Item in $Domain) {
-                    if ($PasswordPolicy = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADFineGrainedPasswordPolicy -Server ($using:Domain).PDCEmulator -Filter { Name -like "*" } -Properties * -SearchBase ($using:Domain).distinguishedName } | Sort-Object -Property Name) {
+                    if ($PasswordPolicy = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADFineGrainedPasswordPolicy -Server ($using:Domain).PDCEmulator -Filter { Name -like '*' } -Properties * -SearchBase ($using:Domain).distinguishedName } | Sort-Object -Property Name) {
                         Section -Style Heading3 'Fined Grained Password Policies' {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Fined Grained Password Policies'
                             $FGPPInfo = [System.Collections.ArrayList]::new()
@@ -1041,7 +1041,7 @@ function Get-AbrADDomainObject {
                                         'Password History Count' = $FGPP.PasswordHistoryCount
                                         'Reversible Encryption Enabled' = $FGPP.ReversibleEncryptionEnabled
                                         'Precedence' = $FGPP.Precedence
-                                        'Applies To' = $Accounts -join ", "
+                                        'Applies To' = $Accounts -join ', '
                                     }
                                     $FGPPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
@@ -1094,7 +1094,7 @@ function Get-AbrADDomainObject {
                                 $inObj = [ordered] @{
                                     'Name' = 'Local Administrator Password Solution'
                                     'Domain Name' = $Item
-                                    'Enabled' = Switch ($LAPS.Count) {
+                                    'Enabled' = switch ($LAPS.Count) {
                                         0 { 'No' }
                                         default { 'Yes' }
                                     }
@@ -1137,11 +1137,11 @@ function Get-AbrADDomainObject {
                             }
 
                             if ($HealthCheck.Domain.Security -and ($LAPSInfo | Where-Object { $_.'Enabled' -eq 'No' })) {
-                                Paragraph "Health Check:" -Bold -Underline
+                                Paragraph 'Health Check:' -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text "Security Best Practice:" -Bold
-                                    Text "LAPS simplifies password management while helping customers implement additional recommended defenses against cyberattacks. In particular, the solution mitigates the risk of lateral escalation that results when customers use the same administrative local account and password combination on their computers. Download, install, and configure Microsoft LAPS or a third-party solution."
+                                    Text 'Security Best Practice:' -Bold
+                                    Text 'LAPS simplifies password management while helping customers implement additional recommended defenses against cyberattacks. In particular, the solution mitigates the risk of lateral escalation that results when customers use the same administrative local account and password combination on their computers. Download, install, and configure Microsoft LAPS or a third-party solution.'
                                 }
                             }
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Microsoft LAPS'
@@ -1163,26 +1163,26 @@ function Get-AbrADDomainObject {
                                     $inObj = [ordered] @{
                                         'Name' = $Account.Name
                                         'SamAccountName' = $Account.SamAccountName
-                                        'Created' = Switch ($Account.Created) {
+                                        'Created' = switch ($Account.Created) {
                                             $null { '--' }
                                             default { $Account.Created.ToShortDateString() }
                                         }
                                         'Enabled' = $Account.Enabled
                                         'DNS Host Name' = $Account.DNSHostName
-                                        'Host Computers' = ((ConvertTo-ADObjectName -DN $Account.HostComputers -Session $TempPssSession -DC $ValidDcFromDomain) -join ", ")
-                                        'Retrieve Managed Password' = ((ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $TempPssSession -DC $ValidDcFromDomain) -join ", ")
-                                        'Primary Group' = (ConvertTo-ADObjectName $Account.PrimaryGroup -Session $TempPssSession -DC $ValidDcFromDomain) -join ", "
-                                        'Last Logon Date' = Switch ($Account.LastLogonDate) {
+                                        'Host Computers' = ((ConvertTo-ADObjectName -DN $Account.HostComputers -Session $TempPssSession -DC $ValidDcFromDomain) -join ', ')
+                                        'Retrieve Managed Password' = ((ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $TempPssSession -DC $ValidDcFromDomain) -join ', ')
+                                        'Primary Group' = (ConvertTo-ADObjectName $Account.PrimaryGroup -Session $TempPssSession -DC $ValidDcFromDomain) -join ', '
+                                        'Last Logon Date' = switch ($Account.LastLogonDate) {
                                             $null { '--' }
                                             default { $Account.LastLogonDate.ToShortDateString() }
                                         }
                                         'Locked Out' = $Account.LockedOut
                                         'Logon Count' = $Account.logonCount
                                         'Password Expired' = $Account.PasswordExpired
-                                        'Password Last Set' = Switch ([string]::IsNullOrEmpty($Account.PasswordLastSet)) {
+                                        'Password Last Set' = switch ([string]::IsNullOrEmpty($Account.PasswordLastSet)) {
                                             $true { '--' }
                                             $false { $Account.PasswordLastSet.ToShortDateString() }
-                                            default { "Unknown" }
+                                            default { 'Unknown' }
                                         }
                                     }
                                     $GMSAInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -1199,21 +1199,21 @@ function Get-AbrADDomainObject {
                                 $GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Last Logon Date'
                                 $GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' } | Set-Style -Style Warning -Property 'Last Logon Date'
                                 foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' })) {
-                                    $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
+                                    $OBJ.'Last Logon Date' = '*' + $OBJ.'Last Logon Date'
                                 }
                                 foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '*--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) })) {
-                                    $OBJ.'Last Logon Date' = "*" + $OBJ.'Last Logon Date'
+                                    $OBJ.'Last Logon Date' = '*' + $OBJ.'Last Logon Date'
                                 }
                                 $GMSAInfo | Where-Object { $_.'Locked Out' -eq 'Yes' } | Set-Style -Style Warning -Property 'Locked Out'
                                 $GMSAInfo | Where-Object { $_.'Logon Count' -eq 0 } | Set-Style -Style Warning -Property 'Logon Count'
                                 $GMSAInfo | Where-Object { $_.'Password Expired' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Expired'
                                 $GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' } | Set-Style -Style Warning -Property 'Host Computers'
                                 foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' })) {
-                                    $OBJ.'Host Computers' = "**" + $OBJ.'Host Computers'
+                                    $OBJ.'Host Computers' = '**' + $OBJ.'Host Computers'
                                 }
                                 $GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' } | Set-Style -Style Warning -Property 'Retrieve Managed Password'
                                 foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' })) {
-                                    $OBJ.'Retrieve Managed Password' = "***" + $OBJ.'Retrieve Managed Password'
+                                    $OBJ.'Retrieve Managed Password' = '***' + $OBJ.'Retrieve Managed Password'
                                 }
                             }
 
@@ -1230,13 +1230,13 @@ function Get-AbrADDomainObject {
                                         }
                                         $Account | Table @TableParams
                                         if (($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '--') }) -or ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) -or ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '**--' })) {
-                                            Paragraph "Health Check:" -Bold -Underline
+                                            Paragraph 'Health Check:' -Bold -Underline
                                             BlankLine
-                                            Paragraph "Security Best Practice:" -Bold
+                                            Paragraph 'Security Best Practice:' -Bold
                                             if ($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '*--') -and ($_.'Last Logon Date' -match '\*') }) {
                                                 BlankLine
                                                 Paragraph {
-                                                    Text "*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation."
+                                                    Text '*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation.'
                                                 }
                                             }
                                             if ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) {
@@ -1266,12 +1266,12 @@ function Get-AbrADDomainObject {
                                 }
                                 $GMSAInfo | Table @TableParams
                                 if (($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '--') })) {
-                                    Paragraph "Health Check:" -Bold -Underline
+                                    Paragraph 'Health Check:' -Bold -Underline
                                     BlankLine
-                                    if ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq "*--" }) {
+                                    if ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '*--' }) {
                                         Paragraph {
-                                            Text "Security Best Practice:" -Bold
-                                            Text "*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation."
+                                            Text 'Security Best Practice:' -Bold
+                                            Text '*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation.'
                                         }
                                     }
                                 }
@@ -1299,7 +1299,7 @@ function Get-AbrADDomainObject {
                                             if ($Null -ne $_) {
                                                 ConvertTo-ADObjectName -DN $_ -Session $TempPssSession -DC $ValidDcFromDomain
                                             } else {
-                                                return "--"
+                                                return '--'
                                             }
                                         }
                                     }
@@ -1332,7 +1332,7 @@ function Get-AbrADDomainObject {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Objects"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Domain Objects'
     }
 
 }

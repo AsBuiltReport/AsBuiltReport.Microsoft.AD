@@ -26,10 +26,10 @@ function ConvertTo-EmptyToFiller {
     )
 
     switch ($TEXT) {
-        "" { "--"; break }
-        $Null { "--"; break }
-        "True" { "Yes"; break }
-        "False" { "No"; break }
+        '' { '--'; break }
+        $Null { '--'; break }
+        'True' { 'Yes'; break }
+        'False' { 'No'; break }
         default { $TEXT }
     }
 } # end

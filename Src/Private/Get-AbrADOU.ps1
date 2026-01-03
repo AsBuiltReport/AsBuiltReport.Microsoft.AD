@@ -22,15 +22,15 @@ function Get-AbrADOU {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory Organizational Unit information on domain $($Domain.DNSRoot)"
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Organizational Unit"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain Organizational Unit'
     }
 
     process {
         try {
             $OUs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:ValidDCFromDomain -Properties * -SearchBase ($using:Domain).distinguishedName -Filter * }
             if ($OUs) {
-                Section -Style Heading3 "Organizational Units" {
-                    Paragraph "The following section provides a comprehensive overview of Active Directory Organizational Units within the domain."
+                Section -Style Heading3 'Organizational Units' {
+                    Paragraph 'The following section provides a comprehensive overview of Active Directory Organizational Units within the domain.'
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($OU in $OUs) {
@@ -39,15 +39,15 @@ function Get-AbrADOU {
                             [array]$GPOs = $OU.LinkedGroupPolicyObjects
                             foreach ($Object in $GPOs) {
                                 try {
-                                    $GP = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:ValidDCFromDomain -Guid ($using:Object).Split(",")[0].Split("=")[1] -Domain ($using:Domain).DNSRoot }
+                                    $GP = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:ValidDCFromDomain -Guid ($using:Object).Split(',')[0].Split('=')[1] -Domain ($using:Domain).DNSRoot }
                                     $GPOArray.Add($GP.DisplayName) | Out-Null
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
                             }
                             $inObj = [ordered] @{
-                                'Name' = ((ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Domain $Domain.DNSRoot -DC $ValidDCFromDomain).split('/') | Select-Object -Skip 1) -join "/"
-                                'Linked GPO' = ($GPOArray -join ", ")
+                                'Name' = ((ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Domain $Domain.DNSRoot -DC $ValidDCFromDomain).split('/') | Select-Object -Skip 1) -join '/'
+                                'Linked GPO' = ($GPOArray -join ', ')
                                 'Protected' = $OU.ProtectedFromAccidentalDeletion
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -70,11 +70,11 @@ function Get-AbrADOU {
                     }
                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                     if ($HealthCheck.Domain.BestPractice -and ($OutObj | Where-Object { $_.'Protected' -eq 'No' })) {
-                        Paragraph "Health Check:" -Bold -Underline
+                        Paragraph 'Health Check:' -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text "Best Practice:" -Bold
-                            Text "If the Organizational Units (OUs) in your Active Directory are not protected from accidental deletion, your environment can experience disruptions caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion."
+                            Text 'Best Practice:' -Bold
+                            Text 'If the Organizational Units (OUs) in your Active Directory are not protected from accidental deletion, your environment can experience disruptions caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion.'
                         }
                     }
                     if ($HealthCheck.Domain.GPO) {
@@ -84,7 +84,7 @@ function Get-AbrADOU {
                                 foreach ($OU in $OUs) {
                                     try {
                                         $GpoInheritance = Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-GPInheritance -Domain ($using:Domain).DNSRoot -Server $using:ValidDCFromDomain -Target ($using:OU).DistinguishedName }
-                                        if ( $GpoInheritance.GPOInheritanceBlocked -eq "True") {
+                                        if ( $GpoInheritance.GPOInheritanceBlocked -eq 'True') {
                                             $inObj = [ordered] @{
                                                 'OU Name' = $GpoInheritance.Name
                                                 'Container Type' = $GpoInheritance.ContainerType
@@ -99,7 +99,7 @@ function Get-AbrADOU {
                                 }
                             }
                             if ($OutObj) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading4 "GPO Blocked Inheritance" {
+                                Section -ExcludeFromTOC -Style NOTOCHeading4 'GPO Blocked Inheritance' {
                                     if ($HealthCheck.Domain.GPO) {
                                         $OutObj | Set-Style -Style Warning
                                     }
@@ -114,10 +114,10 @@ function Get-AbrADOU {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Sort-Object -Property 'OU Name' | Table @TableParams
-                                    Paragraph "Health Check:" -Bold -Underline
+                                    Paragraph 'Health Check:' -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text "Corrective Actions:" -Bold
+                                        Text 'Corrective Actions:' -Bold
                                         Text "Review the use of enforced policies and blocked policy inheritance in Active Directory. Enforced policies ensure that specific Group Policy Objects (GPOs) are applied and cannot be overridden by other GPOs. Blocked policy inheritance prevents GPOs from parent containers from being applied to the Organizational Unit (OU). While these settings can be useful for maintaining strict policy application, they can also lead to unexpected results and complicate troubleshooting. Ensure that the use of these settings aligns with your organization's policy management strategy and does not inadvertently cause issues."
                                     }
                                 }
@@ -137,7 +137,7 @@ function Get-AbrADOU {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Organizational Unit"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Domain Organizational Unit'
     }
 
 }

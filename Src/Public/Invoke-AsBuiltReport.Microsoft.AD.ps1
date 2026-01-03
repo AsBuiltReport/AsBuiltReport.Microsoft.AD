@@ -95,16 +95,16 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     #---------------------------------------------------------------------------------------------#
     foreach ($System in $Target) {
 
-        if (Select-String -InputObject $System -Pattern "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") {
+        if (Select-String -InputObject $System -Pattern '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$') {
             throw "Please use the Fully Qualified Domain Name (FQDN) instead of an IP address when connecting to the Domain Controller: $System"
         }
 
         if ($Options.WinRMSSL) {
-            $WinRMType = "WinRM with SSL"
-            $CIMType = "CIM with SSL"
+            $WinRMType = 'WinRM with SSL'
+            $CIMType = 'CIM with SSL'
         } else {
-            $WinRMType = "WinRM"
-            $CIMType = "CIM"
+            $WinRMType = 'WinRM'
+            $CIMType = 'CIM'
         }
 
         # WinRM Session variables
@@ -164,8 +164,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #---------------------------------------------------------------------------------------------#
 
         if ($Options.ExportDiagrams) {
-            Write-Host " "
-            Write-Host "ExportDiagrams option enabled: Exporting diagrams:"
+            Write-Host ' '
+            Write-Host 'ExportDiagrams option enabled: Exporting diagrams:'
             $Options.DiagramType.PSobject.Properties | ForEach-Object {
                 if ($_.Value -and $_.Name -eq 'Trusts') {
                     foreach ($Domain in $OrderedDomains) {
@@ -217,23 +217,23 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $DCOffine = $DCStatus | Where-Object { $Null -ne $_.DCName -and $_.Status -eq 'Offline' } | Select-Object -Property @{N = 'Name'; E = { $_.DCName } }, @{N = 'WinRM Status'; E = { $_.Status } }, @{N = 'Ping Status'; E = { $_.PingStatus } }, @{N = 'Protocol'; E = { $_.Protocol } } | ForEach-Object { [pscustomobject]$_ }
         $DomainOffline = $DomainStatus | Where-Object { $Null -ne $_.Name -and $_.Status -eq 'Offline' }
         if ($DCOffine -or $DomainOffline) {
-            Write-Host " "
+            Write-Host ' '
             Write-Host "The following Systems could not be reached:`n"
             if ($DCOffine) {
-                Write-Host "Domain Controllers"
-                Write-Host "------------------"
-                Write-Host " "
+                Write-Host 'Domain Controllers'
+                Write-Host '------------------'
+                Write-Host ' '
                 Write-PSObject $DCOffine -MatchMethod Query, Query, Query, Query -Column 'WinRM Status', 'WinRM Status', 'Ping Status', 'Ping Status' -Value "'WinRM Status' -eq 'Offline'", "'WinRM Status' -eq 'Online'", "'Ping Status' -eq 'Offline'", "'Ping Status' -eq 'Online'" -ValueForeColor Red, Green, Red, Green
-                Write-Host " "
+                Write-Host ' '
             }
             if ($DomainOffline) {
-                Write-Host "Domains"
-                Write-Host "--------"
-                Write-Host " "
+                Write-Host 'Domains'
+                Write-Host '--------'
+                Write-Host ' '
                 $DomainOffline | ForEach-Object {
                     Write-Host "$($_.Name)" -ForegroundColor Red
                 }
-                Write-Host " "
+                Write-Host ' '
             }
         }
     }#endregion foreach loop

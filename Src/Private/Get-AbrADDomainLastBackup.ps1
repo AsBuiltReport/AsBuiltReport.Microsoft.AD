@@ -21,7 +21,7 @@ function Get-AbrADDomainLastBackup {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Domain last backup information on $($Domain.DNSRoot)."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Last Backup"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain Last Backup'
     }
 
     process {
@@ -37,9 +37,9 @@ function Get-AbrADDomainLastBackup {
                             try {
                                 $inObj = [ordered] @{
                                     'Naming Context' = $LastBackup.NamingContext
-                                    'Last Backup' = Switch ($LastBackup.LastBackup) {
+                                    'Last Backup' = switch ($LastBackup.LastBackup) {
                                         $Null { 'Unknown'; break }
-                                        default { $LastBackup.LastBackup.ToString("yyyy:MM:dd") }
+                                        default { $LastBackup.LastBackup.ToString('yyyy:MM:dd') }
                                     }
                                     'Last Backup in Days' = $LastBackup.LastBackupDaysAgo
                                 }
@@ -64,13 +64,13 @@ function Get-AbrADDomainLastBackup {
                         }
                         $OutObj | Sort-Object -Property 'Naming Context' | Table @TableParams
                         if ($OutObj | Where-Object { [int]$_.'Last Backup in Days' -gt 180 }) {
-                            Paragraph "Health Check:" -Bold -Underline
+                            Paragraph 'Health Check:' -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text "Corrective Actions:" -Bold
-                                Text "Ensure there is a recent (<180 days) Active Directory backup."
-                                Text "Regular backups are crucial for disaster recovery and maintaining the integrity of your Active Directory environment."
-                                Text "Consider setting up automated backup schedules and regularly verifying the backup status to prevent data loss."
+                                Text 'Corrective Actions:' -Bold
+                                Text 'Ensure there is a recent (<180 days) Active Directory backup.'
+                                Text 'Regular backups are crucial for disaster recovery and maintaining the integrity of your Active Directory environment.'
+                                Text 'Consider setting up automated backup schedules and regularly verifying the backup status to prevent data loss.'
                             }
                         }
                     }
@@ -84,7 +84,7 @@ function Get-AbrADDomainLastBackup {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Last Backup"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Domain Last Backup'
     }
 
 }

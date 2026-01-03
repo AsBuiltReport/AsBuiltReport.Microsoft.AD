@@ -20,7 +20,7 @@ function Get-AbrForestSection {
 
     begin {
         Write-PScriboMessage -Message "Collecting Forest information from $ForestInfo."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "Forest Section"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'Forest Section'
     }
 
     process {
@@ -30,13 +30,13 @@ function Get-AbrForestSection {
             Write-PScriboMessage -Message "Forest InfoLevel set at $($InfoLevel.Forest)."
             if ($InfoLevel.Forest -ge 1) {
                 try {
-                    Section -Style Heading2 "Forest Configuration" {
+                    Section -Style Heading2 'Forest Configuration' {
                         if ($Options.ShowDefinitionInfo) {
-                            Paragraph "The Active Directory framework that holds the objects can be viewed at several levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest, which is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are contained."
+                            Paragraph 'The Active Directory framework that holds the objects can be viewed at several levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest, which is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are contained.'
                             BlankLine
                         }
                         if (-not $Options.ShowDefinitionInfo) {
-                            Paragraph "The following section provides a detailed summary of the Active Directory Forest infrastructure and configuration."
+                            Paragraph 'The following section provides a detailed summary of the Active Directory Forest infrastructure and configuration.'
                             BlankLine
                         }
                         try {
@@ -73,6 +73,6 @@ function Get-AbrForestSection {
         }
     }
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "Forest Section"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'Forest Section'
     }
 }

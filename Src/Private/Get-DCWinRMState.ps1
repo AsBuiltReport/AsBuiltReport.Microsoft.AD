@@ -30,8 +30,8 @@ function Get-DCWinRMState {
         [ref]$DCStatus
     )
     $PingStatus = switch (Test-Connection -ComputerName $ComputerName -Count 2 -Quiet) {
-        'True' { "Online" }
-        'False' { "Offline" }
+        'True' { 'Online' }
+        'False' { 'Offline' }
     }
 
     Write-PScriboMessage -Message "Validating WinRM status of $ComputerName in Cache"
@@ -60,10 +60,10 @@ function Get-DCWinRMState {
         if ($Options.WinRMSSL) {
             $ConnectionParams.Add('UseSSL', $true)
             $ConnectionParams.Add('Port', $Options.WinRMSSLPort)
-            $WinRMType = "WinRMSSL"
+            $WinRMType = 'WinRMSSL'
         } else {
             $ConnectionParams.Add('Port', $Options.WinRMPort)
-            $WinRMType = "WinRM"
+            $WinRMType = 'WinRM'
         }
 
         if (Test-WSMan @ConnectionParams) {
@@ -80,7 +80,7 @@ function Get-DCWinRMState {
         if ($Options.WinRMFallbackToNoSSL) {
             $ConnectionParams['UseSSL'] = $false
             $ConnectionParams['Port'] = $Options.WinRMPort
-            $WinRMType = "WinRM"
+            $WinRMType = 'WinRM'
             if (Test-WSMan @ConnectionParams) {
                 Write-PScriboMessage -Message "WinRM status in $ComputerName is Online ($WinRMType)."
                 $DCStatus.Value += @{

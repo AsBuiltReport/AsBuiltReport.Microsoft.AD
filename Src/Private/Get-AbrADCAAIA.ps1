@@ -23,13 +23,13 @@ function Get-AbrADCAAIA {
     )
 
     begin {
-        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Authority Information Access Objects"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'CA Authority Information Access Objects'
     }
 
     process {
         if ($CA) {
-            Section -Style Heading3 "Authority Information Access (AIA)" {
-                Paragraph "This section provides the Authority Information Access (AIA) configuration for the Certification Authority, which specifies where certificates and certificate revocation information can be retrieved."
+            Section -Style Heading3 'Authority Information Access (AIA)' {
+                Paragraph 'This section provides the Authority Information Access (AIA) configuration for the Certification Authority, which specifies where certificates and certificate revocation information can be retrieved.'
                 BlankLine
                 try {
                     Write-PScriboMessage -Message "Collecting AD CA Authority Information Access information on $($CA.Name)."
@@ -40,7 +40,7 @@ function Get-AbrADCAAIA {
                             $inObj = [ordered] @{
                                 'Reg URI' = $URI.RegURI
                                 'Config URI' = $URI.ConfigURI
-                                'Flags' = ($URI.Flags -join ", ")
+                                'Flags' = ($URI.Flags -join ', ')
                                 'Server Publish' = $URI.ServerPublish
                                 'Include To Extension' = $URI.IncludeToExtension
                                 'OCSP' = $URI.OCSP
@@ -71,9 +71,9 @@ function Get-AbrADCAAIA {
         if ($Options.ShowExecutionTime) {
             $SectionEndTime = Get-Date
             $elapsedTime = New-TimeSpan -Start $SectionStartTime -End $SectionEndTime
-            Write-Host "CA Authority Information Access Objects Section execution time: $($elapsedTime.tostring("hh")) Hours $($elapsedTime.tostring("mm")) Minutes $($elapsedTime.tostring("ss")) Seconds"
+            Write-Host "CA Authority Information Access Objects Section execution time: $($elapsedTime.tostring('hh')) Hours $($elapsedTime.tostring('mm')) Minutes $($elapsedTime.tostring('ss')) Seconds"
         }
-        Show-AbrDebugExecutionTime -End -TitleMessage "CA Authority Information Access Objects"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'CA Authority Information Access Objects'
     }
 
 }

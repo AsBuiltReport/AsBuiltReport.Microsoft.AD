@@ -117,7 +117,7 @@ function Get-AbrDiagrammer {
 
             try {
                 foreach ($Format in $DiagramFormat) {
-                    if ($Format -eq "base64") {
+                    if ($Format -eq 'base64') {
                         $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format
                         if ($Graph) {
                             $Graph

@@ -21,14 +21,14 @@ function Get-AbrADInfrastructureService {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory DC Infrastructure Services information of $DC."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Controller Infrastructure Services"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain Controller Infrastructure Services'
     }
 
     process {
         try {
             $DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $($DC) -PSSTable ([ref]$PSSTable)
             if ($DCPssSession) {
-                $Available = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-Service "W32Time" | Select-Object DisplayName, Name, Status }
+                $Available = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-Service 'W32Time' | Select-Object DisplayName, Name, Status }
             } else {
                 if (-not $_.Exception.MessageId) {
                     $ErrorMessage = $_.FullyQualifiedErrorId
@@ -60,10 +60,10 @@ function Get-AbrADInfrastructureService {
                 }
 
                 if ($OutObj) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split(".")[0]) {
+                    Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split('.')[0]) {
 
                         $TableParams = @{
-                            Name = "Infrastructure Services Status - $($DC.ToString().ToUpper().Split(".")[0])"
+                            Name = "Infrastructure Services Status - $($DC.ToString().ToUpper().Split('.')[0])"
                             List = $false
                             ColumnWidths = 40, 40, 20
                         }
@@ -74,11 +74,11 @@ function Get-AbrADInfrastructureService {
 
                         $OutObj | Sort-Object -Property 'Display Name' | Table @TableParams
                         if ($HealthCheck.DomainController.Services -and ($OutObj | Where-Object { $_.'Short Name' -eq 'Spooler' -and $_.'Status' -like 'Running' })) {
-                            Paragraph "Health Check:" -Bold -Underline
+                            Paragraph 'Health Check:' -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text "Corrective Actions:" -Bold
-                                Text "The Print Spooler service has been known to have vulnerabilities that can be exploited by attackers to gain unauthorized access or execute malicious code. Disabling this service on Domain Controllers and other critical servers that do not require print services can help reduce the attack surface and improve the overall security posture of your Active Directory environment."
+                                Text 'Corrective Actions:' -Bold
+                                Text 'The Print Spooler service has been known to have vulnerabilities that can be exploited by attackers to gain unauthorized access or execute malicious code. Disabling this service on Domain Controllers and other critical servers that do not require print services can help reduce the attack surface and improve the overall security posture of your Active Directory environment.'
                             }
                         }
                     }
@@ -92,7 +92,7 @@ function Get-AbrADInfrastructureService {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Controller Infrastructure Services"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Domain Controller Infrastructure Services'
     }
 
 }

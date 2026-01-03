@@ -19,21 +19,21 @@ function Get-AbrADCARoot {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Certification Authority Per Domain information."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Certification Authority Per Domain"
+        Write-PScriboMessage -Message 'Collecting AD Certification Authority Per Domain information.'
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Certification Authority Per Domain'
     }
 
     process {
         try {
             if ($CAs | Where-Object { $_.IsRoot -like 'True' }) {
-                Section -Style Heading2 "Enterprise Root Certificate Authority" {
-                    Paragraph "The following section provides detailed information about the Enterprise Root Certificate Authority (CA) configuration and operational status."
+                Section -Style Heading2 'Enterprise Root Certificate Authority' {
+                    Paragraph 'The following section provides detailed information about the Enterprise Root Certificate Authority (CA) configuration and operational status.'
                     BlankLine
                     foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'True' })) {
                         $OutObj = [System.Collections.ArrayList]::new()
                         $inObj = [ordered] @{
                             'CA Name' = $CA.DisplayName
-                            'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]
+                            'Server Name' = $CA.ComputerName.ToString().ToUpper().Split('.')[0]
                             'Type' = $CA.Type
                             'Config String' = $CA.ConfigString
                             'Operating System' = $CA.OperatingSystem
@@ -68,7 +68,7 @@ function Get-AbrADCARoot {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Certification Authority Per Domain"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Certification Authority Per Domain'
     }
 
 }

@@ -22,6 +22,6 @@ function Get-ADCSObject {
         $ADRoot = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADRootDSE -Server $Using:Target).defaultNamingContext }
         Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Filter * -SearchBase "CN=Public Key Services,CN=Services,CN=Configuration,$Using:ADRoot" -SearchScope 2 -Properties * }
     } catch {
-        Write-PScriboMessage -IsWarning -Message "Unable to find CA auditing information"
+        Write-PScriboMessage -IsWarning -Message 'Unable to find CA auditing information'
     }
 }

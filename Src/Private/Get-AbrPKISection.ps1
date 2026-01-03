@@ -20,7 +20,7 @@ function Get-AbrPKISection {
 
     begin {
         Write-PScriboMessage -Message "Collecting PKI infrastructure information from $ForestInfo."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "PKI Section"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'PKI Section'
     }
 
     process {
@@ -41,13 +41,13 @@ function Get-AbrPKISection {
 
                 if ($CAs) {
                     try {
-                        Section -Style Heading1 "PKI Configuration" {
+                        Section -Style Heading1 'PKI Configuration' {
                             if ($Options.ShowDefinitionInfo) {
                                 Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
                                 BlankLine
                             }
                             if (-not $Options.ShowDefinitionInfo) {
-                                Paragraph "The following section provides a comprehensive overview of the Active Directory Public Key Infrastructure (PKI) configuration and its components."
+                                Paragraph 'The following section provides a comprehensive overview of the Active Directory Public Key Infrastructure (PKI) configuration and its components.'
                                 BlankLine
                             }
                             try {
@@ -112,6 +112,6 @@ function Get-AbrPKISection {
         }
     }
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "PKI Section"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'PKI Section'
     }
 }

@@ -24,11 +24,11 @@ function ConvertTo-TextYN {
     )
 
     switch ($TEXT) {
-        "" { "--"; break }
-        " " { "--"; break }
-        $Null { "--"; break }
-        "True" { "Yes"; break }
-        "False" { "No"; break }
+        '' { '--'; break }
+        ' ' { '--'; break }
+        $Null { '--'; break }
+        'True' { 'Yes'; break }
+        'False' { 'No'; break }
         default { $TEXT }
     }
 } # end

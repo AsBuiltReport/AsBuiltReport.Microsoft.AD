@@ -23,16 +23,16 @@ function Get-AbrADDNSZone {
 
     begin {
         Write-PScriboMessage -Message "Collecting Actve Directory Domain Name System Zone information on $($Domain.DNSRoot)."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "DNS Zones"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'DNS Zones'
     }
 
     process {
         try {
             if ($TempCIMSession) {
-                $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -notlike "Forwarder" }
+                $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like 'False' -and $_.ZoneType -notlike 'Forwarder' }
             }
             if ($DNSSetting) {
-                Section -Style Heading3 "$($DC.ToString().ToUpper().Split(".")[0]) DNS Zones" {
+                Section -Style Heading3 "$($DC.ToString().ToUpper().Split('.')[0]) DNS Zones" {
                     $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($Zones in $DNSSetting) {
                         try {
@@ -62,7 +62,7 @@ function Get-AbrADDNSZone {
                     $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and ($_.ZoneName -ne "_msdcs.pharmax.local" -and $_.ZoneName -ne "TrustAnchors") -and ($_.ZoneType -like "Primary" -or $_.ZoneType -like "Secondary") } | Select-Object -ExpandProperty ZoneName
+                            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like 'False' -and ($_.ZoneName -ne '_msdcs.pharmax.local' -and $_.ZoneName -ne 'TrustAnchors') -and ($_.ZoneType -like 'Primary' -or $_.ZoneType -like 'Secondary') } | Select-Object -ExpandProperty ZoneName
                             if ($DNSSetting) {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($Zone in $DNSSetting) {
@@ -94,7 +94,7 @@ function Get-AbrADDNSZone {
                             }
 
                             if ($OutObj) {
-                                Section -Style Heading4 "Zone Delegation" {
+                                Section -Style Heading4 'Zone Delegation' {
 
                                     $TableParams = @{
                                         Name = "Zone Delegations - $($Domain.DNSRoot.ToString().ToUpper())"
@@ -117,7 +117,7 @@ function Get-AbrADDNSZone {
                         try {
                             $DNSSetting = $Null
                             if ($DCPssSession) {
-                                $DNSSetting = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*" | Get-ItemProperty | Where-Object { $_ -match 'SecondaryServers' } }
+                                $DNSSetting = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DNS Server\Zones\*' | Get-ItemProperty | Where-Object { $_ -match 'SecondaryServers' } }
                             } else {
                                 if (-not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
@@ -125,26 +125,26 @@ function Get-AbrADDNSZone {
                                 Write-PScriboMessage -IsWarning -Message "DNS Zones Transfers Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
                             }
                             if ($DNSSetting) {
-                                Section -Style Heading4 "Zone Transfers" {
+                                Section -Style Heading4 'Zone Transfers' {
                                     $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($Zone in $DNSSetting) {
                                         try {
                                             $inObj = [ordered] @{
                                                 'Zone Name' = $Zone.PSChildName
-                                                'Secondary Servers' = ($Zone.SecondaryServers -join ", ")
+                                                'Secondary Servers' = ($Zone.SecondaryServers -join ', ')
                                                 'Notify Servers' = $Zone.NotifyServers
                                                 'Secure Secondaries' = switch ($Zone.SecureSecondaries) {
-                                                    "0" { "Send zone transfers to all secondary servers that request them." }
-                                                    "1" { "Send zone transfers only to name servers that are authoritative for the zone." }
-                                                    "2" { "Send zone transfers only to servers you specify in Secondary Servers." }
-                                                    "3" { "Do not send zone transfers." }
+                                                    '0' { 'Send zone transfers to all secondary servers that request them.' }
+                                                    '1' { 'Send zone transfers only to name servers that are authoritative for the zone.' }
+                                                    '2' { 'Send zone transfers only to servers you specify in Secondary Servers.' }
+                                                    '3' { 'Do not send zone transfers.' }
                                                     default { $Zone.SecureSecondaries }
                                                 }
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                             if ($HealthCheck.DNS.Zones) {
-                                                $OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them." } | Set-Style -Style Warning -Property 'Secure Secondaries'
+                                                $OutObj | Where-Object { $_.'Secure Secondaries' -eq 'Send zone transfers to all secondary servers that request them.' } | Set-Style -Style Warning -Property 'Secure Secondaries'
                                             }
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Transfers Item)"
@@ -160,12 +160,12 @@ function Get-AbrADDNSZone {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Table @TableParams
-                                    if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Secure Secondaries' -eq "Send zone transfers to all secondary servers that request them." })) {
-                                        Paragraph "Health Check:" -Italic -Bold
+                                    if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Secure Secondaries' -eq 'Send zone transfers to all secondary servers that request them.' })) {
+                                        Paragraph 'Health Check:' -Italic -Bold
                                         BlankLine
                                         Paragraph {
-                                            Text "Best Practices:" -Bold
-                                            Text "Configure all DNS zones only to allow zone transfers from Trusted IP addresses. This ensures that only authorized DNS servers can receive zone data, reducing the risk of unauthorized access or data leakage. It is a best practice to specify the IP addresses of the secondary DNS servers that are allowed to receive zone transfers."
+                                            Text 'Best Practices:' -Bold
+                                            Text 'Configure all DNS zones only to allow zone transfers from Trusted IP addresses. This ensures that only authorized DNS servers can receive zone data, reducing the risk of unauthorized access or data leakage. It is a best practice to specify the IP addresses of the secondary DNS servers that are allowed to receive zone transfers.'
                                         }
                                     }
                                 }
@@ -177,9 +177,9 @@ function Get-AbrADDNSZone {
                         }
                     }
                     try {
-                        $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "True" }
+                        $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like 'True' }
                         if ($DNSSetting) {
-                            Section -Style Heading4 "Reverse Lookup Zone" {
+                            Section -Style Heading4 'Reverse Lookup Zone' {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($Zones in $DNSSetting) {
                                     try {
@@ -215,9 +215,9 @@ function Get-AbrADDNSZone {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Reverse Lookup Zone Configuration Table)"
                     }
                     try {
-                        $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -like "Forwarder" }
+                        $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like 'False' -and $_.ZoneType -like 'Forwarder' }
                         if ($DNSSetting) {
-                            Section -Style Heading4 "Conditional Forwarder" {
+                            Section -Style Heading4 'Conditional Forwarder' {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($Zones in $DNSSetting) {
                                     try {
@@ -252,10 +252,10 @@ function Get-AbrADDNSZone {
                     }
                     if ($InfoLevel.DNS -ge 2) {
                         try {
-                            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like "False" -and $_.ZoneType -eq "Primary" } | Select-Object -ExpandProperty ZoneName
+                            $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like 'False' -and $_.ZoneType -eq 'Primary' } | Select-Object -ExpandProperty ZoneName
                             $Zones = Get-DnsServerZoneAging -CimSession $TempCIMSession -Name $DNSSetting -ComputerName $DC
                             if ($Zones) {
-                                Section -Style Heading4 "Zone Scope Aging" {
+                                Section -Style Heading4 'Zone Scope Aging' {
                                     $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($Settings in $Zones) {
                                         try {
@@ -265,9 +265,9 @@ function Get-AbrADDNSZone {
                                                 'Refresh Interval' = $Settings.RefreshInterval
                                                 'NoRefresh Interval' = $Settings.NoRefreshInterval
                                                 'Available For Scavenge' = switch ($Settings.AvailForScavengeTime) {
-                                                    "" { "--"; break }
-                                                    $Null { "--"; break }
-                                                    default { (($Settings.AvailForScavengeTime).ToUniversalTime().toString("r")); break }
+                                                    '' { '--'; break }
+                                                    $Null { '--'; break }
+                                                    default { (($Settings.AvailForScavengeTime).ToUniversalTime().toString('r')); break }
                                                 }
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -290,11 +290,11 @@ function Get-AbrADDNSZone {
                                     }
                                     $OutObj | Sort-Object -Property 'Zone Name' | Table @TableParams
                                     if ($HealthCheck.DNS.Zones -and ($OutObj | Where-Object { $_.'Aging Enabled' -ne 'Yes' })) {
-                                        Paragraph "Health Check:" -Bold -Underline
+                                        Paragraph 'Health Check:' -Bold -Underline
                                         BlankLine
                                         Paragraph {
-                                            Text "Best Practices:" -Bold
-                                            Text "Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs."
+                                            Text 'Best Practices:' -Bold
+                                            Text 'Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs.'
                                         }
                                     }
                                 }
@@ -313,7 +313,7 @@ function Get-AbrADDNSZone {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "DNS Zones"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'DNS Zones'
     }
 
 }

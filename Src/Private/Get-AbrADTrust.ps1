@@ -22,7 +22,7 @@ function Get-AbrADTrust {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Trust information of $($Domain.DNSRoot.ToString().ToUpper())."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Trust"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Trust'
     }
 
     process {
@@ -41,27 +41,27 @@ function Get-AbrADTrust {
                                         'Source' = ConvertTo-ADObjectName $Trust.Source -Session $TempPssSession -DC $ValidDCFromDomain
                                         'Target' = $Trust.Target
                                         'Trust Type' = switch ($Trust.TrustType) {
-                                            1 { "Downlevel (NT domain)" }
-                                            2 { "Uplevel (Active Directory)" }
-                                            3 { "MIT (Kerberos Realm Trust )" }
-                                            4 { "DCE" }
+                                            1 { 'Downlevel (NT domain)' }
+                                            2 { 'Uplevel (Active Directory)' }
+                                            3 { 'MIT (Kerberos Realm Trust )' }
+                                            4 { 'DCE' }
                                             default { $Trust.TrustType }
                                         }
                                         'Trust Attributes' = switch ($Trust.TrustAttributes) {
-                                            1 { "Non-Transitive" }
-                                            2 { "Uplevel clients only (Windows 2000 or newer" }
-                                            4 { "Quarantined Domain (External)" }
-                                            8 { "Forest Trust" }
-                                            16 { "Cross-Organizational Trust (Selective Authentication)" }
-                                            32 { "Intra-Forest Trust (trust within the forest)" }
-                                            64 { "Inter-Forest Trust (trust with another forest)" }
+                                            1 { 'Non-Transitive' }
+                                            2 { 'Uplevel clients only (Windows 2000 or newer' }
+                                            4 { 'Quarantined Domain (External)' }
+                                            8 { 'Forest Trust' }
+                                            16 { 'Cross-Organizational Trust (Selective Authentication)' }
+                                            32 { 'Intra-Forest Trust (trust within the forest)' }
+                                            64 { 'Inter-Forest Trust (trust with another forest)' }
                                             default { $Trust.TrustAttributes }
                                         }
                                         'Trust Direction' = switch ($Trust.TrustDirection) {
-                                            0 { "Disabled (The trust relationship exists but has been disabled)" }
-                                            1 { "Inbound (Trusting domain)" }
-                                            2 { "Outbound (Trusted domain)" }
-                                            3 { "Bidirectional (two-way trust)" }
+                                            0 { 'Disabled (The trust relationship exists but has been disabled)' }
+                                            1 { 'Inbound (Trusting domain)' }
+                                            2 { 'Outbound (Trusted domain)' }
+                                            3 { 'Bidirectional (two-way trust)' }
                                             default { $Trust.TrustDirection }
                                         }
                                         'Intra Forest' = $Trust.IntraForest
@@ -108,16 +108,16 @@ function Get-AbrADTrust {
                             if ($Options.EnableDiagrams) {
                                 try {
                                     try {
-                                        $Graph = Get-AbrDiagrammer -DiagramType "Trusts" -DiagramOutput base64 -DomainController $ValidDCFromDomain
+                                        $Graph = Get-AbrDiagrammer -DiagramType 'Trusts' -DiagramOutput base64 -DomainController $ValidDCFromDomain
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
                                     }
 
                                     if ($Graph) {
                                         if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
-                                        Section -Style Heading3 "Domain and Trusts Diagram." {
-                                            Image -Base64 $Graph -Text "Domain and Trusts Diagram" -Percent $ImagePrty -Align Center
-                                            Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                                        Section -Style Heading3 'Domain and Trusts Diagram.' {
+                                            Image -Base64 $Graph -Text 'Domain and Trusts Diagram' -Percent $ImagePrty -Align Center
+                                            Paragraph 'Image preview: Opens the image in a new tab to view it at full resolution.' -Tabs 2
                                         }
                                         BlankLine -Count 2
                                     }
@@ -139,7 +139,7 @@ function Get-AbrADTrust {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Trust"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Trust'
     }
 
 }

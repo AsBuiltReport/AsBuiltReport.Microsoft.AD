@@ -61,9 +61,9 @@ function Get-AbrADForest {
                             $reportTranslate.SPNSuffixes = $Item.SPNSuffixes
                             $reportTranslate.UPNSuffixes = ($Item.UPNSuffixes -join ', ')
                             $reportTranslate.AnonymousAccess = & {
-                                if (($ValuedsHeuristics.dsHeuristics -eq "") -or ($ValuedsHeuristics.dsHeuristics.Length -lt 7)) {
+                                if (($ValuedsHeuristics.dsHeuristics -eq '') -or ($ValuedsHeuristics.dsHeuristics.Length -lt 7)) {
                                     $reportTranslate.AnonymousAccessDisabled
-                                } elseif (($ValuedsHeuristics.dsHeuristics.Length -ge 7) -and ($ValuedsHeuristics.dsHeuristics[6] -eq "2")) {
+                                } elseif (($ValuedsHeuristics.dsHeuristics.Length -ge 7) -and ($ValuedsHeuristics.dsHeuristics[6] -eq '2')) {
                                     $reportTranslate.AnonymousAccessEnabled
                                 }
                             }
@@ -89,22 +89,22 @@ function Get-AbrADForest {
                 }
                 $OutObj | Table @TableParams
                 if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled' }) ) {
-                    Paragraph "Health Check:" -Bold -Underline
+                    Paragraph 'Health Check:' -Bold -Underline
                     BlankLine
                     if ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled' }) {
                         Paragraph {
-                            Text "Best Practice:" -Bold
-                            Text "Anonymous access to Active Directory forest data above the rootDSE level must be disabled. This is to ensure that unauthorized users cannot access sensitive directory information, which could potentially be exploited for malicious purposes."
+                            Text 'Best Practice:' -Bold
+                            Text 'Anonymous access to Active Directory forest data above the rootDSE level must be disabled. This is to ensure that unauthorized users cannot access sensitive directory information, which could potentially be exploited for malicious purposes.'
                         }
                         BlankLine
-                        Paragraph "Reference:" -Bold
+                        Paragraph 'Reference:' -Bold
                         BlankLine
-                        Paragraph "https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555" -Color blue
+                        Paragraph 'https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555' -Color blue
                     }
                     if ($OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 }) {
                         Paragraph {
-                            Text "Best Practice:" -Bold
-                            Text "Set the Tombstone Lifetime to a minimum of 180 days to ensure that deleted objects are retained for a sufficient period before being permanently removed from the directory. This allows for recovery of accidentally deleted objects and helps in maintaining the integrity of the Active Directory environment."
+                            Text 'Best Practice:' -Bold
+                            Text 'Set the Tombstone Lifetime to a minimum of 180 days to ensure that deleted objects are retained for a sufficient period before being permanently removed from the directory. This allows for recovery of accidentally deleted objects and helps in maintaining the integrity of the Active Directory environment.'
                         }
                     }
                 }
@@ -118,9 +118,9 @@ function Get-AbrADForest {
 
                         if ($Graph) {
                             if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
-                            Section -Style Heading3 "Forest Diagram." {
-                                Image -Base64 $Graph -Text "Forest Diagram" -Percent $ImagePrty -Align Center
-                                Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                            Section -Style Heading3 'Forest Diagram.' {
+                                Image -Base64 $Graph -Text 'Forest Diagram' -Percent $ImagePrty -Align Center
+                                Paragraph 'Image preview: Opens the image in a new tab to view it at full resolution.' -Tabs 2
                             }
                             BlankLine -Count 2
                         }
@@ -134,8 +134,8 @@ function Get-AbrADForest {
         }
         try {
             $ConfigNCDN = $Data.PartitionsContainer.Split(',') | Select-Object -Skip 1
-            $rootCA = Get-ADObjectSearch -DN "CN=Certification Authorities,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq "certificationAuthority" } -Properties "Name" -SelectPrty 'DistinguishedName', 'Name' -Session $TempPssSession
-            $subordinateCA = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq "pKIEnrollmentService" } -Properties "*" -SelectPrty 'dNSHostName', 'Name' -Session $TempPssSession
+            $rootCA = Get-ADObjectSearch -DN "CN=Certification Authorities,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq 'certificationAuthority' } -Properties 'Name' -SelectPrty 'DistinguishedName', 'Name' -Session $TempPssSession
+            $subordinateCA = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq 'pKIEnrollmentService' } -Properties '*' -SelectPrty 'dNSHostName', 'Name' -Session $TempPssSession
             if ($rootCA -or $subordinateCA) {
                 Section -Style Heading3 'Certificate Authority' {
                     if ($Options.ShowDefinitionInfo) {
@@ -143,7 +143,7 @@ function Get-AbrADForest {
                         BlankLine
                     }
                     if (-not $Options.ShowDefinitionInfo) {
-                        Paragraph "The following section provides an overview of the Public Key Infrastructure (PKI) configuration deployed within the Active Directory environment."
+                        Paragraph 'The following section provides an overview of the Public Key Infrastructure (PKI) configuration deployed within the Active Directory environment.'
                         BlankLine
                     }
                     if ($rootCA) {
@@ -175,11 +175,11 @@ function Get-AbrADForest {
                             }
                             $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                             if ($HealthCheck.Forest.BestPractice -and (($OutObj | Measure-Object).Count -gt 1 ) ) {
-                                Paragraph "Health Check:" -Bold -Underline
+                                Paragraph 'Health Check:' -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text "Best Practice:" -Bold
-                                    Text "In most PKI (Public Key Infrastructure) implementations, it is not typical to have multiple Root CAs (Certificate Authorities). The Root CA is the top-most authority in a PKI hierarchy and is responsible for issuing certificates to subordinate CAs and end entities. Having multiple Root CAs can complicate the trust relationships and management of certificates. It is recommended to conduct a detailed review of the current PKI infrastructure and Root CA requirements to ensure proper security and management practices are followed."
+                                    Text 'Best Practice:' -Bold
+                                    Text 'In most PKI (Public Key Infrastructure) implementations, it is not typical to have multiple Root CAs (Certificate Authorities). The Root CA is the top-most authority in a PKI hierarchy and is responsible for issuing certificates to subordinate CAs and end entities. Having multiple Root CAs can complicate the trust relationships and management of certificates. It is recommended to conduct a detailed review of the current PKI infrastructure and Root CA requirements to ensure proper security and management practices are followed.'
                                 }
                             }
                         }
@@ -213,22 +213,22 @@ function Get-AbrADForest {
                             $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                         }
                     } else {
-                        Write-PScriboMessage -Message "No Certificate Authority Issuer information found, Disabling this section."
+                        Write-PScriboMessage -Message 'No Certificate Authority Issuer information found, Disabling this section.'
                     }
                 }
                 if ($Options.EnableDiagrams) {
                     try {
                         try {
-                            $Graph = Get-AbrDiagrammer -DiagramType "CertificateAuthority" -DiagramOutput base64 -PSSessionObject $TempPssSession
+                            $Graph = Get-AbrDiagrammer -DiagramType 'CertificateAuthority' -DiagramOutput base64 -PSSessionObject $TempPssSession
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "Certificate Authority Diagram Graph: $($_.Exception.Message)"
                         }
 
                         if ($Graph) {
                             if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
-                            Section -Style Heading4 "Certificate Authority Diagram." {
-                                Image -Base64 $Graph -Text "Certificate Authority Diagram" -Percent $ImagePrty -Align Center
-                                Paragraph "Image preview: Opens the image in a new tab to view it at full resolution." -Tabs 2
+                            Section -Style Heading4 'Certificate Authority Diagram.' {
+                                Image -Base64 $Graph -Text 'Certificate Authority Diagram' -Percent $ImagePrty -Align Center
+                                Paragraph 'Image preview: Opens the image in a new tab to view it at full resolution.' -Tabs 2
                             }
                             BlankLine -Count 2
                         }
@@ -275,17 +275,17 @@ function Get-AbrADForest {
                     }
                     $OutObj | Sort-Object -Property 'Name' | Table @TableParams
                     if ($HealthCheck.Forest.BestPractice -and ($OutObj | Where-Object { $_.'Name' -eq 'Recycle Bin Feature' -and $_.'Enabled' -eq 'No' }) ) {
-                        Paragraph "Health Check:" -Bold -Underline
+                        Paragraph 'Health Check:' -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text "Best Practice:" -Bold
-                            Text "Accidental deletion of Active Directory objects is a common issue for AD DS users. Enabling the Recycle Bin feature allows for the recovery of these accidentally deleted objects, helping to maintain the integrity and continuity of the Active Directory environment."
+                            Text 'Best Practice:' -Bold
+                            Text 'Accidental deletion of Active Directory objects is a common issue for AD DS users. Enabling the Recycle Bin feature allows for the recovery of these accidentally deleted objects, helping to maintain the integrity and continuity of the Active Directory environment.'
                         }
                         BlankLine
                         Paragraph {
-                            Text "Reference:" -Bold
+                            Text 'Reference:' -Bold
                             BlankLine
-                            Text "https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944" -Color blue
+                            Text 'https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944' -Color blue
 
                         }
                     }

@@ -21,14 +21,14 @@ function Get-AbrDHCPinAD {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD DHCP Servers information of $($ForestInfo.toUpper())."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "DHCP Infrastructure"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'DHCP Infrastructure'
     }
 
     process {
         $DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain ($using:ADSystem).RootDomain -ErrorAction Stop }
         if ($DomainInfo) {
             $DHCPServers = try {
-                Get-ADObjectSearch -DN "CN=NetServices,CN=Services,CN=Configuration,$(($DomainInfo).DistinguishedName)" -Filter { objectclass -eq 'dHCPClass' -AND Name -ne 'dhcproot' } -Properties "*" -SelectPrty 'Name' -Session $TempPssSession
+                Get-ADObjectSearch -DN "CN=NetServices,CN=Services,CN=Configuration,$(($DomainInfo).DistinguishedName)" -Filter { objectclass -eq 'dHCPClass' -AND Name -ne 'dhcproot' } -Properties '*' -SelectPrty 'Name' -Session $TempPssSession
             } catch { Out-Null }
         }
         try {
@@ -54,7 +54,7 @@ function Get-AbrDHCPinAD {
                     )
                 } catch { Out-Null }
                 Section -Style Heading3 'DHCP Infrastructure' {
-                    Paragraph "The following section provides an overview of the DHCP servers registered in Active Directory."
+                    Paragraph 'The following section provides an overview of the DHCP servers registered in Active Directory.'
                     BlankLine
                     $DCHPInfo = [System.Collections.ArrayList]::new()
                     foreach ($DHCPServer in $DHCPServers) {
@@ -92,7 +92,7 @@ function Get-AbrDHCPinAD {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "DHCP Infrastructure"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'DHCP Infrastructure'
     }
 
 }
