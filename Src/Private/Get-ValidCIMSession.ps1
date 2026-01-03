@@ -5,7 +5,7 @@ function Get-ValidCIMSession {
     .DESCRIPTION
         Function to generate a valid CIM session from a computer string.
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.9
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidCIMSession -ComputerName 'server-dc-01v.pharmax.local'

@@ -5,7 +5,7 @@ function Get-AbrADCASummary {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.6
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux

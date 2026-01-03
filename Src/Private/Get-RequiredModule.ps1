@@ -5,7 +5,7 @@ function Get-RequiredModule {
     .DESCRIPTION
     Function to check if the required version of Module is installed
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Tim Carman
         Twitter:        @tpcarman
         Github:         tpcarman

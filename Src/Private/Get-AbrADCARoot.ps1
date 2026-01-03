@@ -5,7 +5,7 @@ function Get-AbrADCARoot {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
