@@ -108,7 +108,7 @@ function Get-AbrADTrust {
                             if ($Options.EnableDiagrams) {
                                 try {
                                     try {
-                                        $Graph = Get-AbrDiagrammer -DiagramType 'Trusts' -DiagramOutput base64 -DomainController $ValidDCFromDomain
+                                        $Graph = Get-AbrDiagrammer -DiagramType 'Trusts' -DiagramOutput base64 -DomainController $ValidDCFromDomain -PSSessionObject $TempPssSession
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
                                     }

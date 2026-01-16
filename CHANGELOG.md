@@ -16,14 +16,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Improve error logging and handling for initial Forest and Domain discovery process
-- Update module version to 0.9.9
+- Update module version to `0.9.9`
+- Upgrade Diagrammer.Core module to version `0.2.36`
+- Upgrade Diagrammer.Microsoft.AD module to version `0.2.19`
 - Improve overall code with pwsh best practices
+- Migrate Diagrammer.Microsoft.Ad diagrams to the report
 
 ### Fixed
 
 - Fix cannot index into a null array error when generating Trusts diagrams for domains with no trusts defined
 - Fix Trusts diagram generation when multiple domains are present in the report
 - Fix issue with Global:Report variable
+
+### Removed
+
+- Remove Diagrammer.Microsoft.Ad module dependency
 
 ## [0.9.8] - 2025-12-09
 

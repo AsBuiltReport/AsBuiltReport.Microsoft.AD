@@ -26,7 +26,7 @@ function Get-AbrDomainSection {
 
     process {
         if ($InfoLevel.Domain -ge 1) {
-            $DomainObj = foreach ($Domain in [string[]]($OrderedDomains | Where-Object { $_ -notin $Options.Exclude.Domains })) {
+            $DomainObj = foreach ($Domain in $OrderedDomains) {
                 if ($Domain -and ($Domain -notin $DomainStatus.Value.Name)) {
                     if ($ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         # Define Filter option for Domain variable

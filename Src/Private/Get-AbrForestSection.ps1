@@ -60,7 +60,7 @@ function Get-AbrForestSection {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
                         try {
-                            Get-AbrDHCPinAD -DomainStatus ([ref]$DomainStatus)
+                            Get-AbrDHCPinAD
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }

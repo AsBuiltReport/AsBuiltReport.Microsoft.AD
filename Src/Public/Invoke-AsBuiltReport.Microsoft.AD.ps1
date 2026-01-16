@@ -147,6 +147,21 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $OrderedDomains += $ChildDomains
         }
 
+        # Set initial connection to childs domains to find out if there is an available DC to fulfill the requests
+        foreach ($Domain in $OrderedDomains) {
+            try {
+                if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
+                    Write-PScriboMessage -Message "Initial Setup: An available DC in $Domain domain is found. Adding domain to the report."
+                } else {
+                    $DomainStatus.Value += @{
+                        Name = $Domain
+                        Status = 'Offline'
+                    }
+                    Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $Domain domain. Removing domian from the report."
+                }
+            } catch { Out-Null }
+        }
+
         # Forest Section
         Get-AbrForestSection
 

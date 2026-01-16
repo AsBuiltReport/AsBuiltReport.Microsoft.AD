@@ -557,12 +557,10 @@ function Get-AbrADGPO {
                         }
                         $GPOPoliciesSYSVOLUNC = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies"
                         $OrphanGPOs = [System.Collections.ArrayList]::new()
-                        $GPOPoliciesSYSVOL = (Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object }).Name.Trim('{}')
+                        $GPOPoliciesSYSVOL = try { (Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Where-Object { $_.Name -ne 'PolicyDefinitions' } | Sort-Object }).Name.Trim('{}') } catch { Out-Null }
                         $SYSVOLGPOList = [System.Collections.ArrayList]::new()
                         foreach ($GPOinSYSVOL in $GPOPoliciesSYSVOL) {
-                            if ($GPOinSYSVOL -ne 'PolicyDefinitions') {
-                                $SYSVOLGPOList.Add($GPOinSYSVOL) | Out-Null
-                            }
+                            $SYSVOLGPOList.Add($GPOinSYSVOL) | Out-Null
                         }
                         if ($GPOPoliciesADSI -and $SYSVOLGPOList) {
                             $MissingADGPOs = Compare-Object $SYSVOLGPOList $GPOPoliciesADSI -PassThru | Where-Object { $_.SideIndicator -eq '<=' }

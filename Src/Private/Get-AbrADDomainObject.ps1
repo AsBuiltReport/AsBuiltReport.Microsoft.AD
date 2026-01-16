@@ -373,16 +373,16 @@ function Get-AbrADDomainObject {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Groups Objects Section)"
                         }
                     }
-                    Section -Style Heading5 'Privileged Groups (Built-in)' {
-                        Show-AbrDebugExecutionTime -Start -TitleMessage 'Privileged Groups (Built-in)'
-                        $OutObj = [System.Collections.ArrayList]::new()
-                        try {
-                            if ($Domain.DNSRoot -eq $ADSystem.Name) {
-                                $GroupsSID = "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
-                            } else {
-                                $GroupsSID = "$DomainSID-512", 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', 'S-1-5-32-578'
-                            }
-                            if ($GroupsSID) {
+                    if ($GroupOBj) {
+                        Section -Style Heading5 'Privileged Groups (Built-in)' {
+                            Show-AbrDebugExecutionTime -Start -TitleMessage 'Privileged Groups (Built-in)'
+                            $OutObj = [System.Collections.ArrayList]::new()
+                            try {
+                                if ($Domain.DNSRoot -eq $ADSystem.Name) {
+                                    $GroupsSID = "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
+                                } else {
+                                    $GroupsSID = "$DomainSID-512", 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', 'S-1-5-32-578'
+                                }
                                 if ($InfoLevel.Domain -eq 1) {
                                     Paragraph 'The following section provides a summary of privileged group membership counts.'
                                     BlankLine
@@ -541,11 +541,12 @@ function Get-AbrADDomainObject {
                                         }
                                     }
                                 }
+
+                            } catch {
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group in Active Directory)"
                             }
-                        } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group in Active Directory)"
+                            Show-AbrDebugExecutionTime -End -TitleMessage 'Privileged Groups (Built-in)'
                         }
-                        Show-AbrDebugExecutionTime -End -TitleMessage 'Privileged Groups (Built-in)'
                     }
                     if ($HealthCheck.Domain.BestPractice) {
                         Show-AbrDebugExecutionTime -Start -TitleMessage 'Privileged Group (Non-Default)'
