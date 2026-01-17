@@ -19,8 +19,7 @@ function Get-AbrADForest {
     )
 
     begin {
-        $reportTranslate = $reportTranslate.GetAbrADForest
-        Write-PScriboMessage -Message $reportTranslate.Collecting
+        Write-PScriboMessage -Message $reportTranslate.GetAbrADForest.Collecting
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Forest'
     }
 
@@ -47,24 +46,24 @@ function Get-AbrADForest {
                 foreach ($Item in $Data) {
                     try {
                         $inObj = [ordered] @{
-                            $reportTranslate.ForestName = $Item.RootDomain
-                            $reportTranslate.ForestFunctionalLevel = $Item.ForestMode
-                            $reportTranslate.SchemaVersion = $reportTranslate.SchemaVersionValue -f $ADVersion, $server
-                            $reportTranslate.TombstoneLifetime = $TombstoneLifetime
-                            $reportTranslate.Domains = $Item.Domains -join '; '
-                            $reportTranslate.GlobalCatalogs = $Item.GlobalCatalogs -join '; '
-                            $reportTranslate.DomainsCount = $Item.Domains.Count
-                            $reportTranslate.GlobalCatalogsCount = $Item.GlobalCatalogs.Count
-                            $reportTranslate.SitesCount = $Item.Sites.Count
-                            $reportTranslate.ApplicationPartitions = $Item.ApplicationPartitions
-                            $reportTranslate.PartitionsContainer = [string]$Item.PartitionsContainer
-                            $reportTranslate.SPNSuffixes = $Item.SPNSuffixes
-                            $reportTranslate.UPNSuffixes = ($Item.UPNSuffixes -join ', ')
-                            $reportTranslate.AnonymousAccess = & {
+                            $reportTranslate.GetAbrADForest.ForestName = $Item.RootDomain
+                            $reportTranslate.GetAbrADForest.ForestFunctionalLevel = $Item.ForestMode
+                            $reportTranslate.GetAbrADForest.SchemaVersion = $reportTranslate.GetAbrADForest.SchemaVersionValue -f $ADVersion, $server
+                            $reportTranslate.GetAbrADForest.TombstoneLifetime = $TombstoneLifetime
+                            $reportTranslate.GetAbrADForest.Domains = $Item.Domains -join '; '
+                            $reportTranslate.GetAbrADForest.GlobalCatalogs = $Item.GlobalCatalogs -join '; '
+                            $reportTranslate.GetAbrADForest.DomainsCount = $Item.Domains.Count
+                            $reportTranslate.GetAbrADForest.GlobalCatalogsCount = $Item.GlobalCatalogs.Count
+                            $reportTranslate.GetAbrADForest.SitesCount = $Item.Sites.Count
+                            $reportTranslate.GetAbrADForest.ApplicationPartitions = $Item.ApplicationPartitions
+                            $reportTranslate.GetAbrADForest.PartitionsContainer = [string]$Item.PartitionsContainer
+                            $reportTranslate.GetAbrADForest.SPNSuffixes = $Item.SPNSuffixes
+                            $reportTranslate.GetAbrADForest.UPNSuffixes = ($Item.UPNSuffixes -join ', ')
+                            $reportTranslate.GetAbrADForest.AnonymousAccess = & {
                                 if (($ValuedsHeuristics.dsHeuristics -eq '') -or ($ValuedsHeuristics.dsHeuristics.Length -lt 7)) {
-                                    $reportTranslate.AnonymousAccessDisabled
+                                    $reportTranslate.GetAbrADForest.AnonymousAccessDisabled
                                 } elseif (($ValuedsHeuristics.dsHeuristics.Length -ge 7) -and ($ValuedsHeuristics.dsHeuristics[6] -eq '2')) {
-                                    $reportTranslate.AnonymousAccessEnabled
+                                    $reportTranslate.GetAbrADForest.AnonymousAccessEnabled
                                 }
                             }
                         }
@@ -120,7 +119,6 @@ function Get-AbrADForest {
                             if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                             Section -Style Heading3 'Forest Diagram.' {
                                 Image -Base64 $Graph -Text 'Forest Diagram' -Percent $ImagePrty -Align Center
-                                Paragraph 'Image preview: Opens the image in a new tab to view it at full resolution.' -Tabs 2
                             }
                             BlankLine -Count 2
                         }
@@ -228,7 +226,6 @@ function Get-AbrADForest {
                             if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                             Section -Style Heading4 'Certificate Authority Diagram.' {
                                 Image -Base64 $Graph -Text 'Certificate Authority Diagram' -Percent $ImagePrty -Align Center
-                                Paragraph 'Image preview: Opens the image in a new tab to view it at full resolution.' -Tabs 2
                             }
                             BlankLine -Count 2
                         }

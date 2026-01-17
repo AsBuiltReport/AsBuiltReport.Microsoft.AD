@@ -16,7 +16,6 @@ function Get-AbrDHCPinAD {
     #>
     [CmdletBinding()]
     param (
-        [ref]$DomainStatus
     )
 
     begin {
@@ -40,15 +39,7 @@ function Get-AbrDHCPinAD {
                     $DCServersinAD = @(
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             try {
-                                if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
-                                    (Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
-                                } else {
-                                    $DomainStatus.Value += @{
-                                        Name = $Domain
-                                        Status = 'Offline'
-                                    }
-                                    Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $Domain domain. Removing it from the report."
-                                }
+                                (Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
                             } catch { Out-Null }
                         }
                     )

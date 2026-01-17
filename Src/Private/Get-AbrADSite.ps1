@@ -43,7 +43,6 @@ function Get-AbrADSite {
                                 if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                                 Section -Style Heading4 'Site Inventory Diagram.' {
                                     Image -Base64 $Graph -Text 'Site Inventory Diagram' -Percent $ImagePrty -Align Center
-                                    Paragraph 'Image preview: Opens the image in a new tab to view it at full resolution.' -Tabs 2
                                 }
                                 BlankLine -Count 2
                             }
@@ -338,7 +337,6 @@ function Get-AbrADSite {
                                 if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                                 Section -Style Heading4 'Site Topology Diagram.' {
                                     Image -Base64 $Graph -Text 'Site Topology Diagram' -Percent $ImagePrty -Align Center
-                                    Paragraph 'Image preview: Opens the image in a new tab to view it at full resolution.' -Tabs 2
                                 }
                                 BlankLine -Count 2
                             }

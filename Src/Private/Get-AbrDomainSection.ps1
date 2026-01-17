@@ -26,7 +26,7 @@ function Get-AbrDomainSection {
 
     process {
         if ($InfoLevel.Domain -ge 1) {
-            $DomainObj = foreach ($Domain in [string[]]($OrderedDomains | Where-Object { $_ -notin $Options.Exclude.Domains })) {
+            $DomainObj = foreach ($Domain in $OrderedDomains) {
                 if ($Domain -and ($Domain -notin $DomainStatus.Value.Name)) {
                     if ($ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         # Define Filter option for Domain variable
@@ -88,25 +88,25 @@ function Get-AbrDomainSection {
                                                     }
                                                 }
                                             }
-                                            # if ($HealthCheck.DomainController.Diagnostic) {
-                                            #     try {
-                                            #         $DCDiagObj = foreach ($DC in $DCs) {
-                                            #             if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
-                                            #                 Get-AbrADDCDiag -Domain $Domain -DC $DC
-                                            #             }
-                                            #         }
-                                            #         if ($DCDiagObj) {
-                                            #             Section -Style Heading4 'DC Diagnostic' {
-                                            #                 Paragraph "The following section provides a summary of the Active Directory DC Diagnostic."
-                                            #                 BlankLine
-                                            #                 $DCDiagObj
-                                            #             }
-                                            #         }
-                                            #     } catch {
-                                            #         Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
-                                            #         Write-PScriboMessage -IsWarning $_.Exception.Message
-                                            #     }
-                                            # }
+                                            if ($HealthCheck.DomainController.Diagnostic) {
+                                                try {
+                                                    $DCDiagObj = foreach ($DC in $DCs) {
+                                                        if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
+                                                            Get-AbrADDCDiag -Domain $Domain -DC $DC
+                                                        }
+                                                    }
+                                                    if ($DCDiagObj) {
+                                                        Section -Style Heading4 'DC Diagnostic' {
+                                                            Paragraph 'The following section provides a summary of the Active Directory DC Diagnostic.'
+                                                            BlankLine
+                                                            $DCDiagObj
+                                                        }
+                                                    }
+                                                } catch {
+                                                    Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
+                                                    Write-PScriboMessage -IsWarning $_.Exception.Message
+                                                }
+                                            }
                                             try {
                                                 $ADInfraServices = foreach ($DC in $DCs) {
                                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
@@ -140,7 +140,7 @@ function Get-AbrDomainSection {
                             Name = $Domain
                             Status = 'Offline'
                         }
-                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($Domain) domain. Removing it from the report."
+                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($Domain) domain. Removing domain from the Domain section."
                     }
                 }
             }

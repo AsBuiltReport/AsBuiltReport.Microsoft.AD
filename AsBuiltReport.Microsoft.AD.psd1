@@ -65,14 +65,9 @@
             ModuleVersion = '0.9.0'
         },
         @{
-            ModuleName = 'Diagrammer.Microsoft.AD';
-            ModuleVersion = '0.2.18'
-        },
-        @{
             ModuleName = 'Diagrammer.Core';
-            ModuleVersion = '0.2.35'
+            ModuleVersion = '0.2.36.1'
         }
-
     )
 
     # Assemblies that must be loaded prior to importing this module

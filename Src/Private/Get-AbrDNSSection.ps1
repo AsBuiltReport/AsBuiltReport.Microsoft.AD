@@ -26,9 +26,9 @@ function Get-AbrDNSSection {
 
     process {
         if ($InfoLevel.DNS -ge 1) {
-            $DNSDomainObj = foreach ($Domain in [string[]]($OrderedDomains | Where-Object { $_ -notin $Options.Exclude.Domains })) {
+            $DNSDomainObj = foreach ($Domain in $OrderedDomains) {
                 if ($Domain -and ($Domain -notin $DomainStatus.Value.Name)) {
-                    if ($ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
+                    if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         try {
                             if ($DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain }) {
                                 $DCs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
@@ -52,7 +52,7 @@ function Get-AbrDNSSection {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Name System Information)"
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing it from the report."
+                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing domain from the DNS section."
                     }
                 }
             }

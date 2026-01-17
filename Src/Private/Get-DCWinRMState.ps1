@@ -29,7 +29,8 @@ function Get-DCWinRMState {
         [string]$ComputerName,
         [ref]$DCStatus
     )
-    $PingStatus = switch (Test-Connection -ComputerName $ComputerName -Count 2 -Quiet) {
+    if ($Options.DCStatusPingCount) { $DCStatusPingCount = $Options.DCStatusPingCount } else { $DCStatusPingCount = 2 }
+    $PingStatus = switch (Test-Connection -ComputerName $ComputerName -Count $DCStatusPingCount -Quiet) {
         'True' { 'Online' }
         'False' { 'Offline' }
     }

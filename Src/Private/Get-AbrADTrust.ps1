@@ -108,7 +108,7 @@ function Get-AbrADTrust {
                             if ($Options.EnableDiagrams) {
                                 try {
                                     try {
-                                        $Graph = Get-AbrDiagrammer -DiagramType 'Trusts' -DiagramOutput base64 -DomainController $ValidDCFromDomain
+                                        $Graph = Get-AbrDiagrammer -DiagramType 'Trusts' -DiagramOutput base64 -DomainController $ValidDCFromDomain -PSSessionObject $TempPssSession
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
                                     }
@@ -117,7 +117,6 @@ function Get-AbrADTrust {
                                         if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
                                         Section -Style Heading3 'Domain and Trusts Diagram.' {
                                             Image -Base64 $Graph -Text 'Domain and Trusts Diagram' -Percent $ImagePrty -Align Center
-                                            Paragraph 'Image preview: Opens the image in a new tab to view it at full resolution.' -Tabs 2
                                         }
                                         BlankLine -Count 2
                                     }

@@ -49,7 +49,7 @@ function Get-AbrDiagrammer {
         [Parameter(
             Position = 5,
             Mandatory = $false,
-            HelpMessage = 'Plea'
+            HelpMessage = 'Please provide Domain controller to use'
         )]
         [string]$DomainController = $System,
         [Parameter(
@@ -118,17 +118,17 @@ function Get-AbrDiagrammer {
             try {
                 foreach ($Format in $DiagramFormat) {
                     if ($Format -eq 'base64') {
-                        $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format
+                        $Graph = New-AbrADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format
                         if ($Graph) {
                             $Graph
                         }
                     } else {
                         if ($FileName) {
                             $FileName = "$($FileName).$($Format)"
-                            $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
+                            $Graph = New-AbrADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
                         } else {
                             $FileName = "AsBuiltReport.Microsoft.AD-($($DiagramType)).$($Format)"
-                            $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
+                            $Graph = New-AbrADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
                         }
                         if ($Graph) {
                             if ($ExportPath) {

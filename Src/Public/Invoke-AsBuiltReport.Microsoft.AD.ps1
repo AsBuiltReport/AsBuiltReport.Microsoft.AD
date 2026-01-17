@@ -38,7 +38,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo6
 
     # Check the version of the dependency modules
-    $ModuleArray = @('AsBuiltReport.Microsoft.AD', 'Diagrammer.Microsoft.AD', 'Diagrammer.Core')
+    $ModuleArray = @('AsBuiltReport.Microsoft.AD', 'Diagrammer.Core')
 
     foreach ($Module in $ModuleArray) {
         try {
@@ -145,6 +145,22 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         if ($ChildDomains) {
             $OrderedDomains += $ChildDomains
+        }
+
+        # Set initial connection to childs domains to find out if there is an available DC to fulfill the requests
+        foreach ($Domain in $OrderedDomains) {
+            try {
+                if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
+                    Write-PScriboMessage -Message "Initial Setup: An available DC in $Domain domain is found. Adding domain to the report."
+                } else {
+                    Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $Domain domain. Removing domain from the report."
+                    $DomainStatus += @{
+                        Name = $Domain
+                        Status = 'Offline'
+                    }
+                    $OrderedDomains = $OrderedDomains | Where-Object { $_ -ne $Domain }
+                }
+            } catch { Out-Null }
         }
 
         # Forest Section
