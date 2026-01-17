@@ -66,9 +66,8 @@
         },
         @{
             ModuleName = 'Diagrammer.Core';
-            ModuleVersion = '0.2.36'
+            ModuleVersion = '0.2.36.1'
         }
-
     )
 
     # Assemblies that must be loaded prior to importing this module

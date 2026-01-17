@@ -120,7 +120,7 @@ function Get-AbrADSiteReplication {
                 $DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)
 
                 if ($DCPssSession) {
-                    $RepStatus = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }
+                    $RepStatus = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv } -TimeoutSeconds 60
                 } else {
                     if (-not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
@@ -154,7 +154,7 @@ function Get-AbrADSiteReplication {
                         $TableParams = @{
                             Name = "Replication Status - $($Domain.Name.ToUpper())"
                             List = $false
-                            ColumnWidths = 14, 14, 14, 15, 14, 15 , 14
+                            ColumnWidths = 14, 14, 14, 15, 14, 15, 14
                         }
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"

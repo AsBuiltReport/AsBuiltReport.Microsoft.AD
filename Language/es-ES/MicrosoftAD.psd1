@@ -11,7 +11,7 @@
     ReportModuleInfo6 = - Obteniendo información de dependencias:
     ProjectWebsite = - Por favor consulte el sitio web de github de AsBuiltReport.Microsoft.AD para obtener información más detallada sobre este proyecto.
     CommunityProject = - AsBuiltReport es un proyecto de código abierto mantenido por la comunidad. No tiene patrocinio, respaldo o afiliación con ningún proveedor de tecnología, sus empleados o afiliados.
-    DISCLAIMER = Este informe contiene información recopilada mediante automatización y observaciones. Todas las opiniones, recomendaciones y conclusiones se basan en el conocimiento y la experiencia profesional, aunque esta evaluación no es exhaustiva. La implementación de las recomendaciones debe ser revisada y ejecutada por personal calificado. El autor no asumen ninguna responsabilidad por daños, incluyendo, pero no limitado a, pérdida de ganancias, interrupción del negocio o pérdidas financieras, que surjan del uso de este informe o sus recomendaciones.
+    DISCLAIMER = Este informe combina el análisis automatizado de datos con observaciones profesionales. Si bien estos hallazgos ofrecen una perspectiva experta, esta evaluación no es exhaustiva. Todas las recomendaciones deben ser revisadas e implementadas por personal cualificado. El/los autor(es) no asumen ninguna responsabilidad por daños, incluyendo lucro cesante, interrupciones del negocio o pérdidas financieras derivadas del uso de este informe o sus recomendaciones.
 '@
 
     # Get-AbrADForest
