@@ -5,7 +5,7 @@ function Get-AbrADDuplicateObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,7 +21,7 @@ function Get-AbrADDuplicateObject {
 
     begin {
         Write-PScriboMessage -Message "Collecting duplicate Objects information on $($Domain.DNSRoot)."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Domain Duplicate Objects"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain Duplicate Objects'
     }
 
     process {
@@ -37,9 +37,9 @@ function Get-AbrADDuplicateObject {
                             try {
                                 $inObj = [ordered] @{
                                     'Name' = $Object.Name
-                                    'Created' = $Object.WhenCreated.ToString("yyyy:MM:dd")
-                                    'Changed' = $Object.WhenChanged.ToString("yyyy:MM:dd")
-                                    'Conflict Changed' = $Object.ConflictWhenChanged.ToString("yyyy:MM:dd")
+                                    'Created' = $Object.WhenCreated.ToString('yyyy:MM:dd')
+                                    'Changed' = $Object.WhenChanged.ToString('yyyy:MM:dd')
+                                    'Conflict Changed' = $Object.ConflictWhenChanged.ToString('yyyy:MM:dd')
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
@@ -61,10 +61,10 @@ function Get-AbrADDuplicateObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Table @TableParams
-                        Paragraph "Health Check:" -Bold -Underline
+                        Paragraph 'Health Check:' -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text "Corrective Actions:" -Bold
+                            Text 'Corrective Actions:' -Bold
                             Text "Ensure there aren't any duplicate objects in the Active Directory. Duplicate objects can cause various issues such as authentication problems, replication conflicts, and administrative overhead. It is recommended to regularly audit and clean up any duplicate objects to maintain a healthy and efficient Active Directory environment."
                         }
                     }
@@ -78,7 +78,7 @@ function Get-AbrADDuplicateObject {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Duplicate Objects"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Domain Duplicate Objects'
     }
 
 }

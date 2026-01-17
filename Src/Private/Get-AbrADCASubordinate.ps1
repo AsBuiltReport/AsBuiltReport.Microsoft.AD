@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -19,22 +19,22 @@ function Get-AbrADCASubordinate {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Certification Authority Per Domain information."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "CA Subordinate"
+        Write-PScriboMessage -Message 'Collecting AD Certification Authority Per Domain information.'
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'CA Subordinate'
     }
 
     process {
         try {
             if ($CAs | Where-Object { $_.IsRoot -like 'False' }) {
-                Section -Style Heading2 "Enterprise Subordinate Certificate Authority" {
-                    Paragraph "The following section provides detailed information about Enterprise Subordinate Certification Authorities within the domain."
+                Section -Style Heading2 'Enterprise Subordinate Certificate Authority' {
+                    Paragraph 'The following section provides detailed information about Enterprise Subordinate Certification Authorities within the domain.'
                     BlankLine
                     foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'False' })) {
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {
                             $inObj = [ordered] @{
                                 'CA Name' = $CA.DisplayName
-                                'Server Name' = $CA.ComputerName.ToString().ToUpper().Split(".")[0]
+                                'Server Name' = $CA.ComputerName.ToString().ToUpper().Split('.')[0]
                                 'Type' = $CA.Type
                                 'Config String' = $CA.ConfigString
                                 'Operating System' = $CA.OperatingSystem
@@ -72,7 +72,7 @@ function Get-AbrADCASubordinate {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "CA Subordinate"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'CA Subordinate'
     }
 
 }

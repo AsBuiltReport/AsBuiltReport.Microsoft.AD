@@ -47,7 +47,7 @@ function Test-ComputerPort {
                 $UdpClient.Client.ReceiveTimeout = $Timeout
                 # $UdpClient.Connect($Computer, $P)
                 $Encoding = [System.Text.ASCIIEncoding]::new()
-                $byte = $Encoding.GetBytes("Evotec")
+                $byte = $Encoding.GetBytes('Evotec')
                 [void]$UdpClient.Send($byte, $byte.length)
                 $RemoteEndpoint = [System.Net.IPEndPoint]::new([System.Net.IPAddress]::Any, 0)
                 try {

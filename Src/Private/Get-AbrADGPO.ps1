@@ -5,7 +5,7 @@ function Get-AbrADGPO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -22,12 +22,12 @@ function Get-AbrADGPO {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory Group Policy Objects information for $($Domain.DNSRoot.ToString().ToUpper())."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Group Policy Objects"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Group Policy Objects'
     }
 
     process {
         try {
-            Section -Style Heading4 "Group Policy Objects" {
+            Section -Style Heading4 'Group Policy Objects' {
                 Paragraph "The following section provides an overview of the Group Policy Objects (GPOs) configured within the $($Domain.DNSRoot.ToString().ToUpper()) domain."
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
@@ -74,26 +74,26 @@ function Get-AbrADGPO {
                             }
                             $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
                             if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' }) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' }) -or ($OutObj | Where-Object { $_.'Links Count' -eq 0 }))) {
-                                Paragraph "Health Check:" -Bold -Underline
+                                Paragraph 'Health Check:' -Bold -Underline
                                 BlankLine
                                 if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' })) {
                                     Paragraph {
-                                        Text "Best Practices:" -Bold
+                                        Text 'Best Practices:' -Bold
                                         Text "Ensure 'All Settings Disabled' Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause confusion or clutter in the environment."
                                     }
                                     BlankLine
                                 }
                                 if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' })) {
                                     Paragraph {
-                                        Text "Corrective Actions:" -Bold
+                                        Text 'Corrective Actions:' -Bold
                                         Text "Identify 'No Security Filtering' Group Policy Objects (GPOs) that are not linked to any security groups or users. Determine which of these GPOs should be deleted to reduce clutter and improve manageability in Active Directory."
                                     }
                                     BlankLine
                                 }
                                 if ($OutObj | Where-Object { $_.'Links Count' -eq '0' }) {
                                     Paragraph {
-                                        Text "Corrective Actions:" -Bold
-                                        Text "Ensure unused or unlinked Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause unnecessary complexity and potential confusion in the environment. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory structure."
+                                        Text 'Corrective Actions:' -Bold
+                                        Text 'Ensure unused or unlinked Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause unnecessary complexity and potential confusion in the environment. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory structure.'
                                     }
                                     BlankLine
                                 }
@@ -112,13 +112,13 @@ function Get-AbrADGPO {
                                         $inObj = [ordered] @{
                                             'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
                                             'GUID' = $GPO.Id
-                                            'Created' = $GPO.CreationTime.ToString("MM/dd/yyyy")
-                                            'Modified' = $GPO.ModificationTime.ToString("MM/dd/yyyy")
+                                            'Created' = $GPO.CreationTime.ToString('MM/dd/yyyy')
+                                            'Modified' = $GPO.ModificationTime.ToString('MM/dd/yyyy')
                                             'Owner' = $GPO.Owner
                                             'Computer Version' = "$($Links.GPO.Computer.VersionDirectory) (AD), $($Links.GPO.Computer.VersionSysvol) (SYSVOL)"
                                             'User Version' = "$($Links.GPO.User.VersionDirectory) (AD), $($Links.GPO.User.VersionSysvol) (SYSVOL)"
                                             'WMI Filter' = & {
-                                                $WMIFilter = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { ((Get-GPO -DomainName $($using:Domain).DNSROot  -Name $using:GPO.DisplayName).WMifilter.Name) }
+                                                $WMIFilter = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { ((Get-GPO -DomainName $($using:Domain).DNSROot -Name $using:GPO.DisplayName).WMifilter.Name) }
                                                 if ($WMIFilter) {
                                                     $WMIFilter
                                                 } else { '--' }
@@ -159,26 +159,26 @@ function Get-AbrADGPO {
                                         }
                                         $OutObj | Table @TableParams
                                         if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' }) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' }) -or ($OutObj | Where-Object { $_.'Linked Target' -eq '--' }))) {
-                                            Paragraph "Health Check:" -Bold -Underline
+                                            Paragraph 'Health Check:' -Bold -Underline
                                             BlankLine
                                             if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' })) {
                                                 Paragraph {
-                                                    Text "Best Practices:" -Bold
+                                                    Text 'Best Practices:' -Bold
                                                     Text "Ensure 'All Settings Disabled' Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause confusion or clutter in the environment."
                                                 }
                                                 BlankLine
                                             }
                                             if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' })) {
                                                 Paragraph {
-                                                    Text "Corrective Actions:" -Bold
+                                                    Text 'Corrective Actions:' -Bold
                                                     Text "Identify 'No Security Filtering' Group Policy Objects (GPOs) that are not linked to any security groups or users. Determine which of these GPOs should be deleted to reduce clutter and improve manageability in Active Directory."
                                                 }
                                                 BlankLine
                                             }
                                             if ($OutObj | Where-Object { $_.'Linked Target' -eq '--' }) {
                                                 Paragraph {
-                                                    Text "Corrective Actions:" -Bold
-                                                    Text "Ensure unused or unlinked Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause unnecessary complexity and potential confusion in the environment. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory structure."
+                                                    Text 'Corrective Actions:' -Bold
+                                                    Text 'Ensure unused or unlinked Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause unnecessary complexity and potential confusion in the environment. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory structure.'
                                                 }
                                                 BlankLine
                                             }
@@ -197,7 +197,7 @@ function Get-AbrADGPO {
                             $DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)
 
                             if ($DCPssSession) {
-                                $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($Domain.DistinguishedName)" -Filter { objectClass -eq "msWMI-Som" } -SelectPrty '*' -Session $DCPssSession | Sort-Object
+                                $WmiFilters = Get-ADObjectSearch -DN "CN=SOM,CN=WMIPolicy,CN=System,$($Domain.DistinguishedName)" -Filter { objectClass -eq 'msWMI-Som' } -SelectPrty '*' -Session $DCPssSession | Sort-Object
 
                             } else {
                                 if (-not $_.Exception.MessageId) {
@@ -207,7 +207,7 @@ function Get-AbrADGPO {
                             }
 
                             if ($WmiFilters) {
-                                Section -Style Heading5 "WMI Filters" {
+                                Section -Style Heading5 'WMI Filters' {
                                     foreach ($WmiFilter in $WmiFilters) {
                                         $OutObj = [System.Collections.ArrayList]::new()
                                         $inObj = [ordered] @{
@@ -219,7 +219,7 @@ function Get-AbrADGPO {
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.Domain.GPO) {
-                                            $OutObj | Where-Object { $_.'Description' -eq "--" } | Set-Style -Style Warning -Property 'Description'
+                                            $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
                                         }
 
                                         $TableParams = @{
@@ -245,7 +245,7 @@ function Get-AbrADGPO {
                         $PATH = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\PolicyDefinitions"
                         $CentralStore = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Test-Path $using:PATH }
                         if ($PATH) {
-                            Section -Style Heading5 "Central Store Repository" {
+                            Section -Style Heading5 'Central Store Repository' {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 $inObj = [ordered] @{
                                     'Domain' = $Domain.Name.ToString().ToUpper()
@@ -269,11 +269,11 @@ function Get-AbrADGPO {
                                 }
                                 $OutObj | Table @TableParams
                                 if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'Configured' -eq 'No' })) {
-                                    Paragraph "Health Check:" -Bold -Underline
+                                    Paragraph 'Health Check:' -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text "Best Practices:" -Bold
-                                        Text "The Group Policy Central Store is a central location to store all the Group Policy template files (ADMX/ADML files). This eliminates the need for administrators to load and open Group Policy template files on each system used to manage Group Policy. Ensure the Central Store is deployed to a centralized GPO repository to streamline management and ensure consistency across the environment."
+                                        Text 'Best Practices:' -Bold
+                                        Text 'The Group Policy Central Store is a central location to store all the Group Policy template files (ADMX/ADML files). This eliminates the need for administrators to load and open Group Policy template files on each system used to manage Group Policy. Ensure the Central Store is deployed to a centralized GPO repository to streamline management and ensure consistency across the environment.'
                                     }
                                 }
                             }
@@ -311,7 +311,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "Logon/Logoff Script" {
+                            Section -Style Heading5 'Logon/Logoff Script' {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
                                 }
@@ -361,7 +361,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "Startup/Shutdown Script" {
+                            Section -Style Heading5 'Startup/Shutdown Script' {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
                                 }
@@ -395,8 +395,8 @@ function Get-AbrADGPO {
                                     if (($Null -ne $Gpoxml.GPO.Name) -and ($Null -eq $Gpoxml.GPO.LinksTo.SOMPath)) {
                                         $inObj = [ordered] @{
                                             'GPO Name' = $Gpoxml.GPO.Name
-                                            'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split("T")[0]
-                                            'Modified' = ($Gpoxml.GPO.ModifiedTime).ToString().split("T")[0]
+                                            'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split('T')[0]
+                                            'Modified' = ($Gpoxml.GPO.ModifiedTime).ToString().split('T')[0]
                                             'Computer Enabled' = $gpoxml.GPO.Computer.Enabled
                                             'User Enabled' = $gpoxml.GPO.User.Enabled
                                         }
@@ -408,7 +408,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "Unlinked GPO" {
+                            Section -Style Heading5 'Unlinked GPO' {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -423,11 +423,11 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                                Paragraph "Health Check:" -Bold -Underline
+                                Paragraph 'Health Check:' -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text "Corrective Actions:" -Bold
-                                    Text "Remove unused Group Policy Objects (GPOs) from Active Directory. Unused GPOs can create unnecessary complexity and potential confusion. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory environment."
+                                    Text 'Corrective Actions:' -Bold
+                                    Text 'Remove unused Group Policy Objects (GPOs) from Active Directory. Unused GPOs can create unnecessary complexity and potential confusion. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory environment.'
                                 }
                             }
                         } else {
@@ -445,8 +445,8 @@ function Get-AbrADGPO {
                                     if (($Null -eq ($Gpoxml.GPO.Computer.ExtensionData)) -and ($Null -eq ($Gpoxml.GPO.User.extensionData))) {
                                         $inObj = [ordered] @{
                                             'GPO Name' = $Gpoxml.GPO.Name
-                                            'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split("T")[0]
-                                            'Modified' = ($Gpoxml.GPO.ModifiedTime).ToString().split("T")[0]
+                                            'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split('T')[0]
+                                            'Modified' = ($Gpoxml.GPO.ModifiedTime).ToString().split('T')[0]
                                             'Description' = $Gpoxml.GPO.Description
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -457,7 +457,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 "Empty GPOs" {
+                            Section -Style Heading5 'Empty GPOs' {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -472,11 +472,11 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                                Paragraph "Health Check:" -Bold -Underline
+                                Paragraph 'Health Check:' -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text "Corrective Actions:" -Bold
-                                    Text "No user or computer parameters are set in this GPO. Remove unused GPOs in Active Directory to reduce clutter and improve manageability."
+                                    Text 'Corrective Actions:' -Bold
+                                    Text 'No user or computer parameters are set in this GPO. Remove unused GPOs in Active Directory to reduce clutter and improve manageability.'
                                 }
                             }
                         } else {
@@ -495,9 +495,9 @@ function Get-AbrADGPO {
                         if ($OUs) {
                             foreach ($OU in $OUs) {
                                 try {
-                                    $GpoEnforces = Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop  -ScriptBlock { Get-GPInheritance -Domain ($using:Domain).DNSRoot -Server $using:ValidDCFromDomain -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
+                                    $GpoEnforces = Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-GPInheritance -Domain ($using:Domain).DNSRoot -Server $using:ValidDCFromDomain -Target $using:OU | Select-Object -ExpandProperty GpoLinks }
                                     foreach ($GpoEnforced in $GpoEnforces) {
-                                        if ($GpoEnforced.Enforced -eq "True") {
+                                        if ($GpoEnforced.Enforced -eq 'True') {
                                             $TargetCanonical = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:ValidDCFromDomain -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
                                             $inObj = [ordered] @{
                                                 'GPO Name' = $GpoEnforced.DisplayName
@@ -513,7 +513,7 @@ function Get-AbrADGPO {
                         }
 
                         if ($OutObj) {
-                            Section -Style Heading5 "Enforced GPO" {
+                            Section -Style Heading5 'Enforced GPO' {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -528,11 +528,11 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property 'Target' | Table @TableParams
-                                Paragraph "Health Check:" -Bold -Underline
+                                Paragraph 'Health Check:' -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text "Corrective Actions:" -Bold
-                                    Text "Review the use of enforcement and blocked policy inheritance in Active Directory. Enforced policies ensure that critical settings are applied consistently across the organization, while blocked policy inheritance can prevent higher-level policies from affecting specific organizational units. Proper use of these settings is essential for maintaining a secure and well-managed environment."
+                                    Text 'Corrective Actions:' -Bold
+                                    Text 'Review the use of enforcement and blocked policy inheritance in Active Directory. Enforced policies ensure that critical settings are applied consistently across the organization, while blocked policy inheritance can prevent higher-level policies from affecting specific organizational units. Proper use of these settings is essential for maintaining a secure and well-managed environment.'
                                 }
 
                             }
@@ -548,7 +548,7 @@ function Get-AbrADGPO {
                         $DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)
 
                         if ($DCPssSession) {
-                            $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($Domain.DistinguishedName)" -Filter { objectClass -eq "groupPolicyContainer" } -Properties "Name" -SelectPrty 'Name' -Session $DCPssSession).Name.Trim("{}") | Sort-Object
+                            $GPOPoliciesADSI = (Get-ADObjectSearch -DN "CN=Policies,CN=System,$($Domain.DistinguishedName)" -Filter { objectClass -eq 'groupPolicyContainer' } -Properties 'Name' -SelectPrty 'Name' -Session $DCPssSession).Name.Trim('{}') | Sort-Object
                         } else {
                             if (-not $_.Exception.MessageId) {
                                 $ErrorMessage = $_.FullyQualifiedErrorId
@@ -557,12 +557,10 @@ function Get-AbrADGPO {
                         }
                         $GPOPoliciesSYSVOLUNC = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies"
                         $OrphanGPOs = [System.Collections.ArrayList]::new()
-                        $GPOPoliciesSYSVOL = (Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Sort-Object }).Name.Trim("{}")
+                        $GPOPoliciesSYSVOL = try { (Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ChildItem $using:GPOPoliciesSYSVOLUNC | Where-Object { $_.Name -ne 'PolicyDefinitions' } | Sort-Object }).Name.Trim('{}') } catch { Out-Null }
                         $SYSVOLGPOList = [System.Collections.ArrayList]::new()
                         foreach ($GPOinSYSVOL in $GPOPoliciesSYSVOL) {
-                            if ($GPOinSYSVOL -ne "PolicyDefinitions") {
-                                $SYSVOLGPOList.Add($GPOinSYSVOL) | Out-Null
-                            }
+                            $SYSVOLGPOList.Add($GPOinSYSVOL) | Out-Null
                         }
                         if ($GPOPoliciesADSI -and $SYSVOLGPOList) {
                             $MissingADGPOs = Compare-Object $SYSVOLGPOList $GPOPoliciesADSI -PassThru | Where-Object { $_.SideIndicator -eq '<=' }
@@ -576,8 +574,8 @@ function Get-AbrADGPO {
                             $OrphanGPOs.Add($MissingSYSVOLGPOs) | Out-Null
                         }
                         if ($OrphanGPOs) {
-                            Section -Style Heading5 "Orphaned GPO" {
-                                Paragraph "The following table summarizes Group Policy Objects (GPOs) that are orphaned or missing either in the Active Directory database or in the SYSVOL directory. Review these entries to identify and remediate inconsistencies between AD and SYSVOL."
+                            Section -Style Heading5 'Orphaned GPO' {
+                                Paragraph 'The following table summarizes Group Policy Objects (GPOs) that are orphaned or missing either in the Active Directory database or in the SYSVOL directory. Review these entries to identify and remediate inconsistencies between AD and SYSVOL.'
                                 BlankLine
                                 foreach ($OrphanGPO in $OrphanGPOs) {
                                     $OutObj = [System.Collections.ArrayList]::new()
@@ -589,7 +587,7 @@ function Get-AbrADGPO {
                                         'Guid' = $OrphanGPO
                                         'AD DN Database' = & {
                                             if ($OrphanGPO -in $MissingADGPOs) {
-                                                return "Missing"
+                                                return 'Missing'
                                             } else { 'Valid' }
                                         }
                                         'AD DN Path' = & {
@@ -599,7 +597,7 @@ function Get-AbrADGPO {
                                         }
                                         'SYSVOL Guid Directory' = & {
                                             if ($OrphanGPO -in $MissingSYSVOLGPOs) {
-                                                return "Missing"
+                                                return 'Missing'
                                             } else { 'Valid' }
                                         }
                                         'SYSVOL Guid Path' = & {
@@ -626,19 +624,19 @@ function Get-AbrADGPO {
                                     }
                                     $OutObj | Table @TableParams
                                     if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing' }) -or ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing' }))) {
-                                        Paragraph "Health Check:" -Bold -Underline
+                                        Paragraph 'Health Check:' -Bold -Underline
                                         BlankLine
                                         if ($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing' }) {
                                             Paragraph {
-                                                Text "Corrective Actions:" -Bold
-                                                Text "Evaluate orphaned group policies objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment."
+                                                Text 'Corrective Actions:' -Bold
+                                                Text 'Evaluate orphaned group policies objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment.'
                                             }
                                             BlankLine
                                         }
                                         if ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing' }) {
                                             Paragraph {
-                                                Text "Corrective Actions:" -Bold
-                                                Text "Evaluate orphaned group policies folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment."
+                                                Text 'Corrective Actions:' -Bold
+                                                Text 'Evaluate orphaned group policies folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment.'
                                             }
                                             BlankLine
                                         }
@@ -660,7 +658,7 @@ function Get-AbrADGPO {
 
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Domain Group Policy Objects"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Domain Group Policy Objects'
     }
 
 }

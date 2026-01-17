@@ -5,7 +5,7 @@ function Get-AbrADHardening {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -22,7 +22,7 @@ function Get-AbrADHardening {
 
     begin {
         Write-PScriboMessage -Message "Collecting AD Hardening information from $($Domain.Name.toUpper())."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Hardening"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Hardening'
     }
 
     process {
@@ -32,16 +32,16 @@ function Get-AbrADHardening {
             $NTLMversion = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name 'LmCompatibilityLevel' -ErrorAction SilentlyContinue
             if ($NTLMversion) {
                 $NTLMversion = switch ($NTLMversion.LmCompatibilityLevel) {
-                    0 { "Send LM & NTLM responses" }
-                    1 { "Send LM & NTLM - use NTLMv2 session security if negotiated" }
-                    2 { "Send NTLM response only" }
-                    3 { "Send NTLMv2 response only" }
-                    4 { "Send NTLMv2 response only\refuse LM" }
-                    5 { "Send NTLMv2 response only\refuse LM & NTLM" }
-                    default { "Unknown" }
+                    0 { 'Send LM & NTLM responses' }
+                    1 { 'Send LM & NTLM - use NTLMv2 session security if negotiated' }
+                    2 { 'Send NTLM response only' }
+                    3 { 'Send NTLMv2 response only' }
+                    4 { 'Send NTLMv2 response only\refuse LM' }
+                    5 { 'Send NTLMv2 response only\refuse LM & NTLM' }
+                    default { 'Unknown' }
                 }
             } else {
-                $NTLMversion = "Send NTLMv2 response only"
+                $NTLMversion = 'Send NTLMv2 response only'
             }
             $NTLMversion
         }
@@ -50,12 +50,12 @@ function Get-AbrADHardening {
             $SMBv1 = Get-SmbServerConfiguration -ErrorAction SilentlyContinue | Select-Object -ExpandProperty EnableSMB1Protocol
             if ($SMBv1) {
                 $SMBv1 = switch ($SMBv1) {
-                    'True' { "Installed\Enabled" }
-                    'False' { "Uninstalled\Disabled" }
-                    default { "Unknown" }
+                    'True' { 'Installed\Enabled' }
+                    'False' { 'Uninstalled\Disabled' }
+                    default { 'Unknown' }
                 }
             } else {
-                $SMBv1 = "Removed"
+                $SMBv1 = 'Removed'
             }
             $SMBv1
         }
@@ -64,12 +64,12 @@ function Get-AbrADHardening {
             $SMBSigning = Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Services\LanManServer\Parameters' -Name 'requiresecuritysignature' -ErrorAction SilentlyContinue
             if ($SMBSigning.requiresecuritysignature) {
                 $SMBSigning = switch ($SMBSigning.requiresecuritysignature) {
-                    0 { "Disable" }
-                    1 { "Enable" }
-                    default { "Unknown" }
+                    0 { 'Disable' }
+                    1 { 'Enable' }
+                    default { 'Unknown' }
                 }
             } else {
-                $SMBSigning = "Not Configured/Disabled"
+                $SMBSigning = 'Not Configured/Disabled'
             }
             $SMBSigning
         }
@@ -78,12 +78,12 @@ function Get-AbrADHardening {
             $LDAPSigning = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters' -Name 'ldapserverintegrity' -ErrorAction SilentlyContinue
             if ($LDAPSigning.ldapserverintegrity) {
                 $LDAPSigning = switch ($LDAPSigning.ldapserverintegrity) {
-                    0 { "None" }
-                    1 { "Require Signing" }
-                    default { "Unknown" }
+                    0 { 'None' }
+                    1 { 'Require Signing' }
+                    default { 'Unknown' }
                 }
             } else {
-                $LDAPSigning = "None"
+                $LDAPSigning = 'None'
             }
             $LDAPSigning
         }
@@ -92,20 +92,20 @@ function Get-AbrADHardening {
             $LDAPChannelBinding = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters' -Name 'LdapEnforceChannelBinding' -ErrorAction SilentlyContinue
             if ($LDAPChannelBinding.ldapserverintegrity) {
                 $LDAPChannelBinding = switch ($LDAPChannelBinding.ldapserverintegrity) {
-                    0 { "Never" }
-                    1 { "When supported" }
-                    2 { "Always" }
-                    default { "Unknown" }
+                    0 { 'Never' }
+                    1 { 'When supported' }
+                    2 { 'Always' }
+                    default { 'Unknown' }
                 }
             } else {
-                $LDAPChannelBinding = "Not Configured/Disabled"
+                $LDAPChannelBinding = 'Not Configured/Disabled'
             }
             $LDAPChannelBinding
         }
 
         try {
             Section -Style Heading3 'Active Directory Hardening' {
-                Paragraph "The following section provides an overview of critical Active Directory security hardening settings, including authentication protocols, SMB configurations, and LDAP security enforcement mechanisms."
+                Paragraph 'The following section provides an overview of critical Active Directory security hardening settings, including authentication protocols, SMB configurations, and LDAP security enforcement mechanisms.'
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
                 try {
@@ -136,40 +136,40 @@ function Get-AbrADHardening {
                     }
                     $outObj | Table @TableParams
                     if ($HealthCheck.Domain.BestPractice -and (($OutObj | Where-Object { $_.'NTLMv1 configuration' -in @('Send LM & NTLM responses', 'Send LM & NTLM - use NTLMv2 session security if negotiated', 'Send NTLM response only') }) -or ($OutObj | Where-Object { $_.'SMBv1 status' -eq 'Installed\Enabled' }) -or ($OutObj | Where-Object { $_.'Enforcing SMB Signing' -in @('Not Configured/Disabled', 'Disable') }) -or ($OutObj | Where-Object { $_.'Enforcing LDAP Signing' -eq 'None' }) -or ($OutObj | Where-Object { $_.'Enforcing LDAP Channel Binding' -in @('Never', 'Not Configured/Disabled') }))) {
-                        Paragraph "Health Check:" -Bold -Underline
+                        Paragraph 'Health Check:' -Bold -Underline
                         BlankLine
                         if (($OutObj | Where-Object { $_.'Enforcing SMB Signing' -in @('Not Configured/Disabled', 'Disable') })) {
                             Paragraph {
-                                Text "Best Practice:" -Bold
-                                Text "Enforcing SMB Signing: SMB signing is a security feature that helps protect against man-in-the-middle attacks by ensuring the authenticity and integrity of SMB communications."
+                                Text 'Best Practice:' -Bold
+                                Text 'Enforcing SMB Signing: SMB signing is a security feature that helps protect against man-in-the-middle attacks by ensuring the authenticity and integrity of SMB communications.'
                             }
                             BlankLine
                         }
                         if (($OutObj | Where-Object { $_.'SMBv1 status' -eq 'Installed\Enabled' })) {
                             Paragraph {
-                                Text "Best Practice:" -Bold
-                                Text "SMBv1 status is enabled: SMBv1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems to enhance security and reduce the risk of exploitation. SMBv1 has been deprecated and replaced by SMBv2 and SMBv3, which offer improved security features."
+                                Text 'Best Practice:' -Bold
+                                Text 'SMBv1 status is enabled: SMBv1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems to enhance security and reduce the risk of exploitation. SMBv1 has been deprecated and replaced by SMBv2 and SMBv3, which offer improved security features.'
                             }
                             BlankLine
                         }
                         if (($OutObj | Where-Object { $_.'Enforcing LDAP Signing' -eq 'None' })) {
                             Paragraph {
-                                Text "Best Practice:" -Bold
-                                Text "Enforcing LDAP Signing is not configured: LDAP signing is a security feature that helps protect the integrity and confidentiality of LDAP communications by requiring LDAP data signing."
+                                Text 'Best Practice:' -Bold
+                                Text 'Enforcing LDAP Signing is not configured: LDAP signing is a security feature that helps protect the integrity and confidentiality of LDAP communications by requiring LDAP data signing.'
                             }
                             BlankLine
                         }
                         if (($OutObj | Where-Object { $_.'Enforcing LDAP Channel Binding' -in @('Never', 'Not Configured/Disabled') })) {
                             Paragraph {
-                                Text "Best Practice:" -Bold
-                                Text "Enforcing LDAP Channel Binding is not configured: LDAP channel binding is a security feature that helps protect against man-in-the-middle attacks by ensuring the authenticity and integrity of LDAP communications."
+                                Text 'Best Practice:' -Bold
+                                Text 'Enforcing LDAP Channel Binding is not configured: LDAP channel binding is a security feature that helps protect against man-in-the-middle attacks by ensuring the authenticity and integrity of LDAP communications.'
                             }
                             BlankLine
                         }
                         if (($OutObj | Where-Object { $_.'NTLMv1 configuration' -in @('Send LM & NTLM responses', 'Send LM & NTLM - use NTLMv2 session security if negotiated', 'Send NTLM response only') })) {
                             Paragraph {
-                                Text "Best Practice:" -Bold
-                                Text "Disable NTLMv1: NTLMv1 is an outdated authentication protocol that is vulnerable to several security issues. It is recommended to disable NTLMv1 on all systems to enhance security and reduce the risk of exploitation. NTLMv1 has been deprecated and replaced by NTLMv2, which offers improved security features."
+                                Text 'Best Practice:' -Bold
+                                Text 'Disable NTLMv1: NTLMv1 is an outdated authentication protocol that is vulnerable to several security issues. It is recommended to disable NTLMv1 on all systems to enhance security and reduce the risk of exploitation. NTLMv1 has been deprecated and replaced by NTLMv2, which offers improved security features.'
                             }
                             BlankLine
                         }
@@ -184,7 +184,7 @@ function Get-AbrADHardening {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Hardening"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Hardening'
     }
 
 }

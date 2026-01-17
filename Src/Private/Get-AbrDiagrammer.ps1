@@ -6,7 +6,7 @@ function Get-AbrDiagrammer {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -49,7 +49,7 @@ function Get-AbrDiagrammer {
         [Parameter(
             Position = 5,
             Mandatory = $false,
-            HelpMessage = 'Plea'
+            HelpMessage = 'Please provide Domain controller to use'
         )]
         [string]$DomainController = $System,
         [Parameter(
@@ -117,18 +117,18 @@ function Get-AbrDiagrammer {
 
             try {
                 foreach ($Format in $DiagramFormat) {
-                    if ($Format -eq "base64") {
-                        $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format
+                    if ($Format -eq 'base64') {
+                        $Graph = New-AbrADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format
                         if ($Graph) {
                             $Graph
                         }
                     } else {
                         if ($FileName) {
                             $FileName = "$($FileName).$($Format)"
-                            $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
+                            $Graph = New-AbrADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
                         } else {
-                            $FileName = "AsBuiltReport.$($Global:Report)-($($DiagramType)).$($Format)"
-                            $Graph = New-ADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
+                            $FileName = "AsBuiltReport.Microsoft.AD-($($DiagramType)).$($Format)"
+                            $Graph = New-AbrADDiagram @DiagramParams -DiagramType $DiagramType -Format $Format -Filename $FileName
                         }
                         if ($Graph) {
                             if ($ExportPath) {

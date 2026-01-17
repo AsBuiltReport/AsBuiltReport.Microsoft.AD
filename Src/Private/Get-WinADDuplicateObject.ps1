@@ -35,66 +35,66 @@ function Get-WinADDuplicateObject {
         $DC = $ForestInformation['QueryServers']["$Domain"].HostName[0]
         #Get conflict objects
         $getADObjectSplat = @{
-            LDAPFilter = "(|(cn=*\0ACNF:*)(ou=*CNF:*))"
+            LDAPFilter = '(|(cn=*\0ACNF:*)(ou=*CNF:*))'
             Properties = 'DistinguishedName', 'ObjectClass', 'DisplayName', 'SamAccountName', 'Name', 'ObjectCategory', 'WhenCreated', 'WhenChanged', 'ProtectedFromAccidentalDeletion', 'ObjectGUID'
             Server = $DC
             SearchScope = 'Subtree'
             Credential = $Credential
         }
         $Objects = Get-ADObject @getADObjectSplat
-        foreach ($_ in $Objects) {
+        foreach ($Object in $Objects) {
             # Lets allow users to filter on it
             if ($ExcludeObjectClass) {
-                if ($ExcludeObjectClass -contains $_.ObjectClass) {
+                if ($ExcludeObjectClass -contains $Object.ObjectClass) {
                     continue
                 }
             }
             if ($IncludeObjectClass) {
-                if ($IncludeObjectClass -notcontains $_.ObjectClass) {
+                if ($IncludeObjectClass -notcontains $Object.ObjectClass) {
                     continue
                 }
             }
             if ($PartialMatchDistinguishedName) {
-                if ($_.DistinguishedName -notlike $PartialMatchDistinguishedName) {
+                if ($Object.DistinguishedName -notlike $PartialMatchDistinguishedName) {
                     continue
                 }
             }
             if ($NoPostProcessing) {
-                $_
+                $Object
                 continue
             }
-            $DomainName = ConvertFrom-DistinguishedName -DistinguishedName $_.DistinguishedName -ToDomainCN
+            $DomainName = ConvertFrom-DistinguishedName -DistinguishedName $Object.DistinguishedName -ToDomainCN
             # Lets create separate objects for different purpoeses
             $ConflictObject = [ordered] @{
-                ConflictDN = $_.DistinguishedName
-                ConflictWhenChanged = $_.WhenChanged
+                ConflictDN = $Object.DistinguishedName
+                ConflictWhenChanged = $Object.WhenChanged
                 DomainName = $DomainName
-                ObjectClass = $_.ObjectClass
+                ObjectClass = $Object.ObjectClass
             }
             $LiveObjectData = [ordered] @{
-                LiveDn = "N/A"
-                LiveWhenChanged = "N/A"
+                LiveDn = 'N/A'
+                LiveWhenChanged = 'N/A'
             }
             $RestData = [ordered] @{
-                DisplayName = $_.DisplayName
-                Name = $_.Name.Replace("`n", ' ')
-                SamAccountName = $_.SamAccountName
-                ObjectCategory = $_.ObjectCategory
-                WhenCreated = $_.WhenCreated
-                WhenChanged = $_.WhenChanged
-                ProtectedFromAccidentalDeletion = $_.ProtectedFromAccidentalDeletion
-                ObjectGUID = $_.ObjectGUID.Guid
+                DisplayName = $Object.DisplayName
+                Name = $Object.Name.Replace("`n", ' ')
+                SamAccountName = $Object.SamAccountName
+                ObjectCategory = $Object.ObjectCategory
+                WhenCreated = $Object.WhenCreated
+                WhenChanged = $Object.WhenChanged
+                ProtectedFromAccidentalDeletion = $Object.ProtectedFromAccidentalDeletion
+                ObjectGUID = $Object.ObjectGUID.Guid
             }
             if ($Extended) {
                 $LiveObject = $null
                 $ConflictObject = $ConflictObject + $LiveObjectData + $RestData
                 #See if we are dealing with a 'cn' conflict object
-                if (Select-String -SimpleMatch "\0ACNF:" -InputObject $ConflictObject.ConflictDn) {
+                if (Select-String -SimpleMatch '\0ACNF:' -InputObject $ConflictObject.ConflictDn) {
                     #Split the conflict object DN so we can remove the conflict notation
-                    $SplitConfDN = $ConflictObject.ConflictDn -split "0ACNF:"
+                    $SplitConfDN = $ConflictObject.ConflictDn -split '0ACNF:'
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
-                        $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0].TrimEnd("\"))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
+                        $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0].TrimEnd('\'))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
                     } catch { Out-Null }
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
@@ -102,7 +102,7 @@ function Get-WinADDuplicateObject {
                     }
                 } else {
                     #Split the conflict object DN so we can remove the conflict notation for OUs
-                    $SplitConfDN = $ConflictObject.ConflictDn -split "CNF:"
+                    $SplitConfDN = $ConflictObject.ConflictDn -split 'CNF:'
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
                         $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0])$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop

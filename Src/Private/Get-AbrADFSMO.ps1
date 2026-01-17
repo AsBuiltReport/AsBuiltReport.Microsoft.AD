@@ -5,7 +5,7 @@ function Get-AbrADFSMO {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -22,7 +22,7 @@ function Get-AbrADFSMO {
 
     begin {
         Write-PScriboMessage -Message "Collecting Active Directory FSMO information of domain $($Domain.DNSRoot)."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD FSMO Roles"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD FSMO Roles'
     }
 
     process {
@@ -64,16 +64,16 @@ function Get-AbrADFSMO {
                             }
                             $OutObj | Table @TableParams
                             if ($HealthCheck.DomainController.BestPractice -and ($IsInfraMasterGC)) {
-                                Paragraph "Health Check:" -Bold -Underline
+                                Paragraph 'Health Check:' -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text "Best Practice:" -Bold
+                                    Text 'Best Practice:' -Bold
                                     Text "The infrastructure master role in the domain $($Domain.DNSRoot.ToString().ToUpper()) should be held by a domain controller that is not a global catalog server. The infrastructure master is responsible for updating references from objects in its domain to objects in other domains. If the infrastructure master runs on a global catalog server, it will not function properly because the global catalog holds a partial replica of every object in the forest, and it will not update the references. This issue does not affect forests that have a single domain. "
                                 }
                                 BlankLine
                                 Paragraph {
-                                    Text "Reference:" -Bold
-                                    Text "http://go.microsoft.com/fwlink/?LinkId=168841"
+                                    Text 'Reference:' -Bold
+                                    Text 'http://go.microsoft.com/fwlink/?LinkId=168841'
                                 }
                             }
                         }
@@ -90,7 +90,7 @@ function Get-AbrADFSMO {
         }
     }
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD FSMO Roles"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD FSMO Roles'
     }
 
 }

@@ -5,7 +5,7 @@ function Get-AbrDHCPinAD {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -16,19 +16,18 @@ function Get-AbrDHCPinAD {
     #>
     [CmdletBinding()]
     param (
-        [ref]$DomainStatus
     )
 
     begin {
         Write-PScriboMessage -Message "Collecting AD DHCP Servers information of $($ForestInfo.toUpper())."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "DHCP Infrastructure"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'DHCP Infrastructure'
     }
 
     process {
         $DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain ($using:ADSystem).RootDomain -ErrorAction Stop }
         if ($DomainInfo) {
             $DHCPServers = try {
-                Get-ADObjectSearch -DN "CN=NetServices,CN=Services,CN=Configuration,$(($DomainInfo).DistinguishedName)" -Filter { objectclass -eq 'dHCPClass' -AND Name -ne 'dhcproot' } -Properties "*" -SelectPrty 'Name' -Session $TempPssSession
+                Get-ADObjectSearch -DN "CN=NetServices,CN=Services,CN=Configuration,$(($DomainInfo).DistinguishedName)" -Filter { objectclass -eq 'dHCPClass' -AND Name -ne 'dhcproot' } -Properties '*' -SelectPrty 'Name' -Session $TempPssSession
             } catch { Out-Null }
         }
         try {
@@ -40,21 +39,13 @@ function Get-AbrDHCPinAD {
                     $DCServersinAD = @(
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             try {
-                                if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
-                                    (Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
-                                } else {
-                                    $DomainStatus.Value += @{
-                                        Name = $Domain
-                                        Status = 'Offline'
-                                    }
-                                    Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $Domain domain. Removing it from the report."
-                                }
+                                (Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
                             } catch { Out-Null }
                         }
                     )
                 } catch { Out-Null }
                 Section -Style Heading3 'DHCP Infrastructure' {
-                    Paragraph "The following section provides an overview of the DHCP servers registered in Active Directory."
+                    Paragraph 'The following section provides an overview of the DHCP servers registered in Active Directory.'
                     BlankLine
                     $DCHPInfo = [System.Collections.ArrayList]::new()
                     foreach ($DHCPServer in $DHCPServers) {
@@ -92,7 +83,7 @@ function Get-AbrDHCPinAD {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "DHCP Infrastructure"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'DHCP Infrastructure'
     }
 
 }

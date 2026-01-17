@@ -5,7 +5,7 @@ function Get-AbrADKerberosAudit {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -22,7 +22,7 @@ function Get-AbrADKerberosAudit {
 
     begin {
         Write-PScriboMessage -Message "Collecting Kerberos Audit information on $($Domain.DNSRoot)."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "AD Kerberos Audit"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Kerberos Audit'
     }
 
     process {
@@ -60,11 +60,11 @@ function Get-AbrADKerberosAudit {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Table @TableParams
-                        Paragraph "Health Check:" -Bold -Underline
+                        Paragraph 'Health Check:' -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text "Corrective Actions:" -Bold
-                            Text "Ensure there are no instances of unconstrained Kerberos delegation in Active Directory, as it poses a security risk by allowing any service to impersonate users."
+                            Text 'Corrective Actions:' -Bold
+                            Text 'Ensure there are no instances of unconstrained Kerberos delegation in Active Directory, as it poses a security risk by allowing any service to impersonate users.'
                         }
                     }
                 } else {
@@ -103,11 +103,11 @@ function Get-AbrADKerberosAudit {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph "Health Check:" -Bold -Underline
+                            Paragraph 'Health Check:' -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text "Best Practice:" -Bold
-                                Text "Microsoft recommends changing the krbtgt account password regularly to enhance security and protect the environment."
+                                Text 'Best Practice:' -Bold
+                                Text 'Microsoft recommends changing the krbtgt account password regularly to enhance security and protect the environment.'
                             }
                         }
                     } else {
@@ -117,7 +117,7 @@ function Get-AbrADKerberosAudit {
                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
                 try {
-                    $SID = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { $($using:Domain).domainsid.ToString() + "-500" }
+                    $SID = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { $($using:Domain).domainsid.ToString() + '-500' }
                     $ADMIN = $Users | Where-Object { $_.SID -eq $SID }
                     if ($ADMIN) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Administrator Account Audit' {
@@ -151,11 +151,11 @@ function Get-AbrADKerberosAudit {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph "Health Check:" -Bold -Underline
+                            Paragraph 'Health Check:' -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text "Best Practice:" -Bold
-                                Text "Microsoft recommends changing the Administrator account password regularly to enhance security and protect the environment."
+                                Text 'Best Practice:' -Bold
+                                Text 'Microsoft recommends changing the Administrator account password regularly to enhance security and protect the environment.'
                             }
                         }
                     } else {
@@ -171,7 +171,7 @@ function Get-AbrADKerberosAudit {
     }
 
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "AD Kerberos Audit"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'AD Kerberos Audit'
     }
 
 }

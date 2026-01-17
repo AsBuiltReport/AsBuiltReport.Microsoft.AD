@@ -5,7 +5,7 @@ function Get-AbrDNSSection {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.8
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -21,20 +21,20 @@ function Get-AbrDNSSection {
 
     begin {
         Write-PScriboMessage -Message "Collecting DNS server information from $ForestInfo."
-        Show-AbrDebugExecutionTime -Start -TitleMessage "DNS Section"
+        Show-AbrDebugExecutionTime -Start -TitleMessage 'DNS Section'
     }
 
     process {
         if ($InfoLevel.DNS -ge 1) {
-            $DNSDomainObj = foreach ($Domain in [string[]]($OrderedDomains | Where-Object { $_ -notin $Options.Exclude.Domains })) {
+            $DNSDomainObj = foreach ($Domain in $OrderedDomains) {
                 if ($Domain -and ($Domain -notin $DomainStatus.Value.Name)) {
-                    if ($ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
+                    if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         try {
                             if ($DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain }) {
                                 $DCs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
 
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
-                                    Paragraph "The following section provides a comprehensive summary of the DNS service configuration and settings for this domain."
+                                    Paragraph 'The following section provides a comprehensive summary of the DNS service configuration and settings for this domain.'
                                     BlankLine
                                     if ($TempCIMSession) {
                                         Get-AbrADDNSInfrastructure -Domain $DomainInfo -DCs $DCs
@@ -52,18 +52,18 @@ function Get-AbrDNSSection {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Name System Information)"
                         }
                     } else {
-                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing it from the report."
+                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($DomainInfo.DNSRoot) domain. Removing domain from the DNS section."
                     }
                 }
             }
             if ($DNSDomainObj) {
-                Section -Style Heading1 "DNS Configuration" {
+                Section -Style Heading1 'DNS Configuration' {
                     if ($Options.ShowDefinitionInfo) {
-                        Paragraph "The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols."
+                        Paragraph 'The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols.'
                         BlankLine
                     }
                     if (-not $Options.ShowDefinitionInfo) {
-                        Paragraph "The following section provides a comprehensive overview of the DNS infrastructure configuration and settings within the Active Directory environment."
+                        Paragraph 'The following section provides a comprehensive overview of the DNS infrastructure configuration and settings within the Active Directory environment.'
                         BlankLine
                     }
                     $DNSDomainObj
@@ -72,6 +72,6 @@ function Get-AbrDNSSection {
         }
     }
     end {
-        Show-AbrDebugExecutionTime -End -TitleMessage "DNS Section"
+        Show-AbrDebugExecutionTime -End -TitleMessage 'DNS Section'
     }
 }

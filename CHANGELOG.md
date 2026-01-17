@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.9] - 2026-01-16
+
+### Added
+
+- Add disclaimer warning to README.md about report usage and liability
+- Add option to control the ping count of the DC Test-Connection cmdlet
+
+### Changed
+
+- Improve error logging and handling for initial Forest and Domain discovery process
+- Update module version to `0.9.9`
+- Upgrade Diagrammer.Core module to version `0.2.36.1`
+- Improve overall code with pwsh best practices
+- Migrate Diagrammer.Microsoft.Ad diagrams to the main report
+- Enable export of diagrams by default
+- Updated the dcdiag section to include a 60-second timeout. This keeps the report from freezing if the diagnostic check takes too long.
+
+
+### Fixed
+
+- Fix cannot index into a null array error when generating Trusts diagrams for domains with no trusts defined
+- Fix Trusts diagram generation when multiple domains are present in the report
+- Fix issue with Global:Report variable
+
+### Removed
+
+- Remove Diagrammer.Microsoft.Ad module dependency
+- Remove Image preview message from diagrams sections
+
 ## [0.9.8] - 2025-12-09
 
 ### Added

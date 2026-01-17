@@ -65,7 +65,7 @@ function Get-WinADDuplicateSPN {
             }
         }
     }
-    Write-PScriboMessage -Message "Get-WinADDuplicateSPN - Finalizing output. Processing..."
+    Write-PScriboMessage -Message 'Get-WinADDuplicateSPN - Finalizing output. Processing...'
     foreach ($SPN in $SPNCache.Values) {
         if ($SPN.Count -gt 1 -and $SPN.Excluded -ne $true) {
             $SPN.Duplicate = $true

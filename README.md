@@ -25,6 +25,9 @@
 </p>
 <!-- ********** DO NOT EDIT THESE LINKS ********** -->
 
+> [!WARNING]
+> This report combines automated data analysis with professional observations. While these findings offer expert insight, this assessment is not exhaustive. All recommendations should be reviewed and implemented by qualified personnel. The author(s) assume no liability for any damages—including lost profits, business interruptions, or financial losses arising from the use of this report or its recommendations.
+
 #### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
 # Microsoft AD As Built Report
@@ -69,7 +72,6 @@ PowerShell 5.1, and the following PowerShell modules are required for generating
 - [PScribo Module](https://github.com/iainbrighton/PScribo)
 - [PSGraph Module](https://github.com/KevinMarquette/PSGraph)
 - [Diagrammer.Core Module](https://github.com/rebelinux/Diagrammer.Core)
-- [Diagrammer.Microsoft.AD Module](https://github.com/rebelinux/Diagrammer.Microsoft.AD)
 - [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
 - [ADCSAdministration Module](https://learn.microsoft.com/en-us/powershell/module/adcsadministration/?view=windowsserver2019-ps)
@@ -96,7 +98,6 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 Install-Module -Name PSPKI
 Install-Module -Name PSGraph
 Install-Module -Name Diagrammer.Core
-Install-Module -Name Diagrammer.Microsoft.AD
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Install-WindowsFeature -Name RSAT-AD-PowerShell
 Install-WindowsFeature -Name RSAT-ADCS,RSAT-ADCS-mgmt
@@ -110,7 +111,6 @@ Install-WindowsFeature -Name GPMC
 Install-Module -Name PSPKI
 Install-Module -Name PSGraph
 Install-Module -Name Diagrammer.Core
-Install-Module -Name Diagrammer.Microsoft.AD
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -Online -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0'
@@ -169,31 +169,32 @@ The **Report** schema provides configuration of the Microsoft AD report informat
 
 The **Options** schema allows certain options within the report to be toggled on or off.
 
-| Sub-Schema              | Setting            | Default   | Description                                                                   |
-| ----------------------- | ------------------ | --------- | ----------------------------------------------------------------------------- |
-| DiagramTheme            | string             | White     | Set the diagram theme (Black/White/Neon)                                      |
-| DiagramType             | true / false       | true      | Toggle to enable/disable the export of individual diagram diagrams            |
-| DiagramWaterMark        | string             | empty     | Set the diagram watermark                                                     |
-| EnableDiagrams          | true / false       | false     | Toggle to enable/disable infrastructure diagrams                              |
-| EnableDiagramsDebug     | true / false       | false     | Toggle to enable/disable diagram debug option                                 |
-| EnableDiagramSignature  | true / false       | false     | Toggle to enable/disable diagram signature (bottom right corner)              |
-| EnableHardwareInventory | true / false       | false     | Toggle to enable/disable hardware information                                 |
-| ExportDiagrams          | true / false       | true      | Toggle to enable/disable diagram export option                                |
-| ExportDiagramsFormat    | string array       | pdf       | Set the format used to export the infrastructure diagram (dot, png, pdf, svg) |
-| Exclude.DCs             | Array List         | Empty     | Allow to filter on AD Domain Controller Server FQDN.                          |
-| Exclude.Domains         | Array List         | Empty     | Allow to filter on AD Domain FQDN                                             |
-| Include.DCs             | Array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                |
-| Include.Domains         | Array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.     |
-| JobsTimeOut             | Int                | 900       | Allow to set the timeout (in seconds) for remote jobs execution               |
-| PSDefaultAuthentication | Negotiate/Kerberos | Negotiate | Allow to set the value of the PSRemoting authentication method.               |
-|                         |                    |           | For Workgroup authentication Negotiate value is required.                     |
-| ShowDefinitionInfo      | true/false         | False     | Toggle to enable/disable Microsoft AD term explanations                       |
-| SignatureAuthorName     | string             | empty     | Set the signature author name                                                 |
-| SignatureCompanyName    | string             | empty     | Set the signature company name                                                |
-| WinRMFallbackToNoSSL    | Bool               | True      | Allow to fallback to WINRM without SSL                                        |
-| WinRMPort               | Int                | 5985      | Allow to set tcp port for WinRM                                               |
-| WinRMSSL                | Bool               | True      | Allow to enable SSL for WINRM connection                                      |
-| WinRMSSLPort            | Int                | 5986      | Allow to set tcp port for WinRM over SSL                                      |
+| Sub-Schema              | Setting            | Default   | Description                                                                      |
+| ----------------------- | ------------------ | --------- | -------------------------------------------------------------------------------- |
+| DCStatusPingCount       | int                | 2         | Set the count value for the cmdlet Test-Connection (Increase if network is slow) |
+| DiagramTheme            | string             | White     | Set the diagram theme (Black/White/Neon)                                         |
+| DiagramType             | true / false       | true      | Toggle to enable/disable the export of individual diagram diagrams               |
+| DiagramWaterMark        | string             | empty     | Set the diagram watermark                                                        |
+| EnableDiagrams          | true / false       | false     | Toggle to enable/disable infrastructure diagrams                                 |
+| EnableDiagramsDebug     | true / false       | false     | Toggle to enable/disable diagram debug option                                    |
+| EnableDiagramSignature  | true / false       | false     | Toggle to enable/disable diagram signature (bottom right corner)                 |
+| EnableHardwareInventory | true / false       | false     | Toggle to enable/disable hardware information                                    |
+| ExportDiagrams          | true / false       | true      | Toggle to enable/disable diagram export option                                   |
+| ExportDiagramsFormat    | string array       | pdf       | Set the format used to export the infrastructure diagram (dot, png, pdf, svg)    |
+| Exclude.DCs             | array List         | Empty     | Allow to filter on AD Domain Controller Server FQDN.                             |
+| Exclude.Domains         | array List         | Empty     | Allow to filter on AD Domain FQDN                                                |
+| Include.DCs             | array List         | Empty     | Allow only a list of Active Directory Domain FQDN to document.                   |
+| Include.Domains         | array List         | Empty     | Allow only a list of Active Directory Domain Controller FQDN to document.        |
+| JobsTimeOut             | int                | 900       | Allow to set the timeout (in seconds) for remote jobs execution                  |
+| PSDefaultAuthentication | Negotiate/Kerberos | Negotiate | Allow to set the value of the PSRemoting authentication method.                  |
+|                         |                    |           | For Workgroup authentication Negotiate value is required.                        |
+| ShowDefinitionInfo      | true/false         | False     | Toggle to enable/disable Microsoft AD term explanations                          |
+| SignatureAuthorName     | string             | empty     | Set the signature author name                                                    |
+| SignatureCompanyName    | string             | empty     | Set the signature company name                                                   |
+| WinRMFallbackToNoSSL    | bool               | True      | Allow to fallback to WINRM without SSL                                           |
+| WinRMPort               | int                | 5985      | Allow to set tcp port for WinRM                                                  |
+| WinRMSSL                | bool               | True      | Allow to enable SSL for WINRM connection                                         |
+| WinRMSSLPort            | int                | 5986      | Allow to set tcp port for WinRM over SSL                                         |
 
 
 ### InfoLevel

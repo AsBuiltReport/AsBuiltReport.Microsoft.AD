@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.7
+        Version:        0.9.9
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -38,7 +38,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo6
 
     # Check the version of the dependency modules
-    $ModuleArray = @('AsBuiltReport.Microsoft.AD', 'Diagrammer.Microsoft.AD', 'Diagrammer.Core')
+    $ModuleArray = @('AsBuiltReport.Microsoft.AD', 'Diagrammer.Core')
 
     foreach ($Module in $ModuleArray) {
         try {
@@ -95,16 +95,16 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     #---------------------------------------------------------------------------------------------#
     foreach ($System in $Target) {
 
-        if (Select-String -InputObject $System -Pattern "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") {
+        if (Select-String -InputObject $System -Pattern '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$') {
             throw "Please use the Fully Qualified Domain Name (FQDN) instead of an IP address when connecting to the Domain Controller: $System"
         }
 
         if ($Options.WinRMSSL) {
-            $WinRMType = "WinRM with SSL"
-            $CIMType = "CIM with SSL"
+            $WinRMType = 'WinRM with SSL'
+            $CIMType = 'CIM with SSL'
         } else {
-            $WinRMType = "WinRM"
-            $CIMType = "CIM"
+            $WinRMType = 'WinRM'
+            $CIMType = 'CIM'
         }
 
         # WinRM Session variables
@@ -114,7 +114,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $PSSTable = @()
 
         try {
-            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable)
+            $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable) -InitialForrestConnection $true
         } catch {
             throw "Failed to establish a PSSession ($WinRMType) with the Domain Controller '$System': $($_.Exception.Message)"
         }
@@ -130,7 +130,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             Write-PScriboMessage -Message "Connecting to retrieve Forest information from Domain Controller '$System'."
             $script:ADSystem = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADForest -ErrorAction Stop }
         } catch {
-            throw "Unable to retrieve Forest information from Domain Controller '$System'."
+            throw "Unable to retrieve Forest information from Domain Controller '$System'. Please ensure that the provided system is a Domain Controller and that the provided credentials have sufficient permissions to query Active Directory Forest information. Error Details: $($_.Exception.Message)"
         }
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
@@ -140,7 +140,28 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         } else {
             [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
         }
-        [array] $script:OrderedDomains = @($RootDomains, $ChildDomains)
+
+        $script:OrderedDomains = @($RootDomains)
+
+        if ($ChildDomains) {
+            $OrderedDomains += $ChildDomains
+        }
+
+        # Set initial connection to childs domains to find out if there is an available DC to fulfill the requests
+        foreach ($Domain in $OrderedDomains) {
+            try {
+                if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
+                    Write-PScriboMessage -Message "Initial Setup: An available DC in $Domain domain is found. Adding domain to the report."
+                } else {
+                    Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $Domain domain. Removing domain from the report."
+                    $DomainStatus += @{
+                        Name = $Domain
+                        Status = 'Offline'
+                    }
+                    $OrderedDomains = $OrderedDomains | Where-Object { $_ -ne $Domain }
+                }
+            } catch { Out-Null }
+        }
 
         # Forest Section
         Get-AbrForestSection
@@ -159,21 +180,29 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #---------------------------------------------------------------------------------------------#
 
         if ($Options.ExportDiagrams) {
-            Write-Host " "
-            Write-Host "ExportDiagrams option enabled: Exporting diagrams:"
+            Write-Host ' '
+            Write-Host 'ExportDiagrams option enabled: Exporting diagrams:'
             $Options.DiagramType.PSobject.Properties | ForEach-Object {
                 if ($_.Value -and $_.Name -eq 'Trusts') {
                     foreach ($Domain in $OrderedDomains) {
-                        $ValidDC = Get-ValidDCfromDomain -Domain $Domain[0] -DCStatus ([ref]$DCStatus)
-                        if ($ValidDC) {
-                            $DCPssSession = Get-ValidPSSession -ComputerName $ValidDC -SessionName $($ValidDC) -PSSTable ([ref]$PSSTable)
-                            if ($DCPssSession) {
-                                Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $DCPssSession -Domain $Domain[0] -FileName "AsBuiltReport.$($Global:Report)-($($_.Name))-$($Domain[0])"
+                        try {
+                            $ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)
+                            if ($ValidDC) {
+                                $DCPssSession = Get-ValidPSSession -ComputerName $ValidDC -SessionName $($ValidDC) -PSSTable ([ref]$PSSTable)
+                                if ($DCPssSession) {
+                                    Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $DCPssSession -Domain $Domain -FileName "AsBuiltReport.Microsoft.AD-($($_.Name))-$($Domain)"
+                                }
                             }
+                        } catch {
+                            Write-PScriboMessage -IsWarning -Message "Unable to generate 'Trusts' diagram for domain '$Domain': $($_.Exception.Message)"
                         }
                     }
                 } elseif ($_.Value) {
-                    Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $TempPssSession
+                    try {
+                        Get-AbrDiagrammer -DiagramType $_.Name -PSSessionObject $TempPssSession
+                    } catch {
+                        Write-PScriboMessage -IsWarning -Message "Unable to export $($_.Name) diagram: $($_.Exception.Message)"
+                    }
                 }
             }
         }
@@ -204,23 +233,23 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $DCOffine = $DCStatus | Where-Object { $Null -ne $_.DCName -and $_.Status -eq 'Offline' } | Select-Object -Property @{N = 'Name'; E = { $_.DCName } }, @{N = 'WinRM Status'; E = { $_.Status } }, @{N = 'Ping Status'; E = { $_.PingStatus } }, @{N = 'Protocol'; E = { $_.Protocol } } | ForEach-Object { [pscustomobject]$_ }
         $DomainOffline = $DomainStatus | Where-Object { $Null -ne $_.Name -and $_.Status -eq 'Offline' }
         if ($DCOffine -or $DomainOffline) {
-            Write-Host " "
+            Write-Host ' '
             Write-Host "The following Systems could not be reached:`n"
             if ($DCOffine) {
-                Write-Host "Domain Controllers"
-                Write-Host "------------------"
-                Write-Host " "
+                Write-Host 'Domain Controllers'
+                Write-Host '------------------'
+                Write-Host ' '
                 Write-PSObject $DCOffine -MatchMethod Query, Query, Query, Query -Column 'WinRM Status', 'WinRM Status', 'Ping Status', 'Ping Status' -Value "'WinRM Status' -eq 'Offline'", "'WinRM Status' -eq 'Online'", "'Ping Status' -eq 'Offline'", "'Ping Status' -eq 'Online'" -ValueForeColor Red, Green, Red, Green
-                Write-Host " "
+                Write-Host ' '
             }
             if ($DomainOffline) {
-                Write-Host "Domains"
-                Write-Host "--------"
-                Write-Host " "
+                Write-Host 'Domains'
+                Write-Host '--------'
+                Write-Host ' '
                 $DomainOffline | ForEach-Object {
                     Write-Host "$($_.Name)" -ForegroundColor Red
                 }
-                Write-Host " "
+                Write-Host ' '
             }
         }
     }#endregion foreach loop
