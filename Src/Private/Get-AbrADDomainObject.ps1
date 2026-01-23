@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.10
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -156,25 +156,30 @@ function Get-AbrADDomainObject {
                                 }
                                 $inObj = [ordered] @{
                                     'Category' = $Category
-                                    'Enabled' = ($Values.Enabled -eq $True | Measure-Object).Count
-                                    'Enabled %' = switch ($Users.Count) {
-                                        0 { '0' }
-                                        $Null { '0' }
+                                    'Enabled' = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
+                                        $true { '0' }
+                                        default { ($Values.Enabled -eq $True | Measure-Object).Count }
+                                    }
+                                    'Enabled %' = switch ([string]::IsNullOrEmpty($Users.Count)) {
+                                        $true { '0' }
                                         default { [math]::Round((($Values.Enabled -eq $True | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
-                                    'Disabled' = ($Values.Enabled -eq $False | Measure-Object).Count
-                                    'Disabled %' = switch ($Users.Count) {
-                                        0 { '0' }
-                                        $Null { '0' }
+                                    'Disabled' = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
+                                        $true { '0' }
+                                        default { ($Values.Enabled -eq $False | Measure-Object).Count }
+                                    }
+                                    'Disabled %' = switch ([string]::IsNullOrEmpty($Users.Count)) {
+                                        $true { '0' }
                                         default { [math]::Round((($Values.Enabled -eq $False | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
-                                    'Total' = ($Values | Measure-Object).Count
-                                    'Total %' = switch ($Users.Count) {
-                                        0 { '0' }
-                                        $Null { '0' }
+                                    'Total' = switch ([string]::IsNullOrEmpty($Values)) {
+                                        $true { '0' }
+                                        default { ($Values | Measure-Object).Count }
+                                    }
+                                    'Total %' = switch ([string]::IsNullOrEmpty($Users.Count)) {
+                                        $true { '0' }
                                         default { [math]::Round((($Values | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
-
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
@@ -774,25 +779,30 @@ function Get-AbrADDomainObject {
                                 }
                                 $inObj = [ordered] @{
                                     'Category' = $Category
-                                    'Enabled' = ($Values.Enabled -eq $True | Measure-Object).Count
-                                    'Enabled %' = switch ($Computers.Count) {
-                                        0 { '0' }
-                                        $Null { '0' }
-                                        default { [math]::Round((($Values.Enabled -eq $True | Measure-Object).Count / $Computers.Count * 100), 2) }
+                                    'Enabled' = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
+                                        $true { '0' }
+                                        default { ($Values.Enabled -eq $True | Measure-Object).Count }
                                     }
-                                    'Disabled' = ($Values.Enabled -eq $False | Measure-Object).Count
-                                    'Disabled %' = switch ($Computers.Count) {
-                                        0 { '0' }
-                                        $Null { '0' }
-                                        default { [math]::Round((($Values.Enabled -eq $False | Measure-Object).Count / $Computers.Count * 100), 2) }
+                                    'Enabled %' = switch ([string]::IsNullOrEmpty($Users.Count)) {
+                                        $true { '0' }
+                                        default { [math]::Round((($Values.Enabled -eq $True | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
-                                    'Total' = ($Values | Measure-Object).Count
-                                    'Total %' = switch ($Computers.Count) {
-                                        0 { '0' }
-                                        $Null { '0' }
-                                        default { [math]::Round((($Values | Measure-Object).Count / $Computers.Count * 100), 2) }
+                                    'Disabled' = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
+                                        $true { '0' }
+                                        default { ($Values.Enabled -eq $False | Measure-Object).Count }
                                     }
-
+                                    'Disabled %' = switch ([string]::IsNullOrEmpty($Users.Count)) {
+                                        $true { '0' }
+                                        default { [math]::Round((($Values.Enabled -eq $False | Measure-Object).Count / $Users.Count * 100), 2) }
+                                    }
+                                    'Total' = switch ([string]::IsNullOrEmpty($Values)) {
+                                        $true { '0' }
+                                        default { ($Values | Measure-Object).Count }
+                                    }
+                                    'Total %' = switch ([string]::IsNullOrEmpty($Users.Count)) {
+                                        $true { '0' }
+                                        default { [math]::Round((($Values | Measure-Object).Count / $Users.Count * 100), 2) }
+                                    }
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
