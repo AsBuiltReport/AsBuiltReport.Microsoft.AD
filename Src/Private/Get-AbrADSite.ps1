@@ -40,9 +40,9 @@ function Get-AbrADSite {
                             }
 
                             if ($Graph) {
-                                if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
+                                $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
                                 Section -Style Heading4 'Site Inventory Diagram.' {
-                                    Image -Base64 $Graph -Text 'Site Inventory Diagram' -Percent $ImagePrty -Align Center
+                                    Image -Base64 $Graph -Text 'Site Inventory Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                 }
                                 BlankLine -Count 2
                             }
@@ -334,9 +334,9 @@ function Get-AbrADSite {
                             }
 
                             if ($Graph) {
-                                if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
+                                $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
                                 Section -Style Heading4 'Site Topology Diagram.' {
-                                    Image -Base64 $Graph -Text 'Site Topology Diagram' -Percent $ImagePrty -Align Center
+                                    Image -Base64 $Graph -Text 'Site Topology Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                 }
                                 BlankLine -Count 2
                             }

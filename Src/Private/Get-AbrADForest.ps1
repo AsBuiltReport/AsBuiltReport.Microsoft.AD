@@ -116,9 +116,9 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
-                            if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
+                            $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
                             Section -Style Heading3 'Forest Diagram.' {
-                                Image -Base64 $Graph -Text 'Forest Diagram' -Percent $ImagePrty -Align Center
+                                Image -Base64 $Graph -Text 'Forest Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                             }
                             BlankLine -Count 2
                         }
@@ -223,9 +223,9 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
-                            if ((Get-DiaImagePercent -GraphObj $Graph).Width -gt 600) { $ImagePrty = 20 } else { $ImagePrty = 40 }
+                            $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
                             Section -Style Heading4 'Certificate Authority Diagram.' {
-                                Image -Base64 $Graph -Text 'Certificate Authority Diagram' -Percent $ImagePrty -Align Center
+                                Image -Base64 $Graph -Text 'Certificate Authority Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                             }
                             BlankLine -Count 2
                         }
