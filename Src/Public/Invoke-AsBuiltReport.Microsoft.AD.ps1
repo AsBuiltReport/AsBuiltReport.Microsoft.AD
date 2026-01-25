@@ -142,16 +142,19 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         $script:OrderedDomains = @($RootDomains)
+        $OrderedDomains += $RootDomains
+        Write-PScriboMessage -IsWarning "Discovering $OrderedDomains forest."
 
         if ($ChildDomains) {
             $OrderedDomains += $ChildDomains
+            Write-PScriboMessage -IsWarning "Discovering $RootDomains forest domains: $($OrderedDomains -join ', ' )"
         }
 
         # Set initial connection to childs domains to find out if there is an available DC to fulfill the requests
         foreach ($Domain in $OrderedDomains) {
             try {
                 if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
-                    Write-PScriboMessage -Message "Initial Setup: An available DC in $Domain domain is found. Adding domain to the report."
+                    Write-PScriboMessage -IsWarning -Message "Initial Setup: An available DC in $Domain domain is found. Adding domain to the report."
                 } else {
                     Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $Domain domain. Removing domain from the report."
                     $DomainStatus += @{
@@ -159,6 +162,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                         Status = 'Offline'
                     }
                     $OrderedDomains = $OrderedDomains | Where-Object { $_ -ne $Domain }
+                    Write-PScriboMessage -IsWarning "Building $RootDomains forest domains list. $($OrderedDomains -join ', ' )"
                 }
             } catch { Out-Null }
         }
