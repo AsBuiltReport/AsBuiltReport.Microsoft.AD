@@ -26,9 +26,9 @@ function Get-AbrADCAInfo {
             $ForestObj = $ADSystem
 
             $ConfigNCDN = $ForestObj.PartitionsContainer.Split(',') | Select-Object -Skip 1
-            $rootCAs = Get-ADObjectSearch -DN "CN=Certification Authorities,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq 'certificationAuthority' } -Properties '*' -SelectPrty 'DistinguishedName', 'Name', 'cACertificate' -Session $TempPssSession
+            $rootCAs = Get-ADObjectSearch -DN "CN=Certification Authorities,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq 'certificationAuthority' } -Properties '*' -SelectPrty 'DistinguishedName', 'Name', 'cACertificate' -Session $DiagramTempPssSession
 
-            $subordinateCAs = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq 'pKIEnrollmentService' } -Properties '*' -SelectPrty 'dNSHostName', 'Name', 'cACertificate' -Session $TempPssSession
+            $subordinateCAs = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq 'pKIEnrollmentService' } -Properties '*' -SelectPrty 'dNSHostName', 'Name', 'cACertificate' -Session $DiagramTempPssSession
 
             $CAInfo = @()
             if ($rootCAs) {

@@ -7,22 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.10] - Unreleased
+## [0.9.10] - 2026-01-26
 
-### Fixed
+### :arrows_clockwise: Changed
 
-- Fix Computer/User status to display the correct values
-- Fix diagram size not respecting document border size
-- Fix in report only discovering child domains
+- Update module version to `0.9.10`
+- Update Diagrammer.Core module to `0.2.37`
+
+### :bug: Fixed
+
+- Fix the computer/user stats table so that it displays the correct values
+- Fix the size of the diagram, which does not respect the size of the document border
+- Fix domain section not discovering information from root domain
+- Fix the trust diagram, only displaying forest wide trust and not trusts from child domain
 
 ## [0.9.9] - 2026-01-16
 
-### Added
+### :toolbox: Added
 
 - Add disclaimer warning to README.md about report usage and liability
 - Add option to control the ping count of the DC Test-Connection cmdlet
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Improve error logging and handling for initial Forest and Domain discovery process
 - Update module version to `0.9.9`
@@ -33,26 +39,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated the dcdiag section to include a 60-second timeout. This keeps the report from freezing if the diagnostic check takes too long.
 
 
-### Fixed
+### :bug: Fixed
 
 - Fix cannot index into a null array error when generating Trusts diagrams for domains with no trusts defined
 - Fix Trusts diagram generation when multiple domains are present in the report
 - Fix issue with Global:Report variable
 
-### Removed
+### :x: Removed
 
 - Remove Diagrammer.Microsoft.Ad module dependency
 - Remove Image preview message from diagrams sections
 
 ## [0.9.8] - 2025-12-09
 
-### Added
+### :toolbox: Added
 
 - Add support for PowerShell 7
 - Add function to Invoke-Command with timeout support (Jobs Scheduler)
 - Add FileName parameter to Get-AbrDiagrammer to allow custom file names for diagram outputs
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Update module version to 0.9.8
 - Upgrade Diagrammer.Core module to version `0.2.35`
@@ -64,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve Get-RequiredFeatures function to better handle feature retrieval and error handling
 - Improve timeout warning message in Invoke-CommandWithTimeout
 
-### Fixed
+### :bug: Fixed
 
 - Fix HealthCheck in Get-AbrADDomainLastBackup script to correctly evaluate the 'Last Backup in Days' property as an integer
 - Fix 'Orphaned GPO' section displaying data when no orphaned GPOs are found in Get-AbrADGPO script
@@ -72,7 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.7] - 2025-11-14
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Update module version to 0.9.7
 - Upgrade Diagrammer.Core module to version `0.2.34`.
@@ -80,17 +86,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade zentered/bluesky-post-action to v0.3.0
 - Improve section paragraphs in multiple scripts for better clarity and understanding.
 
-### Fixed
+### :bug: Fixed
 
 - Fix HealthChack in Get-AbrADDomainLastBackup script to correctly evaluate the 'Last Backup in Days' property as an integer.
 
 ## [0.9.6] - 2025-07-23
 
-### Added
+### :toolbox: Added
 
 - Add System Center Configuration Manager (MEM) information
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Update module version to 0.9.6
 - Enhance execution time tracking in Get-AbrADDomainObject function
@@ -102,18 +108,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refine section descriptions across multiple PowerShell scripts for clarity and consistency.
 - Updated wording to enhance readability and provide more precise information about the content of each section to better reflect the information presented.
 
-### Fixed
+### :bug: Fixed
 
 - Fix property names in software object initialization for consistency and clarity (Installed Software section)
 - Fix [#210](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/210)
 
 ## [0.9.5] - 2025-05-10
 
-### Added
+### :toolbox: Added
 
 - Add Show-AbrDebugExecutionTime function to track execution time of operations
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Update PSScriptAnalyzer settings for enhanced code quality checks.
 - Bump module version to `0.9.5`.
@@ -148,19 +154,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Get-AbrPKISection.ps1
 - Removed unnecessary comments and cleaned up code for better readability.
 
-### Fixed
+### :bug: Fixed
 
 - Fix message in Get-AbrDiagrammer function to correctly reference DiagramType
 
 ## [0.9.4] - 2025-04-28
 
-### Added
+### :toolbox: Added
 
 - Add a new section in Get-AbrDomainSection to retrieve and sort DCs while excluding specified ones, enhancing the overall structure and clarity of the script.
 - Add diagram options to configuration file for various sections.
 - Introduced Get-AbrDiagrammer function to generate diagrams in multiple formats.
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Increase AsBuiltReport.Core to v1.4.3
 - Increase Diagrammer.Core minimum requirement
@@ -183,30 +189,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Get-ValidCIMSession
   - Get-ValidPSSession
 
-### Fixed
+### :bug: Fixed
 
 - Fix issue with WinRM connection setup in Domain Controller section
 
-### Removed
+### :x: Removed
 
 - Remove DCDiag section as it is not functioning properly
 
 ## [0.9.3] - 2025-02-21
 
-### Added
+### :toolbox: Added
 
 - Add Site Inventory diagram to the Replication section
 - Add Certificate Authority diagram
 
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Move Circular Group Membership section to $InfoLevel.Domain level 4
 - Increase AsBuiltReport.Core to v1.4.2
 - Increase Diagrammer.Core minimum requirement
 - Increase Diagrammer.Microsoft.AD minumum requirement
 
-### Fixed
+### :bug: Fixed
 
 - Fix error message during DC discovery and WinRM connection
 - Fix Get-WinADLastBackup cmdlet not returning AD partitions when the report generation machine is not part of the same domain or forest as the target domain controller
@@ -216,49 +222,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.2] - 2025-01-14
 
-### Added
+### :toolbox: Added
 
 - Add support for WinRM over SSL
 - Add option to set the WinRM tcp port used for PSSession connection setup
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Increase Diagrammer.Core minimum requirement
 - Increase AsBuiltReport.Core to v1.4.1
 - Improve DC selection logic
 - Improve HealthCheck best practice recommendations (@Copilot)
 
-### Fixed
+### :bug: Fixed
 
 - Fix [#190](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/190)
 - Fix [#191](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/191)
 - Fix ConvertTo-HashToYN cmdlet not generating an ordereddictionary output
 
-### Removed
+### :x: Removed
 
 - Remove dependabot action (Not supported in Abr Organization)
 
 ## [0.9.1] - 2024-11-15
 
-### Added
+### :toolbox: Added
 
 - Improve detection of empty fields in tables
 - Improve detection of true/false elements in tables
 - Update GitHub release workflow to add post to Bluesky social platform
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Increase Diagrammer.Core minimum requirement
 - Increase Diagrammer.Microsoft.AD minumum requirement
 
 ## [0.9.0] - 2024-10-13
 
-### Added
+### :toolbox: Added
 
 - Initial support for Server 2025
 - Add Dependabot action
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Increase Diagrammer.Core minimum requirement
 - Increase Diagrammer.Microsoft.AD minumum requirement
@@ -266,7 +272,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.2] - 2024-06-15
 
-### Added
+### :toolbox: Added
 
 - Add Diagrammer.Core to the module RequiredModules list
 - Add Health Check to detect circular group membership
@@ -276,14 +282,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Health Check to find Computers with password-not-required attribute set
 - Add basic DHCP Infrastructure information
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Improve the code to better handle errors
 - Update the Eomm/why-don-t-you-tweet action to v2.0.0
 - Increase the default InfoLevel for the Forest and Domain section (InfoLevel 2)
 - Enable DNS section by default (InfoLevel 1)
 
-### Fixed
+### :bug: Fixed
 
 - Fix [#160](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/160)
 - Fix [#168](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/168)
@@ -296,13 +302,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.1] - 2024-05-16
 
-### Added
+### :toolbox: Added
 
 - Site Topology diagram
 - Domain and Trust diagram
 - Foreign Security Principals section
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Remove Graphviz install check code
 - Code cleanup
@@ -312,7 +318,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change charts default font to Segoe Ui
 - Improved Forest diagram
 
-### Fixed
+### :bug: Fixed
 
 - Improve error handling on Forest diagram section
 - Fix issues with Diagrammer.Microsoft.AD module
@@ -323,20 +329,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix [#151](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/151)
 - Fix [#150](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/150)
 
-### Removed
+### :x: Removed
 
 - Removed EnableDiagrams option
 - Removed EnableCharts option
 
 ## [0.8.0] - 2024-01-24
 
-### Added
+### :toolbox: Added
 
 - Added initial diagram support:
   - Forest Diagram
 - Added disclaimer section if the EnableHealthCheck option is used.
 
-### Fixed
+### :bug: Fixed
 
 - Fix [#137](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/137)
 - Fix [#138](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/138)
@@ -344,14 +350,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.15] - 2023-10-03
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Improved verbose logging
 - Improved PKI Section
 
 ## [0.7.14] - 2023-07-25
 
-### Fixed
+### :bug: Fixed
 
 - Resolve [#113](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/113)
 - Resolve [#116](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/116)
@@ -368,18 +374,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.13] - 2023-06-22
 
-### Added
+### :toolbox: Added
 
 - Added Option "Include.Domains" to allow only a list of Active Directory Domain to document
   - Include Domains in AD services
   - Include Domains in DNS services
 - Added Site Connection Objects section
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Major improvements to health check recommendations
 
-### Fixed
+### :bug: Fixed
 
 - Fix HealthCheck sections not working after v0.7.12
 - Fix [#84](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/84)
@@ -401,18 +407,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.12] - 2023-05-23
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Removed DHCP section (migrated to AsBuiltReport.Microsoft.DHCP)
 - Disabled DNS & CA section by default
 
 ## [0.7.11] - 2023-03-09
 
-### Added
+### :toolbox: Added
 
 - Added section for Local Administrator Password Solution.
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Improved bug and feature request templates
 - Changed default logo from Microsoft to the AsBuiltReport logo due to licensing requirements
@@ -425,14 +431,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Sites Replication Connection
   - Domain and Trusts
 
-### Fixed
+### :bug: Fixed
 
 - [#81](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/81)
-### Added
+### :toolbox: Added
 
 - Added section for Local Administrator Password Solution.
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Improved bug and feature request templates
 - Changed default logo from Microsoft to the AsBuiltReport logo due to licensing requirements
@@ -445,30 +451,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Sites Replication Connection
   - Domain and Trusts
 
-### Fixed
+### :bug: Fixed
 
 - [#81](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/81)
 
 ## [0.7.10] - 2022-10-28
 
-### Fixed
+### :bug: Fixed
 
 - Fix issue [#83](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/83) (Error running report if multiple version are installed together)
 
 ## [0.7.9] - 2022-10-09
 
-### Added
+### :toolbox: Added
 
 - Added charts to the Domain object count sub-sections
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Split the Domain object count section.
   - Computers Object count
   - User object count
   - Domain Controller count
 
-### Fixed
+### :bug: Fixed
 
 - close [#69](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/69)
 - close [#74](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/74)
@@ -479,11 +485,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.8] - 2022-10-04
 
-### Added
+### :toolbox: Added
 
 - Added Simple Chart support
 
-### Fixed
+### :bug: Fixed
 
 - close [#67](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/67)
 - close [#68](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/68)
@@ -491,15 +497,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.7] - 2022-09-07
 
-### Added
+### :toolbox: Added
 
 - Add table to show the pending/missing Windows updates (Health Check)
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Improve domain controller dcdiag table
 
-### Fixed
+### :bug: Fixed
 
 - close [#57](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/57)
 - close [#59](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/59)
@@ -509,17 +515,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.6] - 2022-09-04
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Improve report table of content
 
-### Fixed
+### :bug: Fixed
 
 - close [#52](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/52)
 
 ## [0.7.5] - 2022-08-06
 
-### Added
+### :toolbox: Added
 
 - Added SYSVOL/NETLOGON folder content status
   - Added Health Check for malicious/unessential file extensions
@@ -527,25 +533,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Health Check for SRV Records Status
 - Added Health Check for Unsupported Operating System findings in the Active Directory Domain
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Allowed the Forest Root Domain to be the fisrt Domain in the report
 - Improved Sites Replication (repadmin) section
 
 ## [0.7.4] - 2022-07-29
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Access well known groups via SID to include international names and expand them to localized group names.
 - Removed PSSharedGoods/PSWriteColor module dependency
 
-### Fixed
+### :bug: Fixed
 
 - Fixes [#42](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/42)
 
 ## [0.7.3] - 2022-05-13
 
-### Added
+### :toolbox: Added
 
 - Improved validation of module dependencies
 - Added Option "Exclude.Domains" to allow Active Directory Domain exclusions
@@ -560,7 +566,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.2] - 2022-04-25
 
-### Added
+### :toolbox: Added
 
 - Improved AD user/group object stats
   - Added Privileged Group count information
@@ -569,24 +575,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added RID Pool Issued/Available information
 - Added Domain,Site and Global Catalog count information
 
-### Fixed
+### :bug: Fixed
 
 - Fix report module dependencies. Closes #35
 
 ## [0.7.1] - 2022-03-14
 
-### Added
+### :toolbox: Added
 
 - Added Kerberos Audit section.
   - Added Health Check condition and explanatione
 
-### Fixed
+### :bug: Fixed
 
 - Fix release workflows to include PSSharedGoods module.
 
 ## [0.7.0] - 2022-03-14
 
-### Added
+### :toolbox: Added
 
 - Implemented health check explanations.
 - Added Health Check:
@@ -596,19 +602,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Search for Account Security Issues.
 - Added Naming Context Backup information.
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Improve Health Check content.
 - Added enabled status on Forest Optional Features section.
 
-### Fixed
+### :bug: Fixed
 
 - Fix DNS section issues.
 - Sort "Organizational Unit" section by path. Closes #27
 
 ## [0.6.3] - 2022-01-30
 
-### Changed
+### :arrows_clockwise: Changed
 
 - More Code refactoring to improve performance.
 - Migrated DNS/DHCP Server section to use CIM sessions.
@@ -616,14 +622,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added variable to control CIM/PSRemote authentication method (PSDefaultAuthentication)
 - Changed report main text color.
 
-### Fixed
+### :bug: Fixed
 
 - Fix for more table caption error messages.
 - Fix section heading hierarchy
 
 ## [0.6.2] - 2022-01-24
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Code refactoring to improve performance.
 - Implement more try/catch to better handle terminating errors.
@@ -631,25 +637,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve Sections title text.
 - Improve table sorting.
 
-### Fixed
+### :bug: Fixed
 
 - Fix for table caption error messages.
 
 ## [0.6.1] - 2021-12-07
 
-### Added
+### :toolbox: Added
 
 - Added Sample HTML Report Link to README file.
 - Added DHCP/DNS Powershell module installation instructions. Closes #18
 
-### Fixed
+### :bug: Fixed
 
 - Improved the code to better detect whether a DHCP/CA infrastructure is in place. Closes #17
 - Fix missing comma in JSON File. Closes #16
 
 ## [0.6.0] - 2021-12-02
 
-### Added
+### :toolbox: Added
 
 - Added more CA Sections (Need More Testing)
   - Added CRL Repository
@@ -659,35 +665,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Key Recovery Agent Information
   - Added Cryptography Configuration Information
 
-### Changed
+### :arrows_clockwise: Changed
 
 - The spelling of the section title has been revised.
 - Enabled CA InfoLevels Option.
 
 ## [0.5.0] - 2021-10-29
 
-### Added
+### :toolbox: Added
 
 - Added ShowDefinitionInfo Option (Allows the user to choose whether to enable AD term explanations.)
 - Explanation of the ShowDefinitionInfo option has been added to the ReadMe file.
 - Added Dynamic DNS Credentials Health Check.
 - Added updated HTML Sample Report.
 
-### Changed
+### :arrows_clockwise: Changed
 
 - The spelling of the section title has been revised.
 - Moved DNS Zone section to InfoLevel 2.
 - Moved Role and Feature section to InfoLevel 3.
 - Removed Unused InfoLevels (CA & Security).
 
-### Fixed
+### :bug: Fixed
 
 - Fix try/catch error messages (globally)
 - Fix try/catch logic on the DNS Section (Fix [#11](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/11))
 
 ## [0.4.0] - 2021-10-08
 
-### Added
+### :toolbox: Added
 
 - Added Installed Roles and Features to the DC Section.
 - Added Fined Grained Password Policies to the Domain Section (fix issue #6).
@@ -708,7 +714,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added more DHCP IPv4/IPv6 Health Checks.
 - Added DNS Conditional Forwarder to DNS Section (fix issue #6).
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Added more Heading definitions.
 - Disable Certificate Authority until is Completed.
@@ -719,7 +725,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added DHCP InfoLevel 2 Option.
 - Updated Sample Report
 
-### Fixed
+### :bug: Fixed
 
 - Fix more PSSession exhaustion.
 - Remove the PSPKI module from ReadMe file.
@@ -728,7 +734,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0] - 2021-09-26
 
-### Added
+### :toolbox: Added
 
 - Added Active Directory DHCP summary information.
   - Added DHCP Database information.
@@ -744,13 +750,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added DHCP Scope Interface Binding information.
   - Added DHCP health check.
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Added more Heading definitions.
 - Added funtion to convert from subnetmask to dotted notation.
 - Added a function to convert empty culumns to "-" (less switch cases).
 
-### Fixed
+### :bug: Fixed
 
 - Fix for PSSession exhaustion.
 - Fix for DNS Zone Delegation IPaddress variable
@@ -762,7 +768,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2021-09-10
 
-### Added
+### :toolbox: Added
 
 - Added Active Directory DNS summary information.
   - Added DNS Forwarder summary information.
@@ -773,14 +779,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Added DNS Zone Delegation configuration information.
   - Added more health checks.
 
-### Changed
+### :arrows_clockwise: Changed
 
 - Improved per Domain configuration information.
 - Improved per Domain Controller configuration information.
 - Introduced the ability to use a shared PSsession.
 - Merged the functions used within the reports into a single file (SharedUtilsFunctions).
 
-### Fixed
+### :bug: Fixed
 
 - Enhanced the logic of detecting a unavailable Domain or DC.
 - Enhanced verbose/degug logging.
@@ -788,7 +794,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2021-08-10
 
-### Added
+### :toolbox: Added
 
 - Added Active Directory Forest summary information.
   - Added Forest Optional Features Summary.

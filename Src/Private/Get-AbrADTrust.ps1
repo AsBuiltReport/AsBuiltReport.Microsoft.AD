@@ -108,14 +108,14 @@ function Get-AbrADTrust {
                             if ($Options.EnableDiagrams) {
                                 try {
                                     try {
-                                        $Graph = Get-AbrDiagrammer -DiagramType 'Trusts' -DiagramOutput base64 -DomainController $ValidDCFromDomain -PSSessionObject $TempPssSession
+                                        $Graph = Get-AbrDiagrammer -DiagramType 'Trusts' -DiagramOutput base64 -DomainController $ValidDCFromDomain
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
                                     }
 
                                     if ($Graph) {
                                         $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
-                                        Section -Style Heading3 'Domain and Trusts Diagram.' {
+                                        Section -Style Heading3 'Domain and Trusts Diagram' {
                                             Image -Base64 $Graph -Text 'Domain and Trusts Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                         }
                                         BlankLine -Count 2

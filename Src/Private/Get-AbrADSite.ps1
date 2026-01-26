@@ -41,7 +41,7 @@ function Get-AbrADSite {
 
                             if ($Graph) {
                                 $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
-                                Section -Style Heading4 'Site Inventory Diagram.' {
+                                Section -Style Heading4 'Site Inventory Diagram' {
                                     Image -Base64 $Graph -Text 'Site Inventory Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                 }
                                 BlankLine -Count 2
@@ -335,7 +335,7 @@ function Get-AbrADSite {
 
                             if ($Graph) {
                                 $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
-                                Section -Style Heading4 'Site Topology Diagram.' {
+                                Section -Style Heading4 'Site Topology Diagram' {
                                     Image -Base64 $Graph -Text 'Site Topology Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                 }
                                 BlankLine -Count 2
