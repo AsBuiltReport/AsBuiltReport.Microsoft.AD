@@ -23,7 +23,7 @@ function Get-AbrADSitesInventoryInfo {
     process {
         Write-Verbose -Message ($reportTranslate.NewADDiagram.buildingSites -f $($ForestRoot))
         try {
-            $Sites = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSite -Filter * -Properties * }
+            $Sites = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADReplicationSite -Filter * -Properties * }
 
             $SitesInfo = @()
             if ($Sites) {
@@ -36,7 +36,7 @@ function Get-AbrADSitesInventoryInfo {
                             $SubnetArray = @()
                             $Subnets = $Site.Subnets
                             foreach ($Object in $Subnets) {
-                                $SubnetName = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSubnet $using:Object }
+                                $SubnetName = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADReplicationSubnet $using:Object }
                                 $SubnetArray += $SubnetName.Name
                             }
 
@@ -54,7 +54,7 @@ function Get-AbrADSitesInventoryInfo {
                         DomainControllers = & {
                             $DCsTable = @()
                             $DCsArray = @()
-                            $DCs = try { Get-ADObjectSearch -DN "CN=Servers,$($Site.DistinguishedName)" -Filter { objectClass -eq 'Server' } -Properties 'DNSHostName' -SelectPrty 'DNSHostName', 'Name' -Session $TempPssSession } catch { Out-Null }
+                            $DCs = try { Get-ADObjectSearch -DN "CN=Servers,$($Site.DistinguishedName)" -Filter { objectClass -eq 'Server' } -Properties 'DNSHostName' -SelectPrty 'DNSHostName', 'Name' -Session $DiagramTempPssSession } catch { Out-Null }
                             foreach ($Object in $DCs) {
                                 $DCsArray += $Object.DNSHostName
                             }

@@ -26,7 +26,7 @@ function Get-AbrDNSSection {
 
     process {
         if ($InfoLevel.DNS -ge 1) {
-            $DNSDomainObj = foreach ($Domain in $OrderedDomains) {
+            $DNSDomainObj = foreach ($Domain in ($OrderedDomains | Where-Object { $_ -notin $Options.Exclude.Domains })) {
                 if ($Domain -and ($Domain -notin $DomainStatus.Value.Name)) {
                     if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         try {

@@ -57,13 +57,13 @@ function Get-AbrADForestInfo {
                 foreach ($Childs in $ParentChildObj | Sort-Object) {
                     foreach ($ChildDomain in $Childs.Children) {
                         $ChildDomainsInfo = try {
-                            Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:ChildDomain }
+                            Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADDomain -Identity $using:ChildDomain }
                         } catch {
                             Out-Null
                         }
 
                         $RootDomainsInfo = try {
-                            Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity ($using:ForestObj).RootDomain }
+                            Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADDomain -Identity ($using:ForestObj).RootDomain }
                         } catch {
                             Out-Null
                         }
@@ -144,7 +144,7 @@ function Get-AbrADForestInfo {
                 }
             } else {
                 $RootDomainsInfo = try {
-                    Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity ($using:ForestObj).RootDomain }
+                    Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADDomain -Identity ($using:ForestObj).RootDomain }
                 } catch {
                     Out-Null
                 }
