@@ -23,7 +23,7 @@ function Get-AbrADSitesInfo {
     process {
         Write-Verbose -Message ($reportTranslate.NewADDiagram.buildingSites -f $($ForestRoot))
         try {
-            $Sites = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest().Sites | Select-Object Name, @{l = 'SitesLink'; e = { $_.sitelinks } } }
+            $Sites = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest().Sites | Select-Object Name, @{l = 'SitesLink'; e = { $_.sitelinks } } }
 
             $SitesInfo = @()
             if ($Sites) {
@@ -32,10 +32,10 @@ function Get-AbrADSitesInfo {
                         'Name' = $SitesLink.Name
                         'SiteLink' = & {
                             foreach ($Link in $SitesLink.SitesLink.Name) {
-                                $SitesLinkInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Identity $using:Link -Properties * }
+                                $SitesLinkInfo = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Identity $using:Link -Properties * }
                                 @{
                                     'Name' = $Link
-                                    'Sites' = $SitesLinkInfo.SitesIncluded | ForEach-Object { ConvertTo-ADObjectName -Session $TempPssSession -DN $_ -DC $System }
+                                    'Sites' = $SitesLinkInfo.SitesIncluded | ForEach-Object { ConvertTo-ADObjectName -Session $DiagramTempPssSession -DN $_ -DC $System }
                                     'AditionalInfo' = [ordered]@{
                                         $reportTranslate.NewADDiagram.siteLinkName = $Link
                                         $reportTranslate.NewADDiagram.siteLinkCost = $SitesLinkInfo.Cost

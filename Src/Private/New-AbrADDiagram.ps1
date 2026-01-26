@@ -494,12 +494,12 @@ function New-AbrADDiagram {
             try {
                 # Connection setup
                 if ($PSSessionObject) {
-                    $TempPssSession = $PSSessionObject
-                    $script:ADSystem = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADForest -ErrorAction Stop }
+                    $DiagramTempPssSession = $PSSessionObject
+                    $script:ADSystem = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADForest -ErrorAction Stop }
                 } else {
                     Write-Verbose ($reportTranslate.NewADDiagram.psSessionSetup -f $($System))
-                    $script:TempPssSession = New-PSSession $System -Credential $Credential -Authentication $PSDefaultAuthentication -ErrorAction Stop
-                    $script:ADSystem = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADForest -ErrorAction Stop }
+                    $script:DiagramTempPssSession = New-PSSession $System -Credential $Credential -Authentication $PSDefaultAuthentication -ErrorAction Stop
+                    $script:ADSystem = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADForest -ErrorAction Stop }
                 }
             } catch { throw ($reportTranslate.NewADDiagram.unableToConnect -f $System) }
 
@@ -581,8 +581,8 @@ function New-AbrADDiagram {
     } end {
         if (-not $PSSessionObject) {
             # Remove used PSSession
-            Write-Verbose ($reportTranslate.NewADDiagram.psSession -f $($TempPssSession.Id))
-            Remove-PSSession -Session $TempPssSession
+            Write-Verbose ($reportTranslate.NewADDiagram.psSession -f $($DiagramTempPssSession.Id))
+            Remove-PSSession -Session $DiagramTempPssSession
         }
 
         #Export Diagram

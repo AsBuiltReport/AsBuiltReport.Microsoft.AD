@@ -26,14 +26,13 @@ function Get-AbrDomainSection {
 
     process {
         if ($InfoLevel.Domain -ge 1) {
-            $DomainObj = foreach ($Domain in $OrderedDomains) {
+            $DomainObj = foreach ($Domain in ($OrderedDomains | Where-Object { $_ -notin $Options.Exclude.Domains })) {
                 if ($Domain -and ($Domain -notin $DomainStatus.Value.Name)) {
                     if ($ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
                         # Define Filter option for Domain variable
                         try {
                             if ($DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain }) {
                                 $DCs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
-
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
                                     Paragraph 'This section provides a comprehensive overview of the Active Directory domain configuration, including key settings and critical details.'
                                     BlankLine

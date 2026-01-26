@@ -54,7 +54,7 @@ function Get-AbrADTrustsInfo {
                 800 = 'Cross Organization (800)'
             }
 
-            $Trusts = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADTrust -Filter * -Properties CanonicalName, Target, TrustDirection, TrustAttributes, TrustType, SelectiveAuthentication } -ErrorAction Stop
+            $Trusts = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADTrust -Filter * -Properties CanonicalName, Target, TrustDirection, TrustAttributes, TrustType, SelectiveAuthentication } -ErrorAction Stop
 
             $TrustsInfo = @()
             if ($Trusts) {
