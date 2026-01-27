@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.10] - Unreleased
+
+### :arrows_clockwise: Changed
+
+- Update module version to `0.9.11`
+
+### :bug: Fixed
+
+- Fix the computer/user stats table so that it displays the correct values
+
 ## [0.9.10] - 2026-01-26
 
 ### :arrows_clockwise: Changed

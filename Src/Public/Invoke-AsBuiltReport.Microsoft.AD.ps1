@@ -35,7 +35,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo6
 
     # Check the version of the dependency modules
-    $ModuleArray = @('AsBuiltReport.Core', 'Diagrammer.Core', 'PSPKI')
+    $ModuleArray = @('AsBuiltReport.Core', 'Diagrammer.Core', 'PSPKI', 'PScriboCharts')
 
     foreach ($Module in $ModuleArray) {
         try {
@@ -69,8 +69,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Get-RequiredFeature -Name RSAT-DNS-Server -OSType $OSType
         Get-RequiredFeature -Name GPMC -OSType $OSType
     }
-
-    Get-RequiredModule -Name PSPKI -Version '4.3.0'
 
     # Import Report Configuration
     $script:Report = $ReportConfig.Report
