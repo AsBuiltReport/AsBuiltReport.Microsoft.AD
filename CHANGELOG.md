@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### :bug: Fixed
 
 - Fix the computer/user stats table so that it displays the correct values
+- Fix Avoid using the ! negation operator warning in New-AbrADDiagram cmdlet
 
 ## [0.9.10] - 2026-01-26
 

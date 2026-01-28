@@ -377,7 +377,7 @@ function New-AbrADDiagram {
             $Credential = New-Object System.Management.Automation.PSCredential ($Username, $SecurePassword)
         }
 
-        if (($Format -ne 'base64') -and !(Test-Path $OutputFolderPath)) {
+        if (($Format -ne 'base64') -and -not (Test-Path $OutputFolderPath)) {
             Write-Error ($reportTranslate.NewADDiagram.outputfolderpatherror -f $OutputFolderPath)
             break
         }
