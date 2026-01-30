@@ -22,7 +22,7 @@ function Invoke-DcDiag {
     $DCPssSessionDCDiag = Get-ValidPSSession -ComputerName $DomainController -SessionName "$($DomainController)_DCDiag" -PSSTable ([ref]$PSSTable)
 
     try {
-        $result = Invoke-CommandWithTimeout -Session $DCPssSessionDCDiag -ScriptBlock { dcdiag /c /s:$using:DomainController } -TimeoutSeconds 60
+        $result = Invoke-CommandWithTimeout -Session $DCPssSessionDCDiag -ScriptBlock { dcdiag /c /s:$using:DomainController }
     } catch {
         Write-PScriboMessage -Message "Invoke-DcDiag - Failed to get DCDiag for $DomainController with error: $($_.Exception.Message)"
         return
