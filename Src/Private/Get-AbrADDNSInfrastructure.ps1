@@ -35,7 +35,8 @@ function Get-AbrADDNSInfrastructure {
                     foreach ($DC in $DCs) {
                         if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                             try {
-                                $DNSSetting = Get-DnsServerSetting -CimSession $TempCIMSession -ComputerName $DC
+                                $DCCimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "$($DC)_DNS" -CIMTable ([ref]$CIMTable)
+                                $DNSSetting = Get-DnsServerSetting -CimSession $DCCimSession -ComputerName $DC
                                 $inObj = [ordered] @{
                                     'DC Name' = $($DC.ToString().ToUpper().Split('.')[0])
                                     'Build Number' = $DNSSetting.BuildNumber
@@ -73,7 +74,8 @@ function Get-AbrADDNSInfrastructure {
                                         try {
                                             Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split('.')[0]) {
                                                 $OutObj = [System.Collections.ArrayList]::new()
-                                                $DNSSetting = Get-DnsServerDirectoryPartition -CimSession $TempCIMSession -ComputerName $DC
+                                                $DCCimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "$($DC)_DNS" -CIMTable ([ref]$CIMTable)
+                                                $DNSSetting = Get-DnsServerDirectoryPartition -CimSession $DCCimSession -ComputerName $DC
                                                 foreach ($Partition in $DNSSetting) {
                                                     try {
                                                         $inObj = [ordered] @{
@@ -124,7 +126,8 @@ function Get-AbrADDNSInfrastructure {
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                         try {
-                                            $DNSSetting = Get-DnsServerResponseRateLimiting -CimSession $TempCIMSession -ComputerName $DC
+                                            $DCCimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "$($DC)_DNS" -CIMTable ([ref]$CIMTable)
+                                            $DNSSetting = Get-DnsServerResponseRateLimiting -CimSession $DCCimSession -ComputerName $DC
                                             $inObj = [ordered] @{
                                                 'DC Name' = $($DC.ToString().ToUpper().Split('.')[0])
                                                 'Status' = $DNSSetting.Mode
@@ -166,7 +169,8 @@ function Get-AbrADDNSInfrastructure {
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                         try {
-                                            $DNSSetting = Get-DnsServerScavenging -CimSession $TempCIMSession -ComputerName $DC
+                                            $DCCimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "$($DC)_DNS" -CIMTable ([ref]$CIMTable)
+                                            $DNSSetting = Get-DnsServerScavenging -CimSession $DCCimSession -ComputerName $DC
                                             $inObj = [ordered] @{
                                                 'DC Name' = $($DC.ToString().ToUpper().Split('.')[0])
                                                 'NoRefresh Interval' = $DNSSetting.NoRefreshInterval
@@ -225,8 +229,9 @@ function Get-AbrADDNSInfrastructure {
                             foreach ($DC in $DCs) {
                                 if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                     try {
-                                        $DNSSetting = Get-DnsServerForwarder -CimSession $TempCIMSession -ComputerName $DC
-                                        $Recursion = Get-DnsServerRecursion -CimSession $TempCIMSession -ComputerName $DC | Select-Object -ExpandProperty Enable
+                                        $DCCimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "$($DC)_DNS" -CIMTable ([ref]$CIMTable)
+                                        $DNSSetting = Get-DnsServerForwarder -CimSession $DCCimSession -ComputerName $DC
+                                        $Recursion = Get-DnsServerRecursion -CimSession $DCCimSession -ComputerName $DC | Select-Object -ExpandProperty Enable
                                         $inObj = [ordered] @{
                                             'DC Name' = $($DC.ToString().ToUpper().Split('.')[0])
                                             'IP Address' = $DNSSetting.IPAddress.IPAddressToString
@@ -295,7 +300,8 @@ function Get-AbrADDNSInfrastructure {
                                         try {
                                             Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split('.')[0]) {
                                                 $OutObj = [System.Collections.ArrayList]::new()
-                                                $DNSSetting = Get-DnsServerRootHint -CimSession $TempCIMSession -ComputerName $DC -ErrorAction SilentlyContinue | Select-Object @{Name = 'Name'; E = { $_.NameServer.RecordData.Nameserver } }, @{ Name = 'IPv4Address'; E = { $_.IPAddress.RecordData.IPv4Address.IPAddressToString } }, @{ Name = 'IPv6Address'; E = { $_.IPAddress.RecordData.IPv6Address.IPAddressToString } }
+                                                $DCCimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "$($DC)_DNS" -CIMTable ([ref]$CIMTable)
+                                                $DNSSetting = Get-DnsServerRootHint -CimSession $DCCimSession -ComputerName $DC -ErrorAction SilentlyContinue | Select-Object @{Name = 'Name'; E = { $_.NameServer.RecordData.Nameserver } }, @{ Name = 'IPv4Address'; E = { $_.IPAddress.RecordData.IPv4Address.IPAddressToString } }, @{ Name = 'IPv6Address'; E = { $_.IPAddress.RecordData.IPv6Address.IPAddressToString } }
                                                 if ($DNSSetting) {
                                                     foreach ($Hints in $DNSSetting) {
                                                         try {
@@ -396,7 +402,8 @@ function Get-AbrADDNSInfrastructure {
                                 foreach ($DC in $DCs) {
                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                         try {
-                                            $DNSSetting = Get-DnsServerRecursionScope -CimSession $TempCIMSession -ComputerName $DC
+                                            $DCCimSession = Get-ValidCIMSession -ComputerName $DC -SessionName "$($DC)_DNS" -CIMTable ([ref]$CIMTable)
+                                            $DNSSetting = Get-DnsServerRecursionScope -CimSession $DCCimSession -ComputerName $DC
                                             $inObj = [ordered] @{
                                                 'DC Name' = $($DC.ToString().ToUpper().Split('.')[0])
                                                 'Zone Name' = switch ($DNSSetting.Name) {
