@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.11
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux

@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.10] - Unreleased
+## [0.9.11] - Unreleased
+
+### :toolbox: Added
+
+- Migrate all chart to AsBuiltReport.Chart
+- Add bin modules to report
 
 ### :arrows_clockwise: Changed
 

@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.10
+        Version:        0.9.11
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
