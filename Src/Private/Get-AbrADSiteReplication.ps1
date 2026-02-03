@@ -120,7 +120,7 @@ function Get-AbrADSiteReplication {
                 $DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)
 
                 if ($DCPssSession) {
-                    $RepStatus = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv } -TimeoutSeconds 60
+                    $RepStatus = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { repadmin /showrepl /repsto /csv | ConvertFrom-Csv }
                 } else {
                     if (-not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId

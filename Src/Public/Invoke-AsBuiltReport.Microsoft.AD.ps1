@@ -77,6 +77,17 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
     # Used to set values to TitleCase where required
     $script:TextInfo = (Get-Culture).TextInfo
+    $script:AbrCustomPalette = @(
+        '#cfe4ff'
+        '#bbd1ee'
+        '#a7bfde'
+        '#94acce'
+        '#809bbe'
+        '#6e89ae'
+        '#5b789e'
+        '#48678f'
+        '#355780'
+    )
 
     if ($Healthcheck) {
         Section -Style TOC -ExcludeFromTOC 'DISCLAIMER' {

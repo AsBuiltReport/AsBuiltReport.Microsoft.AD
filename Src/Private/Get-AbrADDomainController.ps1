@@ -122,18 +122,15 @@ function Get-AbrADDomainController {
                 $TableParams['Caption'] = "- $($TableParams.Name)"
             }
             try {
-                # Chart Section
                 $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
-
-                $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'DomainControllerObject' -XField 'Name' -YField 'value' -ChartLegendName 'Category' -ChartTitleName 'DomainControllerObject' -ChartTitleText 'DC vs GC Distribution' -ReversePalette $True
-
+                $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'DC vs GC Distribution' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
             } catch {
-                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Count Chart)"
+                Write-PScriboMessage -IsWarning $_.Exception.Message
             }
             if ($OutObj) {
-                if ($chartFileItem) {
+                if ($Chart) {
                     BlankLine
-                    Image -Text 'Domain Controller Object - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
+                    Image -Text 'Domain Controller Object - Chart' -Align 'Center' -Percent 100 -Base64 $Chart
                 }
                 $OutObj | Table @TableParams
             }

@@ -90,19 +90,16 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-                            # Chart Section
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
-
-                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'UsersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'UsersObject' -ChartTitleText 'User Objects' -ReversePalette $True
-
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'User Objects' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (User Object Count Chart)"
                         }
 
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Users' {
-                                if ($chartFileItem) {
-                                    Image -Text 'Users Object - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
+                                if ($Chart) {
+                                    Image -Text 'Users Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                             }
@@ -196,11 +193,8 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-                            # Chart Section
                             $sampleData = $OutObj
-
-                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofUsersAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofUsersAccounts' -ChartTitleText 'Status of Users Accounts' -ReversePalette $True
-
+                            $Chart = New-PieChart -Values $sampleData.Total -Labels $sampleData.Category -Title 'Status of Users Accounts' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 800 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of Users Accounts Chart)"
                         }
@@ -208,8 +202,8 @@ function Get-AbrADDomainObject {
                     if ($OutObj) {
                         Section -Style Heading5 'Status of Users Accounts' {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Status of Users Accounts'
-                            if ($chartFileItem) {
-                                Image -Text 'Status of Users Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
+                            if ($Chart) {
+                                Image -Text 'Status of Users Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
                             }
                             $OutObj | Table @TableParams
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Status of Users Accounts'
@@ -285,18 +279,15 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-                            # Chart Section
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-
-                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'GroupCategoryObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'GroupCategoryObject' -ChartTitleText 'Group Categories' -ReversePalette $True
-
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'Group Categories' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Category Object Chart)"
                         }
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Groups Categories' {
-                                if ($chartFileItem) {
-                                    Image -Text 'Groups Categories Object - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
+                                if ($Chart) {
+                                    Image -Text 'Groups Categories Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                             }
@@ -322,18 +313,15 @@ function Get-AbrADDomainObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         try {
-                            # Chart Section
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-
-                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'GroupCategoryObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'GroupScopesObject' -ChartTitleText 'Group Scopes' -ReversePalette $True
-
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'Group Scopes' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Scopes Object Chart)"
                         }
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 'Groups Scopes' {
-                                if ($chartFileItem) {
-                                    Image -Text 'Groups Scopes Object - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
+                                if ($Chart) {
+                                    Image -Text 'Groups Scopes Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                             }
@@ -735,19 +723,16 @@ function Get-AbrADDomainObject {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     try {
-                        # Chart Section
-                        $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
-
-                        $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'ComputersObject' -XField 'Name' -YField 'Value' -ChartLegendName 'Category' -ChartTitleName 'ComputersObject' -ChartTitleText 'Computers Count' -ReversePalette $True
-
+                        $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
+                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'Computers Count' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers Object Count Chart)"
                     }
                     if ($OutObj) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 'Computers' {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Computers Object - Diagram'
-                            if ($chartFileItem) {
-                                Image -Text 'Computers Object - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
+                            if ($Chart) {
+                                Image -Text 'Computers Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
                             }
                             $OutObj | Table @TableParams
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Computers Object - Diagram'
@@ -818,21 +803,17 @@ function Get-AbrADDomainObject {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-
                         try {
-                            # Chart Section
                             $sampleData = $OutObj
-
-                            $chartFileItem = Get-PieChart -SampleData $sampleData -ChartName 'StatusofComputerAccounts' -XField 'Category' -YField 'Total' -ChartLegendName 'Category' -ChartTitleName 'StatusofComputerAccounts' -ChartTitleText 'Status of Computers Accounts' -ReversePalette $True
-
+                            $Chart = New-PieChart -Values $sampleData.Total -Labels $sampleData.Category -Title 'Status of Computers Accounts' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of Computers Accounts Chart)"
                         }
 
                         if ($OutObj) {
                             Section -Style Heading5 'Status of Computer Accounts' {
-                                if ($chartFileItem -and ($OutObj.'Total' | Measure-Object -Sum).Sum -ne 0) {
-                                    Image -Text 'Status of Computer Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
+                                if ($Chart -and ($OutObj.'Total' | Measure-Object -Sum).Sum -ne 0) {
+                                    Image -Text 'Status of Computer Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                                 Show-AbrDebugExecutionTime -End -TitleMessage 'Status of Computer Accounts'
