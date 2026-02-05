@@ -97,7 +97,7 @@ function Get-AbrADDomainObject {
                         }
 
                         if ($OutObj) {
-                            Section -ExcludeFromTOC -Style NOTOCHeading4 'Users' {
+                            Section -ExcludeFromTOC -Style NOTOCHeading5 'Users ' {
                                 if ($Chart) {
                                     Image -Text 'Users Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
@@ -200,7 +200,7 @@ function Get-AbrADDomainObject {
                         }
                     }
                     if ($OutObj) {
-                        Section -Style Heading5 'Status of Users Accounts' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Status of Users Accounts' {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Status of Users Accounts'
                             if ($Chart) {
                                 Image -Text 'Status of Users Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
