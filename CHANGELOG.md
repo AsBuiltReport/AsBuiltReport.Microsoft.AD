@@ -17,11 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### :arrows_clockwise: Changed
 
 - Update module version to `0.9.11`
+- Upgrade AsBuiltReport.Core module to version `1.6.1`
 
 ### :bug: Fixed
 
 - Fix the computer/user stats table so that it displays the correct values
 - Fix Avoid using the ! negation operator warning in New-AbrADDiagram cmdlet
+
+### :x: Removed
+
+- Remove PscriboCharts module dependency
 
 ## [0.9.10] - 2026-01-26
 

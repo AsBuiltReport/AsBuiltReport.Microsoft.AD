@@ -54,15 +54,11 @@
     RequiredModules = @(
         @{
             ModuleName = 'AsBuiltReport.Core';
-            ModuleVersion = '1.5.1'
+            ModuleVersion = '1.6.1'
         },
         @{
             ModuleName = 'PSPKI';
             ModuleVersion = '4.3.0'
-        },
-        @{
-            ModuleName = 'PScriboCharts';
-            ModuleVersion = '0.9.0'
         },
         @{
             ModuleName = 'Diagrammer.Core';
