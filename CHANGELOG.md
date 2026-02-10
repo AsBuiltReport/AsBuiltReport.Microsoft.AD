@@ -23,12 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix the computer/user stats table so that it displays the correct values
 - Fix Avoid using the ! negation operator warning in New-AbrADDiagram cmdlet
-- Fix DNS infrastructure collection to query all domain controllers
+- Fix DNS infrastructure collection to query all domain controllers @cse-gh
 
 ### :x: Removed
 
-- Remove PscriboCharts module dependency
-- Remove hardcoded 60-second timeout from Invoke-DcDiag
+- Remove PscriboCharts module dependency replacing it with AsBuiltReport.Chart
+- Remove hardcoded 60-second timeout from Invoke-DcDiag @cse-gh
+- Remove support for Pwsh v5.1
+- Remove redundant Get-RequiredFeature calls in New-AbrADDiagram cmdlet
 
 ## [0.9.10] - 2026-01-26
 

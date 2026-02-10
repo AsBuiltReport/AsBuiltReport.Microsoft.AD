@@ -22,6 +22,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     )
 
     #Requires -RunAsAdministrator
+    #Requires -PSEdition Core
 
     if ($psISE) {
         Write-Error -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.PwshISE
@@ -35,7 +36,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo6
 
     # Check the version of the dependency modules
-    $ModuleArray = @('AsBuiltReport.Core', 'Diagrammer.Core', 'PSPKI', 'PScriboCharts')
+    $ModuleArray = @('AsBuiltReport.Core', 'Diagrammer.Core', 'PSPKI')
 
     foreach ($Module in $ModuleArray) {
         try {
