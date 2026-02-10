@@ -5,7 +5,7 @@ function Get-AbrADSecurityAssessment {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.11
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -43,16 +43,16 @@ function Get-AbrADSecurityAssessment {
                     $OutObj = [System.Collections.ArrayList]::new()
                     try {
                         $inObj = [ordered] @{
-                            'Total Users' = $DomainUsers.Count
-                            'Enabled Users' = $DomainEnabledUsers.Count
-                            'Disabled Users' = $DomainDisabledUsers.Count
-                            'Enabled Inactive Users' = $DomainEnabledInactiveUsers.Count
-                            'Users With Reversible Encryption Password' = $DomainUsersWithReversibleEncryptionPasswordArray.Count
+                            'Total' = $DomainUsers.Count
+                            'Enabled' = $DomainEnabledUsers.Count
+                            'Disabled' = $DomainDisabledUsers.Count
+                            'Enabled Inactive' = $DomainEnabledInactiveUsers.Count
+                            'Reversible Encryption Password' = $DomainUsersWithReversibleEncryptionPasswordArray.Count
                             'Password Not Required' = $DomainUserPasswordNotRequiredArray.Count
                             'Password Never Expires' = $DomainUserPasswordNeverExpiresArray.Count
-                            'Kerberos DES Users' = $DomainKerberosDESUsersArray.Count
+                            'Kerberos DES' = $DomainKerberosDESUsersArray.Count
                             'Does Not Require Pre Auth' = $DomainUserDoesNotRequirePreAuthArray.Count
-                            'Users With SID History' = $DomainUsersWithSIDHistoryArray.Count
+                            'SID History' = $DomainUsersWithSIDHistoryArray.Count
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
@@ -60,17 +60,17 @@ function Get-AbrADSecurityAssessment {
                     }
 
                     if ($HealthCheck.Domain.Security) {
-                        $OutObj | Where-Object { $_.'Enabled Inactive Users' -gt 0 } | Set-Style -Style Warning -Property 'Enabled Inactive Users'
-                        $OutObj | Where-Object { $_.'Users With Reversible Encryption Password' -gt 0 } | Set-Style -Style Warning -Property 'Users With Reversible Encryption Password'
-                        $OutObj | Where-Object { $_.'User Password Not Required' -gt 0 } | Set-Style -Style Warning -Property 'User Password Not Required'
-                        $OutObj | Where-Object { $_.'User Password Never Expires' -gt 0 } | Set-Style -Style Warning -Property 'User Password Never Expires'
-                        $OutObj | Where-Object { $_.'Kerberos DES Users' -gt 0 } | Set-Style -Style Warning -Property 'Kerberos DES Users'
-                        $OutObj | Where-Object { $_.'User Does Not Require Pre Auth' -gt 0 } | Set-Style -Style Warning -Property 'User Does Not Require Pre Auth'
-                        $OutObj | Where-Object { $_.'Users With SID History' -gt 0 } | Set-Style -Style Warning -Property 'Users With SID History'
+                        $OutObj | Where-Object { $_.'Enabled Inactive' -gt 0 } | Set-Style -Style Warning -Property 'Enabled Inactive'
+                        $OutObj | Where-Object { $_.'Reversible Encryption Password' -gt 0 } | Set-Style -Style Warning -Property 'Reversible Encryption Password'
+                        $OutObj | Where-Object { $_.'Password Not Required' -gt 0 } | Set-Style -Style Warning -Property 'Password Not Required'
+                        $OutObj | Where-Object { $_.'Password Never Expires' -gt 0 } | Set-Style -Style Warning -Property 'Password Never Expires'
+                        $OutObj | Where-Object { $_.'Kerberos DES' -gt 0 } | Set-Style -Style Warning -Property 'Kerberos DES'
+                        $OutObj | Where-Object { $_.'Does Not Require Pre Auth' -gt 0 } | Set-Style -Style Warning -Property 'Does Not Require Pre Auth'
+                        $OutObj | Where-Object { $_.'SID History' -gt 0 } | Set-Style -Style Warning -Property 'SID History'
                     }
 
                     $TableParams = @{
-                        Name = "Account Security Assessment - $($Domain.DNSRoot.ToString().ToUpper())"
+                        Name = "User Account Security Assessment - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }
@@ -78,19 +78,19 @@ function Get-AbrADSecurityAssessment {
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
+
                     try {
-                        # Chart Section
                         $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } }
-                        $chartFileItem = Get-ColumnChart -SampleData $sampleData -ChartName 'AccountSecurityAssessment' -XField 'Category' -YField 'Value' -ChartAreaName 'Account Security Assessment' -AxisXTitle 'Categories' -AxisYTitle 'Number of Users' -ChartTitleName 'AccountSecurityAssessment' -ChartTitleText 'Assessment' -ReversePalette $True
+                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Category -Title 'User Account Security Assessment' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 600 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                     } catch {
-                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Account Security Assessment Chart)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (User Account Security Assessment Chart)"
                     }
                     if ($OutObj) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Account Security Assessment' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 'User Account Security Assessment' {
                             Paragraph "The following section provides a comprehensive summary of account security posture and potential vulnerabilities within the domain $($Domain.DNSRoot.ToString().ToUpper())."
                             BlankLine
-                            if ($chartFileItem) {
-                                Image -Text 'Account Security Assessment - Diagram' -Align 'Center' -Percent 100 -Base64 $chartFileItem
+                            if ($Chart) {
+                                Image -Text 'User Account Security Assessment - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
                             }
                             $OutObj | Table @TableParams
                             Paragraph 'Health Check:' -Bold -Underline

@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.11
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -35,7 +35,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo6
 
     # Check the version of the dependency modules
-    $ModuleArray = @('AsBuiltReport.Core', 'Diagrammer.Core', 'PSPKI')
+    $ModuleArray = @('AsBuiltReport.Core', 'Diagrammer.Core', 'PSPKI', 'PScriboCharts')
 
     foreach ($Module in $ModuleArray) {
         try {
@@ -70,8 +70,6 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Get-RequiredFeature -Name GPMC -OSType $OSType
     }
 
-    Get-RequiredModule -Name PSPKI -Version '4.3.0'
-
     # Import Report Configuration
     $script:Report = $ReportConfig.Report
     $script:InfoLevel = $ReportConfig.InfoLevel
@@ -79,6 +77,17 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
     # Used to set values to TitleCase where required
     $script:TextInfo = (Get-Culture).TextInfo
+    $script:AbrCustomPalette = @(
+        '#cfe4ff'
+        '#bbd1ee'
+        '#a7bfde'
+        '#94acce'
+        '#809bbe'
+        '#6e89ae'
+        '#5b789e'
+        '#48678f'
+        '#355780'
+    )
 
     if ($Healthcheck) {
         Section -Style TOC -ExcludeFromTOC 'DISCLAIMER' {
