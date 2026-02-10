@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix the computer/user stats table so that it displays the correct values
 - Fix Avoid using the ! negation operator warning in New-AbrADDiagram cmdlet
+- Fix DNS infrastructure collection to query all domain controllers
 
 ### :x: Removed
 
