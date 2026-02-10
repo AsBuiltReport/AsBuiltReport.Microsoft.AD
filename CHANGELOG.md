@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### :x: Removed
 
 - Remove PscriboCharts module dependency
+- Remove hardcoded 60-second timeout from Invoke-DcDiag
 
 ## [0.9.10] - 2026-01-26
 
