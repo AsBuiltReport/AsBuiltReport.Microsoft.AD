@@ -152,7 +152,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         if (-not ($Options.Exclude.Domains -contains $RootDomains)) {
             $OrderedDomains += $RootDomains
         }
-        Write-Host "- Getting $OrderedDomains forest information."
+        Write-Host "- Getting $RootDomains forest information."
 
         if ($ChildDomains) {
             $OrderedDomains += $ChildDomains
