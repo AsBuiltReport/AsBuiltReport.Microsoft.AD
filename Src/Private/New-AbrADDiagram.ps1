@@ -335,35 +335,6 @@ function New-AbrADDiagram {
             'CertificateAuthority' { $reportTranslate.NewADDiagram.caDiagramLabel }
         }
 
-        if ($Format -ne 'Base64') {
-            Write-ColorOutput -Color 'Blue' -String ($reportTranslate.NewADDiagram.genMain -f $MainGraphLabel)
-            Write-ColorOutput -Color 'White' -String $reportTranslate.NewADDiagram.InfoProject
-            Write-ColorOutput -Color 'White' -String $reportTranslate.NewADDiagram.InfoDocumentation
-            Write-ColorOutput -Color 'White' -String $reportTranslate.NewADDiagram.InfoIssues
-            Write-ColorOutput -Color 'White' -String $reportTranslate.NewADDiagram.InfoCommunity
-
-
-            # Check the current Diagrammer.Microsoft.AD module
-            $ModuleArray = @('Diagrammer.Microsoft.AD', 'Diagrammer.Core')
-
-            foreach ($Module in $ModuleArray) {
-                try {
-                    $InstalledVersion = Get-Module -ListAvailable -Name $Module -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
-
-                    if ($InstalledVersion) {
-                        Write-ColorOutput -Color 'White' -String ($reportTranslate.NewADDiagram.InfoVersion -f $($Module), $($InstalledVersion.ToString()))
-                        $LatestVersion = Find-Module -Name $Module -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
-                        if ([version]$InstalledVersion -lt [version]$LatestVersion) {
-                            Write-ColorOutput -Color 'Yellow' -String ($reportTranslate.NewADDiagram.WarningUpdate -f $($Module), $($LatestVersion.ToString()))
-                            Write-ColorOutput -Color 'Yellow' -String ($reportTranslate.NewADDiagram.WarningUpdateCommand -f $($Module))
-                        }
-                    }
-                } catch {
-                    Write-Warning $_.Exception.Message
-                }
-            }
-        }
-
         $Verbose = if ($PSBoundParameters.ContainsKey('Verbose')) {
             $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent
         } else {

@@ -141,7 +141,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
-        [array]$RootDomains = $ADSystem.RootDomain
+        $RootDomains = $ADSystem.RootDomain
         if ($Options.Include.Domains) {
             [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -in $Options.Include.Domains }
         } else {
@@ -149,7 +149,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         $script:OrderedDomains = @()
-        $OrderedDomains += $RootDomains
+        if (-not ($Options.Exclude.Domains -contains $RootDomains)) {
+            $OrderedDomains += $RootDomains
+        }
         Write-Host "- Getting $OrderedDomains forest information."
 
         if ($ChildDomains) {
@@ -176,16 +178,28 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
 
         # Forest Section
-        Get-AbrForestSection
+        if ($InfoLevel.Forest -ge 1) {
+            Write-Host '- Working on Forest section.'
+            Get-AbrForestSection
+        }
 
         # Domain Section
-        Get-AbrDomainSection -DomainStatus ([ref]$DomainStatus)
+        if ($InfoLevel.Domain -ge 1) {
+            Write-Host '- Working on Domain section.'
+            Get-AbrDomainSection -DomainStatus ([ref]$DomainStatus)
+        }
 
         # DNS Section
-        Get-AbrDnsSection -DomainStatus ([ref]$DomainStatus)
+        if ($InfoLevel.DNS -ge 1) {
+            Write-Host '- Working on DNS section.'
+            Get-AbrDnsSection -DomainStatus ([ref]$DomainStatus)
+        }
 
         # PKI Section
-        Get-AbrPKISection
+        if ($InfoLevel.CA -ge 1) {
+            Write-Host '- Working on PKI section.'
+            Get-AbrPKISection
+        }
 
         #---------------------------------------------------------------------------------------------#
         #                            Export Diagram Section                                           #
@@ -193,7 +207,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         if ($Options.ExportDiagrams) {
             Write-Host ' '
-            Write-Host 'ExportDiagrams option enabled: Exporting diagrams:'
+            Write-Host '- ExportDiagrams option enabled: Exporting diagrams:'
             $Options.DiagramType.PSobject.Properties | ForEach-Object {
                 if ($_.Value -and $_.Name -eq 'Trusts') {
                     foreach ($Domain in $OrderedDomains) {
@@ -241,6 +255,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #---------------------------------------------------------------------------------------------#
         #                           Connection Status Section                                         #
         #---------------------------------------------------------------------------------------------#
+
+        Write-Host "- Finished report generation for $RootDomains forest:"
 
         $DCOffine = $DCStatus | Where-Object { $Null -ne $_.DCName -and $_.Status -eq 'Offline' } | Select-Object -Property @{N = 'Name'; E = { $_.DCName } }, @{N = 'WinRM Status'; E = { $_.Status } }, @{N = 'Ping Status'; E = { $_.PingStatus } }, @{N = 'Protocol'; E = { $_.Protocol } } | ForEach-Object { [pscustomobject]$_ }
         $DomainOffline = $DomainStatus | Where-Object { $Null -ne $_.Name -and $_.Status -eq 'Offline' }
