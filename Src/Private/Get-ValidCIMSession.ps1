@@ -5,7 +5,7 @@ function Get-ValidCIMSession {
     .DESCRIPTION
         Function to generate a valid CIM session from a computer string.
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.11
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidCIMSession -ComputerName 'server-dc-01v.pharmax.local'
@@ -42,46 +42,54 @@ function Get-ValidCIMSession {
                 Write-PScriboMessage -Message "Connecting to '$ComputerName' through CimSession with SSL."
                 if ($CIMSessionObj = New-CimSession $ComputerName -SessionOption $CimSessionOptions -Port $Options.WinRMSSLPort -Name $SessionName -ErrorAction Stop) {
                     Write-PScriboMessage -Message "Connected to '$ComputerName' through CimSession with SSL."
-                    $CIMTable.Value += @{
-                        DCName = $ComputerName
-                        Status = 'Online'
-                        Protocol = 'CimSessionSSL'
-                        Id = $CIMSessionObj.Id
-                        InstanceId = $CIMSessionObj.InstanceId
-                    }
+                    $CIMTable.Value.Add(
+                        @{
+                            DCName = $ComputerName
+                            Status = 'Online'
+                            Protocol = 'CimSessionSSL'
+                            Id = $CIMSessionObj.Id
+                            InstanceId = $CIMSessionObj.InstanceId
+                        }
+                    )
                     $CIMSessionObj
                 }
             } catch {
                 if ($Options.WinRMFallbackToNoSSL) {
                     Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession with SSL. Reverting to Cim without SSL!"
-                    $CIMTable.Value += @{
-                        DCName = $ComputerName
-                        Status = 'Offline'
-                        Protocol = 'CimSessionSSL'
-                        Id = 'None'
-                        InstanceId = 'None'
-                    }
+                    $CIMTable.Value.Add(
+                        @{
+                            DCName = $ComputerName
+                            Status = 'Offline'
+                            Protocol = 'CimSessionSSL'
+                            Id = 'None'
+                            InstanceId = 'None'
+                        }
+                    )
                     try {
                         if ($CIMSessionObj = New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
                             Write-PScriboMessage -Message "Connected to '$ComputerName' through CimSession without SSL."
-                            $CIMTable.Value += @{
-                                DCName = $ComputerName
-                                Status = 'Online'
-                                Protocol = 'CimSession'
-                                Id = $CIMSessionObj.Id
-                                InstanceId = $CIMSessionObj.InstanceId
-                            }
+                            $CIMTable.Value.Add(
+                                @{
+                                    DCName = $ComputerName
+                                    Status = 'Online'
+                                    Protocol = 'CimSession'
+                                    Id = $CIMSessionObj.Id
+                                    InstanceId = $CIMSessionObj.InstanceId
+                                }
+                            )
                             $CIMSessionObj
                         }
                     } catch {
                         Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession without SSL."
-                        $CIMTable.Value += @{
-                            DCName = $ComputerName
-                            Status = 'Offline'
-                            Protocol = 'CimSession'
-                            Id = 'None'
-                            InstanceId = 'None'
-                        }
+                        $CIMTable.Value.Add(
+                            @{
+                                DCName = $ComputerName
+                                Status = 'Offline'
+                                Protocol = 'CimSession'
+                                Id = 'None'
+                                InstanceId = 'None'
+                            }
+                        )
                     }
                 }
             }
@@ -97,24 +105,28 @@ function Get-ValidCIMSession {
             try {
                 if ($CIMSessionObj = New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -Name $SessionName -Port $Options.WinRMPort) {
                     Write-PScriboMessage -Message "Connected to '$ComputerName' CimSession without SSL."
-                    $CIMTable.Value += @{
-                        DCName = $ComputerName
-                        Status = 'Online'
-                        Protocol = 'CimSession'
-                        Id = $CIMSessionObj.Id
-                        InstanceId = $CIMSessionObj.InstanceId
-                    }
+                    $CIMTable.Value.Add(
+                        @{
+                            DCName = $ComputerName
+                            Status = 'Online'
+                            Protocol = 'CimSession'
+                            Id = $CIMSessionObj.Id
+                            InstanceId = $CIMSessionObj.InstanceId
+                        }
+                    )
                     $CIMSessionObj
                 }
             } catch {
                 Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession without SSL."
-                $CIMTable.Value += @{
-                    DCName = $ComputerName
-                    Status = 'Offline'
-                    Protocol = 'CimSession'
-                    Id = 'None'
-                    InstanceId = 'None'
-                }
+                $CIMTable.Value.Add(
+                    @{
+                        DCName = $ComputerName
+                        Status = 'Offline'
+                        Protocol = 'CimSession'
+                        Id = 'None'
+                        InstanceId = 'None'
+                    }
+                )
             }
         }
     }

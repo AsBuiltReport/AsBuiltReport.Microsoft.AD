@@ -27,15 +27,15 @@ function Get-ADObjectList {
     $searcher.SearchScope = 'Subtree'
 
     # Construct the LDAP filter based on the -Collect parameter
-    $filters = @()
+    $filters = New-Object System.Collections.Generic.List[string]
     foreach ($item in $Object) {
         switch ($item) {
-            'Users' { $filters += '(objectCategory=person)' }
-            'Computers' { $filters += '(objectCategory=computer)' }
-            'Groups' { $filters += '(objectCategory=group)' }
-            'DomainControllers' { $filters += '(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))' }
-            'OUs' { $filters += '(objectCategory=organizationalUnit)' }
-            'GPOs' { $filters += '(objectClass=groupPolicyContainer)' }
+            'Users' { $filters.Add('(objectCategory=person)') }
+            'Computers' { $filters.Add('(objectCategory=computer)') }
+            'Groups' { $filters.Add('(objectCategory=group)') }
+            'DomainControllers' { $filters.Add('(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))') }
+            'OUs' { $filters.Add('(objectCategory=organizationalUnit)') }
+            'GPOs' { $filters.Add('(objectClass=groupPolicyContainer)') }
         }
     }
     # Combine the filters with an OR if multiple categories are specified

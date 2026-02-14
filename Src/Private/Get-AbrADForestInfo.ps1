@@ -52,7 +52,7 @@ function Get-AbrADForestInfo {
                 }
             }
 
-            $ForestInfo = @()
+            $ForestInfo = New-Object System.Collections.Generic.List[PSObject]
             if ($ParentChildObj.Children) {
                 foreach ($Childs in $ParentChildObj | Sort-Object) {
                     foreach ($ChildDomain in $Childs.Children) {
@@ -139,7 +139,7 @@ function Get-AbrADForestInfo {
                             AditionalInfo = $AditionalDomainInfo
                             IsForest = $IsForest
                         }
-                        $ForestInfo += $TempForestInfo
+                        $ForestInfo.Add($TempForestInfo) | Out-Null
                     }
                 }
             } else {
@@ -184,7 +184,7 @@ function Get-AbrADForestInfo {
                     Label = Add-DiaNodeIcon -Name $ForestObj.RootDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalForestInfo -FontSize 18
                     AditionalInfo = $AditionalForestInfo
                 }
-                $ForestInfo += $TempForestInfo
+                $ForestInfo.Add($TempForestInfo) | Out-Null
             }
             return $ForestInfo
         } catch {

@@ -5,7 +5,7 @@ function Get-AbrADSite {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.11
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -86,7 +86,7 @@ function Get-AbrADSite {
                         }
 
                         if ($HealthCheck.Site.BestPractice) {
-                            $List = @()
+                            $List = New-Object System.Collections.ArrayList
                             $Num = 0
                             if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                 $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -94,7 +94,7 @@ function Get-AbrADSite {
                                 foreach ( $OBJ in ($OutObj | Where-Object { $_.'Description' -eq '--' }) ) {
                                     $OBJ.'Description' = $OBJ.'Description' + " ($Num)"
                                 }
-                                $List += 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
+                                $List.Add('It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.') | Out-Null
                             }
                             if ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' }) {
                                 $OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' } | Set-Style -Style Warning -Property 'Subnets'
@@ -102,7 +102,7 @@ function Get-AbrADSite {
                                 foreach ( $OBJ in ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' }) ) {
                                     $OBJ.'Subnets' = $OBJ.'Subnets' + " ($Num)"
                                 }
-                                $List += 'Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller.'
+                                $List.Add('Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller.') | Out-Null
                             }
                             if ($OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' }) {
                                 $OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' } | Set-Style -Style Warning -Property 'Domain Controllers'
@@ -110,7 +110,7 @@ function Get-AbrADSite {
                                 foreach ( $OBJ in ($OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' } ) ) {
                                     $OBJ.'Domain Controllers' = $OBJ.'Domain Controllers' + " ($Num)"
                                 }
-                                $List += 'It is important to ensure that each site has at least one assigned domain controller. Missing domain controllers can lead to authentication delays and potential service disruptions for users in the site.'
+                                $List.Add('It is important to ensure that each site has at least one assigned domain controller. Missing domain controllers can lead to authentication delays and potential service disruptions for users in the site.') | Out-Null
                             }
                         }
 
@@ -211,7 +211,7 @@ function Get-AbrADSite {
                                 }
 
                                 if ($HealthCheck.Site.BestPractice) {
-                                    $List = @()
+                                    $List = New-Object System.Collections.ArrayList
                                     $Num = 0
                                     if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                         $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
@@ -219,7 +219,7 @@ function Get-AbrADSite {
                                         foreach ( $OBJ in ($OutObj | Where-Object { $_.'Description' -eq '--' }) ) {
                                             $OBJ.'Description' = $OBJ.'Description' + " ($Num)"
                                         }
-                                        $List += 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
+                                        $List.Add('It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.') | Out-Null
                                     }
                                     if ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }) {
                                         $OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' } | Set-Style -Style Warning -Property 'Sites'
@@ -227,7 +227,7 @@ function Get-AbrADSite {
                                         foreach ( $OBJ in ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }) ) {
                                             $OBJ.'Sites' = $OBJ.'Sites' + " ($Num)"
                                         }
-                                        $List += 'Ensure Subnet have an associated site. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication. This can lead to increased latency and potential performance issues for users authenticating against a domain controller that is not local to their site.'
+                                        $List.Add('Ensure Subnet have an associated site. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication. This can lead to increased latency and potential performance issues for users authenticating against a domain controller that is not local to their site.') | Out-Null
                                     }
                                 }
 

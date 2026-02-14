@@ -5,7 +5,7 @@ function Get-AbrADSitesInfo {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.11
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -25,7 +25,7 @@ function Get-AbrADSitesInfo {
         try {
             $Sites = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest().Sites | Select-Object Name, @{l = 'SitesLink'; e = { $_.sitelinks } } }
 
-            $SitesInfo = @()
+            $SitesInfo = New-Object System.Collections.Generic.List[PSObject]
             if ($Sites) {
                 foreach ($SitesLink in $Sites) {
                     $TempSitesInfo = [PSCustomObject]@{
@@ -46,7 +46,7 @@ function Get-AbrADSitesInfo {
                             }
                         }
                     }
-                    $SitesInfo += $TempSitesInfo
+                    $SitesInfo.Add($TempSitesInfo)
                 }
             }
 

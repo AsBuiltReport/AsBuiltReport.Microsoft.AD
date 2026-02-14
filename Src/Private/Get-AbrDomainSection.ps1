@@ -32,7 +32,7 @@ function Get-AbrDomainSection {
                         # Define Filter option for Domain variable
                         try {
                             if ($DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain }) {
-                                Write-Host "  - Collecting information from $Domain domain."
+                                Write-Host "  - Collecting Domain information from $Domain."
                                 $DCs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
                                     Paragraph 'This section provides a comprehensive overview of the Active Directory domain configuration, including key settings and critical details.'
@@ -136,10 +136,12 @@ function Get-AbrDomainSection {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Active Directory Domain)"
                         }
                     } else {
-                        $DomainStatus.Value += @{
-                            Name = $Domain
-                            Status = 'Offline'
-                        }
+                        $DomainStatus.Value.Add(
+                            @{
+                                Name = $Domain
+                                Status = 'Offline'
+                            }
+                        )
                         Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($Domain) domain. Removing domain from the Domain section."
                     }
                 }
