@@ -57,6 +57,10 @@
             ModuleVersion = '1.6.1'
         },
         @{
+            ModuleName = 'AsBuiltReport.Charts';
+            ModuleVersion = '0.1.0'
+        },
+        @{
             ModuleName = 'PSPKI';
             ModuleVersion = '4.3.0'
         },

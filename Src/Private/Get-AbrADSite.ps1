@@ -211,7 +211,7 @@ function Get-AbrADSite {
                                 }
 
                                 if ($HealthCheck.Site.BestPractice) {
-                                    $List = New-Object System.Collections.ArrayList
+                                    $List = [System.Collections.ArrayList]::new()
                                     $Num = 0
                                     if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
                                         $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'

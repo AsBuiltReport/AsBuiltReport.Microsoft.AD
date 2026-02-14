@@ -13,7 +13,7 @@ function Get-AbrADForestInfo {
         https://github.com/rebelinux/Diagrammer.Microsoft.AD
     #>
     [CmdletBinding()]
-    [OutputType([System.Object[]])]
+    [OutputType([System.Collections.ArrayList])]
 
     param()
 
