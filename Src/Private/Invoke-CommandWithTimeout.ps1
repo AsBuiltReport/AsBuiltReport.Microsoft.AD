@@ -65,7 +65,7 @@ function Invoke-CommandWithTimeout {
         Write-PScriboMessage -Message "Invoking '$ScriptBlock' command timed out after $(if ($TimeoutSeconds) {$TimeoutSeconds / 60} else {'Unknown'} ) minutes. Review JobsTimeOut option setting to ensure it is appropriate for your environment." -IsWarning
 
         # Return null to indicate timeout
-        return $null
+        $null
     }
 
     # Get the job results if completed successfully
@@ -74,5 +74,5 @@ function Invoke-CommandWithTimeout {
     Remove-Job -Job $job -ErrorAction SilentlyContinue
 
     # Return the job results
-    return $results
+    $results
 }

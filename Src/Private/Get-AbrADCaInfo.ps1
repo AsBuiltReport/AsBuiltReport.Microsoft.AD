@@ -30,7 +30,7 @@ function Get-AbrADCAInfo {
 
             $subordinateCAs = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq 'pKIEnrollmentService' } -Properties '*' -SelectPrty 'dNSHostName', 'Name', 'cACertificate' -Session $DiagramTempPssSession
 
-            $CAInfo = New-Object System.Collections.Generic.List[PSObject]
+            $CAInfo = [System.Collections.ArrayList]::new()
             if ($rootCAs) {
                 foreach ($rootCA in $rootCAs) {
 
@@ -95,7 +95,7 @@ function Get-AbrADCAInfo {
 
             }
 
-            return $CAInfo
+            $CAInfo
 
         } catch {
             Write-Verbose $_.Exception.Message

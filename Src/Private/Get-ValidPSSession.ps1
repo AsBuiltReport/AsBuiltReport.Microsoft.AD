@@ -33,13 +33,13 @@ function Get-ValidPSSession {
     } elseif (($Options.WinRMFallbackToNoSSL) -and ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSession' })) {
         # Write-PScriboMessage -Message "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
         Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM)."
-        return Get-PSSession $PSessionObj.Id
+        Get-PSSession $PSessionObj.Id
     }
 
     if ($Options.WinRMSSL) {
         if ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSessionSSL' }) {
             Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM with SSL)."
-            return Get-PSSession $PSessionObj.Id
+            Get-PSSession $PSessionObj.Id
         } else {
             try {
                 Write-PScriboMessage -Message "Connecting to '$ComputerName' through PSSession with SSL."
@@ -52,8 +52,8 @@ function Get-ValidPSSession {
                             Protocol = 'PSSessionSSL'
                             Id = $SessionObject.Id
                         }
-                    )
-                    return $SessionObject
+                    ) | Out-Null
+                    $SessionObject
                 }
             } catch {
                 Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession with SSL."
@@ -64,7 +64,7 @@ function Get-ValidPSSession {
                         Protocol = 'PSSessionSSL'
                         Id = 'None'
                     }
-                )
+                ) | Out-Null
                 if ($Options.WinRMFallbackToNoSSL) {
                     if ($PSessionObj = Get-PSSession | Where-Object { $_.ComputerName -eq $ComputerName -and $_.Availability -eq 'Available' -and $_.State -eq 'Opened' -and $_.Runspace.ConnectionInfo.Scheme -eq 'http' -and $_.Runspace.ConnectionInfo.Credential.Username -eq $Credential.UserName }) {
                         Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM without SSL)."
@@ -75,8 +75,8 @@ function Get-ValidPSSession {
                                 Protocol = 'PSSession'
                                 Id = $PSessionObj.Id
                             }
-                        )
-                        return $PSessionObj
+                        ) | Out-Null
+                        $PSessionObj
                     } else {
                         Write-PScriboMessage -Message "Generating a PSSession to '$ComputerName' (WinRM without SSL)."
                         try {
@@ -89,8 +89,8 @@ function Get-ValidPSSession {
                                         Protocol = 'PSSession'
                                         Id = $SessionObject.Id
                                     }
-                                )
-                                return $SessionObject
+                                ) | Out-Null
+                                $SessionObject
                             }
                         } catch {
                             $PSSTable.Value.Add(
@@ -100,7 +100,7 @@ function Get-ValidPSSession {
                                     Protocol = 'PSSession'
                                     Id = 'None'
                                 }
-                            )
+                            ) | Out-Null
                             if ($InitialForrestConnection) {
                                 throw "Unable to Connect to '$ComputerName' through PSSession. Error details: $($_.Exception.Message)"
                             } else {
@@ -118,7 +118,7 @@ function Get-ValidPSSession {
             throw "Unable to connect to $ComputerName through PSSession (WinRM)."
         } elseif ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSession' }) {
             Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id)"
-            return Get-PSSession $PSessionObj.Id
+            Get-PSSession $PSessionObj.Id
         } else {
             Write-PScriboMessage -Message "Generating a PSSession to '$ComputerName'."
             try {
@@ -130,8 +130,8 @@ function Get-ValidPSSession {
                             Protocol = 'PSSession'
                             Id = $SessionObject.Id
                         }
-                    )
-                    return $SessionObject
+                    ) | Out-Null
+                    $SessionObject
                 }
             } catch {
                 $PSSTable.Value.Add(
@@ -141,7 +141,7 @@ function Get-ValidPSSession {
                         Protocol = 'PSSession'
                         Id = 'None'
                     }
-                )
+                ) | Out-Null
                 if ($InitialForrestConnection) {
                     throw "Unable to Connect to '$ComputerName' through PSSession. Error details: $($_.Exception.Message)"
                 } else {

@@ -141,7 +141,7 @@ function Get-AbrDomainSection {
                                 Name = $Domain
                                 Status = 'Offline'
                             }
-                        )
+                        ) | Out-Null
                         Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($Domain) domain. Removing domain from the Domain section."
                     }
                 }

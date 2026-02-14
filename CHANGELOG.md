@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### :toolbox: Added
 
 - Migrate all chart to AsBuiltReport.Chart
-- Add bin modules to report
 
 ### :arrows_clockwise: Changed
 

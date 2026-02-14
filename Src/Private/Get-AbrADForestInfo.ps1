@@ -52,7 +52,7 @@ function Get-AbrADForestInfo {
                 }
             }
 
-            $ForestInfo = New-Object System.Collections.Generic.List[PSObject]
+            $ForestInfo = [System.Collections.ArrayList]::new()
             if ($ParentChildObj.Children) {
                 foreach ($Childs in $ParentChildObj | Sort-Object) {
                     foreach ($ChildDomain in $Childs.Children) {
@@ -186,7 +186,7 @@ function Get-AbrADForestInfo {
                 }
                 $ForestInfo.Add($TempForestInfo) | Out-Null
             }
-            return $ForestInfo
+            $ForestInfo
         } catch {
             Write-Verbose $_.Exception.Message
         }

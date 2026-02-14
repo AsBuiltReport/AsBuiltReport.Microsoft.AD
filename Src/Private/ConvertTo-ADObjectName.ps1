@@ -24,5 +24,5 @@ function ConvertTo-ADObjectName {
     foreach ($Object in $DN) {
         $ADObject.Add((Invoke-CommandWithTimeout -Session $Session -ScriptBlock { Get-ADObject $using:Object -Server $using:DC | Select-Object -ExpandProperty Name })) | Out-Null
     }
-    return $ADObject;
+    $ADObject;
 }# end

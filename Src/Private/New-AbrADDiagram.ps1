@@ -161,7 +161,7 @@ function New-AbrADDiagram {
                 if (-not ($_ | Test-Path) ) {
                     throw 'Folder does not exist'
                 }
-                return $true
+                $true
             })]
         [System.IO.FileInfo] $OutputFolderPath = [System.IO.Path]::GetTempPath(),
 
@@ -205,7 +205,7 @@ function New-AbrADDiagram {
                 if (-not $_.EndsWith($Format)) {
                     throw "The file specified in the path argument must be of type $Format"
                 }
-                return $true
+                $true
             })]
         [String] $Filename,
 
@@ -554,7 +554,7 @@ function New-AbrADDiagram {
 
             if ($OutputDiagram) {
                 if ($OutputFormat -ne 'Base64') {
-                    # If not Base64 format return image path
+                    # If not Base64 format image path
                     Write-ColorOutput -Color 'White' -String ($reportTranslate.NewADDiagram.DiagramOutput -f $MainGraphLabel, $OutputDiagram.Name, $OutputDiagram.Directory)
                 } else {
                     Write-Verbose $reportTranslate.NewADDiagram.Base64Output

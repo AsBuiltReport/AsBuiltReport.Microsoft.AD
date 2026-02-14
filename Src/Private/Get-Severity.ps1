@@ -24,23 +24,23 @@ function Get-Severity {
         try {
             # Auditing
             if ($Finding.Technique -eq 'DETECT') {
-                return 'Medium'
+                'Medium'
             }
             # ESC6
             if ($Finding.Technique -eq 'ESC6') {
-                return 'High'
+                'High'
             }
             # ESC8
             if ($Finding.Technique -eq 'ESC8') {
-                return 'High'
+                'High'
             }
             # ESC1, ESC2, ESC4, ESC5
             $SID = ConvertFrom-IdentityReference -Object $Finding.IdentityReference
             if ($SID -match $SafeUsers -or $SID -match $SafeOwners) {
-                return 'Medium'
+                'Medium'
             }
             if (($SID -notmatch $SafeUsers -and $SID -notmatch $SafeOwners) -and ($Finding.ActiveDirectoryRights -match $DangerousRights)) {
-                return 'Critical'
+                'Critical'
             }
         } catch {
             Write-PScriboMessage -IsWarning -Message 'Could not determine issue severity'

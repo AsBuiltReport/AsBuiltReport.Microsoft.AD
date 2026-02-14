@@ -11,7 +11,7 @@ function Get-ADObjectList {
         [string[]]$Object
     )
 
-    [System.Collections.Generic.List[PSObject]]$adObjects = New-Object System.Collections.Generic.List[PSObject]
+    [System.Collections.Generic.List[PSObject]]$adObjects = [System.Collections.ArrayList]::new()
     $searcher = New-Object System.DirectoryServices.DirectorySearcher
     $ConstructedDomainName = 'DC=' + $Domain.Split('.')
     $ConstructedDomainName = $ConstructedDomainName -replace ' ', ',DC='
@@ -27,15 +27,15 @@ function Get-ADObjectList {
     $searcher.SearchScope = 'Subtree'
 
     # Construct the LDAP filter based on the -Collect parameter
-    $filters = New-Object System.Collections.Generic.List[string]
+    $filters = [System.Collections.ArrayList]::new()
     foreach ($item in $Object) {
         switch ($item) {
-            'Users' { $filters.Add('(objectCategory=person)') }
-            'Computers' { $filters.Add('(objectCategory=computer)') }
-            'Groups' { $filters.Add('(objectCategory=group)') }
-            'DomainControllers' { $filters.Add('(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))') }
-            'OUs' { $filters.Add('(objectCategory=organizationalUnit)') }
-            'GPOs' { $filters.Add('(objectClass=groupPolicyContainer)') }
+            'Users' { $filters.Add('(objectCategory=person)') | Out-Null }
+            'Computers' { $filters.Add('(objectCategory=computer)') | Out-Null }
+            'Groups' { $filters.Add('(objectCategory=group)') | Out-Null }
+            'DomainControllers' { $filters.Add('(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))') | Out-Null }
+            'OUs' { $filters.Add('(objectCategory=organizationalUnit)') | Out-Null }
+            'GPOs' { $filters.Add('(objectClass=groupPolicyContainer)') | Out-Null }
         }
     }
     # Combine the filters with an OR if multiple categories are specified
@@ -50,8 +50,8 @@ function Get-ADObjectList {
             $obj | Add-Member -NotePropertyName $propertyName -NotePropertyValue $value
         }
         $obj | Add-Member -NotePropertyName 'domain' -NotePropertyValue $Domain
-        $adObjects.Add($obj)
+        $adObjects.Add($obj) | Out-Null
     }
     $searcher.Dispose()
-    return $adObjects
+    $adObjects
 }

@@ -115,10 +115,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         # WinRM Session variables
-        $DCStatus = New-Object System.Collections.Generic.List[PSObject]
-        $DomainStatus = New-Object System.Collections.Generic.List[PSObject]
-        $CIMTable = New-Object System.Collections.Generic.List[PSObject]
-        $PSSTable = New-Object System.Collections.Generic.List[PSObject]
+        $DCStatus = [System.Collections.ArrayList]::new()
+        $DomainStatus = [System.Collections.ArrayList]::new()
+        $CIMTable = [System.Collections.ArrayList]::new()
+        $PSSTable = [System.Collections.ArrayList]::new()
 
         try {
             $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable) -InitialForrestConnection $true
@@ -152,15 +152,15 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains }
         }
 
-        $script:OrderedDomains = New-Object System.Collections.Generic.List[string]
+        $script:OrderedDomains = [System.Collections.ArrayList]::new()
         if (-not ($Options.Exclude.Domains -contains $RootDomains)) {
-            $OrderedDomains.Add($RootDomains)
+            $OrderedDomains.Add($RootDomains) | Out-Null
         }
 
         Write-Host "- Getting $RootDomains forest information."
 
         if ($ChildDomains) {
-            $OrderedDomains.Add($ChildDomains)
+            $OrderedDomains.Add($ChildDomains) | Out-Null
             Write-Host "    - Discovering $RootDomains forest child domains: $($OrderedDomains -join ', ' )"
         }
 
@@ -176,7 +176,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                             Name = $Domain
                             Status = 'Offline'
                         }
-                    )
+                    ) | Out-Null
                     $OrderedDomains = $OrderedDomains | Where-Object { $_ -ne $Domain }
                 }
             } catch { Out-Null }

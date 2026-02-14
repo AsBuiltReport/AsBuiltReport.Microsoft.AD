@@ -33,5 +33,5 @@ function Convert-IpAddressToMaskLength {
             $result++;
         }
     }
-    return $result;
+    $result;
 }

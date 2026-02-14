@@ -13,7 +13,7 @@ function Get-AbrADSitesInventoryInfo {
         https://github.com/rebelinux/Diagrammer.Microsoft.AD
     #>
     [CmdletBinding()]
-    [OutputType([System.Object[]])]
+    [OutputType([System.Collections.ArrayList])]
 
     param()
 
@@ -25,19 +25,19 @@ function Get-AbrADSitesInventoryInfo {
         try {
             $Sites = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADReplicationSite -Filter * -Properties * }
 
-            $SitesInfo = New-Object System.Collections.Generic.List[PSObject]
+            $SitesInfo = [System.Collections.ArrayList]::new()
             if ($Sites) {
                 foreach ($Site in $Sites) {
                     $TempSitesInfo = [PSCustomObject]@{
                         Name = $Site.Name
                         Label = $Site.Name
                         Subnets = & {
-                            $SubnetTable = New-Object System.Collections.Generic.List[PSObject]
-                            $SubnetArray = New-Object System.Collections.Generic.List[string]
+                            $SubnetTable = [System.Collections.ArrayList]::new()
+                            $SubnetArray = [System.Collections.ArrayList]::new()
                             $Subnets = $Site.Subnets
                             foreach ($Object in $Subnets) {
                                 $SubnetName = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADReplicationSubnet $using:Object }
-                                $SubnetArray.Add($SubnetName.Name)
+                                $SubnetArray.Add($SubnetName.Name) | Out-Null
                             }
 
                             # Used for Debug
@@ -49,13 +49,13 @@ function Get-AbrADSitesInventoryInfo {
                                     Label = (Add-DiaHtmlTable -Name SubnetTable -ImagesObj $Images -Rows $SubnetArray -ColumnSize 3 -ALIGN 'Center' -IconDebug $IconDebug)
                                     SubnetArray = $SubnetArray
                                 }
-                            )
+                            ) | Out-Null
 
-                            return $SubnetTable
+                            $SubnetTable
                         }
                         DomainControllers = & {
-                            $DCsTable = New-Object System.Collections.Generic.List[PSObject]
-                            $DCsArray = New-Object System.Collections.Generic.List[string]
+                            $DCsTable = [System.Collections.ArrayList]::new()
+                            $DCsArray = [System.Collections.ArrayList]::new()
                             $DCs = try { Get-ADObjectSearch -DN "CN=Servers,$($Site.DistinguishedName)" -Filter { objectClass -eq 'Server' } -Properties 'DNSHostName' -SelectPrty 'DNSHostName', 'Name' -Session $DiagramTempPssSession } catch { Out-Null }
                             foreach ($Object in $DCs) {
                                 $DCsArray.Add($Object.DNSHostName) | Out-Null
@@ -70,16 +70,16 @@ function Get-AbrADSitesInventoryInfo {
                                     DCsArray = $DCsArray
                                 }) | Out-Null
 
-                            return $DCsTable
+                            $DCsTable
                         }
 
                         SitesObj = $Site
                     }
-                    $SitesInfo.Add($TempSitesInfo)
+                    $SitesInfo.Add($TempSitesInfo) | Out-Null
                 }
             }
 
-            return $SitesInfo
+            $SitesInfo
         } catch {
             Write-Verbose $_.Exception.Message
         }

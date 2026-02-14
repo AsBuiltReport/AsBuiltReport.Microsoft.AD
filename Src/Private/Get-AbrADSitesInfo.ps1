@@ -13,7 +13,7 @@ function Get-AbrADSitesInfo {
         https://github.com/rebelinux/Diagrammer.Microsoft.AD
     #>
     [CmdletBinding()]
-    [OutputType([System.Object[]])]
+    [OutputType([System.Collections.ArrayList])]
 
     param()
 
@@ -25,7 +25,7 @@ function Get-AbrADSitesInfo {
         try {
             $Sites = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest().Sites | Select-Object Name, @{l = 'SitesLink'; e = { $_.sitelinks } } }
 
-            $SitesInfo = New-Object System.Collections.Generic.List[PSObject]
+            $SitesInfo = [System.Collections.ArrayList]::new()
             if ($Sites) {
                 foreach ($SitesLink in $Sites) {
                     $TempSitesInfo = [PSCustomObject]@{
@@ -46,11 +46,11 @@ function Get-AbrADSitesInfo {
                             }
                         }
                     }
-                    $SitesInfo.Add($TempSitesInfo)
+                    $SitesInfo.Add($TempSitesInfo) | Out-Null
                 }
             }
 
-            return $SitesInfo
+            $SitesInfo
         } catch {
             Write-Verbose $_.Exception.Message
         }

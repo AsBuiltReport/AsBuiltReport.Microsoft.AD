@@ -1291,7 +1291,7 @@ function Get-AbrADDomainObject {
                                             if ($Null -ne $_) {
                                                 ConvertTo-ADObjectName -DN $_ -Session $TempPssSession -DC $ValidDcFromDomain
                                             } else {
-                                                return '--'
+                                                '--'
                                             }
                                         }
                                     }
