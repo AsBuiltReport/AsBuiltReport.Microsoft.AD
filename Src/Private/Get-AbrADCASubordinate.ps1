@@ -47,6 +47,7 @@ function Get-AbrADCASubordinate {
                                         'Certificate' = $CA.Certificate
                                         'Auditing' = switch ($AuditingIssue) {
                                             $Null { 'Not Configured' }
+                                            0 { 'Not Configured' }
                                             1 { 'Start and stop Active Directory® Certificate Services (1)' }
                                             2 { 'Back up and restore the CA database (2)' }
                                             4 { 'Issue and manage certificate requests (4)' }
