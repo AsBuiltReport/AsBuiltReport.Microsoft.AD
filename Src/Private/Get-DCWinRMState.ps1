@@ -38,16 +38,16 @@ function Get-DCWinRMState {
     Write-PScriboMessage -Message "Validating WinRM status of $ComputerName in Cache"
     if ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'WinRMSSL' }) {
         Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: Offline"
-        $false
+        return $false
     } elseif ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Offline' -and $_.Protocol -eq 'WinRM' }) {
         Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: Offline"
-        $false
+        return $false
     }
 
 
     if ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' }) {
         Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: True"
-        $true
+        return $true
     } else {
         Write-PScriboMessage -Message "No valid WinRM status of $ComputerName found in Cache: Building new connection."
         # build the connection to the DC
@@ -77,7 +77,7 @@ function Get-DCWinRMState {
                 }
             ) | Out-Null
             Write-PScriboMessage -Message "WinRM status in $ComputerName is Online ($WinRMType)."
-            $true
+            return $true
         }
 
         if ($Options.WinRMFallbackToNoSSL) {
@@ -94,7 +94,7 @@ function Get-DCWinRMState {
                         PingStatus = $PingStatus
                     }
                 ) | Out-Null
-                $true
+                return $true
             } else {
                 Write-PScriboMessage -Message "Unable to connect to $ComputerName through $WinRMType."
                 $DCStatus.Value.Add(
@@ -105,7 +105,7 @@ function Get-DCWinRMState {
                         PingStatus = $PingStatus
                     }
                 ) | Out-Null
-                $false
+                return $false
             }
 
         } else {
@@ -118,7 +118,7 @@ function Get-DCWinRMState {
                 }
             ) | Out-Null
             Write-PScriboMessage -Message "Unable to connect to $ComputerName through $WinRMType."
-            $false
+            return $false
         }
     }
 }# end

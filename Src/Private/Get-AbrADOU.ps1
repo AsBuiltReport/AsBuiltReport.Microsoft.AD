@@ -36,7 +36,7 @@ function Get-AbrADOU {
                     foreach ($OU in $OUs) {
                         try {
                             $GPOArray = [System.Collections.ArrayList]::new()
-                            [array]$GPOs = $OU.LinkedGroupPolicyObjects
+                            [System.Collections.ArrayList]$GPOs = $OU.LinkedGroupPolicyObjects
                             foreach ($Object in $GPOs) {
                                 try {
                                     $GP = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:ValidDCFromDomain -Guid ($using:Object).Split(',')[0].Split('=')[1] -Domain ($using:Domain).DNSRoot }

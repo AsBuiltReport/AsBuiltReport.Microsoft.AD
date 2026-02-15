@@ -142,14 +142,15 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
         $RootDomains = $ADSystem.RootDomain
+        $ChildDomains = [System.Collections.ArrayList]::new()
         if ($Options.Include.Domains) {
             Write-Host "- Include.Domains option enabled: Including only the following domains in the report: $($Options.Include.Domains -join ', ' )"
-            [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -in $Options.Include.Domains }
+            $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -in $Options.Include.Domains }
         } elseif ($Options.Exclude.Domains) {
             Write-Host "- Including all child domains in the report except the following excluded domains: $($Options.Exclude.Domains -join ', ')"
-            [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
+            $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
         } else {
-            [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains }
+            $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains }
         }
 
         $script:OrderedDomains = [System.Collections.ArrayList]::new()

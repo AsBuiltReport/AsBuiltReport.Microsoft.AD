@@ -28,13 +28,13 @@ function Get-ValidCIMSession {
     } elseif (($Options.WinRMFallbackToNoSSL) -and ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSession' })) {
         Write-PScriboMessage -Message "Unable to connect to $ComputerName through CimSession (CIM with SSL)."
         Write-PScriboMessage -Message "WinRMFallbackToNoSSL option set using available '$ComputerName' CimSession id: $($CIMSessionObj.Id) (WinRM)."
-        Get-CimSession $CIMSessionObj.Id
+        return Get-CimSession $CIMSessionObj.Id
     }
 
     if ($Options.WinRMSSL) {
         if ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSessionSSL' }) {
             Write-PScriboMessage -Message "Using available '$ComputerName' CIMSession id: $($CIMSessionObj.Id) (CimSession)."
-            Get-CimSession $CIMSessionObj.Id
+            return Get-CimSession $CIMSessionObj.Id
         } else {
             try {
                 Write-PScriboMessage -Message "No available CimSession with SSL found for '$ComputerName': Generating a new one."
@@ -51,7 +51,7 @@ function Get-ValidCIMSession {
                             InstanceId = $CIMSessionObj.InstanceId
                         }
                     ) | Out-Null
-                    $CIMSessionObj
+                    return $CIMSessionObj
                 }
             } catch {
                 if ($Options.WinRMFallbackToNoSSL) {
@@ -77,7 +77,7 @@ function Get-ValidCIMSession {
                                     InstanceId = $CIMSessionObj.InstanceId
                                 }
                             ) | Out-Null
-                            $CIMSessionObj
+                            return $CIMSessionObj
                         }
                     } catch {
                         Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession without SSL."
@@ -99,7 +99,7 @@ function Get-ValidCIMSession {
             throw "Unable to connect to $ComputerName through CimSession (CimSession)."
         } elseif ($CIMSessionObj = $CIMTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'CimSession' }) {
             Write-PScriboMessage -Message "Using available '$ComputerName' CIMSession id: $($CIMSessionObj.Id) (CimSession without SSL)."
-            Get-CimSession $CIMSessionObj.Id
+            return Get-CimSession $CIMSessionObj.Id
         } else {
             Write-PScriboMessage -Message "Connecting to '$ComputerName' through CimSession without SSL."
             try {
@@ -114,7 +114,7 @@ function Get-ValidCIMSession {
                             InstanceId = $CIMSessionObj.InstanceId
                         }
                     ) | Out-Null
-                    $CIMSessionObj
+                    return $CIMSessionObj
                 }
             } catch {
                 Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through CimSession without SSL."

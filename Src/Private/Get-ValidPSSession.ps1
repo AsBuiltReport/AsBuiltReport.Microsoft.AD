@@ -33,13 +33,13 @@ function Get-ValidPSSession {
     } elseif (($Options.WinRMFallbackToNoSSL) -and ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSession' })) {
         # Write-PScriboMessage -Message "Unable to connect to $ComputerName through PSSession (WinRM with SSL)."
         Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM)."
-        Get-PSSession $PSessionObj.Id
+        return Get-PSSession $PSessionObj.Id
     }
 
     if ($Options.WinRMSSL) {
         if ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSessionSSL' }) {
             Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM with SSL)."
-            Get-PSSession $PSessionObj.Id
+            return Get-PSSession $PSessionObj.Id
         } else {
             try {
                 Write-PScriboMessage -Message "Connecting to '$ComputerName' through PSSession with SSL."
@@ -53,7 +53,7 @@ function Get-ValidPSSession {
                             Id = $SessionObject.Id
                         }
                     ) | Out-Null
-                    $SessionObject
+                    return $SessionObject
                 }
             } catch {
                 Write-PScriboMessage -Message "Unable to Connect to '$ComputerName' through PSSession with SSL."
@@ -76,7 +76,7 @@ function Get-ValidPSSession {
                                 Id = $PSessionObj.Id
                             }
                         ) | Out-Null
-                        $PSessionObj
+                        return $PSessionObj
                     } else {
                         Write-PScriboMessage -Message "Generating a PSSession to '$ComputerName' (WinRM without SSL)."
                         try {
@@ -118,7 +118,7 @@ function Get-ValidPSSession {
             throw "Unable to connect to $ComputerName through PSSession (WinRM)."
         } elseif ($PSessionObj = $PSSTable.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' -and $_.Protocol -eq 'PSSession' }) {
             Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id)"
-            Get-PSSession $PSessionObj.Id
+            return Get-PSSession $PSessionObj.Id
         } else {
             Write-PScriboMessage -Message "Generating a PSSession to '$ComputerName'."
             try {
@@ -131,7 +131,7 @@ function Get-ValidPSSession {
                             Id = $SessionObject.Id
                         }
                     ) | Out-Null
-                    $SessionObject
+                    return $SessionObject
                 }
             } catch {
                 $PSSTable.Value.Add(
