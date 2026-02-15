@@ -1,4 +1,4 @@
-function Get-WinADDuplicateSPN {
+﻿function Get-WinADDuplicateSPN {
     <#
     .SYNOPSIS
     Detects and lists duplicate Service Principal Names (SPNs) in the Active Directory Domain.

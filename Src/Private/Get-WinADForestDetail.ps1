@@ -1,4 +1,4 @@
-function Get-WinADForestDetail {
+﻿function Get-WinADForestDetail {
 
     <#
     .SYNOPSIS
