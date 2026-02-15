@@ -1,4 +1,4 @@
-function Get-WinADDuplicateObject {
+﻿function Get-WinADDuplicateObject {
     <#
     .SYNOPSIS
     Used by As Built Report to get AD duplicate object info.

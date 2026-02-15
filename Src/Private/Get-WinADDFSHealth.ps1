@@ -1,4 +1,4 @@
-function Get-WinADDFSHealth {
+﻿function Get-WinADDFSHealth {
     <#
     .SYNOPSIS
     Used by As Built Report to get DFS health AD forest info.
