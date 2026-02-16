@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix DNS infrastructure collection to query all domain controllers @cse-gh
 - Fix the logic of the Exclude.Domains and Include.Domains options in the
   Invoke-AsBuiltReport.Microsoft.AD cmdlet to ensure that they work as intended
+- Fix Certficate Authority Autiting status not being properly evaluated in Get-AbrADCARoot
+  and Get-AbrADCASubordinate cmdlets
 
 ### :x: Removed
 
