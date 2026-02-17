@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Invoke-AsBuiltReport.Microsoft.AD cmdlet to ensure that they work as intended
 - Fix Certficate Authority Autiting status not being properly evaluated in Get-AbrADCARoot
   and Get-AbrADCASubordinate cmdlets
+- Fix missing BOM encoding for non-ASCII encoded file
 
 ### :x: Removed
 

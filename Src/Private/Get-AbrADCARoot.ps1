@@ -1,4 +1,4 @@
-function Get-AbrADCARoot {
+﻿function Get-AbrADCARoot {
     <#
     .SYNOPSIS
     Used by As Built Report to retrieve Microsoft Active Directory Root Certification Authority information.

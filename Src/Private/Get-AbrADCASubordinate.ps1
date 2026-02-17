@@ -1,4 +1,4 @@
-function Get-AbrADCASubordinate {
+﻿function Get-AbrADCASubordinate {
     <#
     .SYNOPSIS
     Used by As Built Report to retrieve Microsoft Active Directory Subordinate Certification Authority information.
