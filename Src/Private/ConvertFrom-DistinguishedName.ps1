@@ -1,4 +1,4 @@
-function ConvertFrom-DistinguishedName {
+﻿function ConvertFrom-DistinguishedName {
     <#
     .SYNOPSIS
     Converts a Distinguished Name to CN, OU, Multiple OUs or DC

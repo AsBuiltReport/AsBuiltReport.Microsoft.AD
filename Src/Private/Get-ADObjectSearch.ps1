@@ -27,5 +27,5 @@ function Get-ADObjectSearch {
     foreach ($Object in $DN) {
         $ADObject.Add((Invoke-CommandWithTimeout -Session $Session -ScriptBlock { Get-ADObject -SearchBase $using:DN -SearchScope OneLevel -Filter $using:Filter -Properties $using:Properties -EA 0 | Select-Object $using:SelectPrty })) | Out-Null
     }
-    return $ADObject;
+    $ADObject;
 }# end

@@ -1,4 +1,4 @@
-function Get-WinADForestDetail {
+﻿function Get-WinADForestDetail {
 
     <#
     .SYNOPSIS
@@ -94,7 +94,7 @@ function Get-WinADForestDetail {
                 $Findings['QueryServers']['Forest'] = $OrderedDC
             }
             $Findings['QueryServers']["$Domain"] = $OrderedDC
-            # lets return domain as something that wroks
+            # lets domain as something that wroks
             $Domain
         }
 

@@ -1,4 +1,4 @@
-function Get-CimData {
+﻿function Get-CimData {
     <#
     .SYNOPSIS
     Helper function for retreiving CIM data from local and remote computers

@@ -30,6 +30,6 @@ function ConvertTo-HashToYN {
         }
     }
     if ($result) {
-        return $result
-    } else { return $TEXT }
+        $result
+    } else { $TEXT }
 } # end

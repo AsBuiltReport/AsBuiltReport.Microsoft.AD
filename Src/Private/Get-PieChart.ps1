@@ -165,6 +165,6 @@ function Get-PieChart {
 
     Remove-Item -Path $ChartImage.FullName
 
-    return $Base64Image
+    $Base64Image
 
 } # end

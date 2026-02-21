@@ -1,4 +1,4 @@
-function Get-ComputerSplit {
+﻿function Get-ComputerSplit {
     <#
     .SYNOPSIS
 

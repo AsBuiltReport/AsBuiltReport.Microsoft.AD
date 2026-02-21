@@ -28,7 +28,7 @@ function Get-ADExchangeServer {
             64 = 'EDGE';
         }
 
-        $roleList = New-Object -TypeName Collections.ArrayList
+        $roleList = [System.Collections.ArrayList]::new()
 
         foreach ($key in ($roleNumber).Keys) {
             if ($key -band $roles) {

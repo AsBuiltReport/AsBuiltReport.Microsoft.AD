@@ -34,7 +34,7 @@ function Get-AbrDiagTrust {
                 if ($TrustsInfo) {
                     SubGraph ForestSubGraph -Attributes @{Label = (Add-DiaHtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold); fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
                         SubGraph MainSubGraph -Attributes @{Label = ' ' ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style; color = $SubGraphDebug.color } {
-                            if (($TrustsInfo.Name | Measure-Object).count -gt 3) {
+                            if (($TrustsInfo.Name | Measure-Object).count -gt 10) {
 
                                 $ChildDomainsNodes = $TrustsInfo.Label
 
