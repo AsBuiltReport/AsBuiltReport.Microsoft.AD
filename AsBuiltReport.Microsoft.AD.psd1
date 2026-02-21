@@ -54,11 +54,11 @@
     RequiredModules = @(
         @{
             ModuleName = 'AsBuiltReport.Core';
-            ModuleVersion = '1.6.1'
+            ModuleVersion = '1.6.2'
         },
         @{
-            ModuleName = 'AsBuiltReport.Charts';
-            ModuleVersion = '0.1.0'
+            ModuleName = 'AsBuiltReport.Chart';
+            ModuleVersion = '0.2.0'
         },
         @{
             ModuleName = 'PSPKI';
@@ -66,7 +66,7 @@
         },
         @{
             ModuleName = 'Diagrammer.Core';
-            ModuleVersion = '0.2.37'
+            ModuleVersion = '0.2.38'
         }
     )
 

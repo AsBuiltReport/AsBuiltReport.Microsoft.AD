@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.11] - Unreleased
+## [0.9.11] - 2026-02-21
 
 ### :toolbox: Added
 
@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### :arrows_clockwise: Changed
 
 - Update module version to `0.9.11`
-- Upgrade AsBuiltReport.Core module to version `1.6.1`
+- Upgrade AsBuiltReport.Core module to version `1.6.2`
+- Upgrade AsBuiltReport.Chart module to version `0.2.0`
+- Update Diagrammer.Core module to version `0.2.38`
 
 ### :bug: Fixed
 
@@ -33,7 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove PscriboCharts module dependency replacing it with AsBuiltReport.Chart
 - Remove hardcoded 60-second timeout from Invoke-DcDiag @cse-gh
-- Remove support for Pwsh v5.1
 - Remove redundant Get-RequiredFeature calls in New-AbrADDiagram cmdlet
 
 ## [0.9.10] - 2026-01-26
