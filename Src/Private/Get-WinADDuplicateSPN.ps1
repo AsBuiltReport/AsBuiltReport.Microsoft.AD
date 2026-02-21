@@ -1,11 +1,11 @@
-function Get-WinADDuplicateSPN {
+﻿function Get-WinADDuplicateSPN {
     <#
     .SYNOPSIS
     Detects and lists duplicate Service Principal Names (SPNs) in the Active Directory Domain.
     .DESCRIPTION
     Detects and lists duplicate Service Principal Names (SPNs) in the Active Directory Domain.
     .PARAMETER All
-    Returns all duplicate and non-duplicate SPNs. Default is to only return duplicate SPNs.
+    Returns all duplicate and non-duplicate SPNs. Default is to only duplicate SPNs.
     .PARAMETER Exclude
     Provides ability to exclude specific SPNs from the duplicate detection. By default it excludes kadmin/changepw as with multiple forests it will happen for sure.
     .PARAMETER Forest

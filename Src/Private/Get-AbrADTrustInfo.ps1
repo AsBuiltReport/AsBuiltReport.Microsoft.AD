@@ -5,7 +5,7 @@ function Get-AbrADTrustsInfo {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.11
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -13,7 +13,7 @@ function Get-AbrADTrustsInfo {
         https://github.com/rebelinux/Diagrammer.Microsoft.AD
     #>
     [CmdletBinding()]
-    [OutputType([System.Object[]])]
+    [OutputType([System.Collections.ArrayList])]
 
     param()
 
@@ -56,7 +56,7 @@ function Get-AbrADTrustsInfo {
 
             $Trusts = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADTrust -Filter * -Properties CanonicalName, Target, TrustDirection, TrustAttributes, TrustType, SelectiveAuthentication } -ErrorAction Stop
 
-            $TrustsInfo = @()
+            $TrustsInfo = [System.Collections.ArrayList]::new()
             if ($Trusts) {
                 foreach ($Trust in $Trusts) {
                     $AditionalInfo = [PSCustomObject] [ordered]@{
@@ -76,10 +76,10 @@ function Get-AbrADTrustsInfo {
                         SourceLabel = Add-DiaNodeIcon -Name $Trust.CanonicalName.split('/')[0] -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug
                         Direction = $TrustDirectionID[[int]$Trust.TrustDirection]
                     }
-                    $TrustsInfo += $TempTrustsInfo
+                    $TrustsInfo.Add($TempTrustsInfo) | Out-Null
                 }
             }
-            return $TrustsInfo
+            $TrustsInfo
         } catch {
             Write-Verbose $_.Exception.Message
         }

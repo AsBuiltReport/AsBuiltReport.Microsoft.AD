@@ -25,5 +25,5 @@ function ConvertTo-ADCanonicalName {
     foreach ($Object in $DN) {
         $ADObject.Add((Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject $using:Object -Properties * -Server $using:DC | Select-Object -ExpandProperty CanonicalName })) | Out-Null
     }
-    return $ADObject;
+    $ADObject;
 }# end

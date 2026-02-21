@@ -45,7 +45,7 @@ function Get-AbrADGPO {
                                             $GPOSECFILTER = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName ($using:Domain).DNSRoot -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
                                             if ($GPOSECFILTER) {
 
-                                                return $GPOSECFILTER
+                                                $GPOSECFILTER
 
                                             } else { 'No Security Filtering' }
                                         }
@@ -127,7 +127,7 @@ function Get-AbrADGPO {
                                                 $GPOSECFILTER = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName ($using:Domain).DNSROot -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
                                                 if ($GPOSECFILTER) {
 
-                                                    return $GPOSECFILTER
+                                                    $GPOSECFILTER
 
                                                 } else { 'No Security Filtering' }
                                             }
@@ -587,22 +587,22 @@ function Get-AbrADGPO {
                                         'Guid' = $OrphanGPO
                                         'AD DN Database' = & {
                                             if ($OrphanGPO -in $MissingADGPOs) {
-                                                return 'Missing'
+                                                'Missing'
                                             } else { 'Valid' }
                                         }
                                         'AD DN Path' = & {
                                             if ($OrphanGPO -in $MissingADGPOs) {
-                                                return "CN={$($OrphanGPO)},CN=Policies,CN=System,$($Domain.DistinguishedName) (Missing)"
+                                                "CN={$($OrphanGPO)},CN=Policies,CN=System,$($Domain.DistinguishedName) (Missing)"
                                             } else { "CN={$($OrphanGPO)},CN=Policies,CN=System,$($Domain.DistinguishedName) (Valid)" }
                                         }
                                         'SYSVOL Guid Directory' = & {
                                             if ($OrphanGPO -in $MissingSYSVOLGPOs) {
-                                                return 'Missing'
+                                                'Missing'
                                             } else { 'Valid' }
                                         }
                                         'SYSVOL Guid Path' = & {
                                             if ($OrphanGPO -in $MissingSYSVOLGPOs) {
-                                                return "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\{$($OrphanGPO)} (Missing)"
+                                                "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\{$($OrphanGPO)} (Missing)"
                                             } else { "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\{$($OrphanGPO)} (Valid)" }
                                         }
                                     }

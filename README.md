@@ -61,18 +61,17 @@ This report is compatible with the following PowerShell versions;
 <!-- ********** Update supported PowerShell versions ********** -->
 | Windows PowerShell 5.1 |    PowerShell 7    |
 | :--------------------: | :----------------: |
-|   :white_check_mark:   | :white_check_mark: |
+|          :x:           | :white_check_mark: |
 
 ## :wrench: System Requirements
 <!-- ********** Update system requirements ********** -->
-PowerShell 5.1, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
+PowerShell 7+, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
 - [AsBuiltReport.Core Module](https://github.com/AsBuiltReport/AsBuiltReport.Core)
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
 - [PScribo Module](https://github.com/iainbrighton/PScribo)
 - [PSGraph Module](https://github.com/KevinMarquette/PSGraph)
 - [Diagrammer.Core Module](https://github.com/rebelinux/Diagrammer.Core)
-- [PScriboCharts Module](https://github.com/iainbrighton/PScriboCharts)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
 - [ADCSAdministration Module](https://learn.microsoft.com/en-us/powershell/module/adcsadministration/?view=windowsserver2019-ps)
 - [PSPKI Module](https://www.powershellgallery.com/packages/PSPKI/3.7.2)
@@ -81,7 +80,7 @@ PowerShell 5.1, and the following PowerShell modules are required for generating
 
 ### Linux & macOS
 
-This report does not support Linux or Mac due to the fact that the ActiveDirectory/GroupPolicy modules are dependent on the .NET Framework. Until Microsoft migrates these modules to native PowerShell Core, only PowerShell >= (5.x, 7) will be supported on Windows.
+This report does not support Linux or Mac due to the fact that the ActiveDirectory/GroupPolicy modules are dependent on the .NET Framework. Until Microsoft migrates these modules to native PowerShell Core, only PowerShell >= 7 will be supported on Windows.
 
 ### :closed_lock_with_key: Required Privileges
 
@@ -248,7 +247,6 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 ## :x: Known Issues
 
 - This project uses the PScribo module to generate the documents. I have identified that the EvotecIT "PSWriteWord" project uses the same cmdlet. For this report to be generated successfully the PSWriteWord module must be uninstalled.
-- Issues with WinRM when using the IP address instead of the "Fully Qualified Domain Name".
 - This project relies heavily on the remote connection function through WinRM. For this reason the use of a Windows 10 client is specifically used as a jumpbox.
 - The report provides the ability to extract the configuration of the DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DNS-Server & RSAT-AD-PowerShell).
 - This report assumes that the DNS Server service is running on the same server where Domain Controller is running (Cohost).

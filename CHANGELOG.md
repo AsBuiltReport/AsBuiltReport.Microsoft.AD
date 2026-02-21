@@ -7,28 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.11] - Unreleased
+## [0.9.11] - 2026-02-21
 
 ### :toolbox: Added
 
 - Migrate all chart to AsBuiltReport.Chart
-- Add bin modules to report
 
 ### :arrows_clockwise: Changed
 
 - Update module version to `0.9.11`
-- Upgrade AsBuiltReport.Core module to version `1.6.1`
+- Upgrade AsBuiltReport.Core module to version `1.6.2`
+- Upgrade AsBuiltReport.Chart module to version `0.2.0`
+- Update Diagrammer.Core module to version `0.2.38`
 
 ### :bug: Fixed
 
 - Fix the computer/user stats table so that it displays the correct values
 - Fix Avoid using the ! negation operator warning in New-AbrADDiagram cmdlet
-- Fix DNS infrastructure collection to query all domain controllers
+- Fix DNS infrastructure collection to query all domain controllers @cse-gh
+- Fix the logic of the Exclude.Domains and Include.Domains options in the
+  Invoke-AsBuiltReport.Microsoft.AD cmdlet to ensure that they work as intended
+- Fix Certficate Authority Autiting status not being properly evaluated in Get-AbrADCARoot
+  and Get-AbrADCASubordinate cmdlets
+- Fix missing BOM encoding for non-ASCII encoded file
 
 ### :x: Removed
 
-- Remove PscriboCharts module dependency
-- Remove hardcoded 60-second timeout from Invoke-DcDiag
+- Remove PscriboCharts module dependency replacing it with AsBuiltReport.Chart
+- Remove hardcoded 60-second timeout from Invoke-DcDiag @cse-gh
+- Remove redundant Get-RequiredFeature calls in New-AbrADDiagram cmdlet
 
 ## [0.9.10] - 2026-01-26
 

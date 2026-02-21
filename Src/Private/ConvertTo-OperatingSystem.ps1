@@ -1,4 +1,4 @@
-function ConvertTo-OperatingSystem {
+﻿function ConvertTo-OperatingSystem {
     <#
     .SYNOPSIS
     Allows easy conversion of OperatingSystem, Operating System Version to proper Windows 10 naming based on WMI or AD

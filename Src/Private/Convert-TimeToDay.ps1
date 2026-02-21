@@ -22,5 +22,5 @@ function Convert-TimeToDay {
             $Days = (New-TimeSpan -Start $StartTime -End (Get-Date)).Days
         }
     }
-    return $Days
+    $Days
 }

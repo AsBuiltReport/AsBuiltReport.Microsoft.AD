@@ -1,4 +1,4 @@
-function Get-AbrADDFSHealth {
+﻿function Get-AbrADDFSHealth {
     <#
     .SYNOPSIS
     Used by As Built Report to retrieve Microsoft AD Domain DFS Health information.

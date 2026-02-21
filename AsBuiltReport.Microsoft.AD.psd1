@@ -33,7 +33,7 @@
     Description = 'A PowerShell module to generate an as built report on the configuration of Microsoft AD.'
 
     # Minimum version of the Windows PowerShell engine required by this module
-    # PowerShellVersion = '5.1'
+    PowerShellVersion = '5.1'
 
     # Name of the Windows PowerShell host required by this module
     # PowerShellHostName = ''
@@ -54,7 +54,11 @@
     RequiredModules = @(
         @{
             ModuleName = 'AsBuiltReport.Core';
-            ModuleVersion = '1.6.1'
+            ModuleVersion = '1.6.2'
+        },
+        @{
+            ModuleName = 'AsBuiltReport.Chart';
+            ModuleVersion = '0.2.0'
         },
         @{
             ModuleName = 'PSPKI';
@@ -62,7 +66,7 @@
         },
         @{
             ModuleName = 'Diagrammer.Core';
-            ModuleVersion = '0.2.37'
+            ModuleVersion = '0.2.38'
         }
     )
 

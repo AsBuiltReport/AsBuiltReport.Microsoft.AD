@@ -35,7 +35,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo6
 
     # Check the version of the dependency modules
-    $ModuleArray = @('AsBuiltReport.Core', 'Diagrammer.Core', 'PSPKI', 'PScriboCharts')
+    $ModuleArray = @('AsBuiltReport.Core', 'AsBuiltReport.Chart', 'Diagrammer.Core', 'PSPKI')
 
     foreach ($Module in $ModuleArray) {
         try {
@@ -114,10 +114,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         # WinRM Session variables
-        $DCStatus = @()
-        $DomainStatus = @()
-        $CIMTable = @()
-        $PSSTable = @()
+        $DCStatus = [System.Collections.ArrayList]::new()
+        $DomainStatus = [System.Collections.ArrayList]::new()
+        $CIMTable = [System.Collections.ArrayList]::new()
+        $PSSTable = [System.Collections.ArrayList]::new()
 
         try {
             $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable) -InitialForrestConnection $true
@@ -140,19 +140,27 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
-        [array]$RootDomains = $ADSystem.RootDomain
+        $RootDomains = $ADSystem.RootDomain
+        $ChildDomains = [System.Collections.ArrayList]::new()
         if ($Options.Include.Domains) {
-            [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -in $Options.Include.Domains }
+            Write-Host "- Include.Domains option enabled: Including only the following domains in the report: $($Options.Include.Domains -join ', ' )"
+            $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -in $Options.Include.Domains }
+        } elseif ($Options.Exclude.Domains) {
+            Write-Host "- Including all child domains in the report except the following excluded domains: $($Options.Exclude.Domains -join ', ')"
+            $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
         } else {
-            [array]$ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
+            $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains }
         }
 
-        $script:OrderedDomains = @()
-        $OrderedDomains += $RootDomains
-        Write-Host "- Getting $OrderedDomains forest information."
+        $script:OrderedDomains = [System.Collections.ArrayList]::new()
+        if (-not ($Options.Exclude.Domains -contains $RootDomains)) {
+            $OrderedDomains.Add($RootDomains) | Out-Null
+        }
+
+        Write-Host "- Getting $RootDomains forest information."
 
         if ($ChildDomains) {
-            $OrderedDomains += $ChildDomains
+            $OrderedDomains.Add($ChildDomains) | Out-Null
             Write-Host "    - Discovering $RootDomains forest child domains: $($OrderedDomains -join ', ' )"
         }
 
@@ -163,10 +171,12 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                     Write-Host "    - Initial Setup: An available DC in $Domain domain is found. Adding domain to the report."
                 } else {
                     Write-Host "    - Unable to get an available DC in $Domain domain. Removing domain from the report."
-                    $DomainStatus += @{
-                        Name = $Domain
-                        Status = 'Offline'
-                    }
+                    $DomainStatus.Add(
+                        @{
+                            Name = $Domain
+                            Status = 'Offline'
+                        }
+                    ) | Out-Null
                     $OrderedDomains = $OrderedDomains | Where-Object { $_ -ne $Domain }
                 }
             } catch { Out-Null }
@@ -175,16 +185,28 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
 
         # Forest Section
-        Get-AbrForestSection
+        if ($InfoLevel.Forest -ge 1) {
+            Write-Host '- Working on Forest section.'
+            Get-AbrForestSection
+        }
 
         # Domain Section
-        Get-AbrDomainSection -DomainStatus ([ref]$DomainStatus)
+        if ($InfoLevel.Domain -ge 1) {
+            Write-Host '- Working on Domain section.'
+            Get-AbrDomainSection -DomainStatus ([ref]$DomainStatus)
+        }
 
         # DNS Section
-        Get-AbrDnsSection -DomainStatus ([ref]$DomainStatus)
+        if ($InfoLevel.DNS -ge 1) {
+            Write-Host '- Working on DNS section.'
+            Get-AbrDnsSection -DomainStatus ([ref]$DomainStatus)
+        }
 
         # PKI Section
-        Get-AbrPKISection
+        if ($InfoLevel.CA -ge 1) {
+            Write-Host '- Working on PKI section.'
+            Get-AbrPKISection
+        }
 
         #---------------------------------------------------------------------------------------------#
         #                            Export Diagram Section                                           #
@@ -192,7 +214,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         if ($Options.ExportDiagrams) {
             Write-Host ' '
-            Write-Host 'ExportDiagrams option enabled: Exporting diagrams:'
+            Write-Host '- ExportDiagrams option enabled: Exporting diagrams:'
             $Options.DiagramType.PSobject.Properties | ForEach-Object {
                 if ($_.Value -and $_.Name -eq 'Trusts') {
                     foreach ($Domain in $OrderedDomains) {
@@ -240,6 +262,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #---------------------------------------------------------------------------------------------#
         #                           Connection Status Section                                         #
         #---------------------------------------------------------------------------------------------#
+
+        Write-Host "- Finished report generation for $RootDomains forest:"
 
         $DCOffine = $DCStatus | Where-Object { $Null -ne $_.DCName -and $_.Status -eq 'Offline' } | Select-Object -Property @{N = 'Name'; E = { $_.DCName } }, @{N = 'WinRM Status'; E = { $_.Status } }, @{N = 'Ping Status'; E = { $_.PingStatus } }, @{N = 'Protocol'; E = { $_.Protocol } } | ForEach-Object { [pscustomobject]$_ }
         $DomainOffline = $DomainStatus | Where-Object { $Null -ne $_.Name -and $_.Status -eq 'Offline' }

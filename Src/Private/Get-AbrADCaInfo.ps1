@@ -13,7 +13,7 @@ function Get-AbrADCAInfo {
         https://github.com/rebelinux/Diagrammer.Microsoft.AD
     #>
     [CmdletBinding()]
-    [OutputType([System.Object[]])]
+    [OutputType([System.Collections.ArrayList])]
 
     param()
 
@@ -30,7 +30,7 @@ function Get-AbrADCAInfo {
 
             $subordinateCAs = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq 'pKIEnrollmentService' } -Properties '*' -SelectPrty 'dNSHostName', 'Name', 'cACertificate' -Session $DiagramTempPssSession
 
-            $CAInfo = @()
+            $CAInfo = [System.Collections.ArrayList]::new()
             if ($rootCAs) {
                 foreach ($rootCA in $rootCAs) {
 
@@ -47,7 +47,7 @@ function Get-AbrADCAInfo {
                         AditionalInfo = $AditionalInfo
                         IsRoot = $true
                     }
-                    $CAInfo += $TempCAInfo
+                    $CAInfo.Add($TempCAInfo) | Out-Null
                 }
             } else {
                 if ($subordinateCAs) {
@@ -68,7 +68,7 @@ function Get-AbrADCAInfo {
                             AditionalInfo = $AditionalInfo
                             IsRoot = $true
                         }
-                        $CAInfo += $TempCAInfo
+                        $CAInfo.Add($TempCAInfo) | Out-Null
                     }
                 }
             }
@@ -90,12 +90,12 @@ function Get-AbrADCAInfo {
                         AditionalInfo = $AditionalInfo
                         IsRoot = $false
                     }
-                    $CAInfo += $TempCAInfo
+                    $CAInfo.Add($TempCAInfo) | Out-Null
                 }
 
             }
 
-            return $CAInfo
+            $CAInfo
 
         } catch {
             Write-Verbose $_.Exception.Message

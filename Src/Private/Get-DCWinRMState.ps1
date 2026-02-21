@@ -46,7 +46,7 @@ function Get-DCWinRMState {
 
 
     if ($DCStatus.Value | Where-Object { $_.DCName -eq $ComputerName -and $_.Status -eq 'Online' }) {
-        Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: return True"
+        Write-PScriboMessage -Message "Valid WinRM status of $ComputerName found in Cache: True"
         return $true
     } else {
         Write-PScriboMessage -Message "No valid WinRM status of $ComputerName found in Cache: Building new connection."
@@ -68,12 +68,14 @@ function Get-DCWinRMState {
         }
 
         if (Test-WSMan @ConnectionParams) {
-            $DCStatus.Value += @{
-                DCName = $ComputerName
-                Status = 'Online'
-                Protocol = $WinRMType
-                PingStatus = $PingStatus
-            }
+            $DCStatus.Value.Add(
+                @{
+                    DCName = $ComputerName
+                    Status = 'Online'
+                    Protocol = $WinRMType
+                    PingStatus = $PingStatus
+                }
+            ) | Out-Null
             Write-PScriboMessage -Message "WinRM status in $ComputerName is Online ($WinRMType)."
             return $true
         }
@@ -84,31 +86,37 @@ function Get-DCWinRMState {
             $WinRMType = 'WinRM'
             if (Test-WSMan @ConnectionParams) {
                 Write-PScriboMessage -Message "WinRM status in $ComputerName is Online ($WinRMType)."
-                $DCStatus.Value += @{
-                    DCName = $ComputerName
-                    Status = 'Online'
-                    Protocol = $WinRMType
-                    PingStatus = $PingStatus
-                }
+                $DCStatus.Value.Add(
+                    @{
+                        DCName = $ComputerName
+                        Status = 'Online'
+                        Protocol = $WinRMType
+                        PingStatus = $PingStatus
+                    }
+                ) | Out-Null
                 return $true
             } else {
                 Write-PScriboMessage -Message "Unable to connect to $ComputerName through $WinRMType."
-                $DCStatus.Value += @{
+                $DCStatus.Value.Add(
+                    @{
+                        DCName = $ComputerName
+                        Status = 'Offline'
+                        Protocol = $WinRMType
+                        PingStatus = $PingStatus
+                    }
+                ) | Out-Null
+                return $false
+            }
+
+        } else {
+            $DCStatus.Value.Add(
+                @{
                     DCName = $ComputerName
                     Status = 'Offline'
                     Protocol = $WinRMType
                     PingStatus = $PingStatus
                 }
-                return $false
-            }
-
-        } else {
-            $DCStatus.Value += @{
-                DCName = $ComputerName
-                Status = 'Offline'
-                Protocol = $WinRMType
-                PingStatus = $PingStatus
-            }
+            ) | Out-Null
             Write-PScriboMessage -Message "Unable to connect to $ComputerName through $WinRMType."
             return $false
         }

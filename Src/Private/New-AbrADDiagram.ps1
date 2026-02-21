@@ -69,7 +69,7 @@ function New-AbrADDiagram {
     .PARAMETER WatermarkColor
         Allow to specified the color used for the watermark text. Default: #565656.
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.11
         Author(s):      Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -161,7 +161,7 @@ function New-AbrADDiagram {
                 if (-not ($_ | Test-Path) ) {
                     throw 'Folder does not exist'
                 }
-                return $true
+                $true
             })]
         [System.IO.FileInfo] $OutputFolderPath = [System.IO.Path]::GetTempPath(),
 
@@ -205,7 +205,7 @@ function New-AbrADDiagram {
                 if (-not $_.EndsWith($Format)) {
                     throw "The file specified in the path argument must be of type $Format"
                 }
-                return $true
+                $true
             })]
         [String] $Filename,
 
@@ -335,35 +335,6 @@ function New-AbrADDiagram {
             'CertificateAuthority' { $reportTranslate.NewADDiagram.caDiagramLabel }
         }
 
-        if ($Format -ne 'Base64') {
-            Write-ColorOutput -Color 'Blue' -String ($reportTranslate.NewADDiagram.genMain -f $MainGraphLabel)
-            Write-ColorOutput -Color 'White' -String $reportTranslate.NewADDiagram.InfoProject
-            Write-ColorOutput -Color 'White' -String $reportTranslate.NewADDiagram.InfoDocumentation
-            Write-ColorOutput -Color 'White' -String $reportTranslate.NewADDiagram.InfoIssues
-            Write-ColorOutput -Color 'White' -String $reportTranslate.NewADDiagram.InfoCommunity
-
-
-            # Check the current Diagrammer.Microsoft.AD module
-            $ModuleArray = @('Diagrammer.Microsoft.AD', 'Diagrammer.Core')
-
-            foreach ($Module in $ModuleArray) {
-                try {
-                    $InstalledVersion = Get-Module -ListAvailable -Name $Module -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
-
-                    if ($InstalledVersion) {
-                        Write-ColorOutput -Color 'White' -String ($reportTranslate.NewADDiagram.InfoVersion -f $($Module), $($InstalledVersion.ToString()))
-                        $LatestVersion = Find-Module -Name $Module -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
-                        if ([version]$InstalledVersion -lt [version]$LatestVersion) {
-                            Write-ColorOutput -Color 'Yellow' -String ($reportTranslate.NewADDiagram.WarningUpdate -f $($Module), $($LatestVersion.ToString()))
-                            Write-ColorOutput -Color 'Yellow' -String ($reportTranslate.NewADDiagram.WarningUpdateCommand -f $($Module))
-                        }
-                    }
-                } catch {
-                    Write-Warning $_.Exception.Message
-                }
-            }
-        }
-
         $Verbose = if ($PSBoundParameters.ContainsKey('Verbose')) {
             $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent
         } else {
@@ -391,15 +362,6 @@ function New-AbrADDiagram {
 
         if ($Signature -and (([string]::IsNullOrEmpty($AuthorName)) -or ([string]::IsNullOrEmpty($CompanyName)))) {
             throw $reportTranslate.NewADDiagram.signaturerequirements
-        }
-
-        #Validate Required Modules and Features
-        $OSType = (Get-ComputerInfo).OsProductType
-        if ($OSType -eq 'WorkStation') {
-            Get-RequiredFeature -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0' -OSType $OSType
-        }
-        if ($OSType -eq 'Server' -or $OSType -eq 'DomainController') {
-            Get-RequiredFeature -Name RSAT-AD-PowerShell -OSType $OSType
         }
 
         $script:IconDebug = $false
@@ -592,7 +554,7 @@ function New-AbrADDiagram {
 
             if ($OutputDiagram) {
                 if ($OutputFormat -ne 'Base64') {
-                    # If not Base64 format return image path
+                    # If not Base64 format image path
                     Write-ColorOutput -Color 'White' -String ($reportTranslate.NewADDiagram.DiagramOutput -f $MainGraphLabel, $OutputDiagram.Name, $OutputDiagram.Directory)
                 } else {
                     Write-Verbose $reportTranslate.NewADDiagram.Base64Output
