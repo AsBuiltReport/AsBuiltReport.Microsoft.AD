@@ -64,11 +64,6 @@ jobs:
           $CodeCoverageParam = @{}
           $OutputFormatParam = @{ OutputFormat = 'NUnitXml' }
 
-          # Only enable code coverage for Windows + pwsh
-          if ('${{ matrix.os }}' -eq 'windows-latest' -and '${{ matrix.shell }}' -eq 'pwsh') {
-            $CodeCoverageParam = @{ CodeCoverage = $true }
-          }
-
           .\Tests\Invoke-Tests.ps1 @CodeCoverageParam @OutputFormatParam
 
       - name: Upload test results
