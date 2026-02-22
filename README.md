@@ -52,7 +52,7 @@ Below are the instructions on how to install, configure and generate a Microsoft
 <!-- ********** Update supported AD versions ********** -->
 The Microsoft AD As Built Report supports the following Active Directory versions;
 
-- 2016, 2019, 2022 & 2025
+- 2012, 2016, 2019, 2022 & 2025
 
 ### PowerShell
 
@@ -61,7 +61,7 @@ This report is compatible with the following PowerShell versions;
 <!-- ********** Update supported PowerShell versions ********** -->
 | Windows PowerShell 5.1 |    PowerShell 7    |
 | :--------------------: | :----------------: |
-|          :x:           | :white_check_mark: |
+|          :white_check_mark:           | :white_check_mark: |
 
 ## :wrench: System Requirements
 <!-- ********** Update system requirements ********** -->
