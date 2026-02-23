@@ -1,7 +1,7 @@
 BeforeAll {
     # Import the module
     $ModulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.psd1'
-    $ModuleRoot = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD'
+    $ModuleRoot = Join-Path -Path $PSScriptRoot -ChildPath '..\'
     try {
         Import-Module $ModulePath -Force -ErrorAction Stop
     } catch {
