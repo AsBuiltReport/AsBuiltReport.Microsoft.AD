@@ -40,6 +40,7 @@ function Get-AbrDomainSection {
                                     Get-AbrADDomain -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADFSMO -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADTrust -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    Get-AbrADAuthenticationPolicy -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADHardening -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADDomainObject -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     if ($HealthCheck.Domain.Backup -or $HealthCheck.Domain.DFS -or $HealthCheck.Domain.SPN -or $HealthCheck.Domain.Security -or $HealthCheck.Domain.DuplicateObject) {
