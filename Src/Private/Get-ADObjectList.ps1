@@ -1,4 +1,23 @@
 function Get-ADObjectList {
+    <#
+    .SYNOPSIS
+    Used by As Built Report to retrieve Active Directory objects via the LDAP protocol.
+    .DESCRIPTION
+    Queries Active Directory objects using the LDAP:// protocol with explicit credential-based
+    authentication. Supports retrieving Users, Computers, Groups, DomainControllers, GPOs, and OUs.
+
+    .NOTES
+        Version:        0.2.0
+        Author:         Jonathan Colon
+
+    .EXAMPLE
+        Get-ADObjectList -Domain 'contoso.com' -Server 'dc01.contoso.com' -Object 'Users' -Credential $Cred
+
+    .LINK
+
+    #>
+    [OutputType([System.Collections.Generic.List[PSObject]])]
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
         [string]$Domain,
@@ -8,25 +27,33 @@ function Get-ADObjectList {
 
         [Parameter(Mandatory = $false)]
         [ValidateSet('Users', 'Computers', 'Groups', 'DomainControllers', 'GPOs', 'OUs')]
-        [string[]]$Object
+        [string[]]$Object,
+
+        [Parameter(Mandatory = $false)]
+        [pscredential]$Credential
     )
 
-    [System.Collections.Generic.List[PSObject]]$adObjects = [System.Collections.ArrayList]::new()
-    $searcher = New-Object System.DirectoryServices.DirectorySearcher
-    $ConstructedDomainName = 'DC=' + $Domain.Split('.')
-    $ConstructedDomainName = $ConstructedDomainName -replace ' ', ',DC='
+    $adObjects = [System.Collections.Generic.List[PSObject]]::new()
+    $ConstructedDomainName = ($Domain.Split('.') | ForEach-Object { "DC=$_" }) -join ','
 
     if ($Server) {
-        $searcher.SearchRoot = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$Server/$ConstructedDomainName", $Credential.UserName, $Credential.GetNetworkCredential().Password)
+        $ldapPath = "LDAP://$Server/$ConstructedDomainName"
     } else {
-        $searcher.SearchRoot = "LDAP://$ConstructedDomainName"
+        $ldapPath = "LDAP://$ConstructedDomainName"
     }
 
+    if ($Credential) {
+        $directoryEntry = New-Object System.DirectoryServices.DirectoryEntry($ldapPath, $Credential.UserName, $Credential.GetNetworkCredential().Password)
+    } else {
+        $directoryEntry = New-Object System.DirectoryServices.DirectoryEntry($ldapPath)
+    }
+
+    $searcher = New-Object System.DirectoryServices.DirectorySearcher($directoryEntry)
     $searcher.PageSize = 1000
     $searcher.PropertiesToLoad.Add('*') | Out-Null
     $searcher.SearchScope = 'Subtree'
 
-    # Construct the LDAP filter based on the -Collect parameter
+    # Construct the LDAP filter based on the -Object parameter
     $filters = [System.Collections.ArrayList]::new()
     foreach ($item in $Object) {
         switch ($item) {
@@ -38,8 +65,15 @@ function Get-ADObjectList {
             'GPOs' { $filters.Add('(objectClass=groupPolicyContainer)') | Out-Null }
         }
     }
+
     # Combine the filters with an OR if multiple categories are specified
-    $searcher.Filter = if ($filters.Count -gt 1) { '(|' + ($filters -join '') + ')' } else { $filters[0] }
+    if ($filters.Count -gt 1) {
+        $searcher.Filter = '(|' + ($filters -join '') + ')'
+    } elseif ($filters.Count -eq 1) {
+        $searcher.Filter = $filters[0]
+    } else {
+        $searcher.Filter = '(objectClass=*)'
+    }
 
     $results = $searcher.FindAll()
     foreach ($result in $results) {
@@ -52,6 +86,8 @@ function Get-ADObjectList {
         $obj | Add-Member -NotePropertyName 'domain' -NotePropertyValue $Domain
         $adObjects.Add($obj) | Out-Null
     }
+    $results.Dispose()
     $searcher.Dispose()
+    $directoryEntry.Dispose()
     $adObjects
 }
