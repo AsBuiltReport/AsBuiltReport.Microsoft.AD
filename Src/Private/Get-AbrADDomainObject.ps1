@@ -699,6 +699,66 @@ function Get-AbrADDomainObject {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Circular Group Membership Section)"
                         }
                     }
+                    if ($HealthCheck.Domain.Security) {
+                        Show-AbrDebugExecutionTime -Start -TitleMessage 'Pre-Windows 2000 Compatible Access Group'
+                        try {
+                            if ($PreWin2000Group = $GroupOBj | Where-Object { $_.SID -eq 'S-1-5-32-554' }) {
+                                $GroupMembers = $PreWin2000Group.Members
+                                if ($GroupMembers) {
+                                    $OutObj = [System.Collections.ArrayList]::new()
+                                    foreach ($MemberDN in $GroupMembers) {
+                                        try {
+                                            if ($MemberUser = $Users | Where-Object { $_.DistinguishedName -eq $MemberDN }) {
+                                                $MemberName = "$($MemberUser.SamAccountName) (USER)"
+                                            } elseif ($MemberComputer = $Computers | Where-Object { $_.DistinguishedName -eq $MemberDN }) {
+                                                $MemberName = "$($MemberComputer.Name) (COMPUTER)"
+                                            } elseif ($MemberGroup = $GroupOBj | Where-Object { $_.DistinguishedName -eq $MemberDN }) {
+                                                $MemberName = "$($MemberGroup.Name) (GROUP)"
+                                            } elseif ($MemberFSP = $FSP | Where-Object { $_.DistinguishedName -eq $MemberDN }) {
+                                                $MemberName = "$($MemberFSP.'msds-principalname') (FOREIGN SECURITY PRINCIPAL)"
+                                            } elseif ($MemberDN -match 'ForeignSecurityPrincipals') {
+                                                $MemberName = "$(($MemberDN -split ',')[0] -replace '^CN=') (FOREIGN SECURITY PRINCIPAL)"
+                                            } else {
+                                                $MemberName = ($MemberDN -split ',')[0] -replace '^CN='
+                                            }
+                                            $inObj = [ordered] @{
+                                                'Name' = $MemberName
+                                                'Distinguished Name' = $MemberDN
+                                            }
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                        } catch {
+                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Pre-Windows 2000 Compatible Access Group Member)"
+                                        }
+                                    }
+                                    if ($OutObj) {
+                                        Section -Style Heading5 'Pre-Windows 2000 Compatible Access Group Membership' {
+                                            Paragraph 'The following section provides information about the members of the Pre-Windows 2000 Compatible Access group.'
+                                            BlankLine
+                                            $OutObj | Where-Object { $_.'Name' -match 'Authenticated Users|ANONYMOUS LOGON' } | Set-Style -Style Critical
+                                            $TableParams = @{
+                                                Name = "Pre-Windows 2000 Compatible Access - $($Domain.DNSRoot.ToString().ToUpper())"
+                                                List = $false
+                                                ColumnWidths = 40, 60
+                                            }
+                                            if ($Report.ShowTableCaptions) {
+                                                $TableParams['Caption'] = "- $($TableParams.Name)"
+                                            }
+                                            $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                                            Paragraph 'Health Check:' -Bold -Underline
+                                            BlankLine
+                                            Paragraph {
+                                                Text 'Security Risk:' -Bold
+                                                Text 'The Pre-Windows 2000 Compatible Access group provides backward compatibility with Windows NT 4.0 and earlier systems. If Authenticated Users or Anonymous Logon are members, it grants read access to all Active Directory objects to any authenticated or unauthenticated user, creating a significant security vulnerability. Review and remove any unnecessary members from this group.'
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } catch {
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Pre-Windows 2000 Compatible Access Group Section)"
+                        }
+                        Show-AbrDebugExecutionTime -End -TitleMessage 'Pre-Windows 2000 Compatible Access Group'
+                    }
                     Show-AbrDebugExecutionTime -End -TitleMessage 'Group Objects'
                 }
             } catch {
