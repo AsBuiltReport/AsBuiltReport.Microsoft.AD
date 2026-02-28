@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.12] - 2026-02-27
+
+### :toolbox: Added
+
+- Add Authentication Policies and Authentication Policy Silos support (`Get-AbrADAuthenticationPolicy`)
+
+### :arrows_clockwise: Changed
+
+- Update module version to `0.9.12`
+
 ## [0.9.11] - 2026-02-21
 
 ### :toolbox: Added
