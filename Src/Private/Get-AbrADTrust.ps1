@@ -79,6 +79,11 @@ function Get-AbrADTrust {
                                 }
                             }
 
+                            if ($HealthCheck.Domain.Security) {
+                                $TrustInfo | Where-Object { $_.'Kerberos AES Encryption' -eq 'No' } | Set-Style -Style Warning -Property 'Kerberos AES Encryption'
+                                $TrustInfo | Where-Object { $_.'Kerberos RC4 Encryption' -eq 'Yes' } | Set-Style -Style Warning -Property 'Kerberos RC4 Encryption'
+                            }
+
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($Trust in $TrustInfo) {
                                     Section -Style NOTOCHeading4 -ExcludeFromTOC "$($Trust.Name)" {
@@ -104,6 +109,14 @@ function Get-AbrADTrust {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $TrustInfo | Table @TableParams
+                            }
+                            if ($HealthCheck.Domain.Security -and ($TrustInfo | Where-Object { $_.'Kerberos AES Encryption' -eq 'No' })) {
+                                Paragraph 'Health Check:' -Bold -Underline
+                                BlankLine
+                                Paragraph {
+                                    Text 'Best Practice:' -Bold
+                                    Text 'Ensure that AES Kerberos encryption is enabled on all Active Directory trusts. RC4 encryption is considered weak and vulnerable to various attacks. Enabling AES encryption on trusts enhances Kerberos security and aligns with modern security standards. Reference: https://techcommunity.microsoft.com/t5/itops-talk-blog/tough-questions-answered-can-i-disable-rc4-etype-for-kerberos-on/ba-p/382718'
+                                }
                             }
                             if ($Options.EnableDiagrams) {
                                 try {
