@@ -23,7 +23,7 @@ function Get-AbrDiagrammer {
             HelpMessage = 'Please provide diagram type to generate'
         )]
         [ValidateNotNullOrEmpty()]
-        [ValidateSet('Forest', 'CertificateAuthority', 'Sites', 'SitesInventory', 'Trusts', 'All')]
+        [ValidateSet('Forest', 'CertificateAuthority', 'Sites', 'SitesInventory', 'Trusts', 'Replication', 'All')]
         [string]$DiagramType,
         [Parameter(
             Mandatory = $false,

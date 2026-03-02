@@ -11,6 +11,8 @@ function New-AbrADDiagram {
                     'Sites'
                     'SitesInventory'
                     'Trusts'
+                    'CertificateAuthority'
+                    'Replication'
     .PARAMETER Target
         Specifies the IP/FQDN of the system to connect.
         Multiple targets may be specified, separated by a comma.
@@ -234,7 +236,7 @@ function New-AbrADDiagram {
             Mandatory = $true,
             HelpMessage = 'Controls type of Active Directory generated diagram'
         )]
-        [ValidateSet('Forest', 'Sites', 'SitesInventory', 'Trusts', 'CertificateAuthority')]
+        [ValidateSet('Forest', 'Sites', 'SitesInventory', 'Trusts', 'CertificateAuthority', 'Replication')]
         [string] $DiagramType,
 
         [Parameter(
@@ -333,6 +335,7 @@ function New-AbrADDiagram {
             'SitesInventory' { $reportTranslate.NewADDiagram.sitesinventorygraphlabel }
             'Trusts' { $reportTranslate.NewADDiagram.trustsDiagramLabel }
             'CertificateAuthority' { $reportTranslate.NewADDiagram.caDiagramLabel }
+            'Replication' { $reportTranslate.NewADDiagram.replicationDiagramLabel }
         }
 
         $Verbose = if ($PSBoundParameters.ContainsKey('Verbose')) {
@@ -444,6 +447,9 @@ function New-AbrADDiagram {
         if ($DiagramType -eq 'Sites') {
             $MainGraphAttributes.Add('concentrate', 'true')
         }
+        if ($DiagramType -eq 'Replication') {
+            $MainGraphAttributes.Add('concentrate', 'true')
+        }
     }
 
     process {
@@ -535,6 +541,10 @@ function New-AbrADDiagram {
                             if ($TrustsInfo = Get-AbrDiagTrust | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) {
                                 $TrustsInfo
                             } else { Write-Warning $reportTranslate.NewADDiagram.emptyTrusts }
+                        } elseif ($DiagramType -eq 'Replication') {
+                            if ($ReplInfo = Get-AbrDiagReplication | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) {
+                                $ReplInfo
+                            } else { Write-Warning $reportTranslate.NewADDiagram.emptyReplication }
                         }
                     }
                 }
