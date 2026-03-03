@@ -31,6 +31,7 @@
         "DiagramType": {
             "CertificateAuthority": true,
             "Forest": true,
+            "Replication": true,
             "Sites": true,
             "SitesInventory": true,
             "Trusts": true
