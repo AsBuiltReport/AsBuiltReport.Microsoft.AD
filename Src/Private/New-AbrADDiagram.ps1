@@ -447,9 +447,6 @@ function New-AbrADDiagram {
         if ($DiagramType -eq 'Sites') {
             $MainGraphAttributes.Add('concentrate', 'true')
         }
-        if ($DiagramType -eq 'Replication') {
-            $MainGraphAttributes.Add('concentrate', 'true')
-        }
     }
 
     process {
