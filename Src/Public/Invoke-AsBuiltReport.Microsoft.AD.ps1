@@ -16,6 +16,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     #>
 
     # Do not remove or add to these parameters
+    [CmdletBinding()]
     param (
         [String[]] $Target,
         [PSCredential] $Credential
