@@ -636,4 +636,72 @@
     TableName = Key Recovery Agent Certificate
 '@
 
+    # Get-AbrDomainSection
+    GetAbrDomainSection = ConvertFrom-StringData @'
+    Collecting = Collecting Domain information from {0}.
+    Paragraph = This section provides a comprehensive overview of the Active Directory domain configuration, including key settings and critical details.
+    SectionTitle = AD Domain Configuration
+    DefinitionText = An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user, a group, or a hardware component such as a computer or printer. Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain, or an alternate version (which may end in .local).
+    ParagraphDetail = The following section provides a comprehensive overview of the Active Directory domain configuration, including critical settings and key operational details.
+    HealthChecks = Health Checks
+    DomainControllersSection = Domain Controllers
+    DCDefinitionText = A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain.
+    DCParagraphDetail = The following section presents an in-depth overview of the Active Directory domain controllers, including their configuration and key details.
+    DCParagraphSummary = The following section provides a summary of the configuration and key details of the Active Directory domain controllers.
+    RolesSection = Roles
+    RolesParagraph = The following section provides a detailed overview of the installed roles and features on domain controllers in {0}.
+    DCDiagSection = DC Diagnostic
+    DCDiagParagraph = The following section provides a summary of the Active Directory DC Diagnostic.
+    InfraServicesSection = Infrastructure Services
+    InfraServicesParagraph = The following section provides a detailed overview of the status and configuration of infrastructure services on the domain controllers.
+    NoDCAvailable = Unable to get an available DC in {0} domain. Removing domain from the Domain section.
+'@
+
+    # Get-AbrADDomain
+    GetAbrADDomain = ConvertFrom-StringData @'
+    Collecting = Collecting AD Domain information on forest {0}.
+    DomainName = Domain Name
+    NetBIOSName = NetBIOS Name
+    DomainSID = Domain SID
+    DomainFunctionalLevel = Domain Functional Level
+    Domains = Domains
+    Forest = Forest
+    ParentDomain = Parent Domain
+    ReplicaDirectoryServers = Replica Directory Servers
+    ChildDomains = Child Domains
+    DomainPath = Domain Path
+    ComputersContainer = Computers Container
+    DomainControllersContainer = Domain Controllers Container
+    SystemsContainer = Systems Container
+    UsersContainer = Users Container
+    DeletedObjectsContainer = Deleted Objects Container
+    ForeignSecurityPrincipalsContainer = Foreign Security Principals Container
+    LostAndFoundContainer = Lost And Found Container
+    QuotasContainer = Quotas Container
+    ReadOnlyReplicaDirectoryServers = ReadOnly Replica Directory Servers
+    MachineAccountQuota = ms-DS-MachineAccountQuota
+    RIDIssuedAvailable = RID Issued/Available
+    HealthCheck = Health Check:
+    BestPractice = Best Practice:
+    Reference = Reference:
+    RIDBestPractice = The RID Issued percentage exceeds 80%. It is recommended to evaluate the utilization of RIDs to prevent potential exhaustion and ensure the stability of the domain. The Relative Identifier (RID) is a crucial component in the SID (Security Identifier) for objects within the domain. Exhaustion of the RID pool can lead to the inability to create new security principals, such as user or computer accounts. Regular monitoring and proactive management of the RID pool are essential to maintain domain health and avoid disruptions.
+    RIDReference = https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736
+'@
+
+    # Get-AbrADFSMO
+    GetAbrADFSMO = ConvertFrom-StringData @'
+    Collecting = Collecting Active Directory FSMO information of domain {0}.
+    SectionTitle = FSMO Roles
+    InfrastructureMaster = Infrastructure Master
+    PDCEmulator = PDC Emulator Name
+    RIDMaster = RID Master
+    DomainNamingMaster = Domain Naming Master
+    SchemaMaster = Schema Master
+    HealthCheck = Health Check:
+    BestPractice = Best Practice:
+    Reference = Reference:
+    InfraMasterBP = The infrastructure master role in the domain {0} should be held by a domain controller that is not a global catalog server. The infrastructure master is responsible for updating references from objects in its domain to objects in other domains. If the infrastructure master runs on a global catalog server, it will not function properly because the global catalog holds a partial replica of every object in the forest, and it will not update the references. This issue does not affect forests that have a single domain.
+    InfraMasterRef = http://go.microsoft.com/fwlink/?LinkId=168841
+'@
+
 }

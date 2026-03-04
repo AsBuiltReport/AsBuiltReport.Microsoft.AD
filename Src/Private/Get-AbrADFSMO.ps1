@@ -21,7 +21,7 @@ function Get-AbrADFSMO {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Active Directory FSMO information of domain $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADFSMO.Collecting -f $Domain.DNSRoot)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD FSMO Roles'
     }
 
@@ -32,16 +32,16 @@ function Get-AbrADFSMO {
             if ($DomainData -and $ForestData) {
                 if ($ValidDCFromDomain) {
                     if ($DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)) {
-                        Section -Style Heading3 'FSMO Roles' {
+                        Section -Style Heading3 $reportTranslate.GetAbrADFSMO.SectionTitle {
                             $IsInfraMasterGC = (Invoke-CommandWithTimeout -Session $DCPssSession -ErrorAction Stop -ScriptBlock { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
                             $OutObj = [System.Collections.ArrayList]::new()
                             try {
                                 $inObj = [ordered] @{
-                                    'Infrastructure Master' = $DomainData.InfrastructureMaster
-                                    'PDC Emulator Name' = $DomainData.PDCEmulator
-                                    'RID Master' = $DomainData.RIDMaster
-                                    'Domain Naming Master' = $ForestData.DomainNamingMaster
-                                    'Schema Master' = $ForestData.SchemaMaster
+                                    $reportTranslate.GetAbrADFSMO.InfrastructureMaster = $DomainData.InfrastructureMaster
+                                    $reportTranslate.GetAbrADFSMO.PDCEmulator = $DomainData.PDCEmulator
+                                    $reportTranslate.GetAbrADFSMO.RIDMaster = $DomainData.RIDMaster
+                                    $reportTranslate.GetAbrADFSMO.DomainNamingMaster = $ForestData.DomainNamingMaster
+                                    $reportTranslate.GetAbrADFSMO.SchemaMaster = $ForestData.SchemaMaster
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
@@ -50,7 +50,7 @@ function Get-AbrADFSMO {
 
                             if ($HealthCheck.Domain.BestPractice) {
                                 if ($IsInfraMasterGC) {
-                                    $OutObj | Set-Style -Style Warning -Property 'Infrastructure Master'
+                                    $OutObj | Set-Style -Style Warning -Property $reportTranslate.GetAbrADFSMO.InfrastructureMaster
                                 }
                             }
 
@@ -64,16 +64,16 @@ function Get-AbrADFSMO {
                             }
                             $OutObj | Table @TableParams
                             if ($HealthCheck.DomainController.BestPractice -and ($IsInfraMasterGC)) {
-                                Paragraph 'Health Check:' -Bold -Underline
+                                Paragraph $reportTranslate.GetAbrADFSMO.HealthCheck -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text 'Best Practice:' -Bold
-                                    Text "The infrastructure master role in the domain $($Domain.DNSRoot.ToString().ToUpper()) should be held by a domain controller that is not a global catalog server. The infrastructure master is responsible for updating references from objects in its domain to objects in other domains. If the infrastructure master runs on a global catalog server, it will not function properly because the global catalog holds a partial replica of every object in the forest, and it will not update the references. This issue does not affect forests that have a single domain. "
+                                    Text $reportTranslate.GetAbrADFSMO.BestPractice -Bold
+                                    Text ($reportTranslate.GetAbrADFSMO.InfraMasterBP -f $Domain.DNSRoot.ToString().ToUpper())
                                 }
                                 BlankLine
                                 Paragraph {
-                                    Text 'Reference:' -Bold
-                                    Text 'http://go.microsoft.com/fwlink/?LinkId=168841'
+                                    Text $reportTranslate.GetAbrADFSMO.Reference -Bold
+                                    Text $reportTranslate.GetAbrADFSMO.InfraMasterRef
                                 }
                             }
                         }
