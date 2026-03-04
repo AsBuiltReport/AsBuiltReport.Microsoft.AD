@@ -31,9 +31,8 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
     Write-ReportModuleInfo -ModuleName 'Microsoft.AD'
 
-    Write-Host "$($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo4) " -NoNewline
-    Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo5 -ForegroundColor Cyan
-    Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo6
+    Write-PScriboMessage -Message "$($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo4) $($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo5)"
+    Write-PScriboMessage -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo6
 
     # Check the version of the dependency modules
     $ModuleArray = @('AsBuiltReport.Core', 'AsBuiltReport.Chart', 'Diagrammer.Core', 'PSPKI')
@@ -43,11 +42,11 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $InstalledVersion = Get-Module -ListAvailable -Name $Module -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
 
             if ($InstalledVersion) {
-                Write-Host "  - $Module module v$($InstalledVersion.ToString()) is currently installed."
+                Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.InstalledModule -f $Module, $InstalledVersion.ToString())
                 $LatestVersion = Find-Module -Name $Module -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
                 if ($InstalledVersion -lt $LatestVersion) {
-                    Write-Host "    - $Module module v$($LatestVersion.ToString()) is available." -ForegroundColor Red
-                    Write-Host "    - Run 'Update-Module -Name $Module -Force' to install the latest version." -ForegroundColor Red
+                    Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.AvailableModule -f $Module, $LatestVersion.ToString())
+                    Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.UpdateModule -f $Module)
                 }
             }
         } catch {
@@ -144,10 +143,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         $RootDomains = $ADSystem.RootDomain
         $ChildDomains = [System.Collections.ArrayList]::new()
         if ($Options.Include.Domains) {
-            Write-Host "- Include.Domains option enabled: Including only the following domains in the report: $($Options.Include.Domains -join ', ' )"
+            Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.IncludeDomainsEnabled -f ($Options.Include.Domains -join ', '))
             $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -in $Options.Include.Domains }
         } elseif ($Options.Exclude.Domains) {
-            Write-Host "- Including all child domains in the report except the following excluded domains: $($Options.Exclude.Domains -join ', ')"
+            Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ExcludeDomainsEnabled -f ($Options.Exclude.Domains -join ', '))
             $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -notin $Options.Exclude.Domains }
         } else {
             $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains }
@@ -158,20 +157,20 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $OrderedDomains.Add($RootDomains) | Out-Null
         }
 
-        Write-Host "- Getting $RootDomains forest information."
+        Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.GettingForestInfo -f $RootDomains)
 
         if ($ChildDomains) {
             $OrderedDomains.Add($ChildDomains) | Out-Null
-            Write-Host "    - Discovering $RootDomains forest child domains: $($OrderedDomains -join ', ' )"
+            Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.DiscoveringChildDomains -f $RootDomains, ($OrderedDomains -join ', '))
         }
 
         # Set initial connection to childs domains to find out if there is an available DC to fulfill the requests
         foreach ($Domain in $OrderedDomains) {
             try {
                 if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
-                    Write-Host "    - Initial Setup: An available DC in $Domain domain is found. Adding domain to the report."
+                    Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.DCFound -f $Domain)
                 } else {
-                    Write-Host "    - Unable to get an available DC in $Domain domain. Removing domain from the report."
+                    Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.DCNotFound -f $Domain)
                     $DomainStatus.Add(
                         @{
                             Name = $Domain
@@ -182,30 +181,30 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                 }
             } catch { Out-Null }
         }
-        Write-Host "    - Finishing building $RootDomains forest domains list: $($OrderedDomains -join ', ' )"
+        Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.FinishingForestList -f $RootDomains, ($OrderedDomains -join ', '))
 
 
         # Forest Section
         if ($InfoLevel.Forest -ge 1) {
-            Write-Host '- Working on Forest section.'
+            Write-PScriboMessage -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.WorkingOnForestSection
             Get-AbrForestSection
         }
 
         # Domain Section
         if ($InfoLevel.Domain -ge 1) {
-            Write-Host '- Working on Domain section.'
+            Write-PScriboMessage -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.WorkingOnDomainSection
             Get-AbrDomainSection -DomainStatus ([ref]$DomainStatus)
         }
 
         # DNS Section
         if ($InfoLevel.DNS -ge 1) {
-            Write-Host '- Working on DNS section.'
+            Write-PScriboMessage -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.WorkingOnDNSSection
             Get-AbrDnsSection -DomainStatus ([ref]$DomainStatus)
         }
 
         # PKI Section
         if ($InfoLevel.CA -ge 1) {
-            Write-Host '- Working on PKI section.'
+            Write-PScriboMessage -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.WorkingOnPKISection
             Get-AbrPKISection
         }
 
@@ -214,8 +213,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #---------------------------------------------------------------------------------------------#
 
         if ($Options.ExportDiagrams) {
-            Write-Host ' '
-            Write-Host '- ExportDiagrams option enabled: Exporting diagrams:'
+            Write-PScriboMessage -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ExportDiagramsEnabled
             $Options.DiagramType.PSobject.Properties | ForEach-Object {
                 if ($_.Value -and $_.Name -eq 'Trusts') {
                     foreach ($Domain in $OrderedDomains) {
@@ -264,28 +262,21 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         #                           Connection Status Section                                         #
         #---------------------------------------------------------------------------------------------#
 
-        Write-Host "- Finished report generation for $RootDomains forest:"
+        Write-PScriboMessage -Message ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.FinishedReportGeneration -f $RootDomains)
 
         $DCOffine = $DCStatus | Where-Object { $Null -ne $_.DCName -and $_.Status -eq 'Offline' } | Select-Object -Property @{N = 'Name'; E = { $_.DCName } }, @{N = 'WinRM Status'; E = { $_.Status } }, @{N = 'Ping Status'; E = { $_.PingStatus } }, @{N = 'Protocol'; E = { $_.Protocol } } | ForEach-Object { [pscustomobject]$_ }
         $DomainOffline = $DomainStatus | Where-Object { $Null -ne $_.Name -and $_.Status -eq 'Offline' }
         if ($DCOffine -or $DomainOffline) {
-            Write-Host ' '
-            Write-Host "The following Systems could not be reached:`n"
+            Write-PScriboMessage -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.UnreachableSystems
             if ($DCOffine) {
-                Write-Host 'Domain Controllers'
-                Write-Host '------------------'
-                Write-Host ' '
+                Write-PScriboMessage -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.OfflineDCsHeader
                 Write-PSObject $DCOffine -MatchMethod Query, Query, Query, Query -Column 'WinRM Status', 'WinRM Status', 'Ping Status', 'Ping Status' -Value "'WinRM Status' -eq 'Offline'", "'WinRM Status' -eq 'Online'", "'Ping Status' -eq 'Offline'", "'Ping Status' -eq 'Online'" -ValueForeColor Red, Green, Red, Green
-                Write-Host ' '
             }
             if ($DomainOffline) {
-                Write-Host 'Domains'
-                Write-Host '--------'
-                Write-Host ' '
+                Write-PScriboMessage -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.OfflineDomainHeader
                 $DomainOffline | ForEach-Object {
-                    Write-Host "$($_.Name)" -ForegroundColor Red
+                    Write-PScriboMessage -IsWarning -Message $_.Name
                 }
-                Write-Host ' '
             }
         }
     }#endregion foreach loop

@@ -1,9 +1,13 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Pester BeforeAll variables are accessible in It blocks')]
+param()
+
 BeforeAll {
     # Get the language folder path
     $LanguagePath = Join-Path -Path $PSScriptRoot -ChildPath '..\Language'
 
     # Helper function to extract nested localization keys in Section.Key format
-    function Get-NestedLocalizationKeys {
+    function Get-NestedLocalizationKey {
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Function name refers to extracting multiple keys from localization files')]
         param([string]$FilePath)
 
         $keys = @()
@@ -32,8 +36,7 @@ Describe 'Localization Data Consistency Tests' {
     Context 'MicrosoftAD.psd1 Localization Files' {
         BeforeAll {
             $TemplateFile = Join-Path -Path $LanguagePath -ChildPath 'en-US\MicrosoftAD.psd1'
-            $TemplateKeys = Get-NestedLocalizationKeys -FilePath $TemplateFile
-            $LanguageFolders = Get-ChildItem -Path $LanguagePath -Directory | Where-Object { $_.Name -ne 'en-US' }
+            $TemplateKeys = Get-NestedLocalizationKey -FilePath $TemplateFile
         }
 
         It "Template 'en-US' should have localization keys" {
@@ -46,9 +49,9 @@ Describe 'Localization Data Consistency Tests' {
 
                 $LocalizedFile = Join-Path -Path $FolderPath -ChildPath 'MicrosoftAD.psd1'
                 if (Test-Path $LocalizedFile) {
-                    $LocalizedKeys = Get-NestedLocalizationKeys -FilePath $LocalizedFile
+                    $LocalizedKeys = Get-NestedLocalizationKey -FilePath $LocalizedFile
                     $TemplatePath = Join-Path -Path $LanguagePath -ChildPath 'en-US\MicrosoftAD.psd1'
-                    $TemplateKeysForTest = Get-NestedLocalizationKeys -FilePath $TemplatePath
+                    $TemplateKeysForTest = Get-NestedLocalizationKey -FilePath $TemplatePath
 
                     $MissingKeys = $TemplateKeysForTest | Where-Object { $_ -notin $LocalizedKeys }
                     $ExtraKeys = $LocalizedKeys | Where-Object { $_ -notin $TemplateKeysForTest }

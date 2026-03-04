@@ -19,6 +19,7 @@
     .\Invoke-Tests.ps1 -CodeCoverage -OutputFormat NUnitXml
 #>
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Test runner script uses Write-Host for interactive console output')]
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]

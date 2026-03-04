@@ -32,7 +32,7 @@ function Get-AbrDomainSection {
                         # Define Filter option for Domain variable
                         try {
                             if ($DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain }) {
-                                Write-Host "  - Collecting Domain information from $Domain."
+                                Write-PScriboMessage -Message ($reportTranslate.GetAbrDomainSection.CollectingDomain -f $Domain)
                                 $DCs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
                                     Paragraph 'This section provides a comprehensive overview of the Active Directory domain configuration, including key settings and critical details.'

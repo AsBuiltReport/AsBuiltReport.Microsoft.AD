@@ -71,7 +71,7 @@ function Get-AbrADCAAIA {
         if ($Options.ShowExecutionTime) {
             $SectionEndTime = Get-Date
             $elapsedTime = New-TimeSpan -Start $SectionStartTime -End $SectionEndTime
-            Write-Host "CA Authority Information Access Objects Section execution time: $($elapsedTime.tostring('hh')) Hours $($elapsedTime.tostring('mm')) Minutes $($elapsedTime.tostring('ss')) Seconds"
+            Write-PScriboMessage -Message ($reportTranslate.GetAbrADCAAIA.ExecutionTime -f $elapsedTime.tostring('hh'), $elapsedTime.tostring('mm'), $elapsedTime.tostring('ss'))
         }
         Show-AbrDebugExecutionTime -End -TitleMessage 'CA Authority Information Access Objects'
     }
