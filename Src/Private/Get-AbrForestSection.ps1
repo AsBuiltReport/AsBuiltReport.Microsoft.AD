@@ -19,24 +19,24 @@ function Get-AbrForestSection {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Forest information from $ForestInfo."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrForestSection.Collecting -f $ForestInfo)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'Forest Section'
     }
 
     process {
         Section -Style Heading1 "$($ForestInfo.toUpper())" {
-            Paragraph "This section provides a comprehensive overview of the Active Directory infrastructure and configuration for the $($ForestInfo) forest."
+            Paragraph ($reportTranslate.GetAbrForestSection.Paragraph -f $ForestInfo)
             BlankLine
-            Write-PScriboMessage -Message "Forest InfoLevel set at $($InfoLevel.Forest)."
+            Write-PScriboMessage -Message ($reportTranslate.GetAbrADForest.InfoLevel -f 'Forest', $InfoLevel.Forest)
             if ($InfoLevel.Forest -ge 1) {
                 try {
-                    Section -Style Heading2 'Forest Configuration' {
+                    Section -Style Heading2 $reportTranslate.GetAbrForestSection.Heading {
                         if ($Options.ShowDefinitionInfo) {
-                            Paragraph 'The Active Directory framework that holds the objects can be viewed at several levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest, which is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are contained.'
+                            Paragraph $reportTranslate.GetAbrForestSection.DefinitionText
                             BlankLine
                         }
                         if (-not $Options.ShowDefinitionInfo) {
-                            Paragraph 'The following section provides a detailed summary of the Active Directory Forest infrastructure and configuration.'
+                            Paragraph $reportTranslate.GetAbrForestSection.ParagraphDetail
                             BlankLine
                         }
                         try {
@@ -66,7 +66,7 @@ function Get-AbrForestSection {
                         }
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "Error: Unable to retreive Forest: $ForestInfo information."
+                    Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrForestSection.ErrorForest -f $ForestInfo)
                     Write-PScriboMessage -IsWarning $_.Exception.Message
                 }
             }
