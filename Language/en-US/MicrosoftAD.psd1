@@ -715,7 +715,7 @@
     TrustType = Trust Type
     TrustTypeDownlevel = Downlevel (NT domain)
     TrustTypeUplevel = Uplevel (Active Directory)
-    TrustTypeMIT = MIT (Kerberos Realm Trust )
+    TrustTypeMIT = MIT (Kerberos Realm Trust)
     TrustTypeDCE = DCE
     TrustAttributes = Trust Attributes
     TrustAttrNonTransitive = Non-Transitive
