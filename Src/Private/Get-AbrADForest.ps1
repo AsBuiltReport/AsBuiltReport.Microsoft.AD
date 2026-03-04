@@ -248,8 +248,8 @@ function Get-AbrADForest {
                                 $reportTranslate.GetAbrADForest.OFName = $Item.Name
                                 $reportTranslate.GetAbrADForest.OFRequiredForestMode = $Item.RequiredForestMode
                                 $reportTranslate.GetAbrADForest.OFEnabled = switch (($Item.EnabledScopes).count) {
-                                    0 { 'No' }
-                                    default { 'Yes' }
+                                    0 { $reportTranslate.GetAbrADForest.OFEnabledNo }
+                                    default { $reportTranslate.GetAbrADForest.OFEnabledYes }
                                 }
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -259,7 +259,7 @@ function Get-AbrADForest {
                     }
 
                     if ($HealthCheck.Forest.BestPractice) {
-                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.OFName) -eq 'Recycle Bin Feature' -and $_.$($reportTranslate.GetAbrADForest.OFEnabled) -eq 'No' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADForest.OFEnabled
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.OFName) -eq 'Recycle Bin Feature' -and $_.$($reportTranslate.GetAbrADForest.OFEnabled) -eq $reportTranslate.GetAbrADForest.OFEnabledNo } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADForest.OFEnabled
                     }
 
                     $TableParams = @{
@@ -271,7 +271,7 @@ function Get-AbrADForest {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
                     $OutObj | Sort-Object -Property $reportTranslate.GetAbrADForest.OFName | Table @TableParams
-                    if ($HealthCheck.Forest.BestPractice -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.OFName) -eq 'Recycle Bin Feature' -and $_.$($reportTranslate.GetAbrADForest.OFEnabled) -eq 'No' }) ) {
+                    if ($HealthCheck.Forest.BestPractice -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.OFName) -eq 'Recycle Bin Feature' -and $_.$($reportTranslate.GetAbrADForest.OFEnabled) -eq $reportTranslate.GetAbrADForest.OFEnabledNo }) ) {
                         Paragraph $reportTranslate.GetAbrADForest.HealthCheck -Bold -Underline
                         BlankLine
                         Paragraph {

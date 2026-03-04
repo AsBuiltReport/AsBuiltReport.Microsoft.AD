@@ -59,11 +59,13 @@
     CAName = Name
     CADistinguishedName = Distinguished Name
     CADnsName = DNS Name
-    CAIssuerBP = In most PKI (Public Key Infrastructure) implementations, it is not typical to have multiple Root CAs (Certificate Authorities). The Root CA is the top-most authority in a PKI hierarchy and is responsible for issuing certificates to subordinate CAs and end entities. Having multiple Root CAs can complicate the trust relationships and management of certificates. It is recommended to conduct a detailed review of the current PKI infrastructure and Root CA requirements to ensure proper security and management practices are followed.
+    MultipleRootCABP = In most PKI (Public Key Infrastructure) implementations, it is not typical to have multiple Root CAs (Certificate Authorities). The Root CA is the top-most authority in a PKI hierarchy and is responsible for issuing certificates to subordinate CAs and end entities. Having multiple Root CAs can complicate the trust relationships and management of certificates. It is recommended to conduct a detailed review of the current PKI infrastructure and Root CA requirements to ensure proper security and management practices are followed.
     OptionalFeatures = Optional Features
     OFName = Name
     OFRequiredForestMode = Required Forest Mode
     OFEnabled = Enabled
+    OFEnabledYes = Yes
+    OFEnabledNo = No
 
     HealthCheck = Health Check:
     BestPractice = Best Practice:
