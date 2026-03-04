@@ -199,7 +199,7 @@
     Heading = Exchange Infrastructure
     Paragraph = The following section provides a comprehensive overview of the Exchange infrastructure deployed in the Active Directory environment.
     Name = Name
-    DnsName = Dns Name
+    DnsName = DNS Name
     ServerRoles = Server Roles
     Version = Version
 '@
