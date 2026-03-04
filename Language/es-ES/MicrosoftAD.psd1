@@ -1,4 +1,4 @@
-# culture = 'en-US'
+# culture = 'es-ES'
 @{
     # InvokeAsBuiltReportMicrosoftAD
     InvokeAsBuiltReportMicrosoftAD = ConvertFrom-StringData @'
