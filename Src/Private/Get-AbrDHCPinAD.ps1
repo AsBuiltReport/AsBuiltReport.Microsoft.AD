@@ -65,7 +65,7 @@ function Get-AbrDHCPinAD {
                     }
 
                     $TableParams = @{
-                        Name = "DHCP Infrastructure - $($ForestInfo.toUpper())"
+                        Name = "$($reportTranslate.GetAbrDHCPinAD.Heading) - $($ForestInfo.toUpper())"
                         List = $false
                         ColumnWidths = 50, 50
                     }

@@ -49,7 +49,7 @@ function Get-AbrADExchange {
                         foreach ($EXServer in $EXInfo) {
                             Section -Style NOTOCHeading4 -ExcludeFromTOC "$($EXServer.$($reportTranslate.GetAbrADExchange.Name))" {
                                 $TableParams = @{
-                                    Name = "Exchange Infrastructure - $($EXServer.$($reportTranslate.GetAbrADExchange.Name))"
+                                    Name = "$($reportTranslate.GetAbrADExchange.Heading) - $($EXServer.$($reportTranslate.GetAbrADExchange.Name))"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }
@@ -61,7 +61,7 @@ function Get-AbrADExchange {
                         }
                     } else {
                         $TableParams = @{
-                            Name = "Exchange Infrastructure - $($ForestInfo.toUpper())"
+                            Name = "$($reportTranslate.GetAbrADExchange.Heading) - $($ForestInfo.toUpper())"
                             List = $false
                             Columns = $reportTranslate.GetAbrADExchange.Name, $reportTranslate.GetAbrADExchange.DnsName, $reportTranslate.GetAbrADExchange.ServerRoles, $reportTranslate.GetAbrADExchange.Version
                             ColumnWidths = 25, 25, 25, 25

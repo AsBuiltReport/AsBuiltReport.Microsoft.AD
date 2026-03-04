@@ -50,7 +50,7 @@ function Get-AbrADSCCM {
                         foreach ($SCCMServer in $SCCMInfo) {
                             Section -Style NOTOCHeading4 -ExcludeFromTOC "$($SCCMServer.$($reportTranslate.GetAbrADSCCM.Name))" {
                                 $TableParams = @{
-                                    Name = "SCCM Infrastructure - $($SCCMServer.$($reportTranslate.GetAbrADSCCM.Name))"
+                                    Name = "$($reportTranslate.GetAbrADSCCM.Heading) - $($SCCMServer.$($reportTranslate.GetAbrADSCCM.Name))"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }
@@ -62,7 +62,7 @@ function Get-AbrADSCCM {
                         }
                     } else {
                         $TableParams = @{
-                            Name = "SCCM Infrastructure - $($ForestInfo.toUpper())"
+                            Name = "$($reportTranslate.GetAbrADSCCM.Heading) - $($ForestInfo.toUpper())"
                             List = $false
                             Columns = $reportTranslate.GetAbrADSCCM.Name, $reportTranslate.GetAbrADSCCM.ManagementPoint, $reportTranslate.GetAbrADSCCM.SiteCode, $reportTranslate.GetAbrADSCCM.Version
                             ColumnWidths = 35, 35, 15, 15

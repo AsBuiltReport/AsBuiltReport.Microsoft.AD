@@ -259,6 +259,7 @@
     NoSiteAssigned = No site assigned
     SubnetSiteBP = Ensure Subnet have an associated site. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication. This can lead to increased latency and potential performance issues for users authenticating against a domain controller that is not local to their site.
     MissingSubnets = Missing Subnets in AD
+    MissingSubnetsTable = Missing Subnets
     MissingSubnetsParagraph = The following table lists the NO_CLIENT_SITE entries found in the netlogon.log file on each Domain Controller in the forest. These entries indicate client IP addresses that could not be mapped to an Active Directory site.
     DC = DC
     IP = IP

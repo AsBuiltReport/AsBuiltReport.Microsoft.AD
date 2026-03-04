@@ -115,7 +115,7 @@ function Get-AbrADSite {
                         }
 
                         $TableParams = @{
-                            Name = "Sites - $($ForestInfo)"
+                            Name = "$($reportTranslate.GetAbrADSite.Sites) - $($ForestInfo)"
                             List = $false
                             ColumnWidths = 25, 30, 20, 25
                         }
@@ -158,7 +158,7 @@ function Get-AbrADSite {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Connection Objects - $($ForestInfo)"
+                                    Name = "$($reportTranslate.GetAbrADSite.ConnectionObjects) - $($ForestInfo)"
                                     List = $false
                                     ColumnWidths = 25, 25, 25, 25
                                 }
@@ -232,7 +232,7 @@ function Get-AbrADSite {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Site Subnets - $($ForestInfo)"
+                                    Name = "$($reportTranslate.GetAbrADSite.SiteSubnets) - $($ForestInfo)"
                                     List = $false
                                     ColumnWidths = 20, 40, 40
                                 }
@@ -291,7 +291,7 @@ function Get-AbrADSite {
                                                 Paragraph $reportTranslate.GetAbrADSite.MissingSubnetsParagraph
                                                 BlankLine
                                                 $TableParams = @{
-                                                    Name = "Missing Subnets - $($ForestInfo)"
+                                                    Name = "$($reportTranslate.GetAbrADSite.MissingSubnetsTable) - $($ForestInfo)"
                                                     List = $false
                                                     ColumnWidths = 40, 60
                                                 }
@@ -391,7 +391,7 @@ function Get-AbrADSite {
                                     }
 
                                     $TableParams = @{
-                                        Name = "Inter-Site Transports - $($ForestInfo)"
+                                        Name = "$($reportTranslate.GetAbrADSite.InterSiteTransports) - $($ForestInfo)"
                                         List = $false
                                         ColumnWidths = 34, 33, 33
                                     }
@@ -447,7 +447,7 @@ function Get-AbrADSite {
                                                             }
 
                                                             $TableParams = @{
-                                                                Name = "Site Links - $($Item.Name)"
+                                                                Name = "$($reportTranslate.GetAbrADSite.SiteLinks) - $($Item.Name)"
                                                                 List = $true
                                                                 ColumnWidths = 40, 60
                                                             }
@@ -520,7 +520,7 @@ function Get-AbrADSite {
                                                             }
 
                                                             $TableParams = @{
-                                                                Name = "Site Links Bridges - $($Item.Name)"
+                                                                Name = "$($reportTranslate.GetAbrADSite.SiteLinkBridges) - $($Item.Name)"
                                                                 List = $true
                                                                 ColumnWidths = 40, 60
                                                             }
@@ -608,7 +608,7 @@ function Get-AbrADSite {
                                                             }
 
                                                             $TableParams = @{
-                                                                Name = "Site Links - $($Item.Name)"
+                                                                Name = "$($reportTranslate.GetAbrADSite.SiteLinks) - $($Item.Name)"
                                                                 List = $true
                                                                 ColumnWidths = 40, 60
                                                             }
@@ -678,7 +678,7 @@ function Get-AbrADSite {
                                                                 }
 
                                                                 $TableParams = @{
-                                                                    Name = "Site Links Bridges - $($Item.Name)"
+                                                                    Name = "$($reportTranslate.GetAbrADSite.SiteLinkBridges) - $($Item.Name)"
                                                                     List = $true
                                                                     ColumnWidths = 40, 60
                                                                 }
@@ -806,7 +806,7 @@ function Get-AbrADSite {
                         if ($OutObj) {
                             Section -Style Heading4 $reportTranslate.GetAbrADSite.SysvolReplication {
                                 $TableParams = @{
-                                    Name = "Sysvol Replication - $($Domain.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADSite.SysvolReplication) - $($Domain.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 33, 33, 34
                                 }
