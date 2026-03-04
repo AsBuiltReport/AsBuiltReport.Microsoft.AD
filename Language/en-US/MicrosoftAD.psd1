@@ -481,7 +481,7 @@
     AuditingUnknown = Unknown
     TableName = Enterprise Root CA
     HealthCheck = Health Check:
-    SecurityBestPractice = Secutiry Best Practice:
+    SecurityBestPractice = Security Best Practice:
     AuditingBP = Auditing should be fully enabled for the Certification Authority to ensure that all relevant events are logged for security monitoring and incident response purposes. This includes events related to certificate issuance, revocation, and changes to CA configuration.
 '@
 
@@ -510,7 +510,7 @@
     AuditingUnknown = Unknown
     TableName = Enterprise Subordinate CA
     HealthCheck = Health Check:
-    SecurityBestPractice = Secutiry Best Practice:
+    SecurityBestPractice = Security Best Practice:
     AuditingBP = Auditing should be fully enabled for the Certification Authority to ensure that all relevant events are logged for security monitoring and incident response purposes. This includes events related to certificate issuance, revocation, and changes to CA configuration.
 '@
 
@@ -592,7 +592,7 @@
     CRLPublish = CRL Publish
     DeltaCRLPublish = Delta CRL Publish
     AddToCertCDP = Add To Cert CDP
-    AddToFreshestCRL = Add To Fresh est CRL
+    AddToFreshestCRL = Add To Freshest CRL
     AddToCrlCDP = Add To Crl cdp
     CRLDistributionPointTable = CRL Distribution Point
     AIACDPHealth = AIA and CDP Health Status
