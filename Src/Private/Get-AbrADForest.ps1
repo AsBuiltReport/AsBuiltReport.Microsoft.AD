@@ -177,7 +177,7 @@ function Get-AbrADForest {
                                 BlankLine
                                 Paragraph {
                                     Text $reportTranslate.GetAbrADForest.BestPractice -Bold
-                                    Text $reportTranslate.GetAbrADForest.CAIssuerBP
+                                    Text $reportTranslate.GetAbrADForest.MultipleRootCABP
                                 }
                             }
                         }
