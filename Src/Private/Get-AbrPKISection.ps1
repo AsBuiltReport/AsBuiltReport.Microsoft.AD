@@ -19,7 +19,7 @@ function Get-AbrPKISection {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting PKI infrastructure information from $ForestInfo."
+        Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrPKISection.Collecting, $ForestInfo))
         Show-AbrDebugExecutionTime -Start -TitleMessage 'PKI Section'
     }
 
@@ -28,11 +28,11 @@ function Get-AbrPKISection {
             try {
                 $CurrentMachineADDomain = Get-ComputerADDomain -ErrorAction SilentlyContinue
             } catch {
-                Write-PScriboMessage -IsWarning 'Unable to determine current AD Domain'
+                Write-PScriboMessage -IsWarning $reportTranslate.GetAbrPKISection.UnableDomain
                 Write-PScriboMessage -IsWarning $_.Exception.Message
             }
             if ($CurrentMachineADDomain.Name -in $ADSystem.Domains) {
-                Write-PScriboMessage -Message "Current PC Domain $($CurrentMachineADDomain.Name) is in the Forest Domain list of $($ADSystem.Name). Enabling Certificate Authority section"
+                Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrPKISection.DomainInForest, $CurrentMachineADDomain.Name, $ADSystem.Name))
                 try {
                     $script:CAs = Get-CertificationAuthority -Enterprise
                 } catch {
@@ -41,13 +41,13 @@ function Get-AbrPKISection {
 
                 if ($CAs) {
                     try {
-                        Section -Style Heading1 'PKI Configuration' {
+                        Section -Style Heading1 $reportTranslate.GetAbrPKISection.Heading {
                             if ($Options.ShowDefinitionInfo) {
-                                Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
+                                Paragraph $reportTranslate.GetAbrPKISection.DefinitionParagraph
                                 BlankLine
                             }
                             if (-not $Options.ShowDefinitionInfo) {
-                                Paragraph 'The following section provides a comprehensive overview of the Active Directory Public Key Infrastructure (PKI) configuration and its components.'
+                                Paragraph $reportTranslate.GetAbrPKISection.Paragraph
                                 BlankLine
                             }
                             try {
@@ -66,7 +66,7 @@ function Get-AbrPKISection {
                             foreach ($CA in ($CAs | Where-Object { $_.IsAccessible -notlike 'False' }).ComputerName) {
                                 $CAObject = Get-CertificationAuthority -Enterprise -ComputerName $CA
                                 if ($CAObject) {
-                                    Section -Style Heading2 "$($CAObject.DisplayName) Details" {
+                                    Section -Style Heading2 "$($CAObject.DisplayName) $($reportTranslate.GetAbrPKISection.DetailsSuffix)" {
                                         try {
                                             Get-AbrADCASecurity -CA $CAObject
                                         } catch {
@@ -107,7 +107,7 @@ function Get-AbrPKISection {
                     }
                 }
             } else {
-                Write-PScriboMessage -IsWarning -Message "Current PC Domain $($CurrentMachineADDomain.Name) is not in the Forest Domain list of $($ADSystem.Name). Disabling Certificate Authority section"
+                Write-PScriboMessage -IsWarning -Message ([string]::Format($reportTranslate.GetAbrPKISection.DomainNotInForest, $CurrentMachineADDomain.Name, $ADSystem.Name))
             }
         }
     }

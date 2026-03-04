@@ -23,7 +23,7 @@ function Get-AbrADCASecurity {
     )
 
     begin {
-        Write-PScriboMessage -Message 'Collecting AD Certification Authority Security information.'
+        Write-PScriboMessage -Message $reportTranslate.GetAbrADCASecurity.Collecting
         Show-AbrDebugExecutionTime -Start -TitleMessage 'CA Security'
     }
 
@@ -32,15 +32,15 @@ function Get-AbrADCASecurity {
             try {
                 $CFP = Get-CertificateValidityPeriod -CertificationAuthority $CA
                 if ($CFP) {
-                    Section -Style Heading3 'Certificate Validity Period' {
-                        Paragraph 'The following section provides certificate validity period configuration for the Certification Authority.'
+                    Section -Style Heading3 $reportTranslate.GetAbrADCASecurity.CertValidityPeriod {
+                        Paragraph $reportTranslate.GetAbrADCASecurity.CertValidityPeriodParagraph
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {
                             $inObj = [ordered] @{
-                                'CA Name' = $CFP.Name
-                                'Server Name' = $CFP.ComputerName
-                                'Validity Period' = $CFP.ValidityPeriod
+                                $reportTranslate.GetAbrADCASecurity.CAName = $CFP.Name
+                                $reportTranslate.GetAbrADCASecurity.ServerName = $CFP.ComputerName
+                                $reportTranslate.GetAbrADCASecurity.ValidityPeriod = $CFP.ValidityPeriod
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
@@ -48,14 +48,14 @@ function Get-AbrADCASecurity {
                         }
 
                         $TableParams = @{
-                            Name = "Certificate Validity Period - $($ForestInfo.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADCASecurity.CertValidityPeriodTable) - $($ForestInfo.ToString().ToUpper())"
                             List = $True
                             ColumnWidths = 40, 60
                         }
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
+                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADCASecurity.CAName | Table @TableParams
                     }
                 }
             } catch {
@@ -64,15 +64,15 @@ function Get-AbrADCASecurity {
             try {
                 $ACLs = Get-CertificationAuthorityAcl -CertificationAuthority $CA
                 if ($ACLs) {
-                    Section -Style Heading4 'Access Control List (ACL)' {
+                    Section -Style Heading4 $reportTranslate.GetAbrADCASecurity.ACL {
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {
                             foreach ($ACL in $ACLs) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'DC Name' = $CA.DisplayName
-                                        'Owner' = $ACL.Owner
-                                        'Group' = $ACL.Group
+                                        $reportTranslate.GetAbrADCASecurity.DCName = $CA.DisplayName
+                                        $reportTranslate.GetAbrADCASecurity.Owner = $ACL.Owner
+                                        $reportTranslate.GetAbrADCASecurity.Group = $ACL.Group
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
@@ -84,23 +84,23 @@ function Get-AbrADCASecurity {
                         }
 
                         $TableParams = @{
-                            Name = "Access Control List - $($ForestInfo.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADCASecurity.ACLTable) - $($ForestInfo.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 40, 30, 30
                         }
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADCASecurity.DCName | Table @TableParams
                         try {
-                            Section -Style Heading5 'Access Rights' {
+                            Section -Style Heading5 $reportTranslate.GetAbrADCASecurity.AccessRights {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($ACL in $ACLs.Access) {
                                     try {
                                         $inObj = [ordered] @{
-                                            'Identity' = $ACL.IdentityReference
-                                            'Access Control Type' = $ACL.AccessControlType
-                                            'Rights' = $ACL.Rights
+                                            $reportTranslate.GetAbrADCASecurity.Identity = $ACL.IdentityReference
+                                            $reportTranslate.GetAbrADCASecurity.AccessControlType = $ACL.AccessControlType
+                                            $reportTranslate.GetAbrADCASecurity.Rights = $ACL.Rights
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     } catch {
@@ -109,14 +109,14 @@ function Get-AbrADCASecurity {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Access Rights - $($CA.Name)"
+                                    Name = "$($reportTranslate.GetAbrADCASecurity.AccessRightsTable) - $($CA.Name)"
                                     List = $false
                                     ColumnWidths = 40, 20, 40
                                 }
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'Identity' | Table @TableParams
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADCASecurity.Identity | Table @TableParams
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Access Control List Rights section)"

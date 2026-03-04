@@ -434,4 +434,206 @@
     ZoneAgingBP = Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs.
 '@
 
+    # Get-AbrPKISection
+    GetAbrPKISection = ConvertFrom-StringData @'
+    Collecting = Collecting PKI infrastructure information from {0}.
+    UnableDomain = Unable to determine current AD Domain
+    DomainInForest = Current PC Domain {0} is in the Forest Domain list of {1}. Enabling Certificate Authority section
+    Heading = PKI Configuration
+    DefinitionParagraph = In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.
+    Paragraph = The following section provides a comprehensive overview of the Active Directory Public Key Infrastructure (PKI) configuration and its components.
+    DetailsSuffix = Details
+    DomainNotInForest = Current PC Domain {0} is not in the Forest Domain list of {1}. Disabling Certificate Authority section
+'@
+
+    # Get-AbrADCASummary
+    GetAbrADCASummary = ConvertFrom-StringData @'
+    Collecting = Collecting Certification Authority information.
+    CAName = CA Name
+    ServerName = Server Name
+    Type = Type
+    Status = Status
+    TableName = Certification Authority
+'@
+
+    # Get-AbrADCARoot
+    GetAbrADCARoot = ConvertFrom-StringData @'
+    Collecting = Collecting AD Certification Authority Per Domain information.
+    Heading = Enterprise Root Certificate Authority
+    Paragraph = The following section provides detailed information about the Enterprise Root Certificate Authority (CA) configuration and operational status.
+    CAName = CA Name
+    ServerName = Server Name
+    Type = Type
+    ConfigString = Config String
+    OperatingSystem = Operating System
+    Certificate = Certificate
+    Auditing = Auditing
+    Status = Status
+    AuditingNotConfigured = Not Configured
+    Auditing1 = Start and stop Active Directory® Certificate Services (1)
+    Auditing2 = Back up and restore the CA database (2)
+    Auditing4 = Issue and manage certificate requests (4)
+    Auditing8 = Revoke certificates and publish CRLs (8)
+    Auditing16 = Change CA security settings (16)
+    Auditing32 = Change CA security settings (32)
+    Auditing64 = Change CA configuration (64)
+    AuditingFull = Auditing is fully enabled (127)
+    AuditingUnknown = Unknown
+    TableName = Enterprise Root CA
+    HealthCheck = Health Check:
+    SecurityBestPractice = Secutiry Best Practice:
+    AuditingBP = Auditing should be fully enabled for the Certification Authority to ensure that all relevant events are logged for security monitoring and incident response purposes. This includes events related to certificate issuance, revocation, and changes to CA configuration.
+'@
+
+    # Get-AbrADCASubordinate
+    GetAbrADCASubordinate = ConvertFrom-StringData @'
+    Collecting = Collecting AD Certification Authority Per Domain information.
+    Heading = Enterprise Subordinate Certificate Authority
+    Paragraph = The following section provides detailed information about Enterprise Subordinate Certification Authorities within the domain.
+    CAName = CA Name
+    ServerName = Server Name
+    Type = Type
+    ConfigString = Config String
+    OperatingSystem = Operating System
+    Certificate = Certificate
+    Auditing = Auditing
+    Status = Status
+    AuditingNotConfigured = Not Configured
+    Auditing1 = Start and stop Active Directory® Certificate Services (1)
+    Auditing2 = Back up and restore the CA database (2)
+    Auditing4 = Issue and manage certificate requests (4)
+    Auditing8 = Revoke certificates and publish CRLs (8)
+    Auditing16 = Change CA security settings (16)
+    Auditing32 = Change CA security settings (32)
+    Auditing64 = Change CA configuration (64)
+    AuditingFull = Auditing is fully enabled (127)
+    AuditingUnknown = Unknown
+    TableName = Enterprise Subordinate CA
+    HealthCheck = Health Check:
+    SecurityBestPractice = Secutiry Best Practice:
+    AuditingBP = Auditing should be fully enabled for the Certification Authority to ensure that all relevant events are logged for security monitoring and incident response purposes. This includes events related to certificate issuance, revocation, and changes to CA configuration.
+'@
+
+    # Get-AbrADCASecurity
+    GetAbrADCASecurity = ConvertFrom-StringData @'
+    Collecting = Collecting AD Certification Authority Security information.
+    CertValidityPeriod = Certificate Validity Period
+    CertValidityPeriodParagraph = The following section provides certificate validity period configuration for the Certification Authority.
+    CertValidityPeriodTable = Certificate Validity Period
+    CAName = CA Name
+    ServerName = Server Name
+    ValidityPeriod = Validity Period
+    ACL = Access Control List (ACL)
+    ACLTable = Access Control List
+    DCName = DC Name
+    Owner = Owner
+    Group = Group
+    AccessRights = Access Rights
+    AccessRightsTable = Access Rights
+    Identity = Identity
+    AccessControlType = Access Control Type
+    Rights = Rights
+'@
+
+    # Get-AbrADCACryptographyConfig
+    GetAbrADCACryptographyConfig = ConvertFrom-StringData @'
+    Collecting = Collecting CA Certification Authority Cryptography Config information.
+    Heading = Cryptography Configuration
+    Paragraph = The following section provides detailed information about the cryptography configuration settings for the Certification Authority, including algorithms, providers, and key specifications.
+    CAName = CA Name
+    ServerName = Server Name
+    PublicKeyAlgorithm = PublicKey Algorithm
+    HashingAlgorithm = Hashing Algorithm
+    ProviderName = Provider Name
+    AlternateSignatureAlgorithm = Alternate Signature Algorithm
+    ProviderIsCNG = Provider Is CNG
+    TableName = Cryptography Configuration
+'@
+
+    # Get-AbrADCAAIA
+    GetAbrADCAAIA = ConvertFrom-StringData @'
+    Collecting = Collecting AD CA Authority Information Access information on {0}.
+    Heading = Authority Information Access (AIA)
+    Paragraph = This section provides the Authority Information Access (AIA) configuration for the Certification Authority, which specifies where certificates and certificate revocation information can be retrieved.
+    RegURI = Reg URI
+    ConfigURI = Config URI
+    Flags = Flags
+    ServerPublish = Server Publish
+    IncludeToExtension = Include To Extension
+    OCSP = OCSP
+    TableName = Authority Information Access
+'@
+
+    # Get-AbrADCACRLSetting
+    GetAbrADCACRLSetting = ConvertFrom-StringData @'
+    CollectingVP = Collecting AD CA CRL Validity Period information on {0}.
+    CollectingCDP = Collecting AD CA CRL Distribution Point information on {0}.
+    CollectingHealth = Collecting AIA and CDP Health Status from {0}.
+    CRLHeading = Certificate Revocation List (CRL)
+    CRLParagraph = This section provides detailed information about the Certificate Revocation List (CRL) distribution settings and health status for the Certification Authority.
+    CRLValidityPeriod = CRL Validity Period
+    CRLValidityPeriodTable = CRL Validity Period
+    CAName = CA Name
+    BaseCRL = Base CRL
+    BaseCRLOverlap = Base CRL Overlap
+    DeltaCRL = Delta CRL
+    DeltaCRLOverlap = Delta CRL Overlap
+    ServerName = Server Name
+    CRLFlags = CRL Flags
+    CRLFlagsSettings = CRL Flags Settings
+    CRLFlagsTable = CRL Flags
+    CRLDistributionPoint = CRL Distribution Point
+    CRLDistributionPointParagraph = This section provides detailed information about the Certificate Revocation List (CRL) Distribution Points configured on the Certification Authority, including URI locations and publication settings.
+    RegURI = Reg URI
+    ConfigURI = Config URI
+    UrlScheme = Url Scheme
+    ProjectedURI = ProjectedURI
+    Flags = Flags
+    CRLPublish = CRL Publish
+    DeltaCRLPublish = Delta CRL Publish
+    AddToCertCDP = Add To Cert CDP
+    AddToFreshestCRL = Add To Fresh est CRL
+    AddToCrlCDP = Add To Crl cdp
+    CRLDistributionPointTable = CRL Distribution Point
+    AIACDPHealth = AIA and CDP Health Status
+    AIACDPHealthParagraph = This section provides a comprehensive health check of the Certification Authority by verifying the CA certificate chain status and validating the accessibility of all Certificate Revocation List (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain.
+    Childs = Childs
+    Health = Health
+    OK = OK
+    CAHealthTable = Certification Authority Health
+'@
+
+    # Get-AbrADCATemplate
+    GetAbrADCATemplate = ConvertFrom-StringData @'
+    Collecting = Collecting AD Certification Authority Templates information from {0}.
+    Heading = Certificate Template Summary
+    Paragraph = The following section lists certificate templates assigned to the Certification Authority. The CA can only issue certificates based on these assigned templates.
+    TemplateName = Template Name
+    SchemaVersion = Schema Version
+    SupportedCA = Supported CA
+    Autoenrollment = Autoenrollment
+    IssuedTemplateTable = Issued Certificate Template
+    IssuedTemplateACLs = Issued Certificate Template ACLs
+    IssuedTemplateACLsParagraph = The following section provides the Access Control List (ACL) for certificate templates assigned to the Certification Authority.
+    Identity = Identity
+    AccessControlType = Access Control Type
+    Rights = Rights
+    Inherited = Inherited
+    TemplateACLTable = Certificate Template ACL
+    ADTemplates = Certificate Template In Active Directory
+    ADTemplatesParagraph = The following section lists all certificate templates registered in Active Directory, regardless of whether they are assigned to any Certification Authority.
+    ADTemplatesTable = Certificate Template in AD
+'@
+
+    # Get-AbrADCAKeyRecoveryAgent
+    GetAbrADCAKeyRecoveryAgent = ConvertFrom-StringData @'
+    Collecting = Collecting AD Certification Authority Key Recovery Agent information.
+    Heading = Key Recovery Agent Certificate
+    Paragraph = This section provides details about the Key Recovery Agent certificate, which encrypts users' certificate private keys for storage in the CA database. If a user loses access to their certificate private key, the Key Recovery Agent can recover it when key archival was configured for the certificate.
+    CAName = CA Name
+    ServerName = Server Name
+    Certificate = Certificate
+    TableName = Key Recovery Agent Certificate
+'@
+
 }

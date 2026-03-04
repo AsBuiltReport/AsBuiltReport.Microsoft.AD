@@ -23,7 +23,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     )
 
     begin {
-        Write-PScriboMessage -Message 'Collecting AD Certification Authority Key Recovery Agent information.'
+        Write-PScriboMessage -Message $reportTranslate.GetAbrADCAKeyRecoveryAgent.Collecting
         Show-AbrDebugExecutionTime -Start -TitleMessage 'CA Key Recovery Agent'
     }
 
@@ -33,9 +33,9 @@ function Get-AbrADCAKeyRecoveryAgent {
             $KRA = Get-CAKRACertificate -CertificationAuthority $CA
             if ($KRA.Certificate) {
                 $inObj = [ordered] @{
-                    'CA Name' = $KRA.DisplayName
-                    'Server Name' = $KRA.ComputerName.ToString().ToUpper().Split('.')[0]
-                    'Certificate' = $KRA.Certificate
+                    $reportTranslate.GetAbrADCAKeyRecoveryAgent.CAName = $KRA.DisplayName
+                    $reportTranslate.GetAbrADCAKeyRecoveryAgent.ServerName = $KRA.ComputerName.ToString().ToUpper().Split('.')[0]
+                    $reportTranslate.GetAbrADCAKeyRecoveryAgent.Certificate = $KRA.Certificate
                 }
                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
             }
@@ -44,12 +44,12 @@ function Get-AbrADCAKeyRecoveryAgent {
         }
 
         if ($OutObj) {
-            Section -Style Heading3 'Key Recovery Agent Certificate' {
-                Paragraph "This section provides details about the Key Recovery Agent certificate, which encrypts users' certificate private keys for storage in the CA database. If a user loses access to their certificate private key, the Key Recovery Agent can recover it when key archival was configured for the certificate."
+            Section -Style Heading3 $reportTranslate.GetAbrADCAKeyRecoveryAgent.Heading {
+                Paragraph $reportTranslate.GetAbrADCAKeyRecoveryAgent.Paragraph
                 BlankLine
                 foreach ($Item in $OutObj) {
                     $TableParams = @{
-                        Name = "Key Recovery Agent Certificate - $($Item.'CA Name')"
+                        Name = "$($reportTranslate.GetAbrADCAKeyRecoveryAgent.TableName) - $($Item.$($reportTranslate.GetAbrADCAKeyRecoveryAgent.CAName))"
                         List = $true
                         ColumnWidths = 40, 60
                     }
