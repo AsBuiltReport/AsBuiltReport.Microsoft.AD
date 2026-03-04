@@ -313,4 +313,119 @@
     SysvolBP = SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains.
 '@
 
+    # Get-AbrDNSSection
+    GetAbrDNSSection = ConvertFrom-StringData @'
+    Collecting = Collecting DNS server information from {0}.
+    CollectingDomain = Collecting DNS information from {0}.
+    DomainParagraph = The following section provides a comprehensive summary of the DNS service configuration and settings for this domain.
+    ExcludedDomain = {0} disabled in Exclude.Domain variable
+    NoDCAvailable = Unable to get an available DC in {0} domain. Removing domain from the DNS section.
+    Heading = DNS Configuration
+    DefinitionParagraph = The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols.
+    Paragraph = The following section provides a comprehensive overview of the DNS infrastructure configuration and settings within the Active Directory environment.
+'@
+
+    # Get-AbrADDNSInfrastructure
+    GetAbrADDNSInfrastructure = ConvertFrom-StringData @'
+    Collecting = Collecting Active Directory Domain Name System Infrastructure information for {0}
+    InfrastructureSummary = Infrastructure Summary
+    InfrastructureSummaryParagraph = This section provides a comprehensive overview of the DNS infrastructure configuration for the domain.
+    AppDirectoryPartition = Application Directory Partition
+    AppDirectoryPartitionParagraph = This section provides detailed information about the Application Directory Partitions configured on each DNS server in the domain.
+    ResponseRateLimiting = Response Rate Limiting (RRL)
+    ResponseRateLimitingTable = Response Rate Limiting
+    ScavengingOptions = Scavenging Options
+    ScavengingTable = Scavenging
+    ForwarderOptions = Forwarder Options
+    ForwardersTable = Forwarders
+    RootHints = Root Hints
+    RootHintsParagraph = This section provides detailed information about the Root Hints configuration for each DNS server in the {0} domain.
+    ZoneScopeRecursion = Zone Scope Recursion
+    DirectoryPartitions = Directory Partitions
+    DCName = DC Name
+    BuildNumber = Build Number
+    IPv6 = IPv6
+    DnsSec = DnsSec
+    ReadOnlyDC = ReadOnly DC
+    ListeningIP = Listening IP
+    Name = Name
+    State = State
+    Flags = Flags
+    ZoneCount = Zone Count
+    Status = Status
+    ResponsesPerSec = Responses Per Sec
+    ErrorsPerSec = Errors Per Sec
+    WindowInSec = Window In Sec
+    LeakRate = Leak Rate
+    TruncateRate = Truncate Rate
+    NoRefreshInterval = NoRefresh Interval
+    RefreshInterval = Refresh Interval
+    ScavengingInterval = Scavenging Interval
+    LastScavengeTime = Last Scavenge Time
+    ScavengingState = Scavenging State
+    IPAddress = IP Address
+    Timeout = Timeout
+    UseRootHint = Use Root Hint
+    UseRecursion = Use Recursion
+    IPv4Address = IPv4 Address
+    IPv6Address = IPv6 Address
+    ZoneName = Zone Name
+    Forwarder = Forwarder
+    Enabled = Enabled
+    Disabled = Disabled
+    ZoneScopeRoot = Root
+    HealthCheck = Health Check:
+    BestPractice = Best Practices:
+    CorrectiveActions = Corrective Actions:
+    Reference = Reference:
+    ScavengingBP = Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs.
+    ForwarderMaxBP = Configure the servers to use no more than two external DNS servers as Forwarders. Using more than two forwarders can lead to increased resolution times and potential issues with DNS query load balancing. It is recommended to use two reliable and geographically diverse DNS servers to ensure redundancy and optimal performance.
+    ForwarderRefURL = https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/forwarders-resolution-timeouts
+    ForwarderMinBP = For redundancy reason, more than one forwarding server should be configured
+    RootHintsMissingCA = A default installation of the DNS server role should have root hints unless the server has a root zone - .(root). If the server has a root zone then delete it. If the server doesn't have a root zone and there are no root servers listed on the Root Hints tab of the DNS server properties then the server may be missing the cache.dns file in the %systemroot%\\system32\\dns directory, which is where the list of root servers is loaded from.
+    RootHintsDuplicateCA = Duplicate IP Address found in the table of the DNS root hints servers. The DNS console does not show the duplicate Root Hint servers; you can only see them using the DNS PowerShell cmdlets. While there is a dnscmd utility to replace the Root Hints file, Using PowerShell is the best way to remediate this issue.
+'@
+
+    # Get-AbrADDNSZone
+    GetAbrADDNSZone = ConvertFrom-StringData @'
+    Collecting = Collecting Active Directory Domain Name System Zone information on {0}.
+    DNSZonesSuffix = DNS Zones
+    ZoneDelegation = Zone Delegation
+    ZoneTransfers = Zone Transfers
+    ReverseLookupZone = Reverse Lookup Zone
+    ConditionalForwarder = Conditional Forwarder
+    ZoneScopeAging = Zone Scope Aging
+    ZonesTable = Zones
+    ZoneDelegationsTable = Zone Delegations
+    ConditionalForwardersTable = Conditional Forwarders
+    ZoneAgingPropertiesTable = Zone Aging Properties
+    ZoneName = Zone Name
+    ZoneType = Zone Type
+    ReplicationScope = Replication Scope
+    DynamicUpdate = Dynamic Update
+    DSIntegrated = DS Integrated
+    ReadOnly = Read Only
+    Signed = Signed
+    ChildZone = Child Zone
+    NameServer = Name Server
+    IPAddress = IP Address
+    SecondaryServers = Secondary Servers
+    NotifyServers = Notify Servers
+    SecureSecondaries = Secure Secondaries
+    MasterServers = Master Servers
+    AgingEnabled = Aging Enabled
+    RefreshInterval = Refresh Interval
+    NoRefreshInterval = NoRefresh Interval
+    AvailableForScavenge = Available For Scavenge
+    SecureSecondariesAll = Send zone transfers to all secondary servers that request them.
+    SecureSecondariesAuth = Send zone transfers only to name servers that are authoritative for the zone.
+    SecureSecondariesSpec = Send zone transfers only to servers you specify in Secondary Servers.
+    SecureSecondariesNone = Do not send zone transfers.
+    Yes = Yes
+    HealthCheck = Health Check:
+    BestPractice = Best Practices:
+    ZoneTransferBP = Configure all DNS zones only to allow zone transfers from Trusted IP addresses. This ensures that only authorized DNS servers can receive zone data, reducing the risk of unauthorized access or data leakage. It is a best practice to specify the IP addresses of the secondary DNS servers that are allowed to receive zone transfers.
+    ZoneAgingBP = Microsoft recommends to enable aging/scavenging on all DNS servers. However, with AD-integrated zones ensure to enable DNS scavenging on one DC at main site. The results will be replicated to other DCs.
+'@
+
 }
