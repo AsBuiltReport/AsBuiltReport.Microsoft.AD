@@ -34,20 +34,20 @@ function Get-AbrADSite {
                     if ($Options.EnableDiagrams) {
                         try {
                             try {
-                                $Graph = Get-AbrDiagrammer -DiagramType 'SitesInventory' -DiagramOutput base64 -PSSessionObject $TempPssSession
+                                $Graph = Get-AbrDiagrammer -DiagramType 'Replication' -DiagramOutput base64 -PSSessionObject $TempPssSession
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "Site Inventory Diagram Graph: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "Replication Diagram Graph: $($_.Exception.Message)"
                             }
 
                             if ($Graph) {
                                 $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
-                                Section -Style Heading4 'Site Inventory Diagram' {
-                                    Image -Base64 $Graph -Text 'Site Inventory Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                                Section -Style Heading4 'Replication Diagram' {
+                                    Image -Base64 $Graph -Text 'Replication Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                 }
                                 BlankLine -Count 2
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "Site Inventory Diagram Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "Replication Diagram Section: $($_.Exception.Message)"
                         }
                     }
                     Section -Style Heading4 'Sites' {
