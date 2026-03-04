@@ -704,4 +704,120 @@
     InfraMasterRef = http://go.microsoft.com/fwlink/?LinkId=168841
 '@
 
+    # Get-AbrADTrust
+    GetAbrADTrust = ConvertFrom-StringData @'
+    Collecting = Collecting AD Trust information of {0}.
+    SectionTitle = Domain and Trusts
+    Name = Name
+    Path = Path
+    Source = Source
+    Target = Target
+    TrustType = Trust Type
+    TrustTypeDownlevel = Downlevel (NT domain)
+    TrustTypeUplevel = Uplevel (Active Directory)
+    TrustTypeMIT = MIT (Kerberos Realm Trust )
+    TrustTypeDCE = DCE
+    TrustAttributes = Trust Attributes
+    TrustAttrNonTransitive = Non-Transitive
+    TrustAttrUplevel = Uplevel clients only (Windows 2000 or newer
+    TrustAttrQuarantine = Quarantined Domain (External)
+    TrustAttrForest = Forest Trust
+    TrustAttrCrossOrg = Cross-Organizational Trust (Selective Authentication)
+    TrustAttrIntraForest = Intra-Forest Trust (trust within the forest)
+    TrustAttrInterForest = Inter-Forest Trust (trust with another forest)
+    TrustDirection = Trust Direction
+    TrustDirDisabled = Disabled (The trust relationship exists but has been disabled)
+    TrustDirInbound = Inbound (Trusting domain)
+    TrustDirOutbound = Outbound (Trusted domain)
+    TrustDirBidirectional = Bidirectional (two-way trust)
+    IntraForest = Intra Forest
+    SelectiveAuthentication = Selective Authentication
+    SIDFilteringForestAware = SID Filtering Forest Aware
+    SIDFilteringQuarantined = SID Filtering Quarantined
+    TGTDelegation = TGT Delegation
+    KerberosAESEncryption = Kerberos AES Encryption
+    KerberosRC4Encryption = Kerberos RC4 Encryption
+    UplevelOnly = Uplevel Only
+    HealthCheck = Health Check:
+    BestPractice = Best Practice:
+    AESBP = Ensure that AES Kerberos encryption is enabled on all Active Directory trusts. RC4 encryption is considered weak and vulnerable to various attacks. Enabling AES encryption on trusts enhances Kerberos security and aligns with modern security standards. Reference: https://techcommunity.microsoft.com/t5/itops-talk-blog/tough-questions-answered-can-i-disable-rc4-etype-for-kerberos-on/ba-p/382718
+    TrustDiagramSection = Domain and Trusts Diagram
+'@
+
+    # Get-AbrADAuthenticationPolicy
+    GetAbrADAuthenticationPolicy = ConvertFrom-StringData @'
+    Collecting = Collecting AD Authentication Policy and Silo information from {0}.
+    SectionTitle = Authentication Policies and Silos
+    SectionParagraph = The following section provides an overview of Authentication Policy Silos and Authentication Policies configured in the domain. Authentication Policy Silos restrict where accounts can sign in and apply authentication policies to control the Kerberos ticket-granting ticket (TGT) lifetime for privileged accounts.
+    SilosSection = Authentication Policy Silos
+    SilosParagraph = The following table provides a summary of Authentication Policy Silos configured in domain {0}.
+    SiloName = Name
+    SiloEnforce = Enforce
+    SiloDescription = Description
+    UserAuthPolicy = User Authentication Policy
+    ServiceAuthPolicy = Service Authentication Policy
+    ComputerAuthPolicy = Computer Authentication Policy
+    HealthCheck = Health Check:
+    BestPractice = Best Practice:
+    SiloBP = Authentication Policy Silos should be set to Enforce mode to actively restrict where privileged accounts can authenticate. Silos in audit mode only log events without enforcing restrictions.
+    SiloMembersSection = Silo Members
+    SiloMembersParagraph = The following table lists the accounts assigned to Authentication Policy Silos in domain {0}.
+    SiloMemberSiloName = Silo Name
+    SiloMemberName = Member Name
+    ObjectClass = Object Class
+    DistinguishedName = Distinguished Name
+    PoliciesSection = Authentication Policies
+    PoliciesParagraph = The following table provides a summary of Authentication Policies configured in domain {0}.
+    PolicyName = Name
+    PolicyEnforce = Enforce
+    PolicyDescription = Description
+    UserTGTLifetime = User TGT Lifetime (mins)
+    ServiceTGTLifetime = Service TGT Lifetime (mins)
+    ComputerTGTLifetime = Computer TGT Lifetime (mins)
+    PolicyBP = Authentication Policies should be set to Enforce mode to actively restrict Kerberos TGT lifetimes and account sign-in. Policies in audit mode only log events without enforcing restrictions.
+'@
+
+    # Get-AbrADHardening
+    GetAbrADHardening = ConvertFrom-StringData @'
+    Collecting = Collecting AD Hardening information from {0}.
+    SectionTitle = Active Directory Hardening
+    SectionParagraph = The following section provides an overview of critical Active Directory security hardening settings, including authentication protocols, SMB configurations, and LDAP security enforcement mechanisms.
+    NTLMv1Config = NTLMv1 configuration
+    SMBv1Status = SMBv1 status
+    EnforcingSMBSigning = Enforcing SMB Signing
+    EnforcingLDAPSigning = Enforcing LDAP Signing
+    EnforcingLDAPChannelBinding = Enforcing LDAP Channel Binding
+    NTLMv1Level0 = Send LM & NTLM responses
+    NTLMv1Level1 = Send LM & NTLM - use NTLMv2 session security if negotiated
+    NTLMv1Level2 = Send NTLM response only
+    NTLMv1Level3 = Send NTLMv2 response only
+    NTLMv1Level4 = Send NTLMv2 response only\refuse LM
+    NTLMv1Level5 = Send NTLMv2 response only\refuse LM & NTLM
+    NTLMv1Unknown = Unknown
+    NTLMv1Default = Send NTLMv2 response only
+    SMBv1Enabled = Installed\Enabled
+    SMBv1Disabled = Uninstalled\Disabled
+    SMBv1Removed = Removed
+    SMBSigningDisable = Disable
+    SMBSigningEnable = Enable
+    SMBSigningUnknown = Unknown
+    SMBSigningDefault = Not Configured/Disabled
+    LDAPSigningNone = None
+    LDAPSigningRequired = Require Signing
+    LDAPSigningUnknown = Unknown
+    LDAPSigningDefault = None
+    LDAPCBNever = Never
+    LDAPCBWhenSupported = When supported
+    LDAPCBAlways = Always
+    LDAPCBUnknown = Unknown
+    LDAPCBDefault = Not Configured/Disabled
+    HealthCheck = Health Check:
+    BestPractice = Best Practice:
+    SMBSigningBP = Enforcing SMB Signing: SMB signing is a security feature that helps protect against man-in-the-middle attacks by ensuring the authenticity and integrity of SMB communications.
+    SMBv1BP = SMBv1 status is enabled: SMBv1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems to enhance security and reduce the risk of exploitation. SMBv1 has been deprecated and replaced by SMBv2 and SMBv3, which offer improved security features.
+    LDAPSigningBP = Enforcing LDAP Signing is not configured: LDAP signing is a security feature that helps protect the integrity and confidentiality of LDAP communications by requiring LDAP data signing.
+    LDAPCBBindingBP = Enforcing LDAP Channel Binding is not configured: LDAP channel binding is a security feature that helps protect against man-in-the-middle attacks by ensuring the authenticity and integrity of LDAP communications.
+    NTLMv1BP = Disable NTLMv1: NTLMv1 is an outdated authentication protocol that is vulnerable to several security issues. It is recommended to disable NTLMv1 on all systems to enhance security and reduce the risk of exploitation. NTLMv1 has been deprecated and replaced by NTLMv2, which offers improved security features.
+'@
+
 }
