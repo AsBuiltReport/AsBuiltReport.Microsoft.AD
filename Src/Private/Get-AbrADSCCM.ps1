@@ -19,7 +19,7 @@ function Get-AbrADSCCM {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD SCCM information of $($ForestInfo.toUpper())."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADSCCM.Collecting -f $ForestInfo.toUpper())
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD SCCM Infrastructure'
     }
 
@@ -28,17 +28,17 @@ function Get-AbrADSCCM {
         $SCCMMP = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction SilentlyContinue -ScriptBlock { Get-ADObject -Filter { (objectClass -eq 'mSSMSManagementPoint') -and (Name -like 'SMS-MP-*') } -SearchBase "CN=System Management,CN=System,$using:DomainDN" -Properties * } } catch { Out-Null }
         try {
             if ($SCCMMP ) {
-                Section -Style Heading3 'SCCM Infrastructure' {
-                    Paragraph 'The following section provides a summary of the System Center Configuration Manager (SCCM) infrastructure registered in Active Directory.'
+                Section -Style Heading3 $reportTranslate.GetAbrADSCCM.Heading {
+                    Paragraph $reportTranslate.GetAbrADSCCM.Paragraph
                     BlankLine
                     $SCCMInfo = [System.Collections.ArrayList]::new()
                     foreach ($SCCMServer in $SCCMMP) {
                         try {
                             $inObj = [ordered] @{
-                                'Name' = $SCCMServer.Name
-                                'Management Point' = $SCCMServer.mSSMSMPName -join ', '
-                                'Site Code' = $SCCMServer.mSSMSSiteCode
-                                'Version' = $SCCMServer.mSSMSVersion
+                                $reportTranslate.GetAbrADSCCM.Name = $SCCMServer.Name
+                                $reportTranslate.GetAbrADSCCM.ManagementPoint = $SCCMServer.mSSMSMPName -join ', '
+                                $reportTranslate.GetAbrADSCCM.SiteCode = $SCCMServer.mSSMSSiteCode
+                                $reportTranslate.GetAbrADSCCM.Version = $SCCMServer.mSSMSVersion
                             }
                             $SCCMInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
@@ -48,9 +48,9 @@ function Get-AbrADSCCM {
 
                     if ($InfoLevel.Forest -ge 2) {
                         foreach ($SCCMServer in $SCCMInfo) {
-                            Section -Style NOTOCHeading4 -ExcludeFromTOC "$($SCCMServer.Name)" {
+                            Section -Style NOTOCHeading4 -ExcludeFromTOC "$($SCCMServer.$($reportTranslate.GetAbrADSCCM.Name))" {
                                 $TableParams = @{
-                                    Name = "SCCM Infrastructure - $($SCCMServer.Name)"
+                                    Name = "SCCM Infrastructure - $($SCCMServer.$($reportTranslate.GetAbrADSCCM.Name))"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }
@@ -64,7 +64,7 @@ function Get-AbrADSCCM {
                         $TableParams = @{
                             Name = "SCCM Infrastructure - $($ForestInfo.toUpper())"
                             List = $false
-                            Columns = 'Name', 'Management Point', 'Site Code', 'Version'
+                            Columns = $reportTranslate.GetAbrADSCCM.Name, $reportTranslate.GetAbrADSCCM.ManagementPoint, $reportTranslate.GetAbrADSCCM.SiteCode, $reportTranslate.GetAbrADSCCM.Version
                             ColumnWidths = 35, 35, 15, 15
                         }
                         if ($Report.ShowTableCaptions) {

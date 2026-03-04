@@ -19,7 +19,7 @@ function Get-AbrADExchange {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Exchange information of $($ForestInfo.toUpper())."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADExchange.Collecting -f $ForestInfo.toUpper())
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Exchange Infrastructure'
     }
 
@@ -27,17 +27,17 @@ function Get-AbrADExchange {
         $EXServers = try { Get-ADExchangeServer } catch { Out-Null }
         try {
             if ($EXServers ) {
-                Section -Style Heading3 'Exchange Infrastructure' {
-                    Paragraph 'The following section provides a comprehensive overview of the Exchange infrastructure deployed in the Active Directory environment.'
+                Section -Style Heading3 $reportTranslate.GetAbrADExchange.Heading {
+                    Paragraph $reportTranslate.GetAbrADExchange.Paragraph
                     BlankLine
                     $EXInfo = [System.Collections.ArrayList]::new()
                     foreach ($EXServer in $EXServers) {
                         try {
                             $inObj = [ordered] @{
-                                'Name' = $EXServer.Name
-                                'Dns Name' = $EXServer.DnsHostName
-                                'Server Roles' = $EXServer.ServerRoles -join ', '
-                                'Version' = $EXServer.Version
+                                $reportTranslate.GetAbrADExchange.Name = $EXServer.Name
+                                $reportTranslate.GetAbrADExchange.DnsName = $EXServer.DnsHostName
+                                $reportTranslate.GetAbrADExchange.ServerRoles = $EXServer.ServerRoles -join ', '
+                                $reportTranslate.GetAbrADExchange.Version = $EXServer.Version
                             }
                             $EXInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
@@ -47,9 +47,9 @@ function Get-AbrADExchange {
 
                     if ($InfoLevel.Forest -ge 2) {
                         foreach ($EXServer in $EXInfo) {
-                            Section -Style NOTOCHeading4 -ExcludeFromTOC "$($EXServer.Name)" {
+                            Section -Style NOTOCHeading4 -ExcludeFromTOC "$($EXServer.$($reportTranslate.GetAbrADExchange.Name))" {
                                 $TableParams = @{
-                                    Name = "Exchange Infrastructure - $($EXServer.Name)"
+                                    Name = "Exchange Infrastructure - $($EXServer.$($reportTranslate.GetAbrADExchange.Name))"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }
@@ -63,7 +63,7 @@ function Get-AbrADExchange {
                         $TableParams = @{
                             Name = "Exchange Infrastructure - $($ForestInfo.toUpper())"
                             List = $false
-                            Columns = 'Name', 'DNS Name', 'Server Roles', 'Version'
+                            Columns = $reportTranslate.GetAbrADExchange.Name, $reportTranslate.GetAbrADExchange.DnsName, $reportTranslate.GetAbrADExchange.ServerRoles, $reportTranslate.GetAbrADExchange.Version
                             ColumnWidths = 25, 25, 25, 25
                         }
                         if ($Report.ShowTableCaptions) {

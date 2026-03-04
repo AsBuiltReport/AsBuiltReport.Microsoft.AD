@@ -19,7 +19,7 @@ function Get-AbrADSite {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Active Directory Sites information of forest $ForestInfo"
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADSite.Collecting -f $ForestInfo)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Site'
     }
 
@@ -27,10 +27,10 @@ function Get-AbrADSite {
         try {
             $Site = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSite -Filter * -Properties * }
             if ($Site) {
-                Section -Style Heading3 'Replication' {
-                    Paragraph 'Replication is the process by which Active Directory objects are transferred and synchronized between domain controllers within the domain and forest, ensuring consistency across the infrastructure.'
+                Section -Style Heading3 $reportTranslate.GetAbrADSite.Replication {
+                    Paragraph $reportTranslate.GetAbrADSite.ReplicationParagraph1
                     BlankLine
-                    Paragraph 'The following section provides detailed information about Active Directory replication and its associated relationships.'
+                    Paragraph $reportTranslate.GetAbrADSite.ReplicationParagraph2
                     if ($Options.EnableDiagrams) {
                         try {
                             try {
@@ -41,8 +41,8 @@ function Get-AbrADSite {
 
                             if ($Graph) {
                                 $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
-                                Section -Style Heading4 'Site Inventory Diagram' {
-                                    Image -Base64 $Graph -Text 'Site Inventory Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                                Section -Style Heading4 $reportTranslate.GetAbrADSite.SiteInventoryDiagram {
+                                    Image -Base64 $Graph -Text $reportTranslate.GetAbrADSite.SiteInventoryDiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                 }
                                 BlankLine -Count 2
                             }
@@ -50,7 +50,7 @@ function Get-AbrADSite {
                             Write-PScriboMessage -IsWarning -Message "Site Inventory Diagram Section: $($_.Exception.Message)"
                         }
                     }
-                    Section -Style Heading4 'Sites' {
+                    Section -Style Heading4 $reportTranslate.GetAbrADSite.Sites {
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Item in $Site) {
                             try {
@@ -61,13 +61,13 @@ function Get-AbrADSite {
                                     $SubnetArray.Add($SubnetName.Name) | Out-Null
                                 }
                                 $inObj = [ordered] @{
-                                    'Site Name' = $Item.Name
-                                    'Description' = $Item.Description
-                                    'Subnets' = switch (($SubnetArray).count) {
-                                        0 { 'No subnet assigned' }
+                                    $reportTranslate.GetAbrADSite.SiteName = $Item.Name
+                                    $reportTranslate.GetAbrADSite.Description = $Item.Description
+                                    $reportTranslate.GetAbrADSite.SubnetsCol = switch (($SubnetArray).count) {
+                                        0 { $reportTranslate.GetAbrADSite.NoSubnetAssigned }
                                         default { $SubnetArray }
                                     }
-                                    'Domain Controllers' = & {
+                                    $reportTranslate.GetAbrADSite.DomainControllers = & {
                                         $ServerArray = [System.Collections.ArrayList]::new()
                                         $Servers = try { Get-ADObjectSearch -DN "CN=Servers,$($Item.DistinguishedName)" -Filter { objectClass -eq 'Server' } -Properties 'DNSHostName' -SelectPrty 'DNSHostName', 'Name' -Session $TempPssSession } catch { 'Unknown' }
                                         foreach ($Object in $Servers) {
@@ -76,7 +76,7 @@ function Get-AbrADSite {
 
                                         if ($ServerArray) {
                                             $ServerArray
-                                        } else { 'No DC assigned' }
+                                        } else { $reportTranslate.GetAbrADSite.NoDCAssigned }
                                     }
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -88,29 +88,29 @@ function Get-AbrADSite {
                         if ($HealthCheck.Site.BestPractice) {
                             $List = [System.Collections.ArrayList]::new()
                             $Num = 0
-                            if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
-                                $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
+                            if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) {
+                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Description
                                 $Num++
-                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Description' -eq '--' }) ) {
-                                    $OBJ.'Description' = $OBJ.'Description' + " ($Num)"
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) ) {
+                                    $OBJ.$($reportTranslate.GetAbrADSite.Description) = $OBJ.$($reportTranslate.GetAbrADSite.Description) + " ($Num)"
                                 }
-                                $List.Add('It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.') | Out-Null
+                                $List.Add($reportTranslate.GetAbrADSite.DescBP) | Out-Null
                             }
-                            if ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' }) {
-                                $OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' } | Set-Style -Style Warning -Property 'Subnets'
+                            if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.SubnetsCol) -eq $reportTranslate.GetAbrADSite.NoSubnetAssigned }) {
+                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.SubnetsCol) -eq $reportTranslate.GetAbrADSite.NoSubnetAssigned } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.SubnetsCol
                                 $Num++
-                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Subnets' -eq 'No subnet assigned' }) ) {
-                                    $OBJ.'Subnets' = $OBJ.'Subnets' + " ($Num)"
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.SubnetsCol) -eq $reportTranslate.GetAbrADSite.NoSubnetAssigned }) ) {
+                                    $OBJ.$($reportTranslate.GetAbrADSite.SubnetsCol) = $OBJ.$($reportTranslate.GetAbrADSite.SubnetsCol) + " ($Num)"
                                 }
-                                $List.Add('Ensure Sites have an associated subnet. If subnets are not associated with AD Sites users in the AD Sites might choose a remote domain controller for authentication which in turn might result in excessive use of a remote domain controller.') | Out-Null
+                                $List.Add($reportTranslate.GetAbrADSite.SiteSubnetBP) | Out-Null
                             }
-                            if ($OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' }) {
-                                $OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' } | Set-Style -Style Warning -Property 'Domain Controllers'
+                            if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.DomainControllers) -eq $reportTranslate.GetAbrADSite.NoDCAssigned }) {
+                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.DomainControllers) -eq $reportTranslate.GetAbrADSite.NoDCAssigned } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.DomainControllers
                                 $Num++
-                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Domain Controllers' -eq 'No DC assigned' } ) ) {
-                                    $OBJ.'Domain Controllers' = $OBJ.'Domain Controllers' + " ($Num)"
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.DomainControllers) -eq $reportTranslate.GetAbrADSite.NoDCAssigned } ) ) {
+                                    $OBJ.$($reportTranslate.GetAbrADSite.DomainControllers) = $OBJ.$($reportTranslate.GetAbrADSite.DomainControllers) + " ($Num)"
                                 }
-                                $List.Add('It is important to ensure that each site has at least one assigned domain controller. Missing domain controllers can lead to authentication delays and potential service disruptions for users in the site.') | Out-Null
+                                $List.Add($reportTranslate.GetAbrADSite.SiteDCBP) | Out-Null
                             }
                         }
 
@@ -122,35 +122,35 @@ function Get-AbrADSite {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Sort-Object -Property 'Site Name' | Table @TableParams
+                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADSite.SiteName | Table @TableParams
                         if ($List) {
-                            Paragraph 'Health Check:' -Bold -Underline
+                            Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                             List -Item $List -Numbered
                         }
                     }
                     try {
                         $Replications = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Properties * -Filter * }
                         if ($Replications) {
-                            Section -ExcludeFromTOC -Style NOTOCHeading4 'Connection Objects' {
+                            Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADSite.ConnectionObjects {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($Repl in $Replications) {
                                     try {
                                         $inObj = [ordered] @{
-                                            'Name' = & {
+                                            $reportTranslate.GetAbrADSite.Name = & {
                                                 if ($Repl.AutoGenerated) {
-                                                    '<automatically generated>'
+                                                    $reportTranslate.GetAbrADSite.AutoGenerated
                                                 } else {
                                                     $Repl.Name
                                                 }
                                             }
-                                            'From Server' = $Repl.ReplicateFromDirectoryServer.Split(',')[1].SubString($Repl.ReplicateFromDirectoryServer.Split(',')[1].IndexOf('=') + 1)
-                                            'To Server' = $Repl.ReplicateToDirectoryServer.Split(',')[0].SubString($Repl.ReplicateToDirectoryServer.Split(',')[0].IndexOf('=') + 1)
-                                            'From Site' = $Repl.fromserver.Split(',')[3].SubString($Repl.fromserver.Split(',')[3].IndexOf('=') + 1)
+                                            $reportTranslate.GetAbrADSite.FromServer = $Repl.ReplicateFromDirectoryServer.Split(',')[1].SubString($Repl.ReplicateFromDirectoryServer.Split(',')[1].IndexOf('=') + 1)
+                                            $reportTranslate.GetAbrADSite.ToServer = $Repl.ReplicateToDirectoryServer.Split(',')[0].SubString($Repl.ReplicateToDirectoryServer.Split(',')[0].IndexOf('=') + 1)
+                                            $reportTranslate.GetAbrADSite.FromSite = $Repl.fromserver.Split(',')[3].SubString($Repl.fromserver.Split(',')[3].IndexOf('=') + 1)
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.Site.Replication) {
-                                            $OutObj | Where-Object { $_.'Name' -ne '<automatically generated>' } | Set-Style -Style Warning -Property 'Name'
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Name) -ne $reportTranslate.GetAbrADSite.AutoGenerated } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Name
                                         }
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Site Replication Connection Item)"
@@ -165,14 +165,14 @@ function Get-AbrADSite {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'From Site' | Table @TableParams
-                                if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.'Name' -ne '<automatically generated>' })) {
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADSite.FromSite | Table @TableParams
+                                if ($HealthCheck.Site.BestPractice -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Name) -ne $reportTranslate.GetAbrADSite.AutoGenerated })) {
+                                    Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                                     BlankLine
-                                    if ($OutObj | Where-Object { $_.'Name' -ne '<automatically generated>' }) {
+                                    if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Name) -ne $reportTranslate.GetAbrADSite.AutoGenerated }) {
                                         Paragraph {
-                                            Text 'Best Practice:' -Bold
-                                            Text 'By default, the replication topology is managed automatically and optimizes existing connections. However, manual connections created by an administrator are not modified or optimized. Verify that all topology information is entered for Site Links and delete all manual connection objects.'
+                                            Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                            Text $reportTranslate.GetAbrADSite.ConnectionObjectsBP
                                         }
                                     }
                                 }
@@ -186,24 +186,24 @@ function Get-AbrADSite {
                     try {
                         $Subnet = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSubnet -Filter * -Properties * }
                         if ($Subnet) {
-                            Section -Style Heading4 'Site Subnets' {
+                            Section -Style Heading4 $reportTranslate.GetAbrADSite.SiteSubnets {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($Item in $Subnet) {
                                     try {
                                         $inObj = [ordered] @{
-                                            'Subnet' = $Item.Name
-                                            'Description' = $Item.Description
-                                            'Sites' = switch ([string]::IsNullOrEmpty($Item.Site)) {
-                                                $true { 'No site assigned' }
+                                            $reportTranslate.GetAbrADSite.Subnet = $Item.Name
+                                            $reportTranslate.GetAbrADSite.Description = $Item.Description
+                                            $reportTranslate.GetAbrADSite.Sites = switch ([string]::IsNullOrEmpty($Item.Site)) {
+                                                $true { $reportTranslate.GetAbrADSite.NoSiteAssigned }
                                                 $false { $Item.Site.Split(',')[0].SubString($Item.Site.Split(',')[0].IndexOf('=') + 1) }
-                                                default { 'Unknown' }
+                                                default { $reportTranslate.GetAbrADSite.Unknown }
                                             }
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.Site.BestPractice) {
-                                            $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
-                                            $OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' } | Set-Style -Style Warning -Property 'Sites'
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Description
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Sites) -eq $reportTranslate.GetAbrADSite.NoSiteAssigned } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Sites
                                         }
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Site Subnets)"
@@ -213,21 +213,21 @@ function Get-AbrADSite {
                                 if ($HealthCheck.Site.BestPractice) {
                                     $List = [System.Collections.ArrayList]::new()
                                     $Num = 0
-                                    if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
-                                        $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
+                                    if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) {
+                                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Description
                                         $Num++
-                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Description' -eq '--' }) ) {
-                                            $OBJ.'Description' = $OBJ.'Description' + " ($Num)"
+                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) ) {
+                                            $OBJ.$($reportTranslate.GetAbrADSite.Description) = $OBJ.$($reportTranslate.GetAbrADSite.Description) + " ($Num)"
                                         }
-                                        $List.Add('It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.') | Out-Null
+                                        $List.Add($reportTranslate.GetAbrADSite.DescBP) | Out-Null
                                     }
-                                    if ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }) {
-                                        $OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' } | Set-Style -Style Warning -Property 'Sites'
+                                    if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Sites) -eq $reportTranslate.GetAbrADSite.NoSiteAssigned }) {
+                                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Sites) -eq $reportTranslate.GetAbrADSite.NoSiteAssigned } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Sites
                                         $Num++
-                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Sites' -eq 'No site assigned' }) ) {
-                                            $OBJ.'Sites' = $OBJ.'Sites' + " ($Num)"
+                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Sites) -eq $reportTranslate.GetAbrADSite.NoSiteAssigned }) ) {
+                                            $OBJ.$($reportTranslate.GetAbrADSite.Sites) = $OBJ.$($reportTranslate.GetAbrADSite.Sites) + " ($Num)"
                                         }
-                                        $List.Add('Ensure Subnet have an associated site. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication. This can lead to increased latency and potential performance issues for users authenticating against a domain controller that is not local to their site.') | Out-Null
+                                        $List.Add($reportTranslate.GetAbrADSite.SubnetSiteBP) | Out-Null
                                     }
                                 }
 
@@ -239,9 +239,9 @@ function Get-AbrADSite {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'Subnet' | Table @TableParams
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADSite.Subnet | Table @TableParams
                                 if ($List) {
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                    Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                                     List -Item $List -Numbered
                                 }
                                 if ($HealthCheck.Site.BestPractice) {
@@ -260,15 +260,15 @@ function Get-AbrADSite {
                                                                 foreach ($Line in $NetLogonContents) {
                                                                     if ($Line -match 'NO_CLIENT_SITE') {
                                                                         $inObj = [ordered] @{
-                                                                            'DC' = $DC
-                                                                            'IP' = $Line.Split(':')[4].trim(' ').Split(' ')[1]
+                                                                            $reportTranslate.GetAbrADSite.DC = $DC
+                                                                            $reportTranslate.GetAbrADSite.IP = $Line.Split(':')[4].trim(' ').Split(' ')[1]
                                                                         }
 
                                                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                                                     }
 
                                                                     if ($HealthCheck.Site.BestPractice) {
-                                                                        $OutObj | Set-Style -Style Warning -Property 'IP'
+                                                                        $OutObj | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.IP
                                                                     }
                                                                 }
                                                             } else {
@@ -287,8 +287,8 @@ function Get-AbrADSite {
                                             }
                                         }
                                         if ($OutObj) {
-                                            Section -ExcludeFromTOC -Style NOTOCHeading4 'Missing Subnets in AD' {
-                                                Paragraph 'The following table lists the NO_CLIENT_SITE entries found in the netlogon.log file on each Domain Controller in the forest. These entries indicate client IP addresses that could not be mapped to an Active Directory site.'
+                                            Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADSite.MissingSubnets {
+                                                Paragraph $reportTranslate.GetAbrADSite.MissingSubnetsParagraph
                                                 BlankLine
                                                 $TableParams = @{
                                                     Name = "Missing Subnets - $($ForestInfo)"
@@ -300,13 +300,13 @@ function Get-AbrADSite {
                                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                                 }
 
-                                                $OutObj | Sort-Object -Property 'DC', 'IP' | Get-Unique -AsString | Table @TableParams
+                                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADSite.DC, $reportTranslate.GetAbrADSite.IP | Get-Unique -AsString | Table @TableParams
                                                 if ($HealthCheck.Site.BestPractice) {
-                                                    Paragraph 'Health Check:' -Bold -Underline
+                                                    Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                                                     BlankLine
                                                     Paragraph {
-                                                        Text 'Best Practice:' -Bold
-                                                        Text "Ensure that all subnets at each site are properly defined. Missing subnets can cause clients to not use the site's local Domain Controllers."
+                                                        Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                        Text $reportTranslate.GetAbrADSite.MissingSubnetsBP
                                                     }
                                                     BlankLine
                                                 }
@@ -335,8 +335,8 @@ function Get-AbrADSite {
 
                             if ($Graph) {
                                 $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
-                                Section -Style Heading4 'Site Topology Diagram' {
-                                    Image -Base64 $Graph -Text 'Site Topology Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                                Section -Style Heading4 $reportTranslate.GetAbrADSite.SiteTopologyDiagram {
+                                    Image -Base64 $Graph -Text $reportTranslate.GetAbrADSite.SiteTopologyDiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                 }
                                 BlankLine -Count 2
                             }
@@ -348,8 +348,8 @@ function Get-AbrADSite {
                         $DomainDN = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
                         $InterSiteTransports = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Filter { (objectClass -eq 'interSiteTransport') } -SearchBase "CN=Inter-Site Transports,CN=Sites,CN=Configuration,$using:DomainDN" -Properties * } } catch { Out-Null }
                         if ($InterSiteTransports) {
-                            Section -Style Heading4 'Inter-Site Transports' {
-                                Paragraph 'Site links in Active Directory represent the inter-site connectivity and method used to transfer replication traffic. There are two transport protocols that can be used for replication via site links. The default protocol used in site link is IP, and it performs synchronous replication between available domain controllers. The SMTP method can be used when the link between sites is not reliable.'
+                            Section -Style Heading4 $reportTranslate.GetAbrADSite.InterSiteTransports {
+                                Paragraph $reportTranslate.GetAbrADSite.InterSiteTransportsParagraph
                                 BlankLine
                                 try {
                                     $OutObj = [System.Collections.ArrayList]::new()
@@ -357,35 +357,35 @@ function Get-AbrADSite {
                                         $SiteArray = [System.Collections.ArrayList]::new()
                                         switch ($Item.options) {
                                             $null {
-                                                $BridgeAlSiteLinks = 'Yes'
-                                                $IgnoreSchedules = 'No'
+                                                $BridgeAlSiteLinks = $reportTranslate.GetAbrADSite.Yes
+                                                $IgnoreSchedules = $reportTranslate.GetAbrADSite.No
                                             }
                                             0 {
-                                                $BridgeAlSiteLinks = 'Yes'
-                                                $IgnoreSchedules = 'No'
+                                                $BridgeAlSiteLinks = $reportTranslate.GetAbrADSite.Yes
+                                                $IgnoreSchedules = $reportTranslate.GetAbrADSite.No
                                             }
                                             1 {
-                                                $BridgeAlSiteLinks = 'Yes'
-                                                $IgnoreSchedules = 'Yes'
+                                                $BridgeAlSiteLinks = $reportTranslate.GetAbrADSite.Yes
+                                                $IgnoreSchedules = $reportTranslate.GetAbrADSite.Yes
                                             }
                                             2 {
-                                                $BridgeAlSiteLinks = 'No'
-                                                $IgnoreSchedules = 'No'
+                                                $BridgeAlSiteLinks = $reportTranslate.GetAbrADSite.No
+                                                $IgnoreSchedules = $reportTranslate.GetAbrADSite.No
                                             }
                                             3 {
-                                                $BridgeAlSiteLinks = 'No'
-                                                $IgnoreSchedules = 'Yes'
+                                                $BridgeAlSiteLinks = $reportTranslate.GetAbrADSite.No
+                                                $IgnoreSchedules = $reportTranslate.GetAbrADSite.Yes
                                             }
                                             default {
-                                                $BridgeAlSiteLinks = 'Unknown'
-                                                $IgnoreSchedules = 'Unknown'
+                                                $BridgeAlSiteLinks = $reportTranslate.GetAbrADSite.Unknown
+                                                $IgnoreSchedules = $reportTranslate.GetAbrADSite.Unknown
                                             }
                                         }
 
                                         $inObj = [ordered] @{
-                                            'Name' = $Item.Name
-                                            'Bridge All Site Links' = $BridgeAlSiteLinks
-                                            'Ignore Schedules' = $IgnoreSchedules
+                                            $reportTranslate.GetAbrADSite.Name = $Item.Name
+                                            $reportTranslate.GetAbrADSite.BridgeAllSiteLinks = $BridgeAlSiteLinks
+                                            $reportTranslate.GetAbrADSite.IgnoreSchedules = $IgnoreSchedules
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     }
@@ -398,16 +398,16 @@ function Get-AbrADSite {
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADSite.Name | Table @TableParams
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Inter-Site Transports section)"
                                 }
                                 try {
-                                    Section -Style Heading4 'IP' {
+                                    Section -Style Heading4 $reportTranslate.GetAbrADSite.IPSection {
                                         try {
                                             $IPLink = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq 'IP' } }
                                             if ($IPLink) {
-                                                Section -Style Heading5 'Site Links' {
+                                                Section -Style Heading5 $reportTranslate.GetAbrADSite.SiteLinks {
                                                     foreach ($Item in $IPLink) {
                                                         $OutObj = [System.Collections.ArrayList]::new()
                                                         try {
@@ -418,32 +418,32 @@ function Get-AbrADSite {
                                                                 $SiteArray.Add($SiteName.Name) | Out-Null
                                                             }
                                                             $inObj = [ordered] @{
-                                                                'Site Link Name' = $Item.Name
-                                                                'Cost' = $Item.Cost
-                                                                'Replication Frequency' = "$($Item.ReplicationFrequencyInMinutes) min"
-                                                                'Transport Protocol' = $Item.InterSiteTransportProtocol
-                                                                'Options' = switch ($Item.Options) {
-                                                                    $null { 'Change Notification is Disabled' }
-                                                                    '0' { '(0) Change Notification is Disabled' }
-                                                                    '1' { '(1) Change Notification is Enabled with Compression' }
-                                                                    '2' { '(2) Force sync in opposite direction at end of sync' }
-                                                                    '3' { '(3) Change Notification is Enabled with Compression and Force sync in opposite direction at end of sync' }
-                                                                    '4' { '(4) Disable compression of Change Notification messages' }
-                                                                    '5' { '(5) Change Notification is Enabled without Compression' }
-                                                                    '6' { '(6) Force sync in opposite direction at end of sync and Disable compression of Change Notification messages' }
-                                                                    '7' { '(7) Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync' }
+                                                                $reportTranslate.GetAbrADSite.SiteLinkName = $Item.Name
+                                                                $reportTranslate.GetAbrADSite.Cost = $Item.Cost
+                                                                $reportTranslate.GetAbrADSite.ReplicationFrequency = "$($Item.ReplicationFrequencyInMinutes) min"
+                                                                $reportTranslate.GetAbrADSite.TransportProtocol = $Item.InterSiteTransportProtocol
+                                                                $reportTranslate.GetAbrADSite.Options = switch ($Item.Options) {
+                                                                    $null { $reportTranslate.GetAbrADSite.ChangeNotificationDisabled }
+                                                                    '0' { $reportTranslate.GetAbrADSite.Option0 }
+                                                                    '1' { $reportTranslate.GetAbrADSite.Option1 }
+                                                                    '2' { $reportTranslate.GetAbrADSite.Option2 }
+                                                                    '3' { $reportTranslate.GetAbrADSite.Option3 }
+                                                                    '4' { $reportTranslate.GetAbrADSite.Option4 }
+                                                                    '5' { $reportTranslate.GetAbrADSite.Option5 }
+                                                                    '6' { $reportTranslate.GetAbrADSite.Option6 }
+                                                                    '7' { $reportTranslate.GetAbrADSite.Option7 }
                                                                     default { "Unknown siteLink option: $($Item.Options)" }
                                                                 }
-                                                                'Sites' = $SiteArray -join '; '
-                                                                'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
-                                                                'Description' = $Item.Description
+                                                                $reportTranslate.GetAbrADSite.Sites = $SiteArray -join '; '
+                                                                $reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion = $Item.ProtectedFromAccidentalDeletion
+                                                                $reportTranslate.GetAbrADSite.Description = $Item.Description
                                                             }
                                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                                             if ($HealthCheck.Site.BestPractice) {
-                                                                $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
-                                                                $OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' } | Set-Style -Style Warning -Property 'Options'
-                                                                $OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' } | Set-Style -Style Warning -Property 'Protected From Accidental Deletion'
+                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Description
+                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Options
+                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion
                                                             }
 
                                                             $TableParams = @{
@@ -454,28 +454,28 @@ function Get-AbrADSite {
                                                             if ($Report.ShowTableCaptions) {
                                                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                                                             }
-                                                            $OutObj | Sort-Object -Property 'Site Link Name' | Table @TableParams
-                                                            if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' }) -or ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' })))) {
-                                                                Paragraph 'Health Check:' -Bold -Underline
+                                                            $OutObj | Sort-Object -Property $reportTranslate.GetAbrADSite.SiteLinkName | Table @TableParams
+                                                            if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) -or (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options })))) {
+                                                                Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                                                                 BlankLine
-                                                                if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
+                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) {
                                                                     Paragraph {
-                                                                        Text 'Best Practice:' -Bold
-                                                                        Text 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
+                                                                        Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                                        Text $reportTranslate.GetAbrADSite.DescBP
                                                                     }
                                                                     BlankLine
                                                                 }
-                                                                if ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' }) {
+                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options }) {
                                                                     Paragraph {
-                                                                        Text 'Best Practice:' -Bold
-                                                                        Text 'Enabling change notification treats an inter-site replication connection like an intra-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an option number value of 5 (Change Notification is Enabled without Compression).'
+                                                                        Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                                        Text $reportTranslate.GetAbrADSite.SiteLinkChangeNotifBP
                                                                     }
                                                                     BlankLine
                                                                 }
-                                                                if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) {
+                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) {
                                                                     Paragraph {
-                                                                        Text 'Best Practice:' -Bold
-                                                                        Text 'If the Site Links in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects.'
+                                                                        Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                                        Text $reportTranslate.GetAbrADSite.SiteLinkProtectedBP
                                                                     }
                                                                     BlankLine
                                                                 }
@@ -495,7 +495,7 @@ function Get-AbrADSite {
                                         try {
                                             $IPLinkBridges = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq 'IP' } }
                                             if ($IPLinkBridges) {
-                                                Section -Style Heading5 'Site Link Bridges' {
+                                                Section -Style Heading5 $reportTranslate.GetAbrADSite.SiteLinkBridges {
                                                     foreach ($Item in $IPLinkBridges) {
                                                         $OutObj = [System.Collections.ArrayList]::new()
                                                         try {
@@ -506,17 +506,17 @@ function Get-AbrADSite {
                                                                 $SiteArray.Add($SiteName.Name) | Out-Null
                                                             }
                                                             $inObj = [ordered] @{
-                                                                'Site Link Bridges Name' = $Item.Name
-                                                                'Transport Protocol' = $Item.InterSiteTransportProtocol
-                                                                'Site Links' = $SiteArray -join '; '
-                                                                'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
-                                                                'Description' = $Item.Description
+                                                                $reportTranslate.GetAbrADSite.SiteLinkBridgesName = $Item.Name
+                                                                $reportTranslate.GetAbrADSite.TransportProtocol = $Item.InterSiteTransportProtocol
+                                                                $reportTranslate.GetAbrADSite.SiteLinksCol = $SiteArray -join '; '
+                                                                $reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion = $Item.ProtectedFromAccidentalDeletion
+                                                                $reportTranslate.GetAbrADSite.Description = $Item.Description
                                                             }
                                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                                             if ($HealthCheck.Site.BestPractice) {
-                                                                $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
-                                                                $OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' } | Set-Style -Style Warning -Property 'Protected From Accidental Deletion'
+                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Description
+                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion
                                                             }
 
                                                             $TableParams = @{
@@ -528,20 +528,20 @@ function Get-AbrADSite {
                                                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                                                             }
                                                             $OutObj | Table @TableParams
-                                                            if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' })))) {
-                                                                Paragraph 'Health Check:' -Bold -Underline
+                                                            if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) -or (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' })))) {
+                                                                Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                                                                 BlankLine
-                                                                if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
+                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) {
                                                                     Paragraph {
-                                                                        Text 'Best Practice:' -Bold
-                                                                        Text 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
+                                                                        Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                                        Text $reportTranslate.GetAbrADSite.DescBP
                                                                     }
                                                                     BlankLine
                                                                 }
-                                                                if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) {
+                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) {
                                                                     Paragraph {
-                                                                        Text 'Best Practice:' -Bold
-                                                                        Text 'If the Site Links Bridges in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects.'
+                                                                        Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                                        Text $reportTranslate.GetAbrADSite.SiteLinkBridgesProtectedBP
                                                                     }
                                                                     BlankLine
                                                                 }
@@ -565,10 +565,10 @@ function Get-AbrADSite {
                                 try {
                                     $IPLink = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLink -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq 'SMTP' } }
                                     if ($IPLink) {
-                                        Section -Style Heading4 'SMTP' {
-                                            Paragraph 'SMTP replication is used for sites that cannot use the others, but as a general rule, it should never be used. It is reserved when network connections are not always available, therefore, you can schedule replication.'
+                                        Section -Style Heading4 $reportTranslate.GetAbrADSite.SMTPSection {
+                                            Paragraph $reportTranslate.GetAbrADSite.SMTPParagraph
                                             try {
-                                                Section -Style Heading5 'Site Links' {
+                                                Section -Style Heading5 $reportTranslate.GetAbrADSite.SiteLinks {
                                                     foreach ($Item in $IPLink) {
                                                         $OutObj = [System.Collections.ArrayList]::new()
                                                         try {
@@ -579,32 +579,32 @@ function Get-AbrADSite {
                                                                 $SiteArray.Add($SiteName.Name) | Out-Null
                                                             }
                                                             $inObj = [ordered] @{
-                                                                'Site Link Name' = $Item.Name
-                                                                'Cost' = $Item.Cost
-                                                                'Replication Frequency' = "$($Item.ReplicationFrequencyInMinutes) min"
-                                                                'Transport Protocol' = $Item.InterSiteTransportProtocol
-                                                                'Options' = switch ($Item.Options) {
-                                                                    $null { 'Change Notification is Disabled' }
-                                                                    '0' { '(0)Change Notification is Disabled' }
-                                                                    '1' { '(1)Change Notification is Enabled with Compression' }
-                                                                    '2' { '(2)Force sync in opposite direction at end of sync' }
-                                                                    '3' { '(3)Change Notification is Enabled with Compression and Force sync in opposite direction at end of sync' }
-                                                                    '4' { '(4)Disable compression of Change Notification messages' }
-                                                                    '5' { '(5)Change Notification is Enabled without Compression' }
-                                                                    '6' { '(6)Force sync in opposite direction at end of sync and Disable compression of Change Notification messages' }
-                                                                    '7' { '(7)Change Notification is Enabled without Compression and Force sync in opposite direction at end of sync' }
+                                                                $reportTranslate.GetAbrADSite.SiteLinkName = $Item.Name
+                                                                $reportTranslate.GetAbrADSite.Cost = $Item.Cost
+                                                                $reportTranslate.GetAbrADSite.ReplicationFrequency = "$($Item.ReplicationFrequencyInMinutes) min"
+                                                                $reportTranslate.GetAbrADSite.TransportProtocol = $Item.InterSiteTransportProtocol
+                                                                $reportTranslate.GetAbrADSite.Options = switch ($Item.Options) {
+                                                                    $null { $reportTranslate.GetAbrADSite.ChangeNotificationDisabled }
+                                                                    '0' { $reportTranslate.GetAbrADSite.Option0 }
+                                                                    '1' { $reportTranslate.GetAbrADSite.Option1 }
+                                                                    '2' { $reportTranslate.GetAbrADSite.Option2 }
+                                                                    '3' { $reportTranslate.GetAbrADSite.Option3 }
+                                                                    '4' { $reportTranslate.GetAbrADSite.Option4 }
+                                                                    '5' { $reportTranslate.GetAbrADSite.Option5 }
+                                                                    '6' { $reportTranslate.GetAbrADSite.Option6 }
+                                                                    '7' { $reportTranslate.GetAbrADSite.Option7 }
                                                                     default { "Unknown siteLink option: $($Item.Options)" }
                                                                 }
-                                                                'Sites' = $SiteArray -join '; '
-                                                                'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
-                                                                'Description' = $Item.Description
+                                                                $reportTranslate.GetAbrADSite.Sites = $SiteArray -join '; '
+                                                                $reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion = $Item.ProtectedFromAccidentalDeletion
+                                                                $reportTranslate.GetAbrADSite.Description = $Item.Description
                                                             }
                                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                                             if ($HealthCheck.Site.BestPractice) {
-                                                                $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
-                                                                $OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' } | Set-Style -Style Warning -Property 'Options'
-                                                                $OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' } | Set-Style -Style Warning -Property 'Protected From Accidental Deletion'
+                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Description
+                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Options
+                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion
                                                             }
 
                                                             $TableParams = @{
@@ -615,28 +615,28 @@ function Get-AbrADSite {
                                                             if ($Report.ShowTableCaptions) {
                                                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                                                             }
-                                                            $OutObj | Sort-Object -Property 'Site Link Name' | Table @TableParams
-                                                            if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' }) -or ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' })))) {
-                                                                Paragraph 'Health Check:' -Bold -Underline
+                                                            $OutObj | Sort-Object -Property $reportTranslate.GetAbrADSite.SiteLinkName | Table @TableParams
+                                                            if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) -or (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options })))) {
+                                                                Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                                                                 BlankLine
-                                                                if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
+                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) {
                                                                     Paragraph {
-                                                                        Text 'Best Practice:' -Bold
-                                                                        Text 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
+                                                                        Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                                        Text $reportTranslate.GetAbrADSite.DescBP
                                                                     }
                                                                     BlankLine
                                                                 }
-                                                                if ($OutObj | Where-Object { $_.'Options' -eq 'Change Notification is Disabled' -or $Null -eq 'Options' }) {
+                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options }) {
                                                                     Paragraph {
-                                                                        Text 'Best Practice:' -Bold
-                                                                        Text 'Enabling change notification treats an INTER-site replication connection like an INTRA-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an Option number value of 5 (Change Notification is Enabled without Compression).'
+                                                                        Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                                        Text $reportTranslate.GetAbrADSite.SMTPChangeNotifBP
                                                                     }
                                                                     BlankLine
                                                                 }
-                                                                if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) {
+                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) {
                                                                     Paragraph {
-                                                                        Text 'Best Practice:' -Bold
-                                                                        Text 'If the Site Links in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects.'
+                                                                        Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                                        Text $reportTranslate.GetAbrADSite.SiteLinkProtectedBP
                                                                     }
                                                                     BlankLine
                                                                 }
@@ -653,7 +653,7 @@ function Get-AbrADSite {
                                             try {
                                                 $IPLinkBridges = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationSiteLinkBridge -Filter * -Properties * | Where-Object { $_.InterSiteTransportProtocol -eq 'SMTP' } }
                                                 if ($IPLinkBridges) {
-                                                    Section -Style Heading5 'Site Link Bridges' {
+                                                    Section -Style Heading5 $reportTranslate.GetAbrADSite.SiteLinkBridges {
                                                         foreach ($Item in $IPLinkBridges) {
                                                             $OutObj = [System.Collections.ArrayList]::new()
                                                             try {
@@ -664,17 +664,17 @@ function Get-AbrADSite {
                                                                     $SiteArray.Add($SiteName.Name) | Out-Null
                                                                 }
                                                                 $inObj = [ordered] @{
-                                                                    'Site Link Bridges Name' = $Item.Name
-                                                                    'Transport Protocol' = $Item.InterSiteTransportProtocol
-                                                                    'Site Links' = $SiteArray -join '; '
-                                                                    'Protected From Accidental Deletion' = $Item.ProtectedFromAccidentalDeletion
-                                                                    'Description' = $Item.Description
+                                                                    $reportTranslate.GetAbrADSite.SiteLinkBridgesName = $Item.Name
+                                                                    $reportTranslate.GetAbrADSite.TransportProtocol = $Item.InterSiteTransportProtocol
+                                                                    $reportTranslate.GetAbrADSite.SiteLinksCol = $SiteArray -join '; '
+                                                                    $reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion = $Item.ProtectedFromAccidentalDeletion
+                                                                    $reportTranslate.GetAbrADSite.Description = $Item.Description
                                                                 }
                                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                                                 if ($HealthCheck.Site.BestPractice) {
-                                                                    $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
-                                                                    $OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' } | Set-Style -Style Warning -Property 'Protected From Accidental Deletion'
+                                                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Description
+                                                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion
                                                                 }
 
                                                                 $TableParams = @{
@@ -686,20 +686,20 @@ function Get-AbrADSite {
                                                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                                                 }
                                                                 $OutObj | Table @TableParams
-                                                                if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) -or (($OutObj | Where-Object { $_.'Description' -eq '--' })))) {
-                                                                    Paragraph 'Health Check:' -Bold -Underline
+                                                                if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) -or (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' })))) {
+                                                                    Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                                                                     BlankLine
-                                                                    if ($OutObj | Where-Object { $_.'Description' -eq '--' }) {
+                                                                    if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) {
                                                                         Paragraph {
-                                                                            Text 'Best Practice:' -Bold
-                                                                            Text 'It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.'
+                                                                            Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                                            Text $reportTranslate.GetAbrADSite.DescBP
                                                                         }
                                                                         BlankLine
                                                                     }
-                                                                    if ($OutObj | Where-Object { $_.'Protected From Accidental Deletion' -eq 'No' }) {
+                                                                    if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) {
                                                                         Paragraph {
-                                                                            Text 'Best Practice:' -Bold
-                                                                            Text 'If the Site Links Bridges in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects.'
+                                                                            Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                                                            Text $reportTranslate.GetAbrADSite.SiteLinkBridgesProtectedBP
                                                                         }
                                                                         BlankLine
                                                                     }
@@ -742,19 +742,19 @@ function Get-AbrADSite {
 
                                         try {
                                             $inObj = [ordered] @{
-                                                'DC Name' = $DC.split('.', 2)[0]
-                                                'Replication Status' = switch ($Replication.State) {
-                                                    0 { 'Uninitialized' }
-                                                    1 { 'Initialized' }
-                                                    2 { 'Initial synchronization' }
-                                                    3 { 'Auto recovery' }
-                                                    4 { 'Normal' }
-                                                    5 { 'In error state' }
-                                                    6 { 'Disabled' }
-                                                    7 { 'Unknown' }
-                                                    default { 'Offline' }
+                                                $reportTranslate.GetAbrADSite.DCName = $DC.split('.', 2)[0]
+                                                $reportTranslate.GetAbrADSite.ReplicationStatus = switch ($Replication.State) {
+                                                    0 { $reportTranslate.GetAbrADSite.StatusUninitialized }
+                                                    1 { $reportTranslate.GetAbrADSite.StatusInitialized }
+                                                    2 { $reportTranslate.GetAbrADSite.StatusInitialSync }
+                                                    3 { $reportTranslate.GetAbrADSite.StatusAutoRecovery }
+                                                    4 { $reportTranslate.GetAbrADSite.StatusNormal }
+                                                    5 { $reportTranslate.GetAbrADSite.StatusInErrorState }
+                                                    6 { $reportTranslate.GetAbrADSite.StatusDisabled }
+                                                    7 { $reportTranslate.GetAbrADSite.StatusUnknown }
+                                                    default { $reportTranslate.GetAbrADSite.StatusOffline }
                                                 }
-                                                'Domain' = $Domain
+                                                $reportTranslate.GetAbrADSite.Domain = $Domain
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         } catch {
@@ -763,38 +763,38 @@ function Get-AbrADSite {
 
                                         if ($HealthCheck.Site.BestPractice) {
                                             $ReplicationStatusError = @(
-                                                'Uninitialized',
-                                                'Auto recovery',
-                                                'In error state',
-                                                'Disabled',
-                                                'Unknown'
+                                                $reportTranslate.GetAbrADSite.StatusUninitialized,
+                                                $reportTranslate.GetAbrADSite.StatusAutoRecovery,
+                                                $reportTranslate.GetAbrADSite.StatusInErrorState,
+                                                $reportTranslate.GetAbrADSite.StatusDisabled,
+                                                $reportTranslate.GetAbrADSite.StatusUnknown
                                             )
                                             $ReplicationStatusWarn = @(
-                                                'Initialized',
-                                                'Initial synchronization'
+                                                $reportTranslate.GetAbrADSite.StatusInitialized,
+                                                $reportTranslate.GetAbrADSite.StatusInitialSync
                                             )
-                                            $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
-                                            $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError } | Set-Style -Style Critical -Property 'Replication Status'
-                                            $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property 'Replication Status'
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ReplicationStatus) -eq $reportTranslate.GetAbrADSite.StatusNormal } | Set-Style -Style OK -Property $reportTranslate.GetAbrADSite.ReplicationStatus
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ReplicationStatus) -in $ReplicationStatusError } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADSite.ReplicationStatus
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ReplicationStatus) -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.ReplicationStatus
                                         }
                                     }
                                 } else {
                                     try {
                                         Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                                         $inObj = [ordered] @{
-                                            'DC Name' = $DC.split('.', 2)[0]
-                                            'Replication Status' = switch ($Replication.State) {
-                                                0 { 'Uninitialized' }
-                                                1 { 'Initialized' }
-                                                2 { 'Initial synchronization' }
-                                                3 { 'Auto recovery' }
-                                                4 { 'Normal' }
-                                                5 { 'In error state' }
-                                                6 { 'Disabled' }
-                                                7 { 'Unknown' }
-                                                default { 'Offline' }
+                                            $reportTranslate.GetAbrADSite.DCName = $DC.split('.', 2)[0]
+                                            $reportTranslate.GetAbrADSite.ReplicationStatus = switch ($Replication.State) {
+                                                0 { $reportTranslate.GetAbrADSite.StatusUninitialized }
+                                                1 { $reportTranslate.GetAbrADSite.StatusInitialized }
+                                                2 { $reportTranslate.GetAbrADSite.StatusInitialSync }
+                                                3 { $reportTranslate.GetAbrADSite.StatusAutoRecovery }
+                                                4 { $reportTranslate.GetAbrADSite.StatusNormal }
+                                                5 { $reportTranslate.GetAbrADSite.StatusInErrorState }
+                                                6 { $reportTranslate.GetAbrADSite.StatusDisabled }
+                                                7 { $reportTranslate.GetAbrADSite.StatusUnknown }
+                                                default { $reportTranslate.GetAbrADSite.StatusOffline }
                                             }
-                                            'Domain' = $Domain
+                                            $reportTranslate.GetAbrADSite.Domain = $Domain
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     } catch {
@@ -804,7 +804,7 @@ function Get-AbrADSite {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading4 'Sysvol Replication' {
+                            Section -Style Heading4 $reportTranslate.GetAbrADSite.SysvolReplication {
                                 $TableParams = @{
                                     Name = "Sysvol Replication - $($Domain.ToString().ToUpper())"
                                     List = $false
@@ -815,13 +815,13 @@ function Get-AbrADSite {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
 
-                                $OutObj | Sort-Object -Property 'Domain' | Table @TableParams
-                                if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.'Identical Count' -like 'No' }) -or ($OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError }))) {
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADSite.Domain | Table @TableParams
+                                if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ReplicationStatus) -in $ReplicationStatusError }))) {
+                                    Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text 'Best Practice:' -Bold
-                                        Text 'SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains.'
+                                        Text $reportTranslate.GetAbrADSite.BestPractice -Bold
+                                        Text $reportTranslate.GetAbrADSite.SysvolBP
                                     }
                                     BlankLine
                                 }
@@ -844,5 +844,4 @@ function Get-AbrADSite {
     end {
         Show-AbrDebugExecutionTime -End -TitleMessage 'AD Site'
     }
-
 }
