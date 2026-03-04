@@ -14,6 +14,12 @@
     DISCLAIMER = This report combines automated data analysis with professional observations. While these findings offer expert insight, this assessment is not exhaustive. All recommendations should be reviewed and implemented by qualified personnel. The author(s) assume no liability for any damages-including lost profits, business interruptions, or financial losses-arising from the use of this report or its recommendations.
 '@
 
+    # InvokeAsBuiltReportMicrosoftAD
+    ConvertToTextYN = ConvertFrom-StringData @'
+    Yes = Yes
+    No = No
+'@
+
     # Get-AbrForestSection
     GetAbrForestSection = ConvertFrom-StringData @'
     Collecting = Collecting Forest information from {0}.

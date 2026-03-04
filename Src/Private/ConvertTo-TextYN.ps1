@@ -27,8 +27,8 @@ function ConvertTo-TextYN {
         '' { '--'; break }
         ' ' { '--'; break }
         $Null { '--'; break }
-        'True' { 'Yes'; break }
-        'False' { 'No'; break }
+        'True' { $reportTranslate.ConvertToTextYN.Yes; break }
+        'False' { $reportTranslate.ConvertToTextYN.No; break }
         default { $TEXT }
     }
 } # end
