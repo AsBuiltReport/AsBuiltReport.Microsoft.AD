@@ -442,7 +442,7 @@ function Get-AbrADSite {
 
                                                             if ($HealthCheck.Site.BestPractice) {
                                                                 $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Description
-                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Options
+                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $_.$($reportTranslate.GetAbrADSite.Options) } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Options
                                                                 $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion
                                                             }
 
@@ -455,7 +455,7 @@ function Get-AbrADSite {
                                                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                                                             }
                                                             $OutObj | Sort-Object -Property $reportTranslate.GetAbrADSite.SiteLinkName | Table @TableParams
-                                                            if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) -or (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options })))) {
+                                                            if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) -or (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $_.$($reportTranslate.GetAbrADSite.Options) })))) {
                                                                 Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                                                                 BlankLine
                                                                 if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) {
@@ -465,7 +465,7 @@ function Get-AbrADSite {
                                                                     }
                                                                     BlankLine
                                                                 }
-                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options }) {
+                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $_.$($reportTranslate.GetAbrADSite.Options) }) {
                                                                     Paragraph {
                                                                         Text $reportTranslate.GetAbrADSite.BestPractice -Bold
                                                                         Text $reportTranslate.GetAbrADSite.SiteLinkChangeNotifBP
@@ -603,7 +603,7 @@ function Get-AbrADSite {
 
                                                             if ($HealthCheck.Site.BestPractice) {
                                                                 $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Description
-                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Options
+                                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $_.$($reportTranslate.GetAbrADSite.Options) } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.Options
                                                                 $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion
                                                             }
 
@@ -616,7 +616,7 @@ function Get-AbrADSite {
                                                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                                                             }
                                                             $OutObj | Sort-Object -Property $reportTranslate.GetAbrADSite.SiteLinkName | Table @TableParams
-                                                            if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) -or (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options })))) {
+                                                            if ($HealthCheck.Site.BestPractice -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.ProtectedFromAccidentalDeletion) -eq $reportTranslate.GetAbrADSite.No }) -or (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $_.$($reportTranslate.GetAbrADSite.Options) })))) {
                                                                 Paragraph $reportTranslate.GetAbrADSite.HealthCheck -Bold -Underline
                                                                 BlankLine
                                                                 if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Description) -eq '--' }) {
@@ -626,7 +626,7 @@ function Get-AbrADSite {
                                                                     }
                                                                     BlankLine
                                                                 }
-                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $reportTranslate.GetAbrADSite.Options }) {
+                                                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSite.Options) -eq $reportTranslate.GetAbrADSite.ChangeNotificationDisabled -or $Null -eq $_.$($reportTranslate.GetAbrADSite.Options) }) {
                                                                     Paragraph {
                                                                         Text $reportTranslate.GetAbrADSite.BestPractice -Bold
                                                                         Text $reportTranslate.GetAbrADSite.SMTPChangeNotifBP
