@@ -86,9 +86,9 @@ function Get-AbrADTrust {
 
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($Trust in $TrustInfo) {
-                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($Trust.Name)" {
+                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($Trust.$($reportTranslate.GetAbrADTrust.Name)) $($reportTranslate.GetAbrADTrust.Trust) Details" {
                                         $TableParams = @{
-                                            Name = "Trusts - $($Trust.Name)"
+                                            Name = "$($reportTranslate.GetAbrADTrust.Trust) - $($Trust.Name)"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -100,7 +100,7 @@ function Get-AbrADTrust {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Trusts - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADTrust.Trust) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     Columns = $reportTranslate.GetAbrADTrust.Name, $reportTranslate.GetAbrADTrust.Path, $reportTranslate.GetAbrADTrust.Source, $reportTranslate.GetAbrADTrust.Target, $reportTranslate.GetAbrADTrust.TrustDirection
                                     ColumnWidths = 20, 20, 20, 20, 20

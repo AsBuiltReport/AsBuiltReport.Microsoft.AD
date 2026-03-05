@@ -82,7 +82,7 @@ function Get-AbrADDomainObject {
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                         $TableParams = @{
-                            Name = "User - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainObject.User) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $true
                             ColumnWidths = 40, 60
                         }
@@ -91,7 +91,7 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
-                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'User Objects' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title "$($reportTranslate.GetAbrADDomainObject.UserObjectsSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (User Object Count Chart)"
                         }
@@ -99,7 +99,7 @@ function Get-AbrADDomainObject {
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading5 $reportTranslate.GetAbrADDomainObject.UsersSubSection {
                                 if ($Chart) {
-                                    Image -Text 'Users Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                    Image -Text "$($reportTranslate.GetAbrADDomainObject.UserObjectsSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                             }
@@ -185,7 +185,7 @@ function Get-AbrADDomainObject {
                         }
 
                         $TableParams = @{
-                            Name = "Status of User Accounts - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainObject.StatusOfUsersSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 28, 12, 12, 12, 12, 12, 12
                         }
@@ -194,7 +194,7 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $OutObj
-                            $Chart = New-PieChart -Values $sampleData.Total -Labels $sampleData.Category -Title 'Status of Users Accounts' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 800 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.$($reportTranslate.GetAbrADDomainObject.Total) -Labels $sampleData.$($reportTranslate.GetAbrADDomainObject.Category) -Title "$($reportTranslate.GetAbrADDomainObject.StatusOfUsersSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 800 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of Users Accounts Chart)"
                         }
@@ -203,7 +203,7 @@ function Get-AbrADDomainObject {
                         Section -ExcludeFromTOC -Style NOTOCHeading5 $reportTranslate.GetAbrADDomainObject.StatusOfUsersSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Status of Users Accounts'
                             if ($Chart) {
-                                Image -Text 'Status of Users Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                Image -Text "$($reportTranslate.GetAbrADDomainObject.StatusOfUsersSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                             }
                             $OutObj | Table @TableParams
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Status of Users Accounts'
@@ -238,7 +238,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Users - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.UsersSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 33, 33, 34
                                 }
@@ -271,7 +271,7 @@ function Get-AbrADDomainObject {
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                         $TableParams = @{
-                            Name = "Group Categories - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $true
                             ColumnWidths = 40, 60
                         }
@@ -280,14 +280,14 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'Group Categories' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title $reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Category Object Chart)"
                         }
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection {
                                 if ($Chart) {
-                                    Image -Text 'Groups Categories Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                    Image -Text "$($reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                             }
@@ -305,7 +305,7 @@ function Get-AbrADDomainObject {
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                         $TableParams = @{
-                            Name = "Group Scopes - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainObject.GroupScopesSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $true
                             ColumnWidths = 40, 60
                         }
@@ -314,14 +314,14 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'Group Scopes' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title $reportTranslate.GetAbrADDomainObject.GroupScopesSubSection -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Scopes Object Chart)"
                         }
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDomainObject.GroupScopesSubSection {
                                 if ($Chart) {
-                                    Image -Text 'Groups Scopes Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                    Image -Text "$($reportTranslate.GetAbrADDomainObject.GroupScopesSubSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                             }
@@ -350,7 +350,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Groups - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.Group) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 35, 25, 25, 15
                                 }
@@ -409,7 +409,7 @@ function Get-AbrADDomainObject {
                                     }
 
                                     $TableParams = @{
-                                        Name = "Privileged Groups - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADDomainObject.PrivilegedGroups) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 60, 40
                                     }
@@ -561,7 +561,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Privileged Group (Non-Default) - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.PrivilegedGroupsNonDefault) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 50, 50
                                 }
@@ -610,7 +610,7 @@ function Get-AbrADDomainObject {
                                     }
 
                                     $TableParams = @{
-                                        Name = "Empty Groups - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADDomainObject.EmptyGroupsTable) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 50, 50
                                     }
@@ -677,7 +677,7 @@ function Get-AbrADDomainObject {
                                     $OutObj | Set-Style -Style Warning
 
                                     $TableParams = @{
-                                        Name = "Circular Group Membership - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADDomainObject.CircularGroupMembershipSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 50, 50
                                     }
@@ -736,7 +736,7 @@ function Get-AbrADDomainObject {
                                             BlankLine
                                             $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.Name) -match 'Authenticated Users|ANONYMOUS LOGON' } | Set-Style -Style Critical
                                             $TableParams = @{
-                                                Name = "Pre-Windows 2000 Compatible Access - $($Domain.DNSRoot.ToString().ToUpper())"
+                                                Name = "$($reportTranslate.GetAbrADDomainObject.PreWin2000Table) - $($Domain.DNSRoot.ToString().ToUpper())"
                                                 List = $false
                                                 ColumnWidths = 40, 60
                                             }
@@ -775,7 +775,7 @@ function Get-AbrADDomainObject {
                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                     $TableParams = @{
-                        Name = "Computers - $($Domain.DNSRoot.ToString().ToUpper())"
+                        Name = "$($reportTranslate.GetAbrADDomainObject.ComputersSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }
@@ -784,7 +784,7 @@ function Get-AbrADDomainObject {
                     }
                     try {
                         $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'Computers Count' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title "$($reportTranslate.GetAbrADDomainObject.ComputersCount)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers Object Count Chart)"
                     }
@@ -792,7 +792,7 @@ function Get-AbrADDomainObject {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDomainObject.ComputersSubSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Computers Object - Diagram'
                             if ($Chart) {
-                                Image -Text 'Computers Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                Image -Text "$($reportTranslate.GetAbrADDomainObject.ComputerObjectsSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                             }
                             $OutObj | Table @TableParams
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Computers Object - Diagram'
@@ -856,7 +856,7 @@ function Get-AbrADDomainObject {
                         }
 
                         $TableParams = @{
-                            Name = "Status of Computer Accounts - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 28, 12, 12, 12, 12, 12, 12
                         }
@@ -865,7 +865,7 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $OutObj
-                            $Chart = New-PieChart -Values $sampleData.Total -Labels $sampleData.Category -Title 'Status of Computers Accounts' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.$($reportTranslate.GetAbrADDomainObject.Total) -Labels $sampleData.$($reportTranslate.GetAbrADDomainObject.Category) -Title "$($reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of Computers Accounts Chart)"
                         }
@@ -873,7 +873,7 @@ function Get-AbrADDomainObject {
                         if ($OutObj) {
                             Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection {
                                 if ($Chart -and ($OutObj.'Total' | Measure-Object -Sum).Sum -ne 0) {
-                                    Image -Text 'Status of Computer Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                    Image -Text "$($reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                                 Show-AbrDebugExecutionTime -End -TitleMessage 'Status of Computer Accounts'
@@ -905,7 +905,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Operating System Count - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.OperatingSystemCountSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 60, 40
                                 }
@@ -949,7 +949,7 @@ function Get-AbrADDomainObject {
                                     $OutObj | Set-Style -Style Warning
 
                                     $TableParams = @{
-                                        Name = "Computers with Password-Not-Required - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADDomainObject.PasswordNotRequiredSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 30, 58, 12
                                     }
@@ -997,7 +997,7 @@ function Get-AbrADDomainObject {
                             }
 
                             $TableParams = @{
-                                Name = "Computers - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADDomainObject.ComputersInventorySection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 30, 30, 25, 15
                             }
@@ -1041,7 +1041,7 @@ function Get-AbrADDomainObject {
                             }
 
                             $TableParams = @{
-                                Name = "Default Domain Password Policy - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADDomainObject.DefaultPasswordPolicySection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $true
                                 ColumnWidths = 40, 60
                             }
@@ -1105,7 +1105,7 @@ function Get-AbrADDomainObject {
                                 foreach ($FGPP in $FGPPInfo) {
                                     Section -Style NOTOCHeading4 -ExcludeFromTOC "$($FGPP.$($reportTranslate.GetAbrADDomainObject.FGPPName))" {
                                         $TableParams = @{
-                                            Name = "Fined Grained Password Policies - $($FGPP.Name)"
+                                            Name = "$($reportTranslate.GetAbrADDomainObject.FGPPName) - $($FGPP.Name)"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -1117,7 +1117,7 @@ function Get-AbrADDomainObject {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Fined Grained Password Policies -  $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.FineGrainedPasswordPoliciesSection) -  $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     Columns = $reportTranslate.GetAbrADDomainObject.FGPPName, $reportTranslate.GetAbrADDomainObject.FGPPLockoutDuration, $reportTranslate.GetAbrADDomainObject.FGPPMaxPasswordAge, $reportTranslate.GetAbrADDomainObject.FGPPMinPasswordAge, $reportTranslate.GetAbrADDomainObject.FGPPMinPasswordLength, $reportTranslate.GetAbrADDomainObject.FGPPPasswordHistoryCount
                                     ColumnWidths = 20, 20, 15, 15, 15, 15
@@ -1166,7 +1166,7 @@ function Get-AbrADDomainObject {
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($LAP in $LAPSInfo) {
                                     $TableParams = @{
-                                        Name = "Microsoft LAPS - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $true
                                         ColumnWidths = 40, 60
                                     }
@@ -1177,7 +1177,7 @@ function Get-AbrADDomainObject {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Microsoft LAPS -  $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection) -  $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     Columns = $reportTranslate.GetAbrADDomainObject.LAPSName, $reportTranslate.GetAbrADDomainObject.LAPSDomainName, $reportTranslate.GetAbrADDomainObject.LAPSEnabled
                                     ColumnWidths = 34, 33, 33
@@ -1363,7 +1363,7 @@ function Get-AbrADDomainObject {
                             }
 
                             $TableParams = @{
-                                Name = "Foreign Security Principals - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADDomainObject.FSPSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 50, 50
                             }

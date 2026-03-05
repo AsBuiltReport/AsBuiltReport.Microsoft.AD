@@ -127,7 +127,7 @@ function Get-AbrADHardening {
                     }
 
                     $TableParams = @{
-                        Name = "Active Directory Hardening - $($Domain.Name.toUpper())"
+                        Name = "$($reportTranslate.GetAbrADHardening.SectionTitle) - $($Domain.DNSRoot.toUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }
