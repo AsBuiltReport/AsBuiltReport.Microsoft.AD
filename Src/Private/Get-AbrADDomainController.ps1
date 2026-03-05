@@ -21,7 +21,7 @@ function Get-AbrADDomainController {
     )
 
     begin {
-        Write-PScriboMessage -Message 'Collecting AD Domain Controller information.'
+        Write-PScriboMessage -Message $reportTranslate.GetAbrADDomainController.Collecting
         Show-AbrDebugExecutionTime -Start -TitleMessage 'Domain Controller Section'
     }
 
@@ -43,16 +43,16 @@ function Get-AbrADDomainController {
                     }
                     try {
                         $inObj = [ordered] @{
-                            'DC Name' = $DC.ToString().ToUpper().Split('.')[0]
-                            'Status' = 'Online'
-                            'Site' = switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                            $($reportTranslate.GetAbrADDomainController.DCName) = $DC.ToString().ToUpper().Split('.')[0]
+                            $($reportTranslate.GetAbrADDomainController.Status) = $reportTranslate.GetAbrADDomainController.Online
+                            $($reportTranslate.GetAbrADDomainController.Site) = switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
                                 $true { '--' }
                                 $false { $DCInfo.Site }
                                 default { 'Unknown' }
                             }
-                            'Global Catalog' = $DCInfo.IsGlobalCatalog
-                            'Read Only' = $DCInfo.IsReadOnly
-                            'IP Address' = switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
+                            $($reportTranslate.GetAbrADDomainController.GlobalCatalog) = $DCInfo.IsGlobalCatalog
+                            $($reportTranslate.GetAbrADDomainController.ReadOnly) = $DCInfo.IsReadOnly
+                            $($reportTranslate.GetAbrADDomainController.IPAddress) = switch ([string]::IsNullOrEmpty($DCInfo.IPv4Address)) {
                                 $true { '--' }
                                 $false { $DCInfo.IPv4Address }
                                 default { 'Unknown' }
@@ -66,12 +66,12 @@ function Get-AbrADDomainController {
                     try {
                         Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                         $inObj = [ordered] @{
-                            'DC Name' = $DC.ToString().ToUpper().Split('.')[0]
-                            'Status' = 'Offline'
-                            'Site' = '--'
-                            'Global Catalog' = '--'
-                            'Read Only' = '--'
-                            'IP Address' = '--'
+                            $($reportTranslate.GetAbrADDomainController.DCName) = $DC.ToString().ToUpper().Split('.')[0]
+                            $($reportTranslate.GetAbrADDomainController.Status) = $reportTranslate.GetAbrADDomainController.Offline
+                            $($reportTranslate.GetAbrADDomainController.Site) = '--'
+                            $($reportTranslate.GetAbrADDomainController.GlobalCatalog) = '--'
+                            $($reportTranslate.GetAbrADDomainController.ReadOnly) = '--'
+                            $($reportTranslate.GetAbrADDomainController.IPAddress) = '--'
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
@@ -86,20 +86,20 @@ function Get-AbrADDomainController {
             }
 
             $TableParams = @{
-                Name = "Domain Controller in Domain - $($Domain.DNSRoot.ToString().ToUpper())"
+                Name = "$($reportTranslate.GetAbrADDomainController.DomainControllerTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                 List = $false
                 ColumnWidths = 25, 12, 24, 10, 10, 19
             }
             if ($Report.ShowTableCaptions) {
                 $TableParams['Caption'] = "- $($TableParams.Name)"
             }
-            $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+            $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainController.DCName | Table @TableParams
             if ($HealthCheck.DomainController.BestPractice -and ($OutObj.Count -eq 1)) {
-                Paragraph 'Health Check:' -Bold -Underline
+                Paragraph $reportTranslate.GetAbrADDomainController.HealthCheck -Bold -Underline
                 BlankLine
                 Paragraph {
-                    Text 'Best Practice:' -Bold
-                    Text "All domains should have at least two functioning domain controllers for redundancy. In the event of a failure on the domain's only domain controller, users will not be able to log in to the domain or access domain resources. This ensures high availability and fault tolerance within the domain infrastructure."
+                    Text $reportTranslate.GetAbrADDomainController.BestPractice -Bold
+                    Text $reportTranslate.GetAbrADDomainController.DCBestPractice
                 }
             }
         } catch {
@@ -108,13 +108,13 @@ function Get-AbrADDomainController {
         try {
             $OutObj = [System.Collections.ArrayList]::new()
             $inObj = [ordered] @{
-                'Domain Controller' = ($DomainController | Measure-Object).Count
-                'Global Catalog' = ($GC | Measure-Object).Count
+                $($reportTranslate.GetAbrADDomainController.DomainControllerCount) = ($DomainController | Measure-Object).Count
+                $($reportTranslate.GetAbrADDomainController.GlobalCatalog) = ($GC | Measure-Object).Count
             }
             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
             $TableParams = @{
-                Name = "Domain Controller Counts - $($Domain.DNSRoot.ToString().ToUpper())"
+                Name = "$($reportTranslate.GetAbrADDomainController.DomainControllerCountsTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                 List = $true
                 ColumnWidths = 40, 60
             }
@@ -156,37 +156,37 @@ function Get-AbrADDomainController {
                         try {
                             Section -Style Heading5 $DCInfo.Name {
                                 try {
-                                    Section -ExcludeFromTOC -Style NOTOCHeading6 'General Information' {
+                                    Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADDomainController.GeneralInformationTitle {
                                         $OutObj = [System.Collections.ArrayList]::new()
                                         $inObj = [ordered] @{
-                                            'DC Name' = $DCInfo.Hostname
-                                            'Domain Name' = switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
+                                            $($reportTranslate.GetAbrADDomainController.DCName) = $DCInfo.Hostname
+                                            $($reportTranslate.GetAbrADDomainController.DomainName) = switch ([string]::IsNullOrEmpty($DCInfo.Domain)) {
                                                 $true { '--' }
                                                 $false { $DCInfo.Domain }
                                                 default { 'Unknown' }
                                             }
-                                            'Site' = switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
+                                            $($reportTranslate.GetAbrADDomainController.Site) = switch ([string]::IsNullOrEmpty($DCInfo.Site)) {
                                                 $true { '--' }
                                                 $false { $DCInfo.Site }
                                                 default { 'Unknown' }
                                             }
-                                            'Global Catalog' = $DCInfo.IsGlobalCatalog
-                                            'Read Only' = $DCInfo.IsReadOnly
-                                            'Operation Master Roles' = ($DCInfo.OperationMasterRoles -join ', ')
-                                            'Location' = $DCComputerObject.Location
-                                            'Computer Object SID' = $DCComputerObject.SID
-                                            'Operating System' = $DCInfo.OperatingSystem
-                                            'SMB1 Status' = $DCNetSMBv1Setting.State
-                                            'Description' = $DCComputerObject.Description
+                                            $($reportTranslate.GetAbrADDomainController.GlobalCatalog) = $DCInfo.IsGlobalCatalog
+                                            $($reportTranslate.GetAbrADDomainController.ReadOnly) = $DCInfo.IsReadOnly
+                                            $($reportTranslate.GetAbrADDomainController.OperationMasterRoles) = ($DCInfo.OperationMasterRoles -join ', ')
+                                            $($reportTranslate.GetAbrADDomainController.Location) = $DCComputerObject.Location
+                                            $($reportTranslate.GetAbrADDomainController.ComputerObjectSID) = $DCComputerObject.SID
+                                            $($reportTranslate.GetAbrADDomainController.OperatingSystem) = $DCInfo.OperatingSystem
+                                            $($reportTranslate.GetAbrADDomainController.SMB1Status) = $DCNetSMBv1Setting.State
+                                            $($reportTranslate.GetAbrADDomainController.Description) = $DCComputerObject.Description
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.DomainController.BestPractice) {
-                                            $OutObj | Where-Object { $_.'SMB1 Status' -eq 'Enabled' } | Set-Style -Style Critical -Property 'SMB1 Status'
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.SMB1Status) -eq $reportTranslate.GetAbrADDomainController.Enabled } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainController.SMB1Status
                                         }
 
                                         $TableParams = @{
-                                            Name = "General Information - $($DCInfo.Name)"
+                                            Name = "$($reportTranslate.GetAbrADDomainController.GeneralInfoTableName) - $($DCInfo.Name)"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -194,12 +194,12 @@ function Get-AbrADDomainController {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $OutObj | Table @TableParams
-                                        if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'SMB1 Status' -eq 'Enabled' })) {
-                                            Paragraph 'Health Check:' -Bold -Underline
+                                        if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.SMB1Status) -eq $reportTranslate.GetAbrADDomainController.Enabled })) {
+                                            Paragraph $reportTranslate.GetAbrADDomainController.HealthCheck -Bold -Underline
                                             BlankLine
                                             Paragraph {
-                                                Text 'Best Practice:' -Bold
-                                                Text 'Disable SMBv1: SMBv1 is an outdated protocol that is vulnerable to several security issues. It is recommended to disable SMBv1 on all systems to enhance security and reduce the risk of exploitation. SMB v1 has been deprecated and replaced by SMB v2 and SMB v3, which offer improved performance and security features.'
+                                                Text $reportTranslate.GetAbrADDomainController.BestPractice -Bold
+                                                Text $reportTranslate.GetAbrADDomainController.SMB1BestPractice
                                             }
                                         }
                                     }
@@ -207,17 +207,17 @@ function Get-AbrADDomainController {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (General Information Section)"
                                 }
                                 try {
-                                    Section -ExcludeFromTOC -Style NOTOCHeading6 'Partitions' {
+                                    Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADDomainController.PartitionsTitle {
                                         $OutObj = [System.Collections.ArrayList]::new()
                                         $inObj = [ordered] @{
-                                            'Default Partition' = $DCInfo.DefaultPartition
-                                            'Partitions' = $DCInfo.Partitions
+                                            $($reportTranslate.GetAbrADDomainController.DefaultPartition) = $DCInfo.DefaultPartition
+                                            $($reportTranslate.GetAbrADDomainController.Partitions) = $DCInfo.Partitions
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
 
                                         $TableParams = @{
-                                            Name = "Partitions - $($DCInfo.Name)"
+                                            Name = "$($reportTranslate.GetAbrADDomainController.PartitionsTableName) - $($DCInfo.Name)"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -231,30 +231,30 @@ function Get-AbrADDomainController {
                                 }
                                 try {
                                     if ($DCNetSettings) {
-                                        Section -ExcludeFromTOC -Style NOTOCHeading6 'Networking Settings' {
+                                        Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADDomainController.NetworkingTitle {
                                             $OutObj = [System.Collections.ArrayList]::new()
                                             $inObj = [ordered] @{
-                                                'IPv4 Addresses' = switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv4' -or $_.AddressFamily -eq 2) -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address))) {
+                                                $($reportTranslate.GetAbrADDomainController.IPv4Addresses) = switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv4' -or $_.AddressFamily -eq 2) -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address))) {
                                                     $true { '--' }
                                                     $false { ($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv4' -or $_.AddressFamily -eq 2) -and $_.IPAddress -ne '127.0.0.1' }).IPv4Address -join ', ' }
                                                     default { 'Unknown' }
                                                 }
-                                                'IPv6 Addresses' = switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv6' -or $_.AddressFamily -eq 23) -and $_.IPAddress -ne '::1' }).IPv6Address))) {
+                                                $($reportTranslate.GetAbrADDomainController.IPv6Addresses) = switch ([string]::IsNullOrEmpty((($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv6' -or $_.AddressFamily -eq 23) -and $_.IPAddress -ne '::1' }).IPv6Address))) {
                                                     $true { '--' }
                                                     $false { ($DCNetSettings | Where-Object { ($_.AddressFamily -eq 'IPv6' -or $_.AddressFamily -eq 23) -and $_.IPAddress -ne '::1' }).IPv6Address -join ',' }
                                                     default { 'Unknown' }
                                                 }
-                                                'LDAP Port' = $DCInfo.LdapPort
-                                                'LDAPS Port' = $DCInfo.SslPort
+                                                $($reportTranslate.GetAbrADDomainController.LDAPPort) = $DCInfo.LdapPort
+                                                $($reportTranslate.GetAbrADDomainController.LDAPSPort) = $DCInfo.SslPort
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                             if ($HealthCheck.DomainController.BestPractice) {
-                                                $OutObj | Where-Object { $_.'IPv4 Addresses'.Split(',').Count -gt 1 } | Set-Style -Style Warning -Property 'IPv4 Addresses'
+                                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.IPv4Addresses).Split(',').Count -gt 1 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainController.IPv4Addresses
                                             }
                                             if ($OutObj) {
                                                 $TableParams = @{
-                                                    Name = "Networking Settings - $($DCInfo.Name)"
+                                                    Name = "$($reportTranslate.GetAbrADDomainController.NetworkingTableName) - $($DCInfo.Name)"
                                                     List = $true
                                                     ColumnWidths = 40, 60
                                                 }
@@ -262,12 +262,12 @@ function Get-AbrADDomainController {
                                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                                 }
                                                 $OutObj | Table @TableParams
-                                                if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.'IPv4 Addresses'.Split(',').Count -gt 1 })) {
-                                                    Paragraph 'Health Check:' -Bold -Underline
+                                                if ($HealthCheck.DomainController.BestPractice -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.IPv4Addresses).Split(',').Count -gt 1 })) {
+                                                    Paragraph $reportTranslate.GetAbrADDomainController.HealthCheck -Bold -Underline
                                                     BlankLine
                                                     Paragraph {
-                                                        Text 'Best Practice:' -Bold
-                                                        Text "On Domain Controllers with more than one NIC where each NIC is connected to separate Network, there's a possibility that the Host A DNS registration can occur for unwanted NICs. Avoid registering unwanted NICs in DNS on a multihomed domain controller."
+                                                        Text $reportTranslate.GetAbrADDomainController.BestPractice -Bold
+                                                        Text $reportTranslate.GetAbrADDomainController.NetworkingBestPractice
                                                     }
                                                 }
                                             }
@@ -291,21 +291,21 @@ function Get-AbrADDomainController {
                                         }
                                         if ($HW) {
                                             $inObj = [ordered] @{
-                                                'Name' = $HW.CsName
-                                                'Windows Product Name' = $HW.WindowsProductName
-                                                'Windows Build Number' = $HW.OsVersion
-                                                'AD Domain' = $HW.CsDomain
-                                                'Windows Installation Date' = $HW.OsInstallDate
-                                                'Time Zone' = $HW.TimeZone
-                                                'License Type' = $License.ProductKeyChannel
-                                                'Partial Product Key' = $License.PartialProductKey
-                                                'Manufacturer' = $HW.CsManufacturer
-                                                'Model' = $HW.CsModel
-                                                'Processor Model' = $HWCPU[0].Name
-                                                'Number of Processors' = ($HWCPU | Measure-Object).Count
-                                                'Number of CPU Cores' = $HWCPU[0].NumberOfCores
-                                                'Number of Logical Cores' = $HWCPU[0].NumberOfLogicalProcessors
-                                                'Physical Memory' = & {
+                                                $($reportTranslate.GetAbrADDomainController.Name) = $HW.CsName
+                                                $($reportTranslate.GetAbrADDomainController.WindowsProductName) = $HW.WindowsProductName
+                                                $($reportTranslate.GetAbrADDomainController.WindowsBuildNumber) = $HW.OsVersion
+                                                $($reportTranslate.GetAbrADDomainController.ADDomain) = $HW.CsDomain
+                                                $($reportTranslate.GetAbrADDomainController.WindowsInstallDate) = $HW.OsInstallDate
+                                                $($reportTranslate.GetAbrADDomainController.TimeZone) = $HW.TimeZone
+                                                $($reportTranslate.GetAbrADDomainController.LicenseType) = $License.ProductKeyChannel
+                                                $($reportTranslate.GetAbrADDomainController.PartialProductKey) = $License.PartialProductKey
+                                                $($reportTranslate.GetAbrADDomainController.Manufacturer) = $HW.CsManufacturer
+                                                $($reportTranslate.GetAbrADDomainController.Model) = $HW.CsModel
+                                                $($reportTranslate.GetAbrADDomainController.ProcessorModel) = $HWCPU[0].Name
+                                                $($reportTranslate.GetAbrADDomainController.NumberOfProcessors) = ($HWCPU | Measure-Object).Count
+                                                $($reportTranslate.GetAbrADDomainController.NumberOfCPUCores) = $HWCPU[0].NumberOfCores
+                                                $($reportTranslate.GetAbrADDomainController.NumberOfLogicalCores) = $HWCPU[0].NumberOfLogicalProcessors
+                                                $($reportTranslate.GetAbrADDomainController.PhysicalMemory) = & {
                                                     try {
                                                         ConvertTo-FileSizeString $HW.CsTotalPhysicalMemory
                                                     } catch { '0.00 GB' }
@@ -315,14 +315,14 @@ function Get-AbrADDomainController {
                                         }
 
                                         if ($HealthCheck.DomainController.Diagnostic) {
-                                            if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', '\d+(\.*\d+)').value) -lt 8) {
-                                                $DCHWInfo | Set-Style -Style Warning -Property 'Physical Memory'
+                                            if ([int]([regex]::Matches($DCHWInfo.$($reportTranslate.GetAbrADDomainController.PhysicalMemory), '\d+(\.*\d+)').value) -lt 8) {
+                                                $DCHWInfo | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainController.PhysicalMemory
                                             }
                                         }
                                         if ($DCHWInfo) {
-                                            Section -ExcludeFromTOC -Style NOTOCHeading6 'Hardware Inventory' {
+                                            Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADDomainController.HardwareInventoryTitle {
                                                 $TableParams = @{
-                                                    Name = "Hardware Inventory - $($DCHWInfo.Name.ToString().ToUpper())"
+                                                    Name = "$($reportTranslate.GetAbrADDomainController.HardwareInventoryTableName) - $($DCHWInfo.$($reportTranslate.GetAbrADDomainController.Name).ToString().ToUpper())"
                                                     List = $true
                                                     ColumnWidths = 40, 60
                                                 }
@@ -331,12 +331,12 @@ function Get-AbrADDomainController {
                                                 }
                                                 $DCHWInfo | Table @TableParams
                                                 if ($HealthCheck.DomainController.Diagnostic) {
-                                                    if ([int]([regex]::Matches($DCHWInfo.'Physical Memory', '\d+(\.*\d+)').value) -lt 8) {
-                                                        Paragraph 'Health Check:' -Bold -Underline
+                                                    if ([int]([regex]::Matches($DCHWInfo.$($reportTranslate.GetAbrADDomainController.PhysicalMemory), '\d+(\.*\d+)').value) -lt 8) {
+                                                        Paragraph $reportTranslate.GetAbrADDomainController.HealthCheck -Bold -Underline
                                                         BlankLine
                                                         Paragraph {
-                                                            Text 'Best Practice:' -Bold
-                                                            Text 'Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on. Insufficient memory can lead to performance issues and slow response times, which can affect the overall health and efficiency of the domain controller. Ensuring adequate memory helps maintain optimal performance and reliability of the Active Directory services.'
+                                                            Text $reportTranslate.GetAbrADDomainController.BestPractice -Bold
+                                                            Text $reportTranslate.GetAbrADDomainController.HWBestPractice
                                                         }
                                                     }
                                                 }
@@ -355,7 +355,7 @@ function Get-AbrADDomainController {
                     }
                 }
                 if ($DCConfiguration) {
-                    Section -Style Heading4 'Configuration' {
+                    Section -Style Heading4 $reportTranslate.GetAbrADDomainController.ConfigurationTitle {
                         $DCConfiguration
                     }
                 }
@@ -394,12 +394,12 @@ function Get-AbrADDomainController {
                         foreach ($DNSSetting in $DNSSettings) {
                             try {
                                 $inObj = [ordered] @{
-                                    'DC Name' = $DC.ToString().ToUpper().Split('.')[0]
-                                    'Interface' = $DNSSetting.InterfaceAlias
-                                    'Prefered DNS' = $DNSSetting.ServerAddresses[0]
-                                    'Alternate DNS' = $DNSSetting.ServerAddresses[1]
-                                    'DNS 3' = $DNSSetting.ServerAddresses[2]
-                                    'DNS 4' = $DNSSetting.ServerAddresses[3]
+                                    $($reportTranslate.GetAbrADDomainController.DCName) = $DC.ToString().ToUpper().Split('.')[0]
+                                    $($reportTranslate.GetAbrADDomainController.Interface) = $DNSSetting.InterfaceAlias
+                                    $($reportTranslate.GetAbrADDomainController.PreferedDNS) = $DNSSetting.ServerAddresses[0]
+                                    $($reportTranslate.GetAbrADDomainController.AlternateDNS) = $DNSSetting.ServerAddresses[1]
+                                    $($reportTranslate.GetAbrADDomainController.DNS3) = $DNSSetting.ServerAddresses[2]
+                                    $($reportTranslate.GetAbrADDomainController.DNS4) = $DNSSetting.ServerAddresses[3]
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
@@ -413,12 +413,12 @@ function Get-AbrADDomainController {
                     try {
                         Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                         $inObj = [ordered] @{
-                            'DC Name' = $DC.ToString().ToUpper().Split('.')[0]
-                            'Interface' = '--'
-                            'Prefered DNS' = '--'
-                            'Alternate DNS' = '--'
-                            'DNS 3' = '--'
-                            'DNS 4' = '--'
+                            $($reportTranslate.GetAbrADDomainController.DCName) = $DC.ToString().ToUpper().Split('.')[0]
+                            $($reportTranslate.GetAbrADDomainController.Interface) = '--'
+                            $($reportTranslate.GetAbrADDomainController.PreferedDNS) = '--'
+                            $($reportTranslate.GetAbrADDomainController.AlternateDNS) = '--'
+                            $($reportTranslate.GetAbrADDomainController.DNS3) = '--'
+                            $($reportTranslate.GetAbrADDomainController.DNS4) = '--'
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
@@ -428,18 +428,18 @@ function Get-AbrADDomainController {
             }
 
             if ($HealthCheck.DomainController.BestPractice) {
-                $OutObj | Where-Object { $_.'Prefered DNS' -eq '127.0.0.1' -or $_.'Prefered DNS' -in $DCIPAddress } | Set-Style -Style Warning -Property 'Prefered DNS'
-                $OutObj | Where-Object { $_.'Alternate DNS' -eq '--' -and $_.'Prefered DNS' -ne '--' } | Set-Style -Style Warning -Property 'Alternate DNS'
-                $OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'Prefered DNS'
-                $OutObj | Where-Object { $_.'Alternate DNS' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'Alternate DNS'
-                $OutObj | Where-Object { $_.'DNS 3' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'DNS 3'
-                $OutObj | Where-Object { $_.'DNS 4' -in $UnresolverDNS } | Set-Style -Style Critical -Property 'DNS 4'
+                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -eq '127.0.0.1' -or $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -in $DCIPAddress } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainController.PreferedDNS
+                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.AlternateDNS) -eq '--' -and $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -ne '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainController.AlternateDNS
+                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -in $UnresolverDNS } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainController.PreferedDNS
+                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.AlternateDNS) -in $UnresolverDNS } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainController.AlternateDNS
+                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.DNS3) -in $UnresolverDNS } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainController.DNS3
+                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.DNS4) -in $UnresolverDNS } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainController.DNS4
             }
 
             if ($OutObj) {
-                Section -Style Heading4 'DNS IP Configuration' {
+                Section -Style Heading4 $reportTranslate.GetAbrADDomainController.DNSIPConfigTitle {
                     $TableParams = @{
-                        Name = "DNS IP Configuration - $($Domain.DNSRoot.ToString().ToUpper())"
+                        Name = "$($reportTranslate.GetAbrADDomainController.DNSIPConfigTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 20, 20, 15, 15, 15, 15
                     }
@@ -447,35 +447,35 @@ function Get-AbrADDomainController {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
 
-                    $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-                    if ($HealthCheck.DomainController.BestPractice -and (($OutObj | Where-Object { $_.'Prefered DNS' -eq '127.0.0.1' }) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) -or ($OutObj | Where-Object { $_.'Alternate DNS' -eq '--' -and $_.'Prefered DNS' -ne '--' }) -or ($OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS -or $_.'Alternate DNS' -in $UnresolverDNS -or $_.'DNS 3' -in $UnresolverDNS -or $_.'DNS 4' -in $UnresolverDNS }))) {
-                        Paragraph 'Health Check:' -Bold -Underline
+                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainController.DCName | Table @TableParams
+                    if ($HealthCheck.DomainController.BestPractice -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -eq '127.0.0.1' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -in $DCIPAddress }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.AlternateDNS) -eq '--' -and $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -ne '--' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -in $UnresolverDNS -or $_.$($reportTranslate.GetAbrADDomainController.AlternateDNS) -in $UnresolverDNS -or $_.$($reportTranslate.GetAbrADDomainController.DNS3) -in $UnresolverDNS -or $_.$($reportTranslate.GetAbrADDomainController.DNS4) -in $UnresolverDNS }))) {
+                        Paragraph $reportTranslate.GetAbrADDomainController.HealthCheck -Bold -Underline
                         BlankLine
-                        if ($OutObj | Where-Object { $_.'Prefered DNS' -eq '127.0.0.1' }) {
+                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -eq '127.0.0.1' }) {
                             Paragraph {
-                                Text 'Best Practices:' -Bold
-                                Text 'DNS configuration on network adapter should include the loopback address (127.0.0.1) but it should not be the first entry.'
+                                Text $reportTranslate.GetAbrADDomainController.BestPractices -Bold
+                                Text $reportTranslate.GetAbrADDomainController.DNSIPConfigBP1
                             }
                         }
-                        if ($OutObj | Where-Object { $_.'Prefered DNS' -in $DCIPAddress }) {
+                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -in $DCIPAddress }) {
                             BlankLine
                             Paragraph {
-                                Text 'Best Practices:' -Bold
-                                Text "DNS configuration on the network adapter should not include the Domain Controller's own IP address as the first entry."
+                                Text $reportTranslate.GetAbrADDomainController.BestPractices -Bold
+                                Text $reportTranslate.GetAbrADDomainController.DNSIPConfigBP2
                             }
                         }
-                        if ($OutObj | Where-Object { $_.'Alternate DNS' -eq '--' -and $_.'Prefered DNS' -ne '--' }) {
+                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.AlternateDNS) -eq '--' -and $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -ne '--' }) {
                             BlankLine
                             Paragraph {
-                                Text 'Best Practices:' -Bold
-                                Text 'For redundancy reasons, the DNS configuration on the network adapter should include an Alternate DNS address. This ensures that if the primary DNS server becomes unavailable, the system can still resolve domain names using the alternate DNS server, maintaining network stability and connectivity.'
+                                Text $reportTranslate.GetAbrADDomainController.BestPractices -Bold
+                                Text $reportTranslate.GetAbrADDomainController.DNSIPConfigBP3
                             }
                         }
-                        if ($OutObj | Where-Object { $_.'Prefered DNS' -in $UnresolverDNS -or $_.'Alternate DNS' -in $UnresolverDNS -or $_.'DNS 3' -in $UnresolverDNS -or $_.'DNS 4' -in $UnresolverDNS }) {
+                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.PreferedDNS) -in $UnresolverDNS -or $_.$($reportTranslate.GetAbrADDomainController.AlternateDNS) -in $UnresolverDNS -or $_.$($reportTranslate.GetAbrADDomainController.DNS3) -in $UnresolverDNS -or $_.$($reportTranslate.GetAbrADDomainController.DNS4) -in $UnresolverDNS }) {
                             BlankLine
                             Paragraph {
-                                Text 'Corrective Actions:' -Bold
-                                Text "Network interfaces must be configured with DNS servers that can resolve names in the forest root domain. The following DNS server did not respond to the query for the forest root domain $($Domain.DNSRoot.ToString().ToUpper()): $(($UnresolverDNS -join ', '))"
+                                Text $reportTranslate.GetAbrADDomainController.CorrectiveActions -Bold
+                                Text ($reportTranslate.GetAbrADDomainController.DNSIPConfigCA -f $Domain.DNSRoot.ToString().ToUpper(), ($UnresolverDNS -join ', '))
                             }
                         }
                     }
@@ -505,11 +505,11 @@ function Get-AbrADDomainController {
                         }
                         if ( $NTDS -and $size ) {
                             $inObj = [ordered] @{
-                                'DC Name' = $DC.ToString().ToUpper().Split('.')[0]
-                                'Database File' = $NTDS
-                                'Database Size' = ConvertTo-FileSizeString $size
-                                'Log Path' = $LogFiles
-                                'SysVol Path' = $SYSVOL
+                                $($reportTranslate.GetAbrADDomainController.DCName) = $DC.ToString().ToUpper().Split('.')[0]
+                                $($reportTranslate.GetAbrADDomainController.DatabaseFile) = $NTDS
+                                $($reportTranslate.GetAbrADDomainController.DatabaseSize) = ConvertTo-FileSizeString $size
+                                $($reportTranslate.GetAbrADDomainController.LogPath) = $LogFiles
+                                $($reportTranslate.GetAbrADDomainController.SysVolPath) = $SYSVOL
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         }
@@ -520,11 +520,11 @@ function Get-AbrADDomainController {
                     try {
                         Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                         $inObj = [ordered] @{
-                            'DC Name' = $DC.ToString().ToUpper().Split('.')[0]
-                            'Database File' = '--'
-                            'Database Size' = '--'
-                            'Log Path' = '--'
-                            'SysVol Path' = '--'
+                            $($reportTranslate.GetAbrADDomainController.DCName) = $DC.ToString().ToUpper().Split('.')[0]
+                            $($reportTranslate.GetAbrADDomainController.DatabaseFile) = '--'
+                            $($reportTranslate.GetAbrADDomainController.DatabaseSize) = '--'
+                            $($reportTranslate.GetAbrADDomainController.LogPath) = '--'
+                            $($reportTranslate.GetAbrADDomainController.SysVolPath) = '--'
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
@@ -534,16 +534,16 @@ function Get-AbrADDomainController {
             }
 
             if ($OutObj) {
-                Section -Style Heading4 'NTDS Information' {
+                Section -Style Heading4 $reportTranslate.GetAbrADDomainController.NTDSTitle {
                     $TableParams = @{
-                        Name = "NTDS Database File Usage - $($Domain.DNSRoot.ToString().ToUpper())"
+                        Name = "$($reportTranslate.GetAbrADDomainController.NTDSTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 20, 22, 14, 22, 22
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
+                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainController.DCName | Table @TableParams
                 }
             }
         } catch {
@@ -568,16 +568,16 @@ function Get-AbrADDomainController {
                         if ( $NtpServer -and $SourceType ) {
                             try {
                                 $inObj = [ordered] @{
-                                    'Name' = $DC.ToString().ToUpper().Split('.')[0]
-                                    'Time Server' = switch ($NtpServer) {
-                                        'time.windows.com,0x8' { 'Domain Hierarchy' }
-                                        'time.windows.com' { 'Domain Hierarchy' }
-                                        '0x8' { 'Domain Hierarchy' }
+                                    $($reportTranslate.GetAbrADDomainController.Name) = $DC.ToString().ToUpper().Split('.')[0]
+                                    $($reportTranslate.GetAbrADDomainController.TimeServer) = switch ($NtpServer) {
+                                        'time.windows.com,0x8' { $reportTranslate.GetAbrADDomainController.DomainHierarchy }
+                                        'time.windows.com' { $reportTranslate.GetAbrADDomainController.DomainHierarchy }
+                                        '0x8' { $reportTranslate.GetAbrADDomainController.DomainHierarchy }
                                         default { $NtpServer }
                                     }
-                                    'Type' = switch ($SourceType) {
-                                        'NTP' { 'MANUAL (NTP)' }
-                                        'NT5DS' { 'DOMHIER' }
+                                    $($reportTranslate.GetAbrADDomainController.Type) = switch ($SourceType) {
+                                        'NTP' { $reportTranslate.GetAbrADDomainController.ManualNTP }
+                                        'NT5DS' { $reportTranslate.GetAbrADDomainController.DOMHIER }
                                         default { $SourceType }
                                     }
                                 }
@@ -593,9 +593,9 @@ function Get-AbrADDomainController {
                     try {
                         Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                         $inObj = [ordered] @{
-                            'Name' = $DC.ToString().ToUpper().Split('.')[0]
-                            'Time Server' = '--'
-                            'Type' = '--'
+                            $($reportTranslate.GetAbrADDomainController.Name) = $DC.ToString().ToUpper().Split('.')[0]
+                            $($reportTranslate.GetAbrADDomainController.TimeServer) = '--'
+                            $($reportTranslate.GetAbrADDomainController.Type) = '--'
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
@@ -605,9 +605,9 @@ function Get-AbrADDomainController {
             }
 
             if ($OutObj) {
-                Section -Style Heading4 'Time Source Information' {
+                Section -Style Heading4 $reportTranslate.GetAbrADDomainController.TimeSourceTitle {
                     $TableParams = @{
-                        Name = "Time Source Configuration - $($Domain.DNSRoot.ToString().ToUpper())"
+                        Name = "$($reportTranslate.GetAbrADDomainController.TimeSourceTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 30, 50, 20
                     }
@@ -615,7 +615,7 @@ function Get-AbrADDomainController {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
 
-                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainController.Name | Table @TableParams
                 }
             }
         } catch {
@@ -657,36 +657,36 @@ function Get-AbrADDomainController {
                             if ( $SRVRR ) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'Name' = $DC.ToString().ToUpper().Split('.')[0]
-                                        'A Record' = switch ([string]::IsNullOrEmpty($DCARR)) {
-                                            $True { 'Fail' }
-                                            default { 'OK' }
+                                        $($reportTranslate.GetAbrADDomainController.Name) = $DC.ToString().ToUpper().Split('.')[0]
+                                        $($reportTranslate.GetAbrADDomainController.ARecord) = switch ([string]::IsNullOrEmpty($DCARR)) {
+                                            $True { $reportTranslate.GetAbrADDomainController.Fail }
+                                            default { $reportTranslate.GetAbrADDomainController.OK }
                                         }
-                                        'KDC SRV' = switch ([string]::IsNullOrEmpty($KDC)) {
-                                            $True { 'Fail' }
-                                            default { 'OK' }
+                                        $($reportTranslate.GetAbrADDomainController.KDCSRV) = switch ([string]::IsNullOrEmpty($KDC)) {
+                                            $True { $reportTranslate.GetAbrADDomainController.Fail }
+                                            default { $reportTranslate.GetAbrADDomainController.OK }
                                         }
-                                        'PDC SRV' = switch ([string]::IsNullOrEmpty($PDC)) {
-                                            $True { 'Fail' }
+                                        $($reportTranslate.GetAbrADDomainController.PDCSRV) = switch ([string]::IsNullOrEmpty($PDC)) {
+                                            $True { $reportTranslate.GetAbrADDomainController.Fail }
                                             $False {
                                                 switch ($PDC) {
-                                                    'NonPDC' { 'Non PDC' }
-                                                    default { 'OK' }
+                                                    'NonPDC' { $reportTranslate.GetAbrADDomainController.NonPDC }
+                                                    default { $reportTranslate.GetAbrADDomainController.OK }
                                                 }
                                             }
                                         }
-                                        'GC SRV' = switch ([string]::IsNullOrEmpty($GC)) {
-                                            $True { 'Fail' }
+                                        $($reportTranslate.GetAbrADDomainController.GCSRV) = switch ([string]::IsNullOrEmpty($GC)) {
+                                            $True { $reportTranslate.GetAbrADDomainController.Fail }
                                             $False {
                                                 switch ($GC) {
-                                                    'NonGC' { 'Non GC' }
-                                                    default { 'OK' }
+                                                    'NonGC' { $reportTranslate.GetAbrADDomainController.NonGC }
+                                                    default { $reportTranslate.GetAbrADDomainController.OK }
                                                 }
                                             }
                                         }
-                                        'DC SRV' = switch ([string]::IsNullOrEmpty($DCRR)) {
-                                            $True { 'Fail' }
-                                            default { 'OK' }
+                                        $($reportTranslate.GetAbrADDomainController.DCSRV) = switch ([string]::IsNullOrEmpty($DCRR)) {
+                                            $True { $reportTranslate.GetAbrADDomainController.Fail }
+                                            default { $reportTranslate.GetAbrADDomainController.OK }
                                         }
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -694,12 +694,12 @@ function Get-AbrADDomainController {
                                     Write-PScriboMessage -IsWarning "$($_.Exception.Message) (SRV Records Status Item)"
                                 }
                                 if ($HealthCheck.DomainController.Diagnostic) {
-                                    $OutObj | Where-Object { $_.'A Record' -eq 'Fail' } | Set-Style -Style Critical -Property 'A Record'
-                                    $OutObj | Where-Object { $_.'KDC SRV' -eq 'Fail' } | Set-Style -Style Critical -Property 'KDC SRV'
-                                    $OutObj | Where-Object { $_.'PDC SRV' -eq 'Fail' } | Set-Style -Style Critical -Property 'PDC SRV'
-                                    $OutObj | Where-Object { $_.'GC SRV' -eq 'Fail' } | Set-Style -Style Critical -Property 'GC SRV'
-                                    $OutObj | Where-Object { $_.'GC SRV' -eq 'Non GC' } | Set-Style -Style Warning -Property 'GC SRV'
-                                    $OutObj | Where-Object { $_.'DC SRV' -eq 'Fail' } | Set-Style -Style Critical -Property 'DC SRV'
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.ARecord) -eq $reportTranslate.GetAbrADDomainController.Fail } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainController.ARecord
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.KDCSRV) -eq $reportTranslate.GetAbrADDomainController.Fail } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainController.KDCSRV
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.PDCSRV) -eq $reportTranslate.GetAbrADDomainController.Fail } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainController.PDCSRV
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.GCSRV) -eq $reportTranslate.GetAbrADDomainController.Fail } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainController.GCSRV
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.GCSRV) -eq $reportTranslate.GetAbrADDomainController.NonGC } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainController.GCSRV
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.DCSRV) -eq $reportTranslate.GetAbrADDomainController.Fail } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainController.DCSRV
                                 }
                             }
                         } catch {
@@ -709,12 +709,12 @@ function Get-AbrADDomainController {
                         try {
                             Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                             $inObj = [ordered] @{
-                                'Name' = $DC.ToString().ToUpper().Split('.')[0]
-                                'A Record' = '--'
-                                'KDC SRV' = '--'
-                                'PDC SRV' = '--'
-                                'GC SRV' = '--'
-                                'DC SRV' = '--'
+                                $($reportTranslate.GetAbrADDomainController.Name) = $DC.ToString().ToUpper().Split('.')[0]
+                                $($reportTranslate.GetAbrADDomainController.ARecord) = '--'
+                                $($reportTranslate.GetAbrADDomainController.KDCSRV) = '--'
+                                $($reportTranslate.GetAbrADDomainController.PDCSRV) = '--'
+                                $($reportTranslate.GetAbrADDomainController.GCSRV) = '--'
+                                $($reportTranslate.GetAbrADDomainController.DCSRV) = '--'
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
@@ -724,9 +724,9 @@ function Get-AbrADDomainController {
                 }
 
                 if ($OutObj) {
-                    Section -Style Heading4 'SRV Records Status' {
+                    Section -Style Heading4 $reportTranslate.GetAbrADDomainController.SRVRecordsTitle {
                         $TableParams = @{
-                            Name = "SRV Records Status - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainController.SRVTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 20, 16, 16, 16, 16, 16
                         }
@@ -734,13 +734,13 @@ function Get-AbrADDomainController {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
 
-                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                        if ( $OutObj | Where-Object { $_.'KDC SRV' -eq 'Fail' -or $_.'PDC SRV' -eq 'Fail' -or $_.'GC SRV' -eq 'Fail' -or $_.'DC SRV' -eq 'Fail' }) {
-                            Paragraph 'Health Check:' -Bold -Underline
+                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainController.Name | Table @TableParams
+                        if ( $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainController.KDCSRV) -eq $reportTranslate.GetAbrADDomainController.Fail -or $_.$($reportTranslate.GetAbrADDomainController.PDCSRV) -eq $reportTranslate.GetAbrADDomainController.Fail -or $_.$($reportTranslate.GetAbrADDomainController.GCSRV) -eq $reportTranslate.GetAbrADDomainController.Fail -or $_.$($reportTranslate.GetAbrADDomainController.DCSRV) -eq $reportTranslate.GetAbrADDomainController.Fail }) {
+                            Paragraph $reportTranslate.GetAbrADDomainController.HealthCheck -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text 'Best Practice:' -Bold
-                                Text "The SRV record is a Domain Name System (DNS) resource record. It's used to identify computers hosting specific services. SRV resource records are used to locate domain controllers for Active Directory. These records are essential for the proper functioning of Active Directory as they allow clients to locate domain controllers and other critical services within the network. Ensuring that these records are correctly configured and available is crucial for maintaining the health and accessibility of the Active Directory environment."
+                                Text $reportTranslate.GetAbrADDomainController.BestPractice -Bold
+                                Text $reportTranslate.GetAbrADDomainController.SRVBestPractice
                             }
                         }
                     }
@@ -770,9 +770,9 @@ function Get-AbrADDomainController {
                                     $FSObj = [System.Collections.ArrayList]::new()
                                     foreach ($Share in $Shares) {
                                         $inObj = [ordered] @{
-                                            'Name' = $Share.Name
-                                            'Path' = $Share.Path
-                                            'Description' = $Share.Description
+                                            $($reportTranslate.GetAbrADDomainController.Name) = $Share.Name
+                                            $($reportTranslate.GetAbrADDomainController.Path) = $Share.Path
+                                            $($reportTranslate.GetAbrADDomainController.Description) = $Share.Description
                                         }
                                         $FSObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     }
@@ -782,7 +782,7 @@ function Get-AbrADDomainController {
                                     }
 
                                     $TableParams = @{
-                                        Name = "File Shares - $($DC.ToString().ToUpper().Split('.')[0])"
+                                        Name = "$($reportTranslate.GetAbrADDomainController.FileSharesTableName) - $($DC.ToString().ToUpper().Split('.')[0])"
                                         List = $false
                                         ColumnWidths = 34, 33, 33
                                     }
@@ -790,7 +790,7 @@ function Get-AbrADDomainController {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
 
-                                    $FSObj | Sort-Object -Property 'Name' | Table @TableParams
+                                    $FSObj | Sort-Object -Property $reportTranslate.GetAbrADDomainController.Name | Table @TableParams
                                 }
                             }
                         } catch {
@@ -800,14 +800,14 @@ function Get-AbrADDomainController {
                 }
 
                 if ($OutObj) {
-                    Section -Style Heading4 'File Shares' {
-                        Paragraph 'The following Domain Controllers contain non-default file shares beyond the standard administrative, NETLOGON, and SYSVOL shares:'
+                    Section -Style Heading4 $reportTranslate.GetAbrADDomainController.FileSharesTitle {
+                        Paragraph $reportTranslate.GetAbrADDomainController.FileSharesParagraph
                         $OutObj
-                        Paragraph 'Health Check:' -Bold -Underline
+                        Paragraph $reportTranslate.GetAbrADDomainController.HealthCheck -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text 'Best Practice:' -Bold
-                            Text 'Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non-default file shares should be moved to another server, preferably a dedicated file server. This helps to minimize the attack surface and ensures that the Domain Controller is dedicated to its primary role of managing security and authentication within the domain. Additionally, it reduces the risk of performance degradation and potential conflicts that can arise from running multiple services on a single server.'
+                            Text $reportTranslate.GetAbrADDomainController.BestPractice -Bold
+                            Text $reportTranslate.GetAbrADDomainController.FileSharesBestPractice
                         }
                     }
                 }
@@ -864,9 +864,9 @@ function Get-AbrADDomainController {
                                     foreach ($APP in $Software) {
                                         try {
                                             $inObj = [ordered] @{
-                                                'Name' = $APP.DisplayName
-                                                'Publisher' = $APP.Publisher
-                                                'Install Date' = $APP.InstallDate
+                                                $($reportTranslate.GetAbrADDomainController.Name) = $APP.DisplayName
+                                                $($reportTranslate.GetAbrADDomainController.Publisher) = $APP.Publisher
+                                                $($reportTranslate.GetAbrADDomainController.InstallDate) = $APP.InstallDate
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
@@ -878,20 +878,20 @@ function Get-AbrADDomainController {
                                         }
                                     }
                                     $TableParams = @{
-                                        Name = "Installed Software - $($DC.ToString().ToUpper().Split('.')[0])"
+                                        Name = "$($reportTranslate.GetAbrADDomainController.InstalledSoftwareTableName) - $($DC.ToString().ToUpper().Split('.')[0])"
                                         List = $false
                                         ColumnWidths = 34, 33, 33
                                     }
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainController.Name | Table @TableParams
                                     if ($HealthCheck.DomainController.Software) {
-                                        Paragraph 'Health Check:' -Bold -Underline
+                                        Paragraph $reportTranslate.GetAbrADDomainController.HealthCheck -Bold -Underline
                                         BlankLine
                                         Paragraph {
-                                            Text 'Best Practices:' -Bold
-                                            Text 'Do not run other software or services on a Domain Controller. Running additional software or services on a Domain Controller can introduce security vulnerabilities, increase the attack surface, and potentially degrade the performance of critical domain services. It is recommended to keep Domain Controllers dedicated to their primary role of managing security and authentication within the domain. If additional services are required, consider deploying them on separate, dedicated servers.'
+                                            Text $reportTranslate.GetAbrADDomainController.BestPractices -Bold
+                                            Text $reportTranslate.GetAbrADDomainController.InstalledSoftwareBestPractices
                                         }
                                     }
                                 }
@@ -902,8 +902,8 @@ function Get-AbrADDomainController {
                     }
                 }
                 if ($DCObj) {
-                    Section -Style Heading4 'Installed Software' {
-                        Paragraph "This section provides an overview of third-party and non-default software installations detected on Domain Controllers within the $($Domain.DNSRoot.ToString().ToUpper()) domain."
+                    Section -Style Heading4 $reportTranslate.GetAbrADDomainController.InstalledSoftwareTitle {
+                        Paragraph ($reportTranslate.GetAbrADDomainController.InstalledSoftwareParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
                         $DCObj
                     }
@@ -935,8 +935,8 @@ function Get-AbrADDomainController {
                                     foreach ($Update in $Updates) {
                                         try {
                                             $inObj = [ordered] @{
-                                                'KB Article' = "KB$($Update.KBArticleIDs)"
-                                                'Name' = $Update.Title
+                                                $($reportTranslate.GetAbrADDomainController.KBArticle) = "KB$($Update.KBArticleIDs)"
+                                                $($reportTranslate.GetAbrADDomainController.Name) = $Update.Title
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
@@ -948,20 +948,20 @@ function Get-AbrADDomainController {
                                         }
                                     }
                                     $TableParams = @{
-                                        Name = "Missing Windows Updates - $($DC.ToString().ToUpper().Split('.')[0])"
+                                        Name = "$($reportTranslate.GetAbrADDomainController.MissingUpdatesTableName) - $($DC.ToString().ToUpper().Split('.')[0])"
                                         List = $false
                                         ColumnWidths = 40, 60
                                     }
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainController.Name | Table @TableParams
                                     if ($HealthCheck.DomainController.Software) {
-                                        Paragraph 'Health Check:' -Bold -Underline
+                                        Paragraph $reportTranslate.GetAbrADDomainController.HealthCheck -Bold -Underline
                                         BlankLine
                                         Paragraph {
-                                            Text 'Security Best Practices:' -Bold
-                                            Text 'It is critical to install security updates to protect your systems from malicious attacks. Regularly applying updates ensures that your systems are safeguarded against newly discovered vulnerabilities. Additionally, installing software updates provides access to new features and improvements, enhancing overall system performance and stability. Neglecting updates can leave your systems exposed to potential threats and exploitation. Therefore, it is in your best interest to maintain an up-to-date environment by promptly installing all recommended updates.'
+                                            Text $reportTranslate.GetAbrADDomainController.SecurityBestPractices -Bold
+                                            Text $reportTranslate.GetAbrADDomainController.MissingUpdatesBestPractice
                                         }
                                     }
                                 }
@@ -972,8 +972,8 @@ function Get-AbrADDomainController {
                     }
                 }
                 if ($DCObj) {
-                    Section -Style Heading4 'Missing Windows Updates' {
-                        Paragraph "Below is a summary of pending or missing Windows updates detected on Domain Controllers in the $($Domain.DNSRoot.ToString().ToUpper()) domain."
+                    Section -Style Heading4 $reportTranslate.GetAbrADDomainController.MissingUpdatesTitle {
+                        Paragraph ($reportTranslate.GetAbrADDomainController.MissingUpdatesParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
                         $DCObj
                     }
