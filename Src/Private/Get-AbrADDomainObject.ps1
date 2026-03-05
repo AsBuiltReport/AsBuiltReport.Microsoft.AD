@@ -122,35 +122,24 @@ function Get-AbrADDomainObject {
                     $PasswordNotRequired = $Users | Where-Object { $_.PasswordNotRequired -eq $true }
                     $AccountExpired = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Search-ADAccount -Server $using:ValidDcFromDomain -AccountExpired }
                     $AccountLockout = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Search-ADAccount -Server $using:ValidDcFromDomain -LockedOut }
-                    $Categories = @('Total Users', 'Cannot Change Password', 'Password Never Expires', 'Must Change Password at Logon', 'Password Age (> 180 days)', 'SmartcardLogonRequired', 'SidHistory', 'Never Logged in', 'Dormant (> 90 days)', 'Password Not Required', 'Account Expired', 'Account Lockout')
-                    if ($Categories) {
-                        foreach ($Category in $Categories) {
+                    $CategoryMap = [ordered]@{
+                        $reportTranslate.GetAbrADDomainObject.CatTotalUsers             = $Users
+                        $reportTranslate.GetAbrADDomainObject.CatCannotChangePassword   = $CannotChangePassword
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordNeverExpires   = $passwordNeverExpires
+                        $reportTranslate.GetAbrADDomainObject.CatMustChangePasswordAtLogon = $PasswordNextLogon
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordAge180         = ($PasswordLastSet | Where-Object { $_.PasswordLastSet -le $passwordtime })
+                        $reportTranslate.GetAbrADDomainObject.CatSmartcardLogonRequired = $SmartcardLogonRequired
+                        $reportTranslate.GetAbrADDomainObject.CatSidHistory             = $SidHistory
+                        $reportTranslate.GetAbrADDomainObject.CatNeverLoggedIn          = $NeverloggedIn
+                        $reportTranslate.GetAbrADDomainObject.CatDormant90              = $Dormant
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordNotRequired    = $PasswordNotRequired
+                        $reportTranslate.GetAbrADDomainObject.CatAccountExpired         = $AccountExpired
+                        $reportTranslate.GetAbrADDomainObject.CatAccountLockout         = $AccountLockout
+                    }
+                    if ($CategoryMap) {
+                        foreach ($Category in $CategoryMap.Keys) {
                             try {
-                                if ($Category -eq 'Total Users') {
-                                    $Values = $Users
-                                } elseif ($Category -eq 'Cannot Change Password') {
-                                    $Values = $CannotChangePassword
-                                } elseif ($Category -eq 'Must Change Password at Logon') {
-                                    $Values = $PasswordNextLogon
-                                } elseif ($Category -eq 'Password Never Expires') {
-                                    $Values = $passwordNeverExpires
-                                } elseif ($Category -eq 'Password Age (> 42 days)') {
-                                    $Values = $PasswordLastSet | Where-Object { $_.PasswordLastSet -le $passwordtime }
-                                } elseif ($Category -eq 'SmartcardLogonRequired') {
-                                    $Values = $SmartcardLogonRequired
-                                } elseif ($Category -eq 'Never Logged in') {
-                                    $Values = $NeverloggedIn
-                                } elseif ($Category -eq 'Dormant (> 90 days)') {
-                                    $Values = $Dormant
-                                } elseif ($Category -eq 'Password Not Required') {
-                                    $Values = $PasswordNotRequired
-                                } elseif ($Category -eq 'Account Expired') {
-                                    $Values = $AccountExpired
-                                } elseif ($Category -eq 'Account Lockout') {
-                                    $Values = $AccountLockout
-                                } elseif ($Category -eq 'SidHistory') {
-                                    $Values = $SidHistory
-                                }
+                                $Values = $CategoryMap[$Category]
                                 $inObj = [ordered] @{
                                     $reportTranslate.GetAbrADDomainObject.Category = $Category
                                     $reportTranslate.GetAbrADDomainObject.Enabled = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
@@ -809,19 +798,16 @@ function Get-AbrADDomainObject {
                     $Dormant = $Computers | Where-Object { [datetime]::FromFileTime($_.lastlogontimestamp) -lt $dormanttime }
                     $PasswordAge = $Computers | Where-Object { $_.PasswordLastSet -le $passwordtime }
                     $SidHistory = $Computers.SIDHistory
-                    $Categories = @('Total Computers', 'Dormant (> 90 days)', 'Password Age (> 30 days)', 'SidHistory')
-                    if ($Categories) {
-                        foreach ($Category in $Categories) {
+                    $CategoryMap = [ordered]@{
+                        $reportTranslate.GetAbrADDomainObject.CatTotalComputers = $Computers
+                        $reportTranslate.GetAbrADDomainObject.CatDormant90     = $Dormant
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordAge30 = $PasswordAge
+                        $reportTranslate.GetAbrADDomainObject.CatSidHistory    = $SidHistory
+                    }
+                    if ($CategoryMap) {
+                        foreach ($Category in $CategoryMap.Keys) {
                             try {
-                                if ($Category -eq 'Total Computers') {
-                                    $Values = $Computers
-                                } elseif ($Category -eq 'Dormant (> 90 days)') {
-                                    $Values = $Dormant
-                                } elseif ($Category -eq 'Password Age (> 30 days)') {
-                                    $Values = $PasswordAge
-                                } elseif ($Category -eq 'SidHistory') {
-                                    $Values = $SidHistory
-                                }
+                                $Values = $CategoryMap[$Category]
                                 $inObj = [ordered] @{
                                     $reportTranslate.GetAbrADDomainObject.Category = $Category
                                     $reportTranslate.GetAbrADDomainObject.Enabled = switch ([string]::IsNullOrEmpty($Values.Enabled)) {

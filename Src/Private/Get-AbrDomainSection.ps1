@@ -79,7 +79,7 @@ function Get-AbrDomainSection {
                                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                                         Get-AbrADDCRoleFeature -DC $DC
                                                     } else {
-                                                        Write-PScriboMessage -IsWarning -Message "Unable to connect to $DC. Removing it from the $($DomainInfo.DNSRoot) report."
+                                                Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrDomainSection.UnableToConnect -f $DC, $DomainInfo.DNSRoot)
                                                     }
                                                 }
                                                 if ($RolesObj) {
@@ -104,7 +104,7 @@ function Get-AbrDomainSection {
                                                         }
                                                     }
                                                 } catch {
-                                                    Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
+                                                    Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrDomainSection.WinRMErrorDCDiag -f $DC)
                                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                                 }
                                             }
@@ -121,7 +121,7 @@ function Get-AbrDomainSection {
                                                     }
                                                 }
                                             } catch {
-                                                Write-PScriboMessage -IsWarning -Message "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
+                                                Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrDomainSection.WinRMErrorInfraService -f $DC)
                                                 Write-PScriboMessage -IsWarning $_.Exception.Message
                                             }
                                         }
@@ -131,7 +131,7 @@ function Get-AbrDomainSection {
                                     Get-AbrADOU -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                 }
                             } else {
-                                Write-PScriboMessage -Message "$($DomainInfo.DNSRoot) disabled in Exclude.Domain variable"
+                                Write-PScriboMessage -Message ($reportTranslate.GetAbrDomainSection.DomainExcluded -f $DomainInfo.DNSRoot)
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Active Directory Domain)"

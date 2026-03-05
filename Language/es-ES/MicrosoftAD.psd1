@@ -655,6 +655,10 @@
     InfraServicesSection = Infrastructure Services
     InfraServicesParagraph = The following section provides a detailed overview of the status and configuration of infrastructure services on the domain controllers.
     NoDCAvailable = Unable to get an available DC in {0} domain. Removing domain from the Domain section.
+    UnableToConnect = Unable to connect to {0}. Removing it from the {1} report.
+    WinRMErrorDCDiag = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (DCDiag Information)
+    WinRMErrorInfraService = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (ADInfrastructureService)
+    DomainExcluded = {0} disabled in Exclude.Domain variable
 '@
 
     # Get-AbrADDomain
@@ -735,6 +739,7 @@
     SIDFilteringForestAware = SID Filtering Forest Aware
     SIDFilteringQuarantined = SID Filtering Quarantined
     TGTDelegation = TGT Delegation
+    Trust = Trust
     KerberosAESEncryption = Kerberos AES Encryption
     KerberosRC4Encryption = Kerberos RC4 Encryption
     UplevelOnly = Uplevel Only
@@ -783,12 +788,14 @@
     DomainObjectsSection = Domain Objects
     DomainObjectsParagraph = The following section provides detailed information about computer, group, and user objects found in the {0} domain.
     UserObjectsSection = User Objects
+    User = User
     UsersSubSection = Users
     Users = Users
     PrivilegedUsers = Privileged Users
     ForeignSecurityPrincipals = Foreign Security Principals
     StatusOfUsersSection = Status of Users Accounts
     UsersInventorySection = Users Inventory
+    Groups = Groups
     GroupObjectsSection = Group Objects
     GroupCategoriesSubSection = Groups Categories
     SecurityGroups = Security Groups
@@ -799,19 +806,23 @@
     Universal = Universal
     GroupsInventorySection = Groups Inventory
     PrivilegedGroupsSection = Privileged Groups (Built-in)
+    PrivilegedGroupsTable = Privileged Groups
     PrivilegedGroupsSummaryParagraph = The following section provides a summary of privileged group membership counts.
     PrivilegedGroupsDetailParagraph = The following section provides detailed information about the user members of each privileged group. Groups without members are excluded.
     PrivilegedGroupsNonDefaultSection = Privileged Group (Non-Default)
     PrivilegedGroupsNonDefaultParagraph = The following section provides a summary of privileged groups with the AdminCount attribute set to 1 (excluding default groups).
     EmptyGroupsSection = Empty Groups (Non-Default)
+    EmptyGroupsTable = Empty Groups
     CircularGroupMembershipSection = Circular Group Membership
     CircularGroupMembershipParagraph1 = If an Active Directory (AD) group has another AD group as both its parent and as a child member you have a circular nested reference.
     CircularGroupMembershipParagraph2 = Why would that matter?
     CircularGroupMembershipParagraph3 = There is no technical reason preventing the use of circular references between AD groups, Active Directory can still calculate and grant access. The main reason that circular references are considered harmful is that they tend to make management more difficult.
     PreWin2000Section = Pre-Windows 2000 Compatible Access Group Membership
+    PreWin2000Table = Pre-Windows 2000 Compatible Access
     PreWin2000Paragraph = The following section provides information about the members of the Pre-Windows 2000 Compatible Access group.
     ComputerObjectsSection = Computer Objects
     ComputersSubSection = Computers
+    ComputersCount = Computers Count
     Computers = Computers
     Servers = Servers
     StatusOfComputerAccountsSection = Status of Computer Accounts
@@ -822,6 +833,7 @@
     FineGrainedPasswordPoliciesSection = Fined Grained Password Policies
     MicrosoftLAPSSection = Microsoft LAPS
     GMSASection = gMSA Identities
+    GMSA = gMSA
     FSPSection = Foreign Security Principals
     Category = Category
     Enabled = Enabled
@@ -895,6 +907,20 @@
     GMSAPasswordLastSet = Password Last Set
     FSPName = Name
     FSPPrincipalName = Principal Name
+    CatTotalUsers = Total Users
+    CatCannotChangePassword = Cannot Change Password
+    CatPasswordNeverExpires = Password Never Expires
+    CatMustChangePasswordAtLogon = Must Change Password at Logon
+    CatPasswordAge180 = Password Age (> 180 days)
+    CatSmartcardLogonRequired = SmartcardLogonRequired
+    CatSidHistory = SidHistory
+    CatNeverLoggedIn = Never Logged in
+    CatDormant90 = Dormant (> 90 days)
+    CatPasswordNotRequired = Password Not Required
+    CatAccountExpired = Account Expired
+    CatAccountLockout = Account Lockout
+    CatTotalComputers = Total Computers
+    CatPasswordAge30 = Password Age (> 30 days)
     HealthCheck = Health Check:
     BestPractice = Best Practice:
     SecurityBestPractice = Security Best Practice:

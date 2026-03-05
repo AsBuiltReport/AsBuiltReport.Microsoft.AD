@@ -655,6 +655,10 @@
     InfraServicesSection = Infrastructure Services
     InfraServicesParagraph = The following section provides a detailed overview of the status and configuration of infrastructure services on the domain controllers.
     NoDCAvailable = Unable to get an available DC in {0} domain. Removing domain from the Domain section.
+    UnableToConnect = Unable to connect to {0}. Removing it from the {1} report.
+    WinRMErrorDCDiag = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (DCDiag Information)
+    WinRMErrorInfraService = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (ADInfrastructureService)
+    DomainExcluded = {0} disabled in Exclude.Domain variable
 '@
 
     # Get-AbrADDomain
@@ -903,6 +907,20 @@
     GMSAPasswordLastSet = Password Last Set
     FSPName = Name
     FSPPrincipalName = Principal Name
+    CatTotalUsers = Total Users
+    CatCannotChangePassword = Cannot Change Password
+    CatPasswordNeverExpires = Password Never Expires
+    CatMustChangePasswordAtLogon = Must Change Password at Logon
+    CatPasswordAge180 = Password Age (> 180 days)
+    CatSmartcardLogonRequired = SmartcardLogonRequired
+    CatSidHistory = SidHistory
+    CatNeverLoggedIn = Never Logged in
+    CatDormant90 = Dormant (> 90 days)
+    CatPasswordNotRequired = Password Not Required
+    CatAccountExpired = Account Expired
+    CatAccountLockout = Account Lockout
+    CatTotalComputers = Total Computers
+    CatPasswordAge30 = Password Age (> 30 days)
     HealthCheck = Health Check:
     BestPractice = Best Practice:
     SecurityBestPractice = Security Best Practice:
