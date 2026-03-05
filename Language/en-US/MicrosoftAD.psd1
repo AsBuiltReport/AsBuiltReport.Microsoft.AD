@@ -991,4 +991,89 @@
     NTLMv1BP = Disable NTLMv1: NTLMv1 is an outdated authentication protocol that is vulnerable to several security issues. It is recommended to disable NTLMv1 on all systems to enhance security and reduce the risk of exploitation. NTLMv1 has been deprecated and replaced by NTLMv2, which offers improved security features.
 '@
 
+    # Get-AbrADDomainLastBackup
+    GetAbrADDomainLastBackup = ConvertFrom-StringData @'
+    Collecting = Collecting AD Domain last backup information on {0}.
+    SectionTitle = Naming Context Last Backup
+    SectionParagraph = The following section provides the last backup times for each naming context in the {0} domain.
+    NamingContext = Naming Context
+    LastBackup = Last Backup
+    LastBackupInDays = Last Backup in Days
+    LastBackupUnknown = Unknown
+    TableName = Naming Context Last Backup
+    NoData = No Naming context last backup information found in {0}, Disabling this section.
+    HealthCheck = Health Check:
+    CorrectiveActions = Corrective Actions:
+    BackupBP1 = Ensure there is a recent (<180 days) Active Directory backup.
+    BackupBP2 = Regular backups are crucial for disaster recovery and maintaining the integrity of your Active Directory environment.
+    BackupBP3 = Consider setting up automated backup schedules and regularly verifying the backup status to prevent data loss.
+'@
+
+    # Get-AbrADDuplicateSPN
+    GetAbrADDuplicateSPN = ConvertFrom-StringData @'
+    Collecting = Collecting duplicate SPN information on {0}.
+    SectionTitle = Duplicate SPN
+    SectionParagraph = The following section details duplicate Service Principal Names (SPNs) identified in the {0} domain.
+    Name = Name
+    Count = Count
+    DistinguishedName = Distinguished Name
+    TableName = Duplicate SPN
+    NoData = No Duplicate SPN information found in {0}, Disabling this section.
+    HealthCheck = Health Check:
+    CorrectiveActions = Corrective Actions:
+    SPNBP = Ensure there aren't any duplicate SPNs (other than krbtgt). Duplicate SPNs can cause authentication issues and should be resolved promptly. Use the `setspn -X` command to identify duplicate SPNs. Remove or reassign duplicate SPNs as necessary to maintain a healthy AD environment.
+'@
+
+    # Get-AbrADDuplicateObject
+    GetAbrADDuplicateObject = ConvertFrom-StringData @'
+    Collecting = Collecting duplicate Objects information on {0}.
+    SectionTitle = Duplicate Objects
+    SectionParagraph = The following section details duplicate objects detected in the domain {0}. These objects may indicate replication issues or administrative errors that require attention.
+    Name = Name
+    Created = Created
+    Changed = Changed
+    ConflictChanged = Conflict Changed
+    TableName = Duplicate Object
+    NoData = No Duplicate object information found in {0}, Disabling this section.
+    HealthCheck = Health Check:
+    CorrectiveActions = Corrective Actions:
+    DuplicateObjectBP = Ensure there aren't any duplicate objects in the Active Directory. Duplicate objects can cause various issues such as authentication problems, replication conflicts, and administrative overhead. It is recommended to regularly audit and clean up any duplicate objects to maintain a healthy and efficient Active Directory environment.
+'@
+
+    # Get-AbrADDCRoleFeature
+    GetAbrADDCRoleFeature = ConvertFrom-StringData @'
+    Collecting = Collecting Active Directory DC Role & Features information of {0}.
+    Name = Name
+    Parent = Parent
+    Description = Description
+    TableName = Roles
+    HealthCheck = Health Check:
+    BestPractices = Best Practices:
+    RoleBP = Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation.
+'@
+
+    # Get-AbrADDCDiag
+    GetAbrADDCDiag = ConvertFrom-StringData @'
+    Collecting = Collecting Active Directory {0} DCDiag information for domain {1}.
+    TestName = Test Name
+    Result = Result
+    Impact = Impact
+    Description = Description
+    TableName = DCDiag Test Status
+    NoData = No DCDiag information found in {0}, Disabling this section.
+'@
+
+    # Get-AbrADInfrastructureService
+    GetAbrADInfrastructureService = ConvertFrom-StringData @'
+    Collecting = Collecting Active Directory DC Infrastructure Services information of {0}.
+    DisplayName = Display Name
+    ShortName = Short Name
+    Status = Status
+    TableName = Infrastructure Services Status
+    NoData = No Infrastructure Services Status information found in {0}, Disabling this section.
+    HealthCheck = Health Check:
+    CorrectiveActions = Corrective Actions:
+    SpoolerBP = The Print Spooler service has been known to have vulnerabilities that can be exploited by attackers to gain unauthorized access or execute malicious code. Disabling this service on Domain Controllers and other critical servers that do not require print services can help reduce the attack surface and improve the overall security posture of your Active Directory environment.
+'@
+
 }

@@ -20,7 +20,7 @@ function Get-AbrADDCRoleFeature {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Active Directory DC Role & Features information of $DC."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADDCRoleFeature.Collecting -f $DC)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'DC Role & Features'
     }
 
@@ -41,9 +41,9 @@ function Get-AbrADDCRoleFeature {
                     foreach ($Feature in $Features) {
                         try {
                             $inObj = [ordered] @{
-                                'Name' = $Feature.DisplayName
-                                'Parent' = $Feature.FeatureType
-                                'Description' = $Feature.Description
+                                $reportTranslate.GetAbrADDCRoleFeature.Name = $Feature.DisplayName
+                                $reportTranslate.GetAbrADDCRoleFeature.Parent = $Feature.FeatureType
+                                $reportTranslate.GetAbrADDCRoleFeature.Description = $Feature.Description
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
@@ -53,15 +53,15 @@ function Get-AbrADDCRoleFeature {
 
                     if ($HealthCheck.DomainController.BestPractice) {
                         $List = @()
-                        $OutObj | Where-Object { $_.'Name' -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') } | Set-Style -Style Warning
-                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Name' -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') })) {
-                            $OBJ.'Name' = $OBJ.'Name' + ' (1)'
-                            $List = 'Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation.'
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDCRoleFeature.Name) -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') } | Set-Style -Style Warning
+                        foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDCRoleFeature.Name) -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') })) {
+                            $OBJ.$($reportTranslate.GetAbrADDCRoleFeature.Name) = $OBJ.$($reportTranslate.GetAbrADDCRoleFeature.Name) + ' (1)'
+                            $List = $reportTranslate.GetAbrADDCRoleFeature.RoleBP
                         }
                     }
 
                     $TableParams = @{
-                        Name = "Roles - $($DC.ToString().split('.')[0].ToUpper())"
+                        Name = "$($reportTranslate.GetAbrADDCRoleFeature.TableName) - $($DC.ToString().split('.')[0].ToUpper())"
                         List = $false
                         ColumnWidths = 20, 10, 70
                     }
@@ -70,9 +70,9 @@ function Get-AbrADDCRoleFeature {
                     }
                     $OutObj | Table @TableParams
                     if ($HealthCheck.DomainController.Software -and $List) {
-                        Paragraph 'Health Check:' -Bold -Underline
+                        Paragraph $reportTranslate.GetAbrADDCRoleFeature.HealthCheck -Bold -Underline
                         BlankLine
-                        Paragraph 'Best Practices:' -Bold
+                        Paragraph $reportTranslate.GetAbrADDCRoleFeature.BestPractices -Bold
                         List -Item $List -Numbered
                     }
                 }

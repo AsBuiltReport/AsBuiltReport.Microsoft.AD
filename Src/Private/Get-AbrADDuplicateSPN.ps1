@@ -20,7 +20,7 @@ function Get-AbrADDuplicateSPN {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting duplicate SPN information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADDuplicateSPN.Collecting -f $Domain.DNSRoot)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain Duplicate SPN'
     }
 
@@ -29,16 +29,16 @@ function Get-AbrADDuplicateSPN {
             try {
                 $SPNs = Get-WinADDuplicateSPN -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains
                 if ($SPNs) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate SPN' {
-                        Paragraph "The following section details duplicate Service Principal Names (SPNs) identified in the $($Domain.DNSRoot.ToString().ToUpper()) domain."
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDuplicateSPN.SectionTitle {
+                        Paragraph ($reportTranslate.GetAbrADDuplicateSPN.SectionParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($SPN in $SPNs) {
                             try {
                                 $inObj = [ordered] @{
-                                    'Name' = $SPN.Name
-                                    'Count' = $SPN.Count
-                                    'Distinguished Name' = $SPN.List
+                                    $reportTranslate.GetAbrADDuplicateSPN.Name = $SPN.Name
+                                    $reportTranslate.GetAbrADDuplicateSPN.Count = $SPN.Count
+                                    $reportTranslate.GetAbrADDuplicateSPN.DistinguishedName = $SPN.List
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
@@ -51,7 +51,7 @@ function Get-AbrADDuplicateSPN {
                         }
 
                         $TableParams = @{
-                            Name = "Duplicate SPN - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDuplicateSPN.TableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 40, 10, 50
                         }
@@ -59,18 +59,18 @@ function Get-AbrADDuplicateSPN {
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDuplicateSPN.Name | Table @TableParams
                         if ($HealthCheck.Domain.SPN) {
-                            Paragraph 'Health Check:' -Bold -Underline
+                            Paragraph $reportTranslate.GetAbrADDuplicateSPN.HealthCheck -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text 'Corrective Actions:' -Bold
-                                Text "Ensure there aren't any duplicate SPNs (other than krbtgt). Duplicate SPNs can cause authentication issues and should be resolved promptly. Use the `setspn -X` command to identify duplicate SPNs. Remove or reassign duplicate SPNs as necessary to maintain a healthy AD environment."
+                                Text $reportTranslate.GetAbrADDuplicateSPN.CorrectiveActions -Bold
+                                Text $reportTranslate.GetAbrADDuplicateSPN.SPNBP
                             }
                         }
                     }
                 } else {
-                    Write-PScriboMessage -Message "No Duplicate SPN information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message ($reportTranslate.GetAbrADDuplicateSPN.NoData -f $Domain.DNSRoot)
                 }
             } catch {
                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SPN Table)"

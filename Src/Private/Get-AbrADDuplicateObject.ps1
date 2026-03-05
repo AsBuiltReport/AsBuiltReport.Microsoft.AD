@@ -20,7 +20,7 @@ function Get-AbrADDuplicateObject {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting duplicate Objects information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADDuplicateObject.Collecting -f $Domain.DNSRoot)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain Duplicate Objects'
     }
 
@@ -29,17 +29,17 @@ function Get-AbrADDuplicateObject {
             try {
                 $Objects = Get-WinADDuplicateObject -Domain $Domain.DNSRoot -Credential $Credential
                 if ($Objects) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Duplicate Objects' {
-                        Paragraph "The following section details duplicate objects detected in the domain $($Domain.DNSRoot.ToString().ToUpper()). These objects may indicate replication issues or administrative errors that require attention."
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDuplicateObject.SectionTitle {
+                        Paragraph ($reportTranslate.GetAbrADDuplicateObject.SectionParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Object in $Objects) {
                             try {
                                 $inObj = [ordered] @{
-                                    'Name' = $Object.Name
-                                    'Created' = $Object.WhenCreated.ToString('yyyy:MM:dd')
-                                    'Changed' = $Object.WhenChanged.ToString('yyyy:MM:dd')
-                                    'Conflict Changed' = $Object.ConflictWhenChanged.ToString('yyyy:MM:dd')
+                                    $reportTranslate.GetAbrADDuplicateObject.Name = $Object.Name
+                                    $reportTranslate.GetAbrADDuplicateObject.Created = $Object.WhenCreated.ToString('yyyy:MM:dd')
+                                    $reportTranslate.GetAbrADDuplicateObject.Changed = $Object.WhenChanged.ToString('yyyy:MM:dd')
+                                    $reportTranslate.GetAbrADDuplicateObject.ConflictChanged = $Object.ConflictWhenChanged.ToString('yyyy:MM:dd')
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
@@ -52,7 +52,7 @@ function Get-AbrADDuplicateObject {
                         }
 
                         $TableParams = @{
-                            Name = "Duplicate Object - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDuplicateObject.TableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 40, 20, 20, 20
                         }
@@ -61,15 +61,15 @@ function Get-AbrADDuplicateObject {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Table @TableParams
-                        Paragraph 'Health Check:' -Bold -Underline
+                        Paragraph $reportTranslate.GetAbrADDuplicateObject.HealthCheck -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text 'Corrective Actions:' -Bold
-                            Text "Ensure there aren't any duplicate objects in the Active Directory. Duplicate objects can cause various issues such as authentication problems, replication conflicts, and administrative overhead. It is recommended to regularly audit and clean up any duplicate objects to maintain a healthy and efficient Active Directory environment."
+                            Text $reportTranslate.GetAbrADDuplicateObject.CorrectiveActions -Bold
+                            Text $reportTranslate.GetAbrADDuplicateObject.DuplicateObjectBP
                         }
                     }
                 } else {
-                    Write-PScriboMessage -Message "No Duplicate object information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message ($reportTranslate.GetAbrADDuplicateObject.NoData -f $Domain.DNSRoot)
                 }
             } catch {
                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Duplicate Object Table)"
