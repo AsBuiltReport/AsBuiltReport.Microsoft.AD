@@ -21,7 +21,7 @@ function Get-AbrADKerberosAudit {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Kerberos Audit information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADKerberosAudit.Collecting -f $Domain.DNSRoot)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Kerberos Audit'
     }
 
@@ -30,15 +30,15 @@ function Get-AbrADKerberosAudit {
             try {
                 $Unconstrained = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADComputer -Filter { (TrustedForDelegation -eq $True) -and (PrimaryGroupID -ne '516') -and (PrimaryGroupID -ne '521') } -Server $using:ValidDCFromDomain -SearchBase $($using:Domain).distinguishedName }
                 if ($Unconstrained) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Unconstrained Kerberos Delegation' {
-                        Paragraph "The following section identifies systems configured with unconstrained Kerberos delegation, which represents a significant security risk in the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADKerberosAudit.UnconstrainedTitle {
+                        Paragraph ($reportTranslate.GetAbrADKerberosAudit.UnconstrainedParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Item in $Unconstrained) {
                             try {
                                 $inObj = [ordered] @{
-                                    'Name' = $Item.Name
-                                    'Distinguished Name' = $Item.DistinguishedName
+                                    $reportTranslate.GetAbrADKerberosAudit.Name = $Item.Name
+                                    $reportTranslate.GetAbrADKerberosAudit.DistinguishedName = $Item.DistinguishedName
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
@@ -51,7 +51,7 @@ function Get-AbrADKerberosAudit {
                         }
 
                         $TableParams = @{
-                            Name = "Unconstrained Kerberos Delegation - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADKerberosAudit.UnconstrainedTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 40, 60
                         }
@@ -60,29 +60,29 @@ function Get-AbrADKerberosAudit {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
                         $OutObj | Table @TableParams
-                        Paragraph 'Health Check:' -Bold -Underline
+                        Paragraph $reportTranslate.GetAbrADKerberosAudit.UnconstrainedHealthCheck -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text 'Corrective Actions:' -Bold
-                            Text 'Ensure there are no instances of unconstrained Kerberos delegation in Active Directory, as it poses a security risk by allowing any service to impersonate users.'
+                            Text $reportTranslate.GetAbrADKerberosAudit.UnconstrainedCorrectiveActions -Bold
+                            Text $reportTranslate.GetAbrADKerberosAudit.UnconstrainedBP
                         }
                     }
                 } else {
-                    Write-PScriboMessage -Message "No Unconstrained Kerberos Delegation information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message ($reportTranslate.GetAbrADKerberosAudit.UnconstrainedNoData -f $Domain.DNSRoot)
                 }
                 try {
                     $KRBTGT = $Users | Where-Object { $_.Name -eq 'krbtgt' }
                     if ($KRBTGT) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading4 'KRBTGT Account Audit' {
-                            Paragraph "The following section provides a comprehensive audit of the KRBTGT account, which is critical for Kerberos ticket-granting services in the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADKerberosAudit.KRBTGTTitle {
+                            Paragraph ($reportTranslate.GetAbrADKerberosAudit.KRBTGTParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                             BlankLine
                             $OutObj = [System.Collections.ArrayList]::new()
                             try {
                                 $inObj = [ordered] @{
-                                    'Name' = $KRBTGT.Name
-                                    'Created' = $KRBTGT.Created
-                                    'Password Last Set' = $KRBTGT.PasswordLastSet
-                                    'Distinguished Name' = $KRBTGT.DistinguishedName
+                                    $reportTranslate.GetAbrADKerberosAudit.Name = $KRBTGT.Name
+                                    $reportTranslate.GetAbrADKerberosAudit.Created = $KRBTGT.Created
+                                    $reportTranslate.GetAbrADKerberosAudit.PasswordLastSet = $KRBTGT.PasswordLastSet
+                                    $reportTranslate.GetAbrADKerberosAudit.DistinguishedName = $KRBTGT.DistinguishedName
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
@@ -90,11 +90,11 @@ function Get-AbrADKerberosAudit {
                             }
 
                             if ($HealthCheck.Domain.Security) {
-                                $OutObj | Set-Style -Style Warning -Property 'Password Last Set'
+                                $OutObj | Set-Style -Style Warning -Property $reportTranslate.GetAbrADKerberosAudit.PasswordLastSet
                             }
 
                             $TableParams = @{
-                                Name = "KRBTGT Account Audit - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADKerberosAudit.KRBTGTTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $true
                                 ColumnWidths = 40, 60
                             }
@@ -103,15 +103,15 @@ function Get-AbrADKerberosAudit {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph 'Health Check:' -Bold -Underline
+                            Paragraph $reportTranslate.GetAbrADKerberosAudit.KRBTGTHealthCheck -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text 'Best Practice:' -Bold
-                                Text 'Microsoft recommends changing the krbtgt account password regularly to enhance security and protect the environment.'
+                                Text $reportTranslate.GetAbrADKerberosAudit.KRBTGTBestPractice -Bold
+                                Text $reportTranslate.GetAbrADKerberosAudit.KRBTGTBP
                             }
                         }
                     } else {
-                        Write-PScriboMessage -Message "No KRBTGT Account Audit information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message ($reportTranslate.GetAbrADKerberosAudit.KRBTGTNoData -f $Domain.DNSRoot)
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
@@ -120,17 +120,17 @@ function Get-AbrADKerberosAudit {
                     $SID = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { $($using:Domain).domainsid.ToString() + '-500' }
                     $ADMIN = $Users | Where-Object { $_.SID -eq $SID }
                     if ($ADMIN) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Administrator Account Audit' {
-                            Paragraph "The following section provides a comprehensive audit of the built-in Administrator account, which is a critical privileged account in the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADKerberosAudit.AdminTitle {
+                            Paragraph ($reportTranslate.GetAbrADKerberosAudit.AdminParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                             BlankLine
                             $OutObj = [System.Collections.ArrayList]::new()
                             try {
                                 $inObj = [ordered] @{
-                                    'Name' = $ADMIN.Name
-                                    'Created' = $ADMIN.Created
-                                    'Password Last Set' = $ADMIN.PasswordLastSet
-                                    'Last Logon Date' = $ADMIN.LastLogonDate
-                                    'Distinguished Name' = $ADMIN.DistinguishedName
+                                    $reportTranslate.GetAbrADKerberosAudit.Name = $ADMIN.Name
+                                    $reportTranslate.GetAbrADKerberosAudit.Created = $ADMIN.Created
+                                    $reportTranslate.GetAbrADKerberosAudit.PasswordLastSet = $ADMIN.PasswordLastSet
+                                    $reportTranslate.GetAbrADKerberosAudit.LastLogonDate = $ADMIN.LastLogonDate
+                                    $reportTranslate.GetAbrADKerberosAudit.DistinguishedName = $ADMIN.DistinguishedName
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
@@ -138,11 +138,11 @@ function Get-AbrADKerberosAudit {
                             }
 
                             if ($HealthCheck.Domain.Security) {
-                                $OutObj | Set-Style -Style Warning -Property 'Password Last Set'
+                                $OutObj | Set-Style -Style Warning -Property $reportTranslate.GetAbrADKerberosAudit.PasswordLastSet
                             }
 
                             $TableParams = @{
-                                Name = "Administrator Account Audit - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADKerberosAudit.AdminTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $true
                                 ColumnWidths = 40, 60
                             }
@@ -151,15 +151,15 @@ function Get-AbrADKerberosAudit {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph 'Health Check:' -Bold -Underline
+                            Paragraph $reportTranslate.GetAbrADKerberosAudit.AdminHealthCheck -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text 'Best Practice:' -Bold
-                                Text 'Microsoft recommends changing the Administrator account password regularly to enhance security and protect the environment.'
+                                Text $reportTranslate.GetAbrADKerberosAudit.AdminBestPractice -Bold
+                                Text $reportTranslate.GetAbrADKerberosAudit.AdminBP
                             }
                         }
                     } else {
-                        Write-PScriboMessage -Message "No Administrator Account Audit information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message ($reportTranslate.GetAbrADKerberosAudit.AdminNoData -f $Domain.DNSRoot)
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"

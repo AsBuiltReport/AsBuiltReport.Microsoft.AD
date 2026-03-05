@@ -1076,4 +1076,125 @@
     SpoolerBP = The Print Spooler service has been known to have vulnerabilities that can be exploited by attackers to gain unauthorized access or execute malicious code. Disabling this service on Domain Controllers and other critical servers that do not require print services can help reduce the attack surface and improve the overall security posture of your Active Directory environment.
 '@
 
+    # Get-AbrADDFSHealth
+    GetAbrADDFSHealth = ConvertFrom-StringData @'
+    Collecting = Collecting AD Domain DFS Health information on {0}.
+    SysvolReplicationTitle = Sysvol Replication Status
+    SysvolReplicationParagraph = This section provides the replication status of the SYSVOL folder for domain {0}.
+    DCName = DC Name
+    ReplicationStatus = Replication Status
+    GPOCount = GPO Count
+    SysvolCount = Sysvol Count
+    IdenticalCount = Identical Count
+    StopReplicationOnAutoRecovery = Stop Replication On AutoRecovery
+    SysvolReplicationOffline = Offline
+    SysvolReplicationTableName = Sysvol Replication Status
+    SysvolReplicationNoData = No DFS information found in {0}, Disabling this section.
+    SysvolReplicationHealthCheck = Health Check:
+    SysvolReplicationCorrectiveActions = Corrective Actions:
+    SysvolReplicationBP = SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains.
+    SysvolContentTitle = Sysvol Content Status
+    SysvolContentParagraph = The following section provides the SYSVOL health status for domain {0}.
+    SysvolContentNoData = No SYSVOL folder information found in {0}, Disabling this section.
+    SysvolContentTableName = Sysvol Content Status
+    NetlogonContentTitle = Netlogon Content Status
+    NetlogonContentParagraph = The following section provides the Netlogon health status for domain {0}.
+    NetlogonContentNoData = No NETLOGON folder information found in {0}, Disabling this section.
+    NetlogonContentTableName = Netlogon Content Status
+    Extension = Extension
+    FileCount = File Count
+    Size = Size
+    ContentHealthCheck = Health Check:
+    ContentCorrectiveActions = Corrective Actions:
+    ContentSysvolBP = Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Sysvol folder to maintain a healthy and secure Active Directory environment.
+    ContentNetlogonBP = Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Netlogon folder to maintain a healthy and secure Active Directory environment.
+'@
+
+    # Get-AbrADKerberosAudit
+    GetAbrADKerberosAudit = ConvertFrom-StringData @'
+    Collecting = Collecting Kerberos Audit information on {0}.
+    UnconstrainedTitle = Unconstrained Kerberos Delegation
+    UnconstrainedParagraph = The following section identifies systems configured with unconstrained Kerberos delegation, which represents a significant security risk in the domain {0}.
+    Name = Name
+    DistinguishedName = Distinguished Name
+    UnconstrainedTableName = Unconstrained Kerberos Delegation
+    UnconstrainedNoData = No Unconstrained Kerberos Delegation information found in {0}, Disabling this section.
+    UnconstrainedHealthCheck = Health Check:
+    UnconstrainedCorrectiveActions = Corrective Actions:
+    UnconstrainedBP = Ensure there are no instances of unconstrained Kerberos delegation in Active Directory, as it poses a security risk by allowing any service to impersonate users.
+    KRBTGTTitle = KRBTGT Account Audit
+    KRBTGTParagraph = The following section provides a comprehensive audit of the KRBTGT account, which is critical for Kerberos ticket-granting services in the domain {0}.
+    Created = Created
+    PasswordLastSet = Password Last Set
+    KRBTGTTableName = KRBTGT Account Audit
+    KRBTGTNoData = No KRBTGT Account Audit information found in {0}, Disabling this section.
+    KRBTGTHealthCheck = Health Check:
+    KRBTGTBestPractice = Best Practice:
+    KRBTGTBP = Microsoft recommends changing the krbtgt account password regularly to enhance security and protect the environment.
+    AdminTitle = Administrator Account Audit
+    AdminParagraph = The following section provides a comprehensive audit of the built-in Administrator account, which is a critical privileged account in the domain {0}.
+    LastLogonDate = Last Logon Date
+    AdminTableName = Administrator Account Audit
+    AdminNoData = No Administrator Account Audit information found in {0}, Disabling this section.
+    AdminHealthCheck = Health Check:
+    AdminBestPractice = Best Practice:
+    AdminBP = Microsoft recommends changing the Administrator account password regularly to enhance security and protect the environment.
+'@
+
+    # Get-AbrADSiteReplication
+    GetAbrADSiteReplication = ConvertFrom-StringData @'
+    Collecting = Collecting Active Directory Sites Replication information on {0}. (Sites Replication)
+    ReplicationConnectionTitle = Replication Connection
+    ReplicationConnectionParagraph = The following section provides comprehensive details about each Active Directory replication connection object configured in the domain.
+    ReplicationConnectionSummaryParagraph = The following section provides details about Active Directory replication connection objects between domain controllers.
+    Name = Name
+    FromSite = From Site
+    GUID = GUID
+    Description = Description
+    FromServer = From Server
+    ToServer = To Server
+    ReplicatedNamingContexts = Replicated Naming Contexts
+    TransportProtocol = Transport Protocol
+    AutoGenerated = Auto Generated
+    Enabled = Enabled
+    Created = Created
+    ReplicationConnectionTableName = Replication Connection
+    ReplicationConnectionNoData = No Replication Connection information found in {0}, Disabling this section.
+    ReplicationStatusTitle = Replication Status
+    LastSuccessTime = Last Success Time
+    LastFailureStatus = Last Failure Status
+    LastFailureTime = Last Failure Time
+    Failures = Failures
+    ReplicationStatusTableName = Replication Status
+    ReplicationStatusNoData = No Replication Status information found in {0}, Disabling this section.
+    ReplicationStatusHealthCheck = Health Check:
+    ReplicationStatusBestPractices = Best Practices:
+    ReplicationStatusBP = Replication failure can lead to object inconsistencies and significant issues in Active Directory.
+    AutoGeneratedValue = <automatically generated>
+'@
+
+    # Get-AbrADOU
+    GetAbrADOU = ConvertFrom-StringData @'
+    Collecting = Collecting Active Directory Organizational Unit information on domain {0}
+    OUSectionTitle = Organizational Units
+    OUSectionParagraph = The following section provides a comprehensive overview of Active Directory Organizational Units within the domain.
+    Name = Name
+    LinkedGPO = Linked GPO
+    Protected = Protected
+    OUTableName = Organizational Unit
+    OUNoData = No Organizational Units information found in {0}, Disabling this section.
+    OUHealthCheck = Health Check:
+    OUBestPractice = Best Practice:
+    OUBP = If the Organizational Units (OUs) in your Active Directory are not protected from accidental deletion, your environment can experience disruptions caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion.
+    GPOBlockedTitle = GPO Blocked Inheritance
+    OUName = OU Name
+    ContainerType = Container Type
+    InheritanceBlocked = Inheritance Blocked
+    Path = Path
+    GPOBlockedTableName = Blocked Inheritance GPO
+    GPOBlockedHealthCheck = Health Check:
+    GPOBlockedCorrectiveActions = Corrective Actions:
+    GPOBlockedBP = Review the use of enforced policies and blocked policy inheritance in Active Directory. Enforced policies ensure that specific Group Policy Objects (GPOs) are applied and cannot be overridden by other GPOs. Blocked policy inheritance prevents GPOs from parent containers from being applied to the Organizational Unit (OU). While these settings can be useful for maintaining strict policy application, they can also lead to unexpected results and complicate troubleshooting. Ensure that the use of these settings aligns with your organization's policy management strategy and does not inadvertently cause issues.
+'@
+
 }
