@@ -91,7 +91,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     )
 
     if ($Healthcheck) {
-        Section -Style TOC -ExcludeFromTOC 'DISCLAIMER' {
+        Section -Style TOC -ExcludeFromTOC $reportTranslate.InvokeAsBuiltReportMicrosoftAD.DisclaimerSection {
             Paragraph $reportTranslate.InvokeAsBuiltReportMicrosoftAD.DISCLAIMER
         }
         PageBreak

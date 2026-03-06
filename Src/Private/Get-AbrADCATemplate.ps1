@@ -23,7 +23,7 @@ function Get-AbrADCATemplate {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Certification Authority Templates information from $($CA.ComputerName)."
+        Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrADCATemplate.Collecting, $CA.ComputerName))
         Show-AbrDebugExecutionTime -Start -TitleMessage 'CA Certificate Templates'
     }
 
@@ -31,17 +31,17 @@ function Get-AbrADCATemplate {
         $Templates = Get-CATemplate -CertificationAuthority $CA | Select-Object -ExpandProperty Templates
         if ($Templates) {
             try {
-                Section -Style Heading3 'Certificate Template Summary' {
-                    Paragraph 'The following section lists certificate templates assigned to the Certification Authority. The CA can only issue certificates based on these assigned templates.'
+                Section -Style Heading3 $reportTranslate.GetAbrADCATemplate.Heading {
+                    Paragraph $reportTranslate.GetAbrADCATemplate.Paragraph
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($Template in $Templates) {
                         try {
                             $inObj = [ordered] @{
-                                'Template Name' = $Template.DisplayName
-                                'Schema Version' = $Template.SchemaVersion
-                                'Supported CA' = $Template.SupportedCA
-                                'Autoenrollment' = $Template.AutoenrollmentAllowed
+                                $reportTranslate.GetAbrADCATemplate.TemplateName = $Template.DisplayName
+                                $reportTranslate.GetAbrADCATemplate.SchemaVersion = $Template.SchemaVersion
+                                $reportTranslate.GetAbrADCATemplate.SupportedCA = $Template.SupportedCA
+                                $reportTranslate.GetAbrADCATemplate.Autoenrollment = $Template.AutoenrollmentAllowed
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
@@ -50,18 +50,18 @@ function Get-AbrADCATemplate {
                     }
 
                     $TableParams = @{
-                        Name = "Issued Certificate Template - $($CA.Name)"
+                        Name = "$($reportTranslate.GetAbrADCATemplate.IssuedTemplateTable) - $($CA.Name)"
                         List = $false
                         ColumnWidths = 40, 12, 30, 18
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Sort-Object -Property 'Template Name' | Table @TableParams
+                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADCATemplate.TemplateName | Table @TableParams
                     if ($InfoLevel.CA -ge 3) {
                         try {
-                            Section -Style Heading4 'Issued Certificate Template ACLs' {
-                                Paragraph 'The following section provides the Access Control List (ACL) for certificate templates assigned to the Certification Authority.'
+                            Section -Style Heading4 $reportTranslate.GetAbrADCATemplate.IssuedTemplateACLs {
+                                Paragraph $reportTranslate.GetAbrADCATemplate.IssuedTemplateACLsParagraph
                                 BlankLine
                                 foreach ($Template in $Templates) {
                                     try {
@@ -72,10 +72,10 @@ function Get-AbrADCATemplate {
                                                 foreach ($Right in $Rights) {
                                                     try {
                                                         $inObj = [ordered] @{
-                                                            'Identity' = $Right.IdentityReference
-                                                            'Access Control Type' = $Right.AccessControlType
-                                                            'Rights' = $Right.Rights
-                                                            'Inherited' = $Right.IsInherited
+                                                            $reportTranslate.GetAbrADCATemplate.Identity = $Right.IdentityReference
+                                                            $reportTranslate.GetAbrADCATemplate.AccessControlType = $Right.AccessControlType
+                                                            $reportTranslate.GetAbrADCATemplate.Rights = $Right.Rights
+                                                            $reportTranslate.GetAbrADCATemplate.Inherited = $Right.IsInherited
                                                         }
                                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                                     } catch {
@@ -83,14 +83,14 @@ function Get-AbrADCATemplate {
                                                     }
                                                 }
                                                 $TableParams = @{
-                                                    Name = "Certificate Template ACL - $($Template.DisplayName)"
+                                                    Name = "$($reportTranslate.GetAbrADCATemplate.TemplateACLTable) - $($Template.DisplayName)"
                                                     List = $false
                                                     ColumnWidths = 40, 12, 30, 18
                                                 }
                                                 if ($Report.ShowTableCaptions) {
                                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                                 }
-                                                $OutObj | Sort-Object -Property 'Identity' | Table @TableParams
+                                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADCATemplate.Identity | Table @TableParams
                                             }
                                         }
                                     } catch {
@@ -106,17 +106,17 @@ function Get-AbrADCATemplate {
                         try {
                             $Templates = Get-CertificateTemplate
                             if ($Templates) {
-                                Section -Style Heading4 'Certificate Template In Active Directory' {
-                                    Paragraph 'The following section lists all certificate templates registered in Active Directory, regardless of whether they are assigned to any Certification Authority.'
+                                Section -Style Heading4 $reportTranslate.GetAbrADCATemplate.ADTemplates {
+                                    Paragraph $reportTranslate.GetAbrADCATemplate.ADTemplatesParagraph
                                     BlankLine
                                     $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($Template in $Templates) {
                                         try {
                                             $inObj = [ordered] @{
-                                                'Template Name' = $Template.DisplayName
-                                                'Schema Version' = $Template.SchemaVersion
-                                                'Supported CA' = $Template.SupportedCA
-                                                'Autoenrollment' = $Template.AutoenrollmentAllowed
+                                                $reportTranslate.GetAbrADCATemplate.TemplateName = $Template.DisplayName
+                                                $reportTranslate.GetAbrADCATemplate.SchemaVersion = $Template.SchemaVersion
+                                                $reportTranslate.GetAbrADCATemplate.SupportedCA = $Template.SupportedCA
+                                                $reportTranslate.GetAbrADCATemplate.Autoenrollment = $Template.AutoenrollmentAllowed
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         } catch {
@@ -125,14 +125,14 @@ function Get-AbrADCATemplate {
                                     }
 
                                     $TableParams = @{
-                                        Name = "Certificate Template in AD - $($ForestInfo.toUpper())"
+                                        Name = "$($reportTranslate.GetAbrADCATemplate.ADTemplatesTable) - $($ForestInfo.toUpper())"
                                         List = $false
                                         ColumnWidths = 40, 12, 30, 18
                                     }
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Sort-Object -Property 'Template Name' | Table @TableParams
+                                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADCATemplate.TemplateName | Table @TableParams
                                 }
                             }
                         } catch {

@@ -21,7 +21,7 @@ function Get-AbrADOU {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Active Directory Organizational Unit information on domain $($Domain.DNSRoot)"
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADOU.Collecting -f $Domain.DNSRoot)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain Organizational Unit'
     }
 
@@ -29,8 +29,8 @@ function Get-AbrADOU {
         try {
             $OUs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADOrganizationalUnit -Server $using:ValidDCFromDomain -Properties * -SearchBase ($using:Domain).distinguishedName -Filter * }
             if ($OUs) {
-                Section -Style Heading3 'Organizational Units' {
-                    Paragraph 'The following section provides a comprehensive overview of Active Directory Organizational Units within the domain.'
+                Section -Style Heading3 $reportTranslate.GetAbrADOU.OUSectionTitle {
+                    Paragraph $reportTranslate.GetAbrADOU.OUSectionParagraph
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     foreach ($OU in $OUs) {
@@ -46,9 +46,9 @@ function Get-AbrADOU {
                                 }
                             }
                             $inObj = [ordered] @{
-                                'Name' = ((ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Domain $Domain.DNSRoot -DC $ValidDCFromDomain).split('/') | Select-Object -Skip 1) -join '/'
-                                'Linked GPO' = ($GPOArray -join ', ')
-                                'Protected' = $OU.ProtectedFromAccidentalDeletion
+                                $reportTranslate.GetAbrADOU.Name = ((ConvertTo-ADCanonicalName -DN $OU.DistinguishedName -Domain $Domain.DNSRoot -DC $ValidDCFromDomain).split('/') | Select-Object -Skip 1) -join '/'
+                                $reportTranslate.GetAbrADOU.LinkedGPO = ($GPOArray -join ', ')
+                                $reportTranslate.GetAbrADOU.Protected = $OU.ProtectedFromAccidentalDeletion
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
@@ -57,24 +57,24 @@ function Get-AbrADOU {
                     }
 
                     if ($HealthCheck.Domain.BestPractice) {
-                        $OutObj | Where-Object { $_.'Protected' -eq 'No' } | Set-Style -Style Warning -Property 'Protected'
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADOU.Protected) -eq 'No' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADOU.Protected
                     }
 
                     $TableParams = @{
-                        Name = "Organizational Unit - $($Domain.DNSRoot.ToString().ToUpper())"
+                        Name = "$($reportTranslate.GetAbrADOU.OUTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $false
                         ColumnWidths = 45, 45, 10
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                    if ($HealthCheck.Domain.BestPractice -and ($OutObj | Where-Object { $_.'Protected' -eq 'No' })) {
-                        Paragraph 'Health Check:' -Bold -Underline
+                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADOU.Name | Table @TableParams
+                    if ($HealthCheck.Domain.BestPractice -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADOU.Protected) -eq 'No' })) {
+                        Paragraph $reportTranslate.GetAbrADOU.OUHealthCheck -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text 'Best Practice:' -Bold
-                            Text 'If the Organizational Units (OUs) in your Active Directory are not protected from accidental deletion, your environment can experience disruptions caused by accidental bulk deletion of objects. All OUs in this domain should be protected from accidental deletion.'
+                            Text $reportTranslate.GetAbrADOU.OUBestPractice -Bold
+                            Text $reportTranslate.GetAbrADOU.OUBP
                         }
                     }
                     if ($HealthCheck.Domain.GPO) {
@@ -86,10 +86,10 @@ function Get-AbrADOU {
                                         $GpoInheritance = Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-GPInheritance -Domain ($using:Domain).DNSRoot -Server $using:ValidDCFromDomain -Target ($using:OU).DistinguishedName }
                                         if ( $GpoInheritance.GPOInheritanceBlocked -eq 'True') {
                                             $inObj = [ordered] @{
-                                                'OU Name' = $GpoInheritance.Name
-                                                'Container Type' = $GpoInheritance.ContainerType
-                                                'Inheritance Blocked' = $GpoInheritance.GpoInheritanceBlocked
-                                                'Path' = ConvertTo-ADCanonicalName -DN $GpoInheritance.Path -Domain $Domain.DNSRoot -DC $ValidDCFromDomain
+                                                $reportTranslate.GetAbrADOU.OUName = $GpoInheritance.Name
+                                                $reportTranslate.GetAbrADOU.ContainerType = $GpoInheritance.ContainerType
+                                                $reportTranslate.GetAbrADOU.InheritanceBlocked = $GpoInheritance.GpoInheritanceBlocked
+                                                $reportTranslate.GetAbrADOU.Path = ConvertTo-ADCanonicalName -DN $GpoInheritance.Path -Domain $Domain.DNSRoot -DC $ValidDCFromDomain
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         }
@@ -99,13 +99,13 @@ function Get-AbrADOU {
                                 }
                             }
                             if ($OutObj) {
-                                Section -ExcludeFromTOC -Style NOTOCHeading4 'GPO Blocked Inheritance' {
+                                Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADOU.GPOBlockedTitle {
                                     if ($HealthCheck.Domain.GPO) {
                                         $OutObj | Set-Style -Style Warning
                                     }
 
                                     $TableParams = @{
-                                        Name = "Blocked Inheritance GPO - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADOU.GPOBlockedTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 35, 15, 15, 35
                                     }
@@ -113,12 +113,12 @@ function Get-AbrADOU {
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Sort-Object -Property 'OU Name' | Table @TableParams
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADOU.OUName | Table @TableParams
+                                    Paragraph $reportTranslate.GetAbrADOU.GPOBlockedHealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text 'Corrective Actions:' -Bold
-                                        Text "Review the use of enforced policies and blocked policy inheritance in Active Directory. Enforced policies ensure that specific Group Policy Objects (GPOs) are applied and cannot be overridden by other GPOs. Blocked policy inheritance prevents GPOs from parent containers from being applied to the Organizational Unit (OU). While these settings can be useful for maintaining strict policy application, they can also lead to unexpected results and complicate troubleshooting. Ensure that the use of these settings aligns with your organization's policy management strategy and does not inadvertently cause issues."
+                                        Text $reportTranslate.GetAbrADOU.GPOBlockedCorrectiveActions -Bold
+                                        Text $reportTranslate.GetAbrADOU.GPOBlockedBP
                                     }
                                 }
                             }
@@ -129,7 +129,7 @@ function Get-AbrADOU {
                     }
                 }
             } else {
-                Write-PScriboMessage -Message "No Organizational Units information found in $($Domain.DNSRoot), Disabling this section."
+                Write-PScriboMessage -Message ($reportTranslate.GetAbrADOU.OUNoData -f $Domain.DNSRoot)
             }
         } catch {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Organizational Unit Section)"

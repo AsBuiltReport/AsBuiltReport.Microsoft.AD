@@ -20,7 +20,7 @@ function Get-AbrADSecurityAssessment {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Account Security Assessment information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADSecurityAssessment.Collecting -f $Domain.DNSRoot)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Account Security Assessment'
     }
 
@@ -43,16 +43,16 @@ function Get-AbrADSecurityAssessment {
                     $OutObj = [System.Collections.ArrayList]::new()
                     try {
                         $inObj = [ordered] @{
-                            'Total' = $DomainUsers.Count
-                            'Enabled' = $DomainEnabledUsers.Count
-                            'Disabled' = $DomainDisabledUsers.Count
-                            'Enabled Inactive' = $DomainEnabledInactiveUsers.Count
-                            'Reversible Encryption Password' = $DomainUsersWithReversibleEncryptionPasswordArray.Count
-                            'Password Not Required' = $DomainUserPasswordNotRequiredArray.Count
-                            'Password Never Expires' = $DomainUserPasswordNeverExpiresArray.Count
-                            'Kerberos DES' = $DomainKerberosDESUsersArray.Count
-                            'Does Not Require Pre Auth' = $DomainUserDoesNotRequirePreAuthArray.Count
-                            'SID History' = $DomainUsersWithSIDHistoryArray.Count
+                            $reportTranslate.GetAbrADSecurityAssessment.Total = $DomainUsers.Count
+                            $reportTranslate.GetAbrADSecurityAssessment.Enabled = $DomainEnabledUsers.Count
+                            $reportTranslate.GetAbrADSecurityAssessment.Disabled = $DomainDisabledUsers.Count
+                            $reportTranslate.GetAbrADSecurityAssessment.EnabledInactive = $DomainEnabledInactiveUsers.Count
+                            $reportTranslate.GetAbrADSecurityAssessment.ReversibleEncryptionPassword = $DomainUsersWithReversibleEncryptionPasswordArray.Count
+                            $reportTranslate.GetAbrADSecurityAssessment.PasswordNotRequired = $DomainUserPasswordNotRequiredArray.Count
+                            $reportTranslate.GetAbrADSecurityAssessment.PasswordNeverExpires = $DomainUserPasswordNeverExpiresArray.Count
+                            $reportTranslate.GetAbrADSecurityAssessment.KerberosDES = $DomainKerberosDESUsersArray.Count
+                            $reportTranslate.GetAbrADSecurityAssessment.DoesNotRequirePreAuth = $DomainUserDoesNotRequirePreAuthArray.Count
+                            $reportTranslate.GetAbrADSecurityAssessment.SIDHistory = $DomainUsersWithSIDHistoryArray.Count
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
@@ -60,17 +60,17 @@ function Get-AbrADSecurityAssessment {
                     }
 
                     if ($HealthCheck.Domain.Security) {
-                        $OutObj | Where-Object { $_.'Enabled Inactive' -gt 0 } | Set-Style -Style Warning -Property 'Enabled Inactive'
-                        $OutObj | Where-Object { $_.'Reversible Encryption Password' -gt 0 } | Set-Style -Style Warning -Property 'Reversible Encryption Password'
-                        $OutObj | Where-Object { $_.'Password Not Required' -gt 0 } | Set-Style -Style Warning -Property 'Password Not Required'
-                        $OutObj | Where-Object { $_.'Password Never Expires' -gt 0 } | Set-Style -Style Warning -Property 'Password Never Expires'
-                        $OutObj | Where-Object { $_.'Kerberos DES' -gt 0 } | Set-Style -Style Warning -Property 'Kerberos DES'
-                        $OutObj | Where-Object { $_.'Does Not Require Pre Auth' -gt 0 } | Set-Style -Style Warning -Property 'Does Not Require Pre Auth'
-                        $OutObj | Where-Object { $_.'SID History' -gt 0 } | Set-Style -Style Warning -Property 'SID History'
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.EnabledInactive) -gt 0 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSecurityAssessment.EnabledInactive
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.ReversibleEncryptionPassword) -gt 0 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSecurityAssessment.ReversibleEncryptionPassword
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.PasswordNotRequired) -gt 0 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSecurityAssessment.PasswordNotRequired
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.PasswordNeverExpires) -gt 0 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSecurityAssessment.PasswordNeverExpires
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.KerberosDES) -gt 0 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSecurityAssessment.KerberosDES
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.DoesNotRequirePreAuth) -gt 0 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSecurityAssessment.DoesNotRequirePreAuth
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.SIDHistory) -gt 0 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSecurityAssessment.SIDHistory
                     }
 
                     $TableParams = @{
-                        Name = "User Account Security Assessment - $($Domain.DNSRoot.ToString().ToUpper())"
+                        Name = "$($reportTranslate.GetAbrADSecurityAssessment.UserAccountTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }
@@ -81,23 +81,23 @@ function Get-AbrADSecurityAssessment {
 
                     try {
                         $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } }
-                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Category -Title 'User Account Security Assessment' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 600 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Category -Title $reportTranslate.GetAbrADSecurityAssessment.UserAccountTitle -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 600 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (User Account Security Assessment Chart)"
                     }
                     if ($OutObj) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading4 'User Account Security Assessment' {
-                            Paragraph "The following section provides a comprehensive summary of account security posture and potential vulnerabilities within the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADSecurityAssessment.UserAccountTitle {
+                            Paragraph ($reportTranslate.GetAbrADSecurityAssessment.UserAccountParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                             BlankLine
                             if ($Chart) {
-                                Image -Text 'User Account Security Assessment - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                Image -Text $reportTranslate.GetAbrADSecurityAssessment.UserAccountDiagram -Align 'Center' -Percent 100 -Base64 $Chart
                             }
                             $OutObj | Table @TableParams
-                            Paragraph 'Health Check:' -Bold -Underline
+                            Paragraph $reportTranslate.GetAbrADSecurityAssessment.UserAccountHealthCheck -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text 'Corrective Actions:' -Bold
-                                Text 'Ensure there are no accounts with a weak security posture.' }
+                                Text $reportTranslate.GetAbrADSecurityAssessment.UserAccountCorrectiveActions -Bold
+                                Text $reportTranslate.GetAbrADSecurityAssessment.UserAccountBP }
                         }
                     }
                 } else {
@@ -109,32 +109,32 @@ function Get-AbrADSecurityAssessment {
             if ($InfoLevel.Domain -ge 2) {
                 try {
                     if ($PrivilegedUsers) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Privileged Users Assessment' {
-                            Paragraph "The following section provides a detailed assessment of privileged administrative accounts (user accounts with AdminCount attribute set to 1) within the domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersTitle {
+                            Paragraph ($reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                             BlankLine
                             $OutObj = [System.Collections.ArrayList]::new()
                             $AccountNotDelegated = $PrivilegedUsers | Where-Object { -not $_.AccountNotDelegated -and $_.objectClass -eq 'user' }
                             foreach ($PrivilegedUser in $PrivilegedUsers) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'Username' = $PrivilegedUser.SamAccountName
-                                        'Password Last Set' = switch ($PrivilegedUser.PasswordLastSet) {
+                                        $reportTranslate.GetAbrADSecurityAssessment.Username = $PrivilegedUser.SamAccountName
+                                        $reportTranslate.GetAbrADSecurityAssessment.PasswordLastSet = switch ($PrivilegedUser.PasswordLastSet) {
                                             $Null { '--' }
                                             default { $PrivilegedUser.PasswordLastSet.ToShortDateString() }
                                         }
-                                        'Last Logon Date' = switch ($PrivilegedUser.LastLogonDate) {
+                                        $reportTranslate.GetAbrADSecurityAssessment.LastLogonDate = switch ($PrivilegedUser.LastLogonDate) {
                                             $Null { '--' }
                                             default { $PrivilegedUser.LastLogonDate.ToShortDateString() }
                                         }
-                                        'Email Enabled?' = switch ([string]::IsNullOrEmpty($PrivilegedUser.EmailAddress)) {
-                                            $true { 'No' }
-                                            $false { 'Yes' }
-                                            default { 'Unknown' }
+                                        $reportTranslate.GetAbrADSecurityAssessment.EmailEnabled = switch ([string]::IsNullOrEmpty($PrivilegedUser.EmailAddress)) {
+                                            $true { $reportTranslate.GetAbrADSecurityAssessment.EmailEnabledNo }
+                                            $false { $reportTranslate.GetAbrADSecurityAssessment.EmailEnabledYes }
+                                            default { $reportTranslate.GetAbrADSecurityAssessment.EmailEnabledUnknown }
                                         }
-                                        'Trusted for Delegation' = switch ([string]::IsNullOrEmpty(($AccountNotDelegated | Where-Object { $_.SamAccountName -eq $PrivilegedUser.SamAccountName }))) {
-                                            $true { 'No' }
-                                            $false { 'Yes' }
-                                            default { 'Unknown' }
+                                        $reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegation = switch ([string]::IsNullOrEmpty(($AccountNotDelegated | Where-Object { $_.SamAccountName -eq $PrivilegedUser.SamAccountName }))) {
+                                            $true { $reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegationNo }
+                                            $false { $reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegationYes }
+                                            default { $reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegationUnknown }
                                         }
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -144,19 +144,19 @@ function Get-AbrADSecurityAssessment {
                             }
 
                             if ($HealthCheck.Domain.Security) {
-                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Email Enabled?' -eq 'Yes' })) {
-                                    $OBJ.'Email Enabled?' = "* $($OBJ.'Email Enabled?')"
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.EmailEnabled) -eq $reportTranslate.GetAbrADSecurityAssessment.EmailEnabledYes })) {
+                                    $OBJ.$($reportTranslate.GetAbrADSecurityAssessment.EmailEnabled) = "* $($reportTranslate.GetAbrADSecurityAssessment.EmailEnabledYes)"
                                 }
-                                $OutObj | Where-Object { $_.'Email Enabled?' -eq '* Yes' } | Set-Style -Style Warning -Property 'Email Enabled?'
+                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.EmailEnabled) -eq "* $($reportTranslate.GetAbrADSecurityAssessment.EmailEnabledYes)" } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSecurityAssessment.EmailEnabled
 
-                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Trusted for Delegation' -eq 'Yes' })) {
-                                    $OBJ.'Trusted for Delegation' = "** $($OBJ.'Trusted for Delegation')"
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegation) -eq $reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegationYes })) {
+                                    $OBJ.$($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegation) = "** $($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegationYes)"
                                 }
-                                $OutObj | Where-Object { $_.'Trusted for Delegation' -eq '** Yes' } | Set-Style -Style Warning -Property 'Trusted for Delegation'
+                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegation) -eq "** $($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegationYes)" } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegation
                             }
 
                             $TableParams = @{
-                                Name = "Privileged User Assessment - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 40, 15, 15, 15, 15
                             }
@@ -165,22 +165,22 @@ function Get-AbrADSecurityAssessment {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            if (($OutObj | Where-Object { $_.'Trusted for Delegation' -eq '** Yes' }) -or ($OutObj | Where-Object { $_.'Email Enabled?' -eq '* Yes' })) {
-                                Paragraph 'Health Check:' -Bold -Underline
+                            if (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegation) -eq "** $($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegationYes)" }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.EmailEnabled) -eq "* $($reportTranslate.GetAbrADSecurityAssessment.EmailEnabledYes)" })) {
+                                Paragraph $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersHealthCheck -Bold -Underline
                                 BlankLine
-                                Paragraph 'Security Best Practice:' -Bold
+                                Paragraph $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersSecurityBP -Bold
                                 BlankLine
-                                if ($OutObj | Where-Object { $_.'Email Enabled?' -eq '* Yes' }) {
+                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.EmailEnabled) -eq "* $($reportTranslate.GetAbrADSecurityAssessment.EmailEnabledYes)" }) {
                                     Paragraph {
-                                        Text '* Privileged accounts such as those belonging to any of the Administrators groups must not have configured email.'
+                                        Text $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersEmailNote
                                     }
                                     BlankLine
                                 }
-                                if ($OutObj | Where-Object { $_.'Trusted for Delegation' -eq '** Yes' }) {
+                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegation) -eq "** $($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegationYes)" }) {
                                     Paragraph {
-                                        Text '** Privileged accounts such as those belonging to any of the administrator groups must not be trusted for delegation. Allowing privileged accounts to be trusted for delegation provides a means for privilege escalation from a compromised system. Delegation of privileged accounts must be prohibited.'
-                                        Text 'Reference: '
-                                        Text 'https://www.stigviewer.com/stig/active_directory_domain/2017-12-15/finding/V-36435' -Color blue
+                                        Text $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersDelegationNote
+                                        Text $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersReference
+                                        Text $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersReferenceURL -Color blue
                                     }
                                 }
                             }
@@ -194,23 +194,23 @@ function Get-AbrADSecurityAssessment {
                 try {
                     $InactivePrivilegedUsers = $PrivilegedUsers | Where-Object { ($_.LastLogonDate -le (Get-Date).AddDays(-30)) -and ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
                     if ($InactivePrivilegedUsers) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Inactive Privileged Accounts' {
-                            Paragraph "The following section identifies privileged accounts in domain $($Domain.DNSRoot.ToString().ToUpper()) that have remained inactive for over 30 days and have not had their passwords changed in at least 365 days."
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADSecurityAssessment.InactivePrivilegedTitle {
+                            Paragraph ($reportTranslate.GetAbrADSecurityAssessment.InactivePrivilegedParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                             BlankLine
                             $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($InactivePrivilegedUser in $InactivePrivilegedUsers) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'Username' = $InactivePrivilegedUser.SamAccountName
-                                        'Created' = switch ($InactivePrivilegedUser.Created) {
+                                        $reportTranslate.GetAbrADSecurityAssessment.Username = $InactivePrivilegedUser.SamAccountName
+                                        $reportTranslate.GetAbrADSecurityAssessment.Created = switch ($InactivePrivilegedUser.Created) {
                                             $Null { '--' }
                                             default { $InactivePrivilegedUser.Created.ToShortDateString() }
                                         }
-                                        'Password Last Set' = switch ($InactivePrivilegedUser.PasswordLastSet) {
+                                        $reportTranslate.GetAbrADSecurityAssessment.PasswordLastSet = switch ($InactivePrivilegedUser.PasswordLastSet) {
                                             $Null { '--' }
                                             default { $InactivePrivilegedUser.PasswordLastSet.ToShortDateString() }
                                         }
-                                        'Last Logon Date' = switch ($InactivePrivilegedUser.LastLogonDate) {
+                                        $reportTranslate.GetAbrADSecurityAssessment.LastLogonDate = switch ($InactivePrivilegedUser.LastLogonDate) {
                                             $Null { '--' }
                                             default { $InactivePrivilegedUser.LastLogonDate.ToShortDateString() }
                                         }
@@ -226,7 +226,7 @@ function Get-AbrADSecurityAssessment {
                             }
 
                             $TableParams = @{
-                                Name = "Inactive Privileged Accounts - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADSecurityAssessment.InactivePrivilegedTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 40, 20, 20, 20
                             }
@@ -235,11 +235,11 @@ function Get-AbrADSecurityAssessment {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph 'Health Check:' -Bold -Underline
+                            Paragraph $reportTranslate.GetAbrADSecurityAssessment.InactivePrivilegedHealthCheck -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text 'Corrective Actions:' -Bold
-                                Text 'Unused or underutilized accounts in highly privileged groups, outside of any break-glass emergency accounts like the default Administrator account, should have their AD Admin privileges removed.'
+                                Text $reportTranslate.GetAbrADSecurityAssessment.InactivePrivilegedCorrectiveActions -Bold
+                                Text $reportTranslate.GetAbrADSecurityAssessment.InactivePrivilegedBP
                             }
                         }
                     } else {
@@ -251,25 +251,25 @@ function Get-AbrADSecurityAssessment {
                 try {
                     $UserSPNs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADUser -ResultPageSize 1000 -Server ($using:Domain).DNSRoot -Filter { ServicePrincipalName -like '*' } -Properties AdminCount, PasswordLastSet, LastLogonDate, ServicePrincipalName, TrustedForDelegation, TrustedtoAuthForDelegation }
                     if ($UserSPNs) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Service Accounts Assessment (Kerberoastable)' {
-                            Paragraph "The following section provides an overview of service accounts (user accounts with Service Principal Names) that are potentially vulnerable to Kerberoasting attacks in domain $($Domain.DNSRoot.ToString().ToUpper())."
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADSecurityAssessment.ServiceAccountsTitle {
+                            Paragraph ($reportTranslate.GetAbrADSecurityAssessment.ServiceAccountsParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                             BlankLine
                             $OutObj = [System.Collections.ArrayList]::new()
                             $AdminCount = ($UserSPNs | Where-Object { $_.AdminCount -eq 1 -and $_.SamAccountName -ne 'krbtgt' }).Name
                             foreach ($UserSPN in $UserSPNs) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'Username' = $UserSPN.SamAccountName
-                                        'Enabled' = $UserSPN.Enabled
-                                        'Password Last Set' = switch ($UserSPN.PasswordLastSet) {
+                                        $reportTranslate.GetAbrADSecurityAssessment.Username = $UserSPN.SamAccountName
+                                        $reportTranslate.GetAbrADSecurityAssessment.Enabled = $UserSPN.Enabled
+                                        $reportTranslate.GetAbrADSecurityAssessment.PasswordLastSet = switch ($UserSPN.PasswordLastSet) {
                                             $Null { '--' }
                                             default { $UserSPN.PasswordLastSet.ToShortDateString() }
                                         }
-                                        'Last Logon Date' = switch ($UserSPN.LastLogonDate) {
+                                        $reportTranslate.GetAbrADSecurityAssessment.LastLogonDate = switch ($UserSPN.LastLogonDate) {
                                             $Null { '--' }
                                             default { $UserSPN.LastLogonDate.ToShortDateString() }
                                         }
-                                        'Service Principal Name' = $UserSPN.ServicePrincipalName
+                                        $reportTranslate.GetAbrADSecurityAssessment.ServicePrincipalName = $UserSPN.ServicePrincipalName
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
@@ -278,15 +278,15 @@ function Get-AbrADSecurityAssessment {
                             }
 
                             if ($HealthCheck.Domain.Security) {
-                                $OutObj | Where-Object { $_.'Username' -in $AdminCount } | Set-Style -Style Critical
+                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.Username) -in $AdminCount } | Set-Style -Style Critical
 
-                                foreach ( $OBJ in ($OutObj | Where-Object { $_.'Username' -in $AdminCount })) {
-                                    $OBJ.Username = "** $($OBJ.Username)"
+                                foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.Username) -in $AdminCount })) {
+                                    $OBJ.$($reportTranslate.GetAbrADSecurityAssessment.Username) = "** $($OBJ.$($reportTranslate.GetAbrADSecurityAssessment.Username))"
                                 }
                             }
 
                             $TableParams = @{
-                                Name = "Service Accounts Assessment - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADSecurityAssessment.ServiceAccountsTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 30, 12, 14, 14, 30
                             }
@@ -295,13 +295,12 @@ function Get-AbrADSecurityAssessment {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
                             $OutObj | Table @TableParams
-                            Paragraph 'Health Check:' -Bold -Underline
+                            Paragraph $reportTranslate.GetAbrADSecurityAssessment.ServiceAccountsHealthCheck -Bold -Underline
                             BlankLine
-                            if ($OutObj | Where-Object { $_.'Username' -match '\*' }) {
+                            if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.Username) -match '\*' }) {
                                 Paragraph {
-                                    Text 'Security Best Practice:' -Bold
-
-                                    Text '** Attackers are most interested in Service Accounts that are members of highly privileged groups like Domain Admins. A quick way to check for this is to enumerate all user accounts with the attribute AdminCount equal to 1. This means an attacker may just ask Active Directory for all user accounts with an SPN and with AdminCount=1. Ensure that there are no privileged accounts that have SPNs assigned to them.'
+                                    Text $reportTranslate.GetAbrADSecurityAssessment.ServiceAccountsSecurityBP -Bold
+                                    Text $reportTranslate.GetAbrADSecurityAssessment.ServiceAccountsAdminCountNote
                                 }
                             }
                         }

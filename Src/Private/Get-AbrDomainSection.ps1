@@ -20,7 +20,7 @@ function Get-AbrDomainSection {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Domain information from $ForestInfo."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrDomainSection.Collecting -f $ForestInfo)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'Domain Section'
     }
 
@@ -35,7 +35,7 @@ function Get-AbrDomainSection {
                                 Write-Host "  - Collecting Domain information from $Domain."
                                 $DCs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
-                                    Paragraph 'This section provides a comprehensive overview of the Active Directory domain configuration, including key settings and critical details.'
+                                    Paragraph $reportTranslate.GetAbrDomainSection.Paragraph
                                     BlankLine
                                     Get-AbrADDomain -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADFSMO -Domain $DomainInfo -ValidDcFromDomain $ValidDC
@@ -44,7 +44,7 @@ function Get-AbrDomainSection {
                                     Get-AbrADHardening -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADDomainObject -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     if ($HealthCheck.Domain.Backup -or $HealthCheck.Domain.DFS -or $HealthCheck.Domain.SPN -or $HealthCheck.Domain.Security -or $HealthCheck.Domain.DuplicateObject) {
-                                        Section -Style Heading3 'Health Checks' {
+                                        Section -Style Heading3 $reportTranslate.GetAbrDomainSection.HealthChecks {
                                             Get-AbrADDomainLastBackup -Domain $DomainInfo
                                             Get-AbrADDFSHealth -Domain $DomainInfo -DCs $DCs -ValidDcFromDomain $ValidDC
                                             if ($DomainInfo -like $ADSystem.RootDomain) {
@@ -55,17 +55,17 @@ function Get-AbrDomainSection {
                                             Get-AbrADDuplicateObject -Domain $DomainInfo
                                         }
                                     }
-                                    Section -Style Heading3 'Domain Controllers' {
+                                    Section -Style Heading3 $reportTranslate.GetAbrDomainSection.DomainControllersSection {
                                         if ($Options.ShowDefinitionInfo) {
-                                            Paragraph 'A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain.'
+                                            Paragraph $reportTranslate.GetAbrDomainSection.DCDefinitionText
                                             BlankLine
                                         }
                                         if (-not $Options.ShowDefinitionInfo) {
                                             if ($InfoLevel.Domain -ge 2) {
-                                                Paragraph 'The following section presents an in-depth overview of the Active Directory domain controllers, including their configuration and key details.'
+                                                Paragraph $reportTranslate.GetAbrDomainSection.DCParagraphDetail
                                                 BlankLine
                                             } else {
-                                                Paragraph 'The following section provides a summary of the configuration and key details of the Active Directory domain controllers.'
+                                                Paragraph $reportTranslate.GetAbrDomainSection.DCParagraphSummary
                                                 BlankLine
                                             }
                                         }
@@ -79,12 +79,12 @@ function Get-AbrDomainSection {
                                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                                         Get-AbrADDCRoleFeature -DC $DC
                                                     } else {
-                                                        Write-PScriboMessage -IsWarning -Message "Unable to connect to $DC. Removing it from the $($DomainInfo.DNSRoot) report."
+                                                Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrDomainSection.UnableToConnect -f $DC, $DomainInfo.DNSRoot)
                                                     }
                                                 }
                                                 if ($RolesObj) {
-                                                    Section -Style Heading4 'Roles' {
-                                                        Paragraph "The following section provides a detailed overview of the installed roles and features on domain controllers in $($DomainInfo.DNSRoot)."
+                                                    Section -Style Heading4 $reportTranslate.GetAbrDomainSection.RolesSection {
+                                                        Paragraph ($reportTranslate.GetAbrDomainSection.RolesParagraph -f $DomainInfo.DNSRoot)
                                                         $RolesObj
                                                     }
                                                 }
@@ -97,14 +97,14 @@ function Get-AbrDomainSection {
                                                         }
                                                     }
                                                     if ($DCDiagObj) {
-                                                        Section -Style Heading4 'DC Diagnostic' {
-                                                            Paragraph 'The following section provides a summary of the Active Directory DC Diagnostic.'
+                                                        Section -Style Heading4 $reportTranslate.GetAbrDomainSection.DCDiagSection {
+                                                            Paragraph $reportTranslate.GetAbrDomainSection.DCDiagParagraph
                                                             BlankLine
                                                             $DCDiagObj
                                                         }
                                                     }
                                                 } catch {
-                                                    Write-PScriboMessage -IsWarning "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. ('DCDiag Information)"
+                                                    Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrDomainSection.WinRMErrorDCDiag -f $DC)
                                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                                 }
                                             }
@@ -115,13 +115,13 @@ function Get-AbrDomainSection {
                                                     }
                                                 }
                                                 if ($ADInfraServices) {
-                                                    Section -Style Heading4 'Infrastructure Services' {
-                                                        Paragraph 'The following section provides a detailed overview of the status and configuration of infrastructure services on the domain controllers.'
+                                                    Section -Style Heading4 $reportTranslate.GetAbrDomainSection.InfraServicesSection {
+                                                        Paragraph $reportTranslate.GetAbrDomainSection.InfraServicesParagraph
                                                         $ADInfraServices
                                                     }
                                                 }
                                             } catch {
-                                                Write-PScriboMessage -IsWarning -Message "Error: Connecting to remote server $DC failed: WinRM cannot complete the operation. (ADInfrastructureService)"
+                                                Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrDomainSection.WinRMErrorInfraService -f $DC)
                                                 Write-PScriboMessage -IsWarning $_.Exception.Message
                                             }
                                         }
@@ -131,7 +131,7 @@ function Get-AbrDomainSection {
                                     Get-AbrADOU -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                 }
                             } else {
-                                Write-PScriboMessage -Message "$($DomainInfo.DNSRoot) disabled in Exclude.Domain variable"
+                                Write-PScriboMessage -Message ($reportTranslate.GetAbrDomainSection.DomainExcluded -f $DomainInfo.DNSRoot)
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Active Directory Domain)"
@@ -143,18 +143,18 @@ function Get-AbrDomainSection {
                                 Status = 'Offline'
                             }
                         ) | Out-Null
-                        Write-PScriboMessage -IsWarning -Message "Unable to get an available DC in $($Domain) domain. Removing domain from the Domain section."
+                        Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrDomainSection.NoDCAvailable -f $Domain)
                     }
                 }
             }
             if ($DomainObj) {
-                Section -Style Heading1 'AD Domain Configuration' {
+                Section -Style Heading1 $reportTranslate.GetAbrDomainSection.SectionTitle {
                     if ($Options.ShowDefinitionInfo) {
-                        Paragraph "An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user, a group, or a hardware component such as a computer or printer. Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain, or an alternate version (which may end in .local)."
+                        Paragraph $reportTranslate.GetAbrDomainSection.DefinitionText
                         BlankLine
                     }
                     if (-not $Options.ShowDefinitionInfo) {
-                        Paragraph 'The following section provides a comprehensive overview of the Active Directory domain configuration, including critical settings and key operational details.'
+                        Paragraph $reportTranslate.GetAbrDomainSection.ParagraphDetail
                         BlankLine
                     }
                     $DomainObj

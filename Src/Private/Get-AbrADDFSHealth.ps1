@@ -22,7 +22,7 @@
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Domain DFS Health information on $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADDFSHealth.Collecting -f $Domain.DNSRoot)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'DFS Health'
     }
 
@@ -33,36 +33,36 @@
                     $DFS = Get-WinADDFSHealth -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains -ExcludeDomainControllers $Options.Exclude.DCs
                 } else { $DFS = Get-WinADDFSHealth -Domain $Domain.DNSRoot -Credential $Credential -ExcludeDomains $Options.Exclude.Domains }
                 if ($DFS) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Replication Status' {
-                        Paragraph "This section provides the replication status of the SYSVOL folder for domain $($Domain.DNSRoot.ToString().ToUpper())."
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDFSHealth.SysvolReplicationTitle {
+                        Paragraph ($reportTranslate.GetAbrADDFSHealth.SysvolReplicationParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Controller in $DCs) {
                             try {
                                 $RepState = $DFS | Where-Object { $_.DomainController -eq $Controller.Split('.')[0] } | Select-Object -Property ReplicationState, GroupPolicyCount, SysvolCount, IdenticalCount, StopReplicationOnAutoRecovery
                                 $inObj = [ordered] @{
-                                    'DC Name' = $Controller.Split('.')[0]
-                                    'Replication Status' = switch ([string]::IsNullOrEmpty($RepState.ReplicationState)) {
-                                        $true { 'Offline' }
+                                    $reportTranslate.GetAbrADDFSHealth.DCName = $Controller.Split('.')[0]
+                                    $reportTranslate.GetAbrADDFSHealth.ReplicationStatus = switch ([string]::IsNullOrEmpty($RepState.ReplicationState)) {
+                                        $true { $reportTranslate.GetAbrADDFSHealth.SysvolReplicationOffline }
                                         $false { $RepState.ReplicationState }
                                         default { '--' }
                                     }
-                                    'GPO Count' = switch ([string]::IsNullOrEmpty($RepState.GroupPolicyCount)) {
+                                    $reportTranslate.GetAbrADDFSHealth.GPOCount = switch ([string]::IsNullOrEmpty($RepState.GroupPolicyCount)) {
                                         $true { '0' }
                                         $false { $RepState.GroupPolicyCount }
                                         default { '--' }
                                     }
-                                    'Sysvol Count' = switch ([string]::IsNullOrEmpty($RepState.SysvolCount)) {
+                                    $reportTranslate.GetAbrADDFSHealth.SysvolCount = switch ([string]::IsNullOrEmpty($RepState.SysvolCount)) {
                                         $true { '0' }
                                         $false { $RepState.SysvolCount }
                                         default { '--' }
                                     }
-                                    'Identical Count' = switch ([string]::IsNullOrEmpty($RepState.IdenticalCount)) {
+                                    $reportTranslate.GetAbrADDFSHealth.IdenticalCount = switch ([string]::IsNullOrEmpty($RepState.IdenticalCount)) {
                                         $true { '0' }
                                         $false { $RepState.IdenticalCount }
                                         default { '--' }
                                     }
-                                    'Stop Replication On AutoRecovery' = switch ([string]::IsNullOrEmpty($RepState.StopReplicationOnAutoRecovery)) {
+                                    $reportTranslate.GetAbrADDFSHealth.StopReplicationOnAutoRecovery = switch ([string]::IsNullOrEmpty($RepState.StopReplicationOnAutoRecovery)) {
                                         $true { '0' }
                                         $false { $RepState.StopReplicationOnAutoRecovery }
                                         default { '--' }
@@ -86,14 +86,14 @@
                                 'Initialized',
                                 'Initial synchronization'
                             )
-                            $OutObj | Where-Object { $_.'Identical Count' -like 'No' } | Set-Style -Style Warning -Property 'Identical Count'
-                            $OutObj | Where-Object { $_.'Replication Status' -eq 'Normal' } | Set-Style -Style OK -Property 'Replication Status'
-                            $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError } | Set-Style -Style Critical -Property 'Replication Status'
-                            $OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property 'Replication Status'
+                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDFSHealth.IdenticalCount) -like 'No' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDFSHealth.IdenticalCount
+                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDFSHealth.ReplicationStatus) -eq 'Normal' } | Set-Style -Style OK -Property $reportTranslate.GetAbrADDFSHealth.ReplicationStatus
+                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDFSHealth.ReplicationStatus) -in $ReplicationStatusError } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDFSHealth.ReplicationStatus
+                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDFSHealth.ReplicationStatus) -in $ReplicationStatusWarn } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDFSHealth.ReplicationStatus
                         }
 
                         $TableParams = @{
-                            Name = "Sysvol Replication Status - $($Domain.DNSRoot.ToString().ToUpper()))"
+                            Name = "$($reportTranslate.GetAbrADDFSHealth.SysvolReplicationTableName) - $($Domain.DNSRoot.ToString().ToUpper()))"
                             List = $false
                             ColumnWidths = 20, 16, 16, 16, 16, 16
                         }
@@ -101,19 +101,19 @@
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Sort-Object -Property 'DC Name' | Table @TableParams
-                        if ($HealthCheck.Domain.DFS -and (($OutObj | Where-Object { $_.'Identical Count' -like 'No' }) -or ($OutObj | Where-Object { $_.'Replication Status' -in $ReplicationStatusError }))) {
-                            Paragraph 'Health Check:' -Bold -Underline
+                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDFSHealth.DCName | Table @TableParams
+                        if ($HealthCheck.Domain.DFS -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDFSHealth.IdenticalCount) -like 'No' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDFSHealth.ReplicationStatus) -in $ReplicationStatusError }))) {
+                            Paragraph $reportTranslate.GetAbrADDFSHealth.SysvolReplicationHealthCheck -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text 'Corrective Actions:' -Bold
-                                Text 'SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains.'
+                                Text $reportTranslate.GetAbrADDFSHealth.SysvolReplicationCorrectiveActions -Bold
+                                Text $reportTranslate.GetAbrADDFSHealth.SysvolReplicationBP
                             }
                             BlankLine
                         }
                     }
                 } else {
-                    Write-PScriboMessage -Message "No DFS information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message ($reportTranslate.GetAbrADDFSHealth.SysvolReplicationNoData -f $Domain.DNSRoot)
                 }
             } catch {
                 Write-PScriboMessage -IsWarning -Message "Sysvol Replication Status Table Section: $($_.Exception.Message)"
@@ -136,16 +136,16 @@
                     Write-PScriboMessage -IsWarning -Message "Sysvol Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
                 }
                 if ($SYSVOLFolder) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Sysvol Content Status' {
-                        Paragraph "The following section provides the SYSVOL health status for domain $($Domain.DNSRoot.ToString().ToUpper())."
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDFSHealth.SysvolContentTitle {
+                        Paragraph ($reportTranslate.GetAbrADDFSHealth.SysvolContentParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Extension in $SYSVOLFolder) {
                             try {
                                 $inObj = [ordered] @{
-                                    'Extension' = $Extension.Extension
-                                    'File Count' = $Extension.Count
-                                    'Size' = "$($Extension.TotalSize) MB"
+                                    $reportTranslate.GetAbrADDFSHealth.Extension = $Extension.Extension
+                                    $reportTranslate.GetAbrADDFSHealth.FileCount = $Extension.Count
+                                    $reportTranslate.GetAbrADDFSHealth.Size = "$($Extension.TotalSize) MB"
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
@@ -154,11 +154,11 @@
                         }
 
                         if ($HealthCheck.Domain.DFS) {
-                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico', '.cmtx') } | Set-Style -Style Warning -Property 'Extension'
+                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDFSHealth.Extension) -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico', '.cmtx') } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDFSHealth.Extension
                         }
 
                         $TableParams = @{
-                            Name = "Sysvol Content Status - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDFSHealth.SysvolContentTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 33, 33, 34
                         }
@@ -166,18 +166,18 @@
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
-                        if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') }) {
-                            Paragraph 'Health Check:' -Bold -Underline
+                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDFSHealth.Extension | Table @TableParams
+                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDFSHealth.Extension) -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') }) {
+                            Paragraph $reportTranslate.GetAbrADDFSHealth.ContentHealthCheck -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text 'Corrective Actions:' -Bold
-                                Text 'Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Sysvol folder to maintain a healthy and secure Active Directory environment.'
+                                Text $reportTranslate.GetAbrADDFSHealth.ContentCorrectiveActions -Bold
+                                Text $reportTranslate.GetAbrADDFSHealth.ContentSysvolBP
                             }
                         }
                     }
                 } else {
-                    Write-PScriboMessage -Message "No SYSVOL folder information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message ($reportTranslate.GetAbrADDFSHealth.SysvolContentNoData -f $Domain.DNSRoot)
                 }
             } catch {
                 Write-PScriboMessage -IsWarning -Message "Sysvol Health Table Section: $($_.Exception.Message)"
@@ -199,16 +199,16 @@
                     Write-PScriboMessage -IsWarning -Message "Netlogon Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
                 }
                 if ($NetlogonFolder) {
-                    Section -ExcludeFromTOC -Style NOTOCHeading4 'Netlogon Content Status' {
-                        Paragraph "The following section provides the Netlogon health status for domain $($Domain.DNSRoot.ToString().ToUpper())."
+                    Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDFSHealth.NetlogonContentTitle {
+                        Paragraph ($reportTranslate.GetAbrADDFSHealth.NetlogonContentParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
                         $OutObj = [System.Collections.ArrayList]::new()
                         foreach ($Extension in $NetlogonFolder) {
                             try {
                                 $inObj = [ordered] @{
-                                    'Extension' = $Extension.Extension
-                                    'File Count' = $Extension.Count
-                                    'Size' = "$($Extension.TotalSize) MB"
+                                    $reportTranslate.GetAbrADDFSHealth.Extension = $Extension.Extension
+                                    $reportTranslate.GetAbrADDFSHealth.FileCount = $Extension.Count
+                                    $reportTranslate.GetAbrADDFSHealth.Size = "$($Extension.TotalSize) MB"
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
@@ -217,11 +217,11 @@
                         }
 
                         if ($HealthCheck.Domain.DFS) {
-                            $OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico', '.cmtx') } | Set-Style -Style Warning -Property 'Extension'
+                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDFSHealth.Extension) -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico', '.cmtx') } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDFSHealth.Extension
                         }
 
                         $TableParams = @{
-                            Name = "Netlogon Content Status - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDFSHealth.NetlogonContentTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 33, 33, 34
                         }
@@ -229,18 +229,18 @@
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Sort-Object -Property 'Extension' | Table @TableParams
-                        if ($OutObj | Where-Object { $_.'Extension' -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') }) {
-                            Paragraph 'Health Check:' -Bold -Underline
+                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDFSHealth.Extension | Table @TableParams
+                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDFSHealth.Extension) -notin ('.bat', '.exe', '.nix', '.vbs', '.pol', '.reg', '.xml', '.admx', '.adml', '.inf', '.ini', '.adm', '.kix', '.msi', '.ps1', '.cmd', '.ico') }) {
+                            Paragraph $reportTranslate.GetAbrADDFSHealth.ContentHealthCheck -Bold -Underline
                             BlankLine
                             Paragraph {
-                                Text 'Corrective Actions:' -Bold
-                                Text 'Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Netlogon folder to maintain a healthy and secure Active Directory environment.'
+                                Text $reportTranslate.GetAbrADDFSHealth.ContentCorrectiveActions -Bold
+                                Text $reportTranslate.GetAbrADDFSHealth.ContentNetlogonBP
                             }
                         }
                     }
                 } else {
-                    Write-PScriboMessage -Message "No NETLOGON folder information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message ($reportTranslate.GetAbrADDFSHealth.NetlogonContentNoData -f $Domain.DNSRoot)
                 }
             } catch {
                 Write-PScriboMessage -IsWarning -Message "Netlogon Content Status Section: $($_.Exception.Message)"

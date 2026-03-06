@@ -21,7 +21,7 @@ function Get-AbrADDomain {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Domain information on forest $Forestinfo."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADDomain.Collecting -f $Forestinfo)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain'
     }
 
@@ -37,33 +37,33 @@ function Get-AbrADDomain {
                 $RIDsRemaining = $CompleteSIDS - $RIDsIssued
                 if ($Domain) {
                     $inObj = [ordered] @{
-                        'Domain Name' = $Domain.Name
-                        'NetBIOS Name' = $Domain.NetBIOSName
-                        'Domain SID' = $Domain.DomainSID
-                        'Domain Functional Level' = $Domain.DomainMode
-                        'Domains' = $Domain.Domains
-                        'Forest' = $Domain.Forest
-                        'Parent Domain' = $Domain.ParentDomain
-                        'Replica Directory Servers' = $Domain.ReplicaDirectoryServers
-                        'Child Domains' = $Domain.ChildDomains
-                        'Domain Path' = ConvertTo-ADCanonicalName -DN $Domain.DistinguishedName -Domain $Domain.DNSRoot
-                        'Computers Container' = $Domain.ComputersContainer
-                        'Domain Controllers Container' = $Domain.DomainControllersContainer
-                        'Systems Container' = $Domain.SystemsContainer
-                        'Users Container' = $Domain.UsersContainer
-                        'Deleted Objects Container' = $Domain.DeletedObjectsContainer
-                        'Foreign Security Principals Container' = $Domain.ForeignSecurityPrincipalsContainer
-                        'Lost And Found Container' = $Domain.LostAndFoundContainer
-                        'Quotas Container' = $Domain.QuotasContainer
-                        'ReadOnly Replica Directory Servers' = $Domain.ReadOnlyReplicaDirectoryServers
-                        'ms-DS-MachineAccountQuota' = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADObject -Server $using:ValidDcFromDomain -Identity (($using:Domain).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota' }
-                        'RID Issued/Available' = try { "$($RIDsIssued) / $($RIDsRemaining) ($([math]::Truncate($CompleteSIDS / $RIDsRemaining))% Issued)" } catch { "$($RIDsIssued)/$($RIDsRemaining)" }
+                        $reportTranslate.GetAbrADDomain.DomainName = $Domain.Name
+                        $reportTranslate.GetAbrADDomain.NetBIOSName = $Domain.NetBIOSName
+                        $reportTranslate.GetAbrADDomain.DomainSID = $Domain.DomainSID
+                        $reportTranslate.GetAbrADDomain.DomainFunctionalLevel = $Domain.DomainMode
+                        $reportTranslate.GetAbrADDomain.Domains = $Domain.Domains
+                        $reportTranslate.GetAbrADDomain.Forest = $Domain.Forest
+                        $reportTranslate.GetAbrADDomain.ParentDomain = $Domain.ParentDomain
+                        $reportTranslate.GetAbrADDomain.ReplicaDirectoryServers = $Domain.ReplicaDirectoryServers
+                        $reportTranslate.GetAbrADDomain.ChildDomains = $Domain.ChildDomains
+                        $reportTranslate.GetAbrADDomain.DomainPath = ConvertTo-ADCanonicalName -DN $Domain.DistinguishedName -Domain $Domain.DNSRoot
+                        $reportTranslate.GetAbrADDomain.ComputersContainer = $Domain.ComputersContainer
+                        $reportTranslate.GetAbrADDomain.DomainControllersContainer = $Domain.DomainControllersContainer
+                        $reportTranslate.GetAbrADDomain.SystemsContainer = $Domain.SystemsContainer
+                        $reportTranslate.GetAbrADDomain.UsersContainer = $Domain.UsersContainer
+                        $reportTranslate.GetAbrADDomain.DeletedObjectsContainer = $Domain.DeletedObjectsContainer
+                        $reportTranslate.GetAbrADDomain.ForeignSecurityPrincipalsContainer = $Domain.ForeignSecurityPrincipalsContainer
+                        $reportTranslate.GetAbrADDomain.LostAndFoundContainer = $Domain.LostAndFoundContainer
+                        $reportTranslate.GetAbrADDomain.QuotasContainer = $Domain.QuotasContainer
+                        $reportTranslate.GetAbrADDomain.ReadOnlyReplicaDirectoryServers = $Domain.ReadOnlyReplicaDirectoryServers
+                        $reportTranslate.GetAbrADDomain.MachineAccountQuota = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADObject -Server $using:ValidDcFromDomain -Identity (($using:Domain).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota' }
+                        $reportTranslate.GetAbrADDomain.RIDIssuedAvailable = try { "$($RIDsIssued) / $($RIDsRemaining) ($([math]::Truncate($CompleteSIDS / $RIDsRemaining))% Issued)" } catch { "$($RIDsIssued)/$($RIDsRemaining)" }
                     }
                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                     if ($HealthCheck.Domain.BestPractice) {
                         if ([math]::Truncate($CompleteSIDS / $RIDsRemaining) -gt 80) {
-                            $OutObj | Set-Style -Style Warning -Property 'RID Issued/Available'
+                            $OutObj | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomain.RIDIssuedAvailable
                         }
                     }
 
@@ -77,16 +77,16 @@ function Get-AbrADDomain {
                     }
                     $OutObj | Table @TableParams
                     if ($HealthCheck.Domain.BestPractice -and ([math]::Truncate($CompleteSIDS / $RIDsRemaining) -gt 80)) {
-                        Paragraph 'Health Check:' -Bold -Underline
+                        Paragraph $reportTranslate.GetAbrADDomain.HealthCheck -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text 'Best Practice:' -Bold
-                            Text 'The RID Issued percentage exceeds 80%. It is recommended to evaluate the utilization of RIDs to prevent potential exhaustion and ensure the stability of the domain. The Relative Identifier (RID) is a crucial component in the SID (Security Identifier) for objects within the domain. Exhaustion of the RID pool can lead to the inability to create new security principals, such as user or computer accounts. Regular monitoring and proactive management of the RID pool are essential to maintain domain health and avoid disruptions.'
+                            Text $reportTranslate.GetAbrADDomain.BestPractice -Bold
+                            Text $reportTranslate.GetAbrADDomain.RIDBestPractice
                         }
                         BlankLine
                         Paragraph {
-                            Text 'Reference:' -Bold
-                            Text 'https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736' -Color blue
+                            Text $reportTranslate.GetAbrADDomain.Reference -Bold
+                            Text $reportTranslate.GetAbrADDomain.RIDReference -Color blue
                         }
                     }
                 }
