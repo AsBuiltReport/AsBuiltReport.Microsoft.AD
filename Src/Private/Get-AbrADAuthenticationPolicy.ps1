@@ -21,7 +21,7 @@ function Get-AbrADAuthenticationPolicy {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Authentication Policy and Silo information from $($Domain.DNSRoot.toUpper())."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADAuthenticationPolicy.Collecting -f $Domain.DNSRoot.toUpper())
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Authentication Policy Silos'
     }
 
@@ -32,30 +32,30 @@ function Get-AbrADAuthenticationPolicy {
             $AuthPolicySilos = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADAuthenticationPolicySilo -Filter * -Properties $using:SiloProperties -Server $using:ValidDcFromDomain -ErrorAction SilentlyContinue }
             $AuthPolicies = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADAuthenticationPolicy -Filter * -Properties $using:PolicyProperties -Server $using:ValidDcFromDomain -ErrorAction SilentlyContinue }
             if ($AuthPolicySilos -or $AuthPolicies) {
-                Section -Style Heading3 'Authentication Policies and Silos' {
-                    Paragraph 'The following section provides an overview of Authentication Policy Silos and Authentication Policies configured in the domain. Authentication Policy Silos restrict where accounts can sign in and apply authentication policies to control the Kerberos ticket-granting ticket (TGT) lifetime for privileged accounts.'
+                Section -Style Heading3 $reportTranslate.GetAbrADAuthenticationPolicy.SectionTitle {
+                    Paragraph $reportTranslate.GetAbrADAuthenticationPolicy.SectionParagraph
                     BlankLine
                     if ($AuthPolicySilos) {
                         try {
-                            Section -Style Heading4 'Authentication Policy Silos' {
-                                Paragraph "The following table provides a summary of Authentication Policy Silos configured in domain $($Domain.DNSRoot.ToString().ToUpper())."
+                            Section -Style Heading4 $reportTranslate.GetAbrADAuthenticationPolicy.SilosSection {
+                                Paragraph ($reportTranslate.GetAbrADAuthenticationPolicy.SilosParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                                 BlankLine
                                 $SiloInfo = [System.Collections.ArrayList]::new()
                                 foreach ($Silo in $AuthPolicySilos) {
                                     try {
                                         $inObj = [ordered] @{
-                                            'Name' = $Silo.Name
-                                            'Enforce' = $Silo.Enforce
-                                            'Description' = & {
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.SiloName = $Silo.Name
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.SiloEnforce = $Silo.Enforce
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.SiloDescription = & {
                                                 if ([string]::IsNullOrEmpty($Silo.Description)) { '--' } else { $Silo.Description }
                                             }
-                                            'User Authentication Policy' = & {
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.UserAuthPolicy = & {
                                                 if ([string]::IsNullOrEmpty($Silo.UserAuthenticationPolicy)) { '--' } else { $Silo.UserAuthenticationPolicy }
                                             }
-                                            'Service Authentication Policy' = & {
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.ServiceAuthPolicy = & {
                                                 if ([string]::IsNullOrEmpty($Silo.ServiceAuthenticationPolicy)) { '--' } else { $Silo.ServiceAuthenticationPolicy }
                                             }
-                                            'Computer Authentication Policy' = & {
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.ComputerAuthPolicy = & {
                                                 if ([string]::IsNullOrEmpty($Silo.ComputerAuthenticationPolicy)) { '--' } else { $Silo.ComputerAuthenticationPolicy }
                                             }
                                         }
@@ -66,7 +66,7 @@ function Get-AbrADAuthenticationPolicy {
                                 }
 
                                 if ($HealthCheck.Domain.Security) {
-                                    $SiloInfo | Where-Object { $_.'Enforce' -eq 'No' } | Set-Style -Style Warning -Property 'Enforce'
+                                    $SiloInfo | Where-Object { $_.$($reportTranslate.GetAbrADAuthenticationPolicy.SiloEnforce) -eq 'No' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADAuthenticationPolicy.SiloEnforce
                                 }
 
                                 if ($InfoLevel.Domain -ge 2) {
@@ -87,7 +87,7 @@ function Get-AbrADAuthenticationPolicy {
                                     $TableParams = @{
                                         Name = "Authentication Policy Silos - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
-                                        Columns = 'Name', 'Enforce', 'User Authentication Policy', 'Service Authentication Policy', 'Computer Authentication Policy'
+                                        Columns = $reportTranslate.GetAbrADAuthenticationPolicy.SiloName, $reportTranslate.GetAbrADAuthenticationPolicy.SiloEnforce, $reportTranslate.GetAbrADAuthenticationPolicy.UserAuthPolicy, $reportTranslate.GetAbrADAuthenticationPolicy.ServiceAuthPolicy, $reportTranslate.GetAbrADAuthenticationPolicy.ComputerAuthPolicy
                                         ColumnWidths = 20, 12, 23, 23, 22
                                     }
                                     if ($Report.ShowTableCaptions) {
@@ -96,12 +96,12 @@ function Get-AbrADAuthenticationPolicy {
                                     $SiloInfo | Table @TableParams
                                 }
 
-                                if ($HealthCheck.Domain.Security -and ($SiloInfo | Where-Object { $_.'Enforce' -eq 'No' })) {
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                if ($HealthCheck.Domain.Security -and ($SiloInfo | Where-Object { $_.$($reportTranslate.GetAbrADAuthenticationPolicy.SiloEnforce) -eq 'No' })) {
+                                    Paragraph $reportTranslate.GetAbrADAuthenticationPolicy.HealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text 'Best Practice:' -Bold
-                                        Text 'Authentication Policy Silos should be set to Enforce mode to actively restrict where privileged accounts can authenticate. Silos in audit mode only log events without enforcing restrictions.'
+                                        Text $reportTranslate.GetAbrADAuthenticationPolicy.BestPractice -Bold
+                                        Text $reportTranslate.GetAbrADAuthenticationPolicy.SiloBP
                                     }
                                     BlankLine
                                 }
@@ -116,12 +116,12 @@ function Get-AbrADAuthenticationPolicy {
                                                 }
                                                 if ($MemberObj) {
                                                     $inObj = [ordered] @{
-                                                        'Silo Name' = $Silo.Name
-                                                        'Member Name' = & {
+                                                        $reportTranslate.GetAbrADAuthenticationPolicy.SiloMemberSiloName = $Silo.Name
+                                                        $reportTranslate.GetAbrADAuthenticationPolicy.SiloMemberName = & {
                                                             if ($MemberObj.SamAccountName) { $MemberObj.SamAccountName } else { $MemberObj.Name }
                                                         }
-                                                        'Object Class' = $TextInfo.ToTitleCase($MemberObj.ObjectClass)
-                                                        'Distinguished Name' = $MemberObj.DistinguishedName
+                                                        $reportTranslate.GetAbrADAuthenticationPolicy.ObjectClass = $TextInfo.ToTitleCase($MemberObj.ObjectClass)
+                                                        $reportTranslate.GetAbrADAuthenticationPolicy.DistinguishedName = $MemberObj.DistinguishedName
                                                     }
                                                     $SiloMemberInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                                 }
@@ -131,8 +131,8 @@ function Get-AbrADAuthenticationPolicy {
                                         }
                                     }
                                     if ($SiloMemberInfo) {
-                                        Section -Style NOTOCHeading5 -ExcludeFromTOC 'Silo Members' {
-                                            Paragraph "The following table lists the accounts assigned to Authentication Policy Silos in domain $($Domain.DNSRoot.ToString().ToUpper())."
+                                        Section -Style NOTOCHeading5 -ExcludeFromTOC $reportTranslate.GetAbrADAuthenticationPolicy.SiloMembersSection {
+                                            Paragraph ($reportTranslate.GetAbrADAuthenticationPolicy.SiloMembersParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                                             BlankLine
                                             $TableParams = @{
                                                 Name = "Authentication Policy Silo Members - $($Domain.DNSRoot.ToString().ToUpper())"
@@ -157,25 +157,25 @@ function Get-AbrADAuthenticationPolicy {
                     }
                     if ($AuthPolicies) {
                         try {
-                            Section -Style Heading4 'Authentication Policies' {
-                                Paragraph "The following table provides a summary of Authentication Policies configured in domain $($Domain.DNSRoot.ToString().ToUpper())."
+                            Section -Style Heading4 $reportTranslate.GetAbrADAuthenticationPolicy.PoliciesSection {
+                                Paragraph ($reportTranslate.GetAbrADAuthenticationPolicy.PoliciesParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                                 BlankLine
                                 $PolicyInfo = [System.Collections.ArrayList]::new()
                                 foreach ($Policy in $AuthPolicies) {
                                     try {
                                         $inObj = [ordered] @{
-                                            'Name' = $Policy.Name
-                                            'Enforce' = $Policy.Enforce
-                                            'Description' = & {
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.PolicyName = $Policy.Name
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.PolicyEnforce = $Policy.Enforce
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.PolicyDescription = & {
                                                 if ([string]::IsNullOrEmpty($Policy.Description)) { '--' } else { $Policy.Description }
                                             }
-                                            'User TGT Lifetime (mins)' = & {
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.UserTGTLifetime = & {
                                                 if ($null -eq $Policy.UserTGTLifetimeMins -or $Policy.UserTGTLifetimeMins -eq 0) { '--' } else { $Policy.UserTGTLifetimeMins }
                                             }
-                                            'Service TGT Lifetime (mins)' = & {
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.ServiceTGTLifetime = & {
                                                 if ($null -eq $Policy.ServiceTGTLifetimeMins -or $Policy.ServiceTGTLifetimeMins -eq 0) { '--' } else { $Policy.ServiceTGTLifetimeMins }
                                             }
-                                            'Computer TGT Lifetime (mins)' = & {
+                                            $reportTranslate.GetAbrADAuthenticationPolicy.ComputerTGTLifetime = & {
                                                 if ($null -eq $Policy.ComputerTGTLifetimeMins -or $Policy.ComputerTGTLifetimeMins -eq 0) { '--' } else { $Policy.ComputerTGTLifetimeMins }
                                             }
                                         }
@@ -186,7 +186,7 @@ function Get-AbrADAuthenticationPolicy {
                                 }
 
                                 if ($HealthCheck.Domain.Security) {
-                                    $PolicyInfo | Where-Object { $_.'Enforce' -eq 'No' } | Set-Style -Style Warning -Property 'Enforce'
+                                    $PolicyInfo | Where-Object { $_.$($reportTranslate.GetAbrADAuthenticationPolicy.PolicyEnforce) -eq 'No' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADAuthenticationPolicy.PolicyEnforce
                                 }
 
                                 if ($InfoLevel.Domain -ge 2) {
@@ -207,7 +207,7 @@ function Get-AbrADAuthenticationPolicy {
                                     $TableParams = @{
                                         Name = "Authentication Policies - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
-                                        Columns = 'Name', 'Enforce', 'User TGT Lifetime (mins)', 'Service TGT Lifetime (mins)', 'Computer TGT Lifetime (mins)'
+                                        Columns = $reportTranslate.GetAbrADAuthenticationPolicy.PolicyName, $reportTranslate.GetAbrADAuthenticationPolicy.PolicyEnforce, $reportTranslate.GetAbrADAuthenticationPolicy.UserTGTLifetime, $reportTranslate.GetAbrADAuthenticationPolicy.ServiceTGTLifetime, $reportTranslate.GetAbrADAuthenticationPolicy.ComputerTGTLifetime
                                         ColumnWidths = 20, 12, 23, 23, 22
                                     }
                                     if ($Report.ShowTableCaptions) {
@@ -216,12 +216,12 @@ function Get-AbrADAuthenticationPolicy {
                                     $PolicyInfo | Table @TableParams
                                 }
 
-                                if ($HealthCheck.Domain.Security -and ($PolicyInfo | Where-Object { $_.'Enforce' -eq 'No' })) {
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                if ($HealthCheck.Domain.Security -and ($PolicyInfo | Where-Object { $_.$($reportTranslate.GetAbrADAuthenticationPolicy.PolicyEnforce) -eq 'No' })) {
+                                    Paragraph $reportTranslate.GetAbrADAuthenticationPolicy.HealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text 'Best Practice:' -Bold
-                                        Text 'Authentication Policies should be set to Enforce mode to actively restrict Kerberos TGT lifetimes and account sign-in. Policies in audit mode only log events without enforcing restrictions.'
+                                        Text $reportTranslate.GetAbrADAuthenticationPolicy.BestPractice -Bold
+                                        Text $reportTranslate.GetAbrADAuthenticationPolicy.PolicyBP
                                     }
                                     BlankLine
                                 }

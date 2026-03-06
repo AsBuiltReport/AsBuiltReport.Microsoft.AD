@@ -1,4 +1,4 @@
-﻿function Get-AbrADCARoot {
+function Get-AbrADCARoot {
     <#
     .SYNOPSIS
     Used by As Built Report to retrieve Microsoft Active Directory Root Certification Authority information.
@@ -19,15 +19,15 @@
     )
 
     begin {
-        Write-PScriboMessage -Message 'Collecting AD Certification Authority Per Domain information.'
+        Write-PScriboMessage -Message $reportTranslate.GetAbrADCARoot.Collecting
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Certification Authority Per Domain'
     }
 
     process {
         try {
             if ($CAs | Where-Object { $_.IsRoot -like 'True' }) {
-                Section -Style Heading2 'Enterprise Root Certificate Authority' {
-                    Paragraph 'The following section provides detailed information about the Enterprise Root Certificate Authority (CA) configuration and operational status.'
+                Section -Style Heading2 $reportTranslate.GetAbrADCARoot.Heading {
+                    Paragraph $reportTranslate.GetAbrADCARoot.Paragraph
                     BlankLine
                     foreach ($CA in ($CAs | Where-Object { $_.IsRoot -like 'True' })) {
                         if (Get-DCWinRMState -ComputerName $CA.ComputerName -DCStatus ([ref]$DCStatus)) {
@@ -38,36 +38,36 @@
                                     Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\$($using:CA.DisplayName)\" -Name 'AuditFilter'
                                 }
                                 $inObj = [ordered] @{
-                                    'CA Name' = $CA.DisplayName
-                                    'Server Name' = $CA.ComputerName.ToString().ToUpper().Split('.')[0]
-                                    'Type' = $CA.Type
-                                    'Config String' = $CA.ConfigString
-                                    'Operating System' = $CA.OperatingSystem
-                                    'Certificate' = $CA.Certificate
-                                    'Auditing' = switch ($AuditingIssue) {
-                                        $Null { 'Not Configured' }
-                                        0 { 'Not Configured' }
-                                        1 { 'Start and stop Active Directory® Certificate Services (1)' }
-                                        2 { 'Back up and restore the CA database (2)' }
-                                        4 { 'Issue and manage certificate requests (4)' }
-                                        8 { 'Revoke certificates and publish CRLs (8)' }
-                                        16 { 'Change CA security settings (16)' }
-                                        32 { 'Change CA security settings (32)' }
-                                        64 { 'Change CA configuration (64)' }
-                                        127 { 'Auditing is fully enabled (127)' }
-                                        default { 'Unknown' }
+                                    $reportTranslate.GetAbrADCARoot.CAName = $CA.DisplayName
+                                    $reportTranslate.GetAbrADCARoot.ServerName = $CA.ComputerName.ToString().ToUpper().Split('.')[0]
+                                    $reportTranslate.GetAbrADCARoot.Type = $CA.Type
+                                    $reportTranslate.GetAbrADCARoot.ConfigString = $CA.ConfigString
+                                    $reportTranslate.GetAbrADCARoot.OperatingSystem = $CA.OperatingSystem
+                                    $reportTranslate.GetAbrADCARoot.Certificate = $CA.Certificate
+                                    $reportTranslate.GetAbrADCARoot.Auditing = switch ($AuditingIssue) {
+                                        $Null { $reportTranslate.GetAbrADCARoot.AuditingNotConfigured }
+                                        0 { $reportTranslate.GetAbrADCARoot.AuditingNotConfigured }
+                                        1 { $reportTranslate.GetAbrADCARoot.Auditing1 }
+                                        2 { $reportTranslate.GetAbrADCARoot.Auditing2 }
+                                        4 { $reportTranslate.GetAbrADCARoot.Auditing4 }
+                                        8 { $reportTranslate.GetAbrADCARoot.Auditing8 }
+                                        16 { $reportTranslate.GetAbrADCARoot.Auditing16 }
+                                        32 { $reportTranslate.GetAbrADCARoot.Auditing32 }
+                                        64 { $reportTranslate.GetAbrADCARoot.Auditing64 }
+                                        127 { $reportTranslate.GetAbrADCARoot.AuditingFull }
+                                        default { $reportTranslate.GetAbrADCARoot.AuditingUnknown }
                                     }
-                                    'Status' = $CA.ServiceStatus
+                                    $reportTranslate.GetAbrADCARoot.Status = $CA.ServiceStatus
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                 if ($HealthCheck.CA.Status) {
-                                    $OutObj | Where-Object { $_.'Service Status' -notlike 'Running' } | Set-Style -Style Critical -Property 'Service Status'
-                                    $OutObj | Where-Object { $_.'Auditing' -notlike 'Auditing is fully enabled (127)' } | Set-Style -Style Critical -Property 'Auditing'
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADCARoot.Status) -notlike 'Running' } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADCARoot.Status
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADCARoot.Auditing) -notlike $reportTranslate.GetAbrADCARoot.AuditingFull } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADCARoot.Auditing
                                 }
 
                                 $TableParams = @{
-                                    Name = "Enterprise Root CA - $($ForestInfo.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADCARoot.TableName) - $($ForestInfo.ToString().ToUpper())"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }
@@ -75,12 +75,12 @@
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Table @TableParams
-                                if ( $OutObj | Where-Object { $_.'Auditing' -notlike 'Auditing is fully enabled (127)' } ) {
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                if ( $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADCARoot.Auditing) -notlike $reportTranslate.GetAbrADCARoot.AuditingFull } ) {
+                                    Paragraph $reportTranslate.GetAbrADCARoot.HealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text 'Secutiry Best Practice:' -Bold
-                                        Text 'Auditing should be fully enabled for the Certification Authority to ensure that all relevant events are logged for security monitoring and incident response purposes. This includes events related to certificate issuance, revocation, and changes to CA configuration.'
+                                        Text $reportTranslate.GetAbrADCARoot.SecurityBestPractice -Bold
+                                        Text $reportTranslate.GetAbrADCARoot.AuditingBP
                                     }
                                 }
                             }

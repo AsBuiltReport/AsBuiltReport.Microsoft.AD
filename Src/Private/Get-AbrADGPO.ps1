@@ -21,14 +21,14 @@ function Get-AbrADGPO {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Active Directory Group Policy Objects information for $($Domain.DNSRoot.ToString().ToUpper())."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.Collecting -f $Domain.DNSRoot.ToString().ToUpper())
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Group Policy Objects'
     }
 
     process {
         try {
-            Section -Style Heading4 'Group Policy Objects' {
-                Paragraph "The following section provides an overview of the Group Policy Objects (GPOs) configured within the $($Domain.DNSRoot.ToString().ToUpper()) domain."
+            Section -Style Heading4 $reportTranslate.GetAbrADGPO.GPOSectionTitle {
+                Paragraph ($reportTranslate.GetAbrADGPO.GPOSectionParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
                 $GPOs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPO -Domain ($using:Domain).DNSRoot -All }
@@ -39,17 +39,17 @@ function Get-AbrADGPO {
                                 try {
                                     [xml]$Links = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain ($using:Domain).DNSRoot -ReportType XML }
                                     $inObj = [ordered] @{
-                                        'GPO Name' = $GPO.DisplayName
-                                        'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
-                                        'Security Filtering' = & {
+                                        $reportTranslate.GetAbrADGPO.GPOName = $GPO.DisplayName
+                                        $reportTranslate.GetAbrADGPO.GPOStatus = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
+                                        $reportTranslate.GetAbrADGPO.SecurityFiltering = & {
                                             $GPOSECFILTER = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName ($using:Domain).DNSRoot -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
                                             if ($GPOSECFILTER) {
 
                                                 $GPOSECFILTER
 
-                                            } else { 'No Security Filtering' }
+                                            } else { $reportTranslate.GetAbrADGPO.NoSecurityFiltering }
                                         }
-                                        'Links Count' = $Links.GPO.LinksTo.SOMPath.Count
+                                        $reportTranslate.GetAbrADGPO.LinksCount = $Links.GPO.LinksTo.SOMPath.Count
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
@@ -58,13 +58,13 @@ function Get-AbrADGPO {
                             }
 
                             if ($HealthCheck.Domain.GPO) {
-                                $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
-                                $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' } | Set-Style -Style Warning -Property 'Security Filtering'
-                                $OutObj | Where-Object { $_.'Links Count' -eq 0 } | Set-Style -Style Warning -Property 'Links Count'
+                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.GPOStatus) -like $reportTranslate.GetAbrADGPO.AllSettingsDisabled } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.GPOStatus
+                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.SecurityFiltering) -like $reportTranslate.GetAbrADGPO.NoSecurityFiltering } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.SecurityFiltering
+                                $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.LinksCount) -eq 0 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.LinksCount
                             }
 
                             $TableParams = @{
-                                Name = "GPO - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADGPO.GPOTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 40, 25, 25, 10
                             }
@@ -72,28 +72,28 @@ function Get-AbrADGPO {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                            if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' }) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' }) -or ($OutObj | Where-Object { $_.'Links Count' -eq 0 }))) {
-                                Paragraph 'Health Check:' -Bold -Underline
+                            $OutObj | Sort-Object -Property $reportTranslate.GetAbrADGPO.GPOName | Table @TableParams
+                            if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.GPOStatus) -like $reportTranslate.GetAbrADGPO.AllSettingsDisabled }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.SecurityFiltering) -like $reportTranslate.GetAbrADGPO.NoSecurityFiltering }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.LinksCount) -eq 0 }))) {
+                                Paragraph $reportTranslate.GetAbrADGPO.GPOHealthCheck -Bold -Underline
                                 BlankLine
-                                if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' })) {
+                                if (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.GPOStatus) -like $reportTranslate.GetAbrADGPO.AllSettingsDisabled })) {
                                     Paragraph {
-                                        Text 'Best Practices:' -Bold
-                                        Text "Ensure 'All Settings Disabled' Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause confusion or clutter in the environment."
+                                        Text $reportTranslate.GetAbrADGPO.GPOBestPractices -Bold
+                                        Text $reportTranslate.GetAbrADGPO.GPOStatusBP
                                     }
                                     BlankLine
                                 }
-                                if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' })) {
+                                if (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.SecurityFiltering) -like $reportTranslate.GetAbrADGPO.NoSecurityFiltering })) {
                                     Paragraph {
-                                        Text 'Corrective Actions:' -Bold
-                                        Text "Identify 'No Security Filtering' Group Policy Objects (GPOs) that are not linked to any security groups or users. Determine which of these GPOs should be deleted to reduce clutter and improve manageability in Active Directory."
+                                        Text $reportTranslate.GetAbrADGPO.GPOCorrectiveActions -Bold
+                                        Text $reportTranslate.GetAbrADGPO.GPOSecurityFilteringBP
                                     }
                                     BlankLine
                                 }
-                                if ($OutObj | Where-Object { $_.'Links Count' -eq '0' }) {
+                                if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.LinksCount) -eq '0' }) {
                                     Paragraph {
-                                        Text 'Corrective Actions:' -Bold
-                                        Text 'Ensure unused or unlinked Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause unnecessary complexity and potential confusion in the environment. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory structure.'
+                                        Text $reportTranslate.GetAbrADGPO.GPOCorrectiveActions -Bold
+                                        Text $reportTranslate.GetAbrADGPO.GPOLinksCountBP
                                     }
                                     BlankLine
                                 }
@@ -110,46 +110,46 @@ function Get-AbrADGPO {
                                     try {
                                         [xml]$Links = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { $using:GPO | Get-GPOReport -Domain ($using:Domain).DNSRoot -ReportType XML }
                                         $inObj = [ordered] @{
-                                            'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
-                                            'GUID' = $GPO.Id
-                                            'Created' = $GPO.CreationTime.ToString('MM/dd/yyyy')
-                                            'Modified' = $GPO.ModificationTime.ToString('MM/dd/yyyy')
-                                            'Owner' = $GPO.Owner
-                                            'Computer Version' = "$($Links.GPO.Computer.VersionDirectory) (AD), $($Links.GPO.Computer.VersionSysvol) (SYSVOL)"
-                                            'User Version' = "$($Links.GPO.User.VersionDirectory) (AD), $($Links.GPO.User.VersionSysvol) (SYSVOL)"
-                                            'WMI Filter' = & {
+                                            $reportTranslate.GetAbrADGPO.GPOStatus = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
+                                            $reportTranslate.GetAbrADGPO.GUID = $GPO.Id
+                                            $reportTranslate.GetAbrADGPO.Created = $GPO.CreationTime.ToString('MM/dd/yyyy')
+                                            $reportTranslate.GetAbrADGPO.Modified = $GPO.ModificationTime.ToString('MM/dd/yyyy')
+                                            $reportTranslate.GetAbrADGPO.OwnerCol = $GPO.Owner
+                                            $reportTranslate.GetAbrADGPO.ComputerVersion = "$($Links.GPO.Computer.VersionDirectory) (AD), $($Links.GPO.Computer.VersionSysvol) (SYSVOL)"
+                                            $reportTranslate.GetAbrADGPO.UserVersion = "$($Links.GPO.User.VersionDirectory) (AD), $($Links.GPO.User.VersionSysvol) (SYSVOL)"
+                                            $reportTranslate.GetAbrADGPO.WMIFilterCol = & {
                                                 $WMIFilter = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { ((Get-GPO -DomainName $($using:Domain).DNSROot -Name $using:GPO.DisplayName).WMifilter.Name) }
                                                 if ($WMIFilter) {
                                                     $WMIFilter
                                                 } else { '--' }
                                             }
-                                            'Security Filtering' = & {
+                                            $reportTranslate.GetAbrADGPO.SecurityFiltering = & {
                                                 $GPOSECFILTER = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-GPPermission -DomainName ($using:Domain).DNSROot -All -Guid ($using:GPO).ID | Where-Object { $_.Permission -eq 'GpoApply' }).Trustee.Name }
                                                 if ($GPOSECFILTER) {
 
                                                     $GPOSECFILTER
 
-                                                } else { 'No Security Filtering' }
+                                                } else { $reportTranslate.GetAbrADGPO.NoSecurityFiltering }
                                             }
-                                            'Linked Target' = switch ([string]::IsNullOrEmpty($Links.GPO.LinksTo.SOMPath)) {
+                                            $reportTranslate.GetAbrADGPO.LinkedTarget = switch ([string]::IsNullOrEmpty($Links.GPO.LinksTo.SOMPath)) {
                                                 'True' { '--' }
                                                 'False' { $Links.GPO.LinksTo.SOMPath }
-                                                default { 'Unknown' }
+                                                default { $reportTranslate.GetAbrADGPO.Unknown }
                                             }
-                                            'Description' = $GPO.Description
+                                            $reportTranslate.GetAbrADGPO.Description = $GPO.Description
                                         }
 
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.Domain.GPO) {
-                                            $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
-                                            $OutObj | Where-Object { $Null -eq $_.'Owner' } | Set-Style -Style Warning -Property 'Owner'
-                                            $OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' } | Set-Style -Style Warning -Property 'Security Filtering'
-                                            $OutObj | Where-Object { $_.'Linked Target' -eq '--' } | Set-Style -Style Warning -Property 'Linked Target'
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.GPOStatus) -like $reportTranslate.GetAbrADGPO.AllSettingsDisabled } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.GPOStatus
+                                            $OutObj | Where-Object { $Null -eq $_.$($reportTranslate.GetAbrADGPO.OwnerCol) } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.OwnerCol
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.SecurityFiltering) -like $reportTranslate.GetAbrADGPO.NoSecurityFiltering } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.SecurityFiltering
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.LinkedTarget) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.LinkedTarget
                                         }
 
                                         $TableParams = @{
-                                            Name = "GPO - $($GPO.DisplayName)"
+                                            Name = "$($reportTranslate.GetAbrADGPO.GPODetailTableName) - $($GPO.DisplayName)"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -158,27 +158,27 @@ function Get-AbrADGPO {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $OutObj | Table @TableParams
-                                        if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' }) -or ($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' }) -or ($OutObj | Where-Object { $_.'Linked Target' -eq '--' }))) {
-                                            Paragraph 'Health Check:' -Bold -Underline
+                                        if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.GPOStatus) -like $reportTranslate.GetAbrADGPO.AllSettingsDisabled }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.SecurityFiltering) -like $reportTranslate.GetAbrADGPO.NoSecurityFiltering }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.LinkedTarget) -eq '--' }))) {
+                                            Paragraph $reportTranslate.GetAbrADGPO.GPOHealthCheck -Bold -Underline
                                             BlankLine
-                                            if (($OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' })) {
+                                            if (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.GPOStatus) -like $reportTranslate.GetAbrADGPO.AllSettingsDisabled })) {
                                                 Paragraph {
-                                                    Text 'Best Practices:' -Bold
-                                                    Text "Ensure 'All Settings Disabled' Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause confusion or clutter in the environment."
+                                                    Text $reportTranslate.GetAbrADGPO.GPOBestPractices -Bold
+                                                    Text $reportTranslate.GetAbrADGPO.GPOStatusBP
                                                 }
                                                 BlankLine
                                             }
-                                            if (($OutObj | Where-Object { $_.'Security Filtering' -like 'No Security Filtering' })) {
+                                            if (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.SecurityFiltering) -like $reportTranslate.GetAbrADGPO.NoSecurityFiltering })) {
                                                 Paragraph {
-                                                    Text 'Corrective Actions:' -Bold
-                                                    Text "Identify 'No Security Filtering' Group Policy Objects (GPOs) that are not linked to any security groups or users. Determine which of these GPOs should be deleted to reduce clutter and improve manageability in Active Directory."
+                                                    Text $reportTranslate.GetAbrADGPO.GPOCorrectiveActions -Bold
+                                                    Text $reportTranslate.GetAbrADGPO.GPOSecurityFilteringBP
                                                 }
                                                 BlankLine
                                             }
-                                            if ($OutObj | Where-Object { $_.'Linked Target' -eq '--' }) {
+                                            if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.LinkedTarget) -eq '--' }) {
                                                 Paragraph {
-                                                    Text 'Corrective Actions:' -Bold
-                                                    Text 'Ensure unused or unlinked Group Policy Objects (GPOs) are removed from Active Directory. These GPOs do not apply any settings and can cause unnecessary complexity and potential confusion in the environment. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory structure.'
+                                                    Text $reportTranslate.GetAbrADGPO.GPOCorrectiveActions -Bold
+                                                    Text $reportTranslate.GetAbrADGPO.GPOLinksCountBP
                                                 }
                                                 BlankLine
                                             }
@@ -207,23 +207,23 @@ function Get-AbrADGPO {
                             }
 
                             if ($WmiFilters) {
-                                Section -Style Heading5 'WMI Filters' {
+                                Section -Style Heading5 $reportTranslate.GetAbrADGPO.WMIFiltersTitle {
                                     foreach ($WmiFilter in $WmiFilters) {
                                         $OutObj = [System.Collections.ArrayList]::new()
                                         $inObj = [ordered] @{
-                                            'Name' = $WmiFilter.'msWMI-Name'
-                                            'Author' = $WmiFilter.'msWMI-Author'
-                                            'Query' = $WmiFilter.'msWMI-Parm2'
-                                            'Description' = $WmiFilter.'msWMI-Parm1'
+                                            $reportTranslate.GetAbrADGPO.Name = $WmiFilter.'msWMI-Name'
+                                            $reportTranslate.GetAbrADGPO.WMIAuthor = $WmiFilter.'msWMI-Author'
+                                            $reportTranslate.GetAbrADGPO.WMIQuery = $WmiFilter.'msWMI-Parm2'
+                                            $reportTranslate.GetAbrADGPO.Description = $WmiFilter.'msWMI-Parm1'
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                         if ($HealthCheck.Domain.GPO) {
-                                            $OutObj | Where-Object { $_.'Description' -eq '--' } | Set-Style -Style Warning -Property 'Description'
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.Description) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.Description
                                         }
 
                                         $TableParams = @{
-                                            Name = "WMI Filter - $($WmiFilter.'msWMI-Name')"
+                                            Name = "$($reportTranslate.GetAbrADGPO.WMITableName) - $($WmiFilter.'msWMI-Name')"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -235,7 +235,7 @@ function Get-AbrADGPO {
                                     }
                                 }
                             } else {
-                                Write-PScriboMessage -Message "No WMI Filter information found in $($Domain.DNSRoot), Disabling this section."
+                                Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.WMINoData -f $Domain.DNSRoot)
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (WMI Filters)"
@@ -245,21 +245,21 @@ function Get-AbrADGPO {
                         $PATH = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\PolicyDefinitions"
                         $CentralStore = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Test-Path $using:PATH }
                         if ($PATH) {
-                            Section -Style Heading5 'Central Store Repository' {
+                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.CentralStoreTitle {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 $inObj = [ordered] @{
-                                    'Domain' = $Domain.Name.ToString().ToUpper()
-                                    'Configured' = $CentralStore
-                                    'Central Store Path' = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\PolicyDefinitions"
+                                    $reportTranslate.GetAbrADGPO.CentralStoreDomain = $Domain.Name.ToString().ToUpper()
+                                    $reportTranslate.GetAbrADGPO.CentralStoreConfigured = $CentralStore
+                                    $reportTranslate.GetAbrADGPO.CentralStorePath = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\PolicyDefinitions"
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                 if ($HealthCheck.Domain.GPO) {
-                                    $OutObj | Where-Object { $_.'Configured' -eq 'No' } | Set-Style -Style Warning -Property 'Configured'
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.CentralStoreConfigured) -eq 'No' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.CentralStoreConfigured
                                 }
 
                                 $TableParams = @{
-                                    Name = "GPO Central Store - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADGPO.CentralStoreTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 25, 15, 60
                                 }
@@ -268,17 +268,17 @@ function Get-AbrADGPO {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Table @TableParams
-                                if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.'Configured' -eq 'No' })) {
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                if ($HealthCheck.Domain.GPO -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.CentralStoreConfigured) -eq 'No' })) {
+                                    Paragraph $reportTranslate.GetAbrADGPO.CentralStoreHealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text 'Best Practices:' -Bold
-                                        Text 'The Group Policy Central Store is a central location to store all the Group Policy template files (ADMX/ADML files). This eliminates the need for administrators to load and open Group Policy template files on each system used to manage Group Policy. Ensure the Central Store is deployed to a centralized GPO repository to streamline management and ensure consistency across the environment.'
+                                        Text $reportTranslate.GetAbrADGPO.CentralStoreBestPractices -Bold
+                                        Text $reportTranslate.GetAbrADGPO.CentralStoreBP
                                     }
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -Message "No GPO Central Store information found in $($Domain.DNSRoot), Disabling this section."
+                            Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.CentralStoreNoData -f $Domain.DNSRoot)
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (GPO Central Store)"
@@ -294,10 +294,10 @@ function Get-AbrADGPO {
                                         foreach ($Script in $UserScripts.extension.Script) {
                                             try {
                                                 $inObj = [ordered] @{
-                                                    'GPO Name' = $GPO.DisplayName
-                                                    'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
-                                                    'Type' = $Script.Type
-                                                    'Script' = $Script.command
+                                                    $reportTranslate.GetAbrADGPO.GPOName = $GPO.DisplayName
+                                                    $reportTranslate.GetAbrADGPO.GPOStatus = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
+                                                    $reportTranslate.GetAbrADGPO.ScriptType = $Script.Type
+                                                    $reportTranslate.GetAbrADGPO.Script = $Script.command
                                                 }
                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                             } catch {
@@ -311,13 +311,13 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 'Logon/Logoff Script' {
+                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.LogonLogoffTitle {
                                 if ($HealthCheck.Domain.GPO) {
-                                    $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.GPOStatus) -like $reportTranslate.GetAbrADGPO.AllSettingsDisabled } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.GPOStatus
                                 }
 
                                 $TableParams = @{
-                                    Name = "GPO with Logon/Logoff Script - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADGPO.LogonLogoffTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 20, 15, 15, 50
                                 }
@@ -325,10 +325,10 @@ function Get-AbrADGPO {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADGPO.GPOName | Table @TableParams
                             }
                         } else {
-                            Write-PScriboMessage -Message "No GPO Logon/Logoff script information found in $($Domain.DNSRoot), Disabling this section."
+                            Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.LogonLogoffNoData -f $Domain.DNSRoot)
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (GPO with Logon/Logoff Script Section)"
@@ -344,10 +344,10 @@ function Get-AbrADGPO {
                                         foreach ($Script in $ComputerScripts.extension.Script) {
                                             try {
                                                 $inObj = [ordered] @{
-                                                    'GPO Name' = $GPO.DisplayName
-                                                    'GPO Status' = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
-                                                    'Type' = $Script.Type
-                                                    'Script' = $Script.command
+                                                    $reportTranslate.GetAbrADGPO.GPOName = $GPO.DisplayName
+                                                    $reportTranslate.GetAbrADGPO.GPOStatus = ($GPO.GpoStatus -creplace '([A-Z\W_]|\d+)(?<![a-z])', ' $&').trim()
+                                                    $reportTranslate.GetAbrADGPO.ScriptType = $Script.Type
+                                                    $reportTranslate.GetAbrADGPO.Script = $Script.command
                                                 }
                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                             } catch {
@@ -361,13 +361,13 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 'Startup/Shutdown Script' {
+                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.StartupShutdownTitle {
                                 if ($HealthCheck.Domain.GPO) {
-                                    $OutObj | Where-Object { $_.'GPO Status' -like 'All Settings Disabled' } | Set-Style -Style Warning -Property 'GPO Status'
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.GPOStatus) -like $reportTranslate.GetAbrADGPO.AllSettingsDisabled } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.GPOStatus
                                 }
 
                                 $TableParams = @{
-                                    Name = "GPO with Startup/Shutdown Script - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADGPO.StartupShutdownTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 20, 15, 15, 50
                                 }
@@ -375,11 +375,11 @@ function Get-AbrADGPO {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADGPO.GPOName | Table @TableParams
                             }
 
                         } else {
-                            Write-PScriboMessage -Message "No GPO Computer Startup/Shutdown script information found in $($Domain.DNSRoot), Disabling this section."
+                            Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.StartupShutdownNoData -f $Domain.DNSRoot)
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Section)"
@@ -394,11 +394,11 @@ function Get-AbrADGPO {
                                     [xml]$Gpoxml = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
                                     if (($Null -ne $Gpoxml.GPO.Name) -and ($Null -eq $Gpoxml.GPO.LinksTo.SOMPath)) {
                                         $inObj = [ordered] @{
-                                            'GPO Name' = $Gpoxml.GPO.Name
-                                            'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split('T')[0]
-                                            'Modified' = ($Gpoxml.GPO.ModifiedTime).ToString().split('T')[0]
-                                            'Computer Enabled' = $gpoxml.GPO.Computer.Enabled
-                                            'User Enabled' = $gpoxml.GPO.User.Enabled
+                                            $reportTranslate.GetAbrADGPO.GPOName = $Gpoxml.GPO.Name
+                                            $reportTranslate.GetAbrADGPO.Created = ($Gpoxml.GPO.CreatedTime).ToString().split('T')[0]
+                                            $reportTranslate.GetAbrADGPO.Modified = ($Gpoxml.GPO.ModifiedTime).ToString().split('T')[0]
+                                            $reportTranslate.GetAbrADGPO.ComputerEnabled = $gpoxml.GPO.Computer.Enabled
+                                            $reportTranslate.GetAbrADGPO.UserEnabled = $gpoxml.GPO.User.Enabled
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     }
@@ -408,13 +408,13 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 'Unlinked GPO' {
+                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.UnlinkedGPOTitle {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
 
                                 $TableParams = @{
-                                    Name = "Unlinked GPO - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADGPO.UnlinkedGPOTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 40, 15, 15, 15, 15
                                 }
@@ -422,16 +422,16 @@ function Get-AbrADGPO {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                                Paragraph 'Health Check:' -Bold -Underline
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADGPO.GPOName | Table @TableParams
+                                Paragraph $reportTranslate.GetAbrADGPO.UnlinkedGPOHealthCheck -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text 'Corrective Actions:' -Bold
-                                    Text 'Remove unused Group Policy Objects (GPOs) from Active Directory. Unused GPOs can create unnecessary complexity and potential confusion. Regularly review and clean up GPOs to maintain an organized and efficient Active Directory environment.'
+                                    Text $reportTranslate.GetAbrADGPO.UnlinkedGPOCorrectiveActions -Bold
+                                    Text $reportTranslate.GetAbrADGPO.UnlinkedGPOBP
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -Message "No Unlinked Group Policy Objects information found in $($Domain.DNSRoot), Disabling this section."
+                            Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.UnlinkedGPONoData -f $Domain.DNSRoot)
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unlinked Group Policy Objects Section)"
@@ -444,10 +444,10 @@ function Get-AbrADGPO {
                                     [xml]$Gpoxml = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPOReport -Domain ($using:Domain).DNSROot -ReportType Xml -Guid ($using:GPO).Id }
                                     if (($Null -eq ($Gpoxml.GPO.Computer.ExtensionData)) -and ($Null -eq ($Gpoxml.GPO.User.extensionData))) {
                                         $inObj = [ordered] @{
-                                            'GPO Name' = $Gpoxml.GPO.Name
-                                            'Created' = ($Gpoxml.GPO.CreatedTime).ToString().split('T')[0]
-                                            'Modified' = ($Gpoxml.GPO.ModifiedTime).ToString().split('T')[0]
-                                            'Description' = $Gpoxml.GPO.Description
+                                            $reportTranslate.GetAbrADGPO.GPOName = $Gpoxml.GPO.Name
+                                            $reportTranslate.GetAbrADGPO.Created = ($Gpoxml.GPO.CreatedTime).ToString().split('T')[0]
+                                            $reportTranslate.GetAbrADGPO.Modified = ($Gpoxml.GPO.ModifiedTime).ToString().split('T')[0]
+                                            $reportTranslate.GetAbrADGPO.Description = $Gpoxml.GPO.Description
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     }
@@ -457,13 +457,13 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 'Empty GPOs' {
+                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.EmptyGPOTitle {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
 
                                 $TableParams = @{
-                                    Name = "Empty GPO - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADGPO.EmptyGPOTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 35, 15, 15, 35
                                 }
@@ -471,16 +471,16 @@ function Get-AbrADGPO {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'GPO Name' | Table @TableParams
-                                Paragraph 'Health Check:' -Bold -Underline
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADGPO.GPOName | Table @TableParams
+                                Paragraph $reportTranslate.GetAbrADGPO.EmptyGPOHealthCheck -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text 'Corrective Actions:' -Bold
-                                    Text 'No user or computer parameters are set in this GPO. Remove unused GPOs in Active Directory to reduce clutter and improve manageability.'
+                                    Text $reportTranslate.GetAbrADGPO.EmptyGPOCorrectiveActions -Bold
+                                    Text $reportTranslate.GetAbrADGPO.EmptyGPOBP
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -Message "No Empty GPO information found in $($Domain.DNSRoot), Disabling this section."
+                            Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.EmptyGPONoData -f $Domain.DNSRoot)
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Empty Group Policy Objects Section)"
@@ -500,8 +500,8 @@ function Get-AbrADGPO {
                                         if ($GpoEnforced.Enforced -eq 'True') {
                                             $TargetCanonical = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:ValidDCFromDomain -Identity ($using:GpoEnforced).Target -Properties * | Select-Object -ExpandProperty CanonicalName }
                                             $inObj = [ordered] @{
-                                                'GPO Name' = $GpoEnforced.DisplayName
-                                                'Target' = $TargetCanonical
+                                                $reportTranslate.GetAbrADGPO.GPOName = $GpoEnforced.DisplayName
+                                                $reportTranslate.GetAbrADGPO.Target = $TargetCanonical
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         }
@@ -513,13 +513,13 @@ function Get-AbrADGPO {
                         }
 
                         if ($OutObj) {
-                            Section -Style Heading5 'Enforced GPO' {
+                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.EnforcedGPOTitle {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
 
                                 $TableParams = @{
-                                    Name = "Enforced GPO - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADGPO.EnforcedGPOTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 50, 50
                                 }
@@ -527,17 +527,17 @@ function Get-AbrADGPO {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'Target' | Table @TableParams
-                                Paragraph 'Health Check:' -Bold -Underline
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADGPO.Target | Table @TableParams
+                                Paragraph $reportTranslate.GetAbrADGPO.EnforcedGPOHealthCheck -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text 'Corrective Actions:' -Bold
-                                    Text 'Review the use of enforcement and blocked policy inheritance in Active Directory. Enforced policies ensure that critical settings are applied consistently across the organization, while blocked policy inheritance can prevent higher-level policies from affecting specific organizational units. Proper use of these settings is essential for maintaining a secure and well-managed environment.'
+                                    Text $reportTranslate.GetAbrADGPO.EnforcedGPOCorrectiveActions -Bold
+                                    Text $reportTranslate.GetAbrADGPO.EnforcedGPOBP
                                 }
 
                             }
                         } else {
-                            Write-PScriboMessage -Message "No Enforced GPO information found in $($Domain.DNSRoot), Disabling this section."
+                            Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.EnforcedGPONoData -f $Domain.DNSRoot)
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Enforced Group Policy Objects Table)"
@@ -574,47 +574,47 @@ function Get-AbrADGPO {
                             $OrphanGPOs.Add($MissingSYSVOLGPOs) | Out-Null
                         }
                         if ($OrphanGPOs) {
-                            Section -Style Heading5 'Orphaned GPO' {
-                                Paragraph 'The following table summarizes Group Policy Objects (GPOs) that are orphaned or missing either in the Active Directory database or in the SYSVOL directory. Review these entries to identify and remediate inconsistencies between AD and SYSVOL.'
+                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.OrphanedGPOTitle {
+                                Paragraph $reportTranslate.GetAbrADGPO.OrphanedGPOParagraph
                                 BlankLine
                                 foreach ($OrphanGPO in $OrphanGPOs) {
                                     $OutObj = [System.Collections.ArrayList]::new()
                                     $inObj = [ordered] @{
-                                        'Name' = switch (($GPOs | Where-Object { $_.id -eq $OrphanGPO }).DisplayName) {
-                                            $Null { 'Unknown' }
+                                        $reportTranslate.GetAbrADGPO.Name = switch (($GPOs | Where-Object { $_.id -eq $OrphanGPO }).DisplayName) {
+                                            $Null { $reportTranslate.GetAbrADGPO.Unknown }
                                             default { ($GPOs | Where-Object { $_.id -eq $OrphanGPO }).DisplayName }
                                         }
-                                        'Guid' = $OrphanGPO
-                                        'AD DN Database' = & {
+                                        $reportTranslate.GetAbrADGPO.OrphanedGuid = $OrphanGPO
+                                        $reportTranslate.GetAbrADGPO.ADDNDatabase = & {
                                             if ($OrphanGPO -in $MissingADGPOs) {
-                                                'Missing'
-                                            } else { 'Valid' }
+                                                $reportTranslate.GetAbrADGPO.Missing
+                                            } else { $reportTranslate.GetAbrADGPO.Valid }
                                         }
-                                        'AD DN Path' = & {
+                                        $reportTranslate.GetAbrADGPO.ADDNPath = & {
                                             if ($OrphanGPO -in $MissingADGPOs) {
-                                                "CN={$($OrphanGPO)},CN=Policies,CN=System,$($Domain.DistinguishedName) (Missing)"
-                                            } else { "CN={$($OrphanGPO)},CN=Policies,CN=System,$($Domain.DistinguishedName) (Valid)" }
+                                                "CN={$($OrphanGPO)},CN=Policies,CN=System,$($Domain.DistinguishedName) ($($reportTranslate.GetAbrADGPO.Missing))"
+                                            } else { "CN={$($OrphanGPO)},CN=Policies,CN=System,$($Domain.DistinguishedName) ($($reportTranslate.GetAbrADGPO.Valid))" }
                                         }
-                                        'SYSVOL Guid Directory' = & {
+                                        $reportTranslate.GetAbrADGPO.SYSVOLGuidDirectory = & {
                                             if ($OrphanGPO -in $MissingSYSVOLGPOs) {
-                                                'Missing'
-                                            } else { 'Valid' }
+                                                $reportTranslate.GetAbrADGPO.Missing
+                                            } else { $reportTranslate.GetAbrADGPO.Valid }
                                         }
-                                        'SYSVOL Guid Path' = & {
+                                        $reportTranslate.GetAbrADGPO.SYSVOLGuidPath = & {
                                             if ($OrphanGPO -in $MissingSYSVOLGPOs) {
-                                                "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\{$($OrphanGPO)} (Missing)"
-                                            } else { "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\{$($OrphanGPO)} (Valid)" }
+                                                "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\{$($OrphanGPO)} ($($reportTranslate.GetAbrADGPO.Missing))"
+                                            } else { "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\{$($OrphanGPO)} ($($reportTranslate.GetAbrADGPO.Valid))" }
                                         }
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                     if ($HealthCheck.Domain.GPO) {
-                                        $OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing' } | Set-Style -Style Warning -Property 'AD DN Database', 'AD DN Path'
-                                        $OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing' } | Set-Style -Style Warning -Property 'SYSVOL Guid Directory', 'SYSVOL Guid Path'
+                                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.ADDNDatabase) -eq $reportTranslate.GetAbrADGPO.Missing } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.ADDNDatabase, $reportTranslate.GetAbrADGPO.ADDNPath
+                                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.SYSVOLGuidDirectory) -eq $reportTranslate.GetAbrADGPO.Missing } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.SYSVOLGuidDirectory, $reportTranslate.GetAbrADGPO.SYSVOLGuidPath
                                     }
 
                                     $TableParams = @{
-                                        Name = "Orphaned GPO - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADGPO.OrphanedGPOTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $true
                                         ColumnWidths = 40, 60
                                     }
@@ -623,20 +623,20 @@ function Get-AbrADGPO {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
                                     $OutObj | Table @TableParams
-                                    if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing' }) -or ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing' }))) {
-                                        Paragraph 'Health Check:' -Bold -Underline
+                                    if ($HealthCheck.Domain.GPO -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.ADDNDatabase) -eq $reportTranslate.GetAbrADGPO.Missing }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.SYSVOLGuidDirectory) -eq $reportTranslate.GetAbrADGPO.Missing }))) {
+                                        Paragraph $reportTranslate.GetAbrADGPO.OrphanedGPOHealthCheck -Bold -Underline
                                         BlankLine
-                                        if ($OutObj | Where-Object { $_.'AD DN Database' -eq 'Missing' }) {
+                                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.ADDNDatabase) -eq $reportTranslate.GetAbrADGPO.Missing }) {
                                             Paragraph {
-                                                Text 'Corrective Actions:' -Bold
-                                                Text 'Evaluate orphaned group policies objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment.'
+                                                Text $reportTranslate.GetAbrADGPO.OrphanedGPOCorrectiveActions -Bold
+                                                Text $reportTranslate.GetAbrADGPO.OrphanedGPOMissingADBP
                                             }
                                             BlankLine
                                         }
-                                        if ($OutObj | Where-Object { $_.'SYSVOL Guid Directory' -eq 'Missing' }) {
+                                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.SYSVOLGuidDirectory) -eq $reportTranslate.GetAbrADGPO.Missing }) {
                                             Paragraph {
-                                                Text 'Corrective Actions:' -Bold
-                                                Text 'Evaluate orphaned group policies folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment.'
+                                                Text $reportTranslate.GetAbrADGPO.OrphanedGPOCorrectiveActions -Bold
+                                                Text $reportTranslate.GetAbrADGPO.OrphanedGPOMissingSYSVOLBP
                                             }
                                             BlankLine
                                         }
@@ -644,7 +644,7 @@ function Get-AbrADGPO {
                                 }
                             }
                         } else {
-                            Write-PScriboMessage -Message "No Orphaned GPO information found in $($Domain.DNSRoot), Disabling this section."
+                            Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.OrphanedGPONoData -f $Domain.DNSRoot)
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Orphaned GPO)"

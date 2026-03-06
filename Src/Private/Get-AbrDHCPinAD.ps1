@@ -19,7 +19,7 @@ function Get-AbrDHCPinAD {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD DHCP Servers information of $($ForestInfo.toUpper())."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrDHCPinAD.Collecting -f $ForestInfo.toUpper())
         Show-AbrDebugExecutionTime -Start -TitleMessage 'DHCP Infrastructure'
     }
 
@@ -44,18 +44,18 @@ function Get-AbrDHCPinAD {
                         }
                     )
                 } catch { Out-Null }
-                Section -Style Heading3 'DHCP Infrastructure' {
-                    Paragraph 'The following section provides an overview of the DHCP servers registered in Active Directory.'
+                Section -Style Heading3 $reportTranslate.GetAbrDHCPinAD.Heading {
+                    Paragraph $reportTranslate.GetAbrDHCPinAD.Paragraph
                     BlankLine
                     $DCHPInfo = [System.Collections.ArrayList]::new()
                     foreach ($DHCPServer in $DHCPServers) {
                         try {
                             $inObj = [ordered] @{
-                                'Server Name' = $DHCPServer.Name
-                                'Is Domain Controller?' = switch ($DHCPServer.Name -in $DCServersinAD) {
-                                    $True { 'Yes' }
-                                    $false { 'No' }
-                                    default { 'Unknown' }
+                                $reportTranslate.GetAbrDHCPinAD.ServerName = $DHCPServer.Name
+                                $reportTranslate.GetAbrDHCPinAD.IsDomainController = switch ($DHCPServer.Name -in $DCServersinAD) {
+                                    $True { $reportTranslate.GetAbrDHCPinAD.Yes }
+                                    $false { $reportTranslate.GetAbrDHCPinAD.No }
+                                    default { $reportTranslate.GetAbrDHCPinAD.Unknown }
                                 }
                             }
                             $DCHPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -65,14 +65,14 @@ function Get-AbrDHCPinAD {
                     }
 
                     $TableParams = @{
-                        Name = "DHCP Infrastructure - $($ForestInfo.toUpper())"
+                        Name = "$($reportTranslate.GetAbrDHCPinAD.Heading) - $($ForestInfo.toUpper())"
                         List = $false
                         ColumnWidths = 50, 50
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $DCHPInfo | Sort-Object -Property 'Server Name' | Table @TableParams
+                    $DCHPInfo | Sort-Object -Property $reportTranslate.GetAbrDHCPinAD.ServerName | Table @TableParams
                 }
             } else {
                 Write-PScriboMessage -Message "No DHCP Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."

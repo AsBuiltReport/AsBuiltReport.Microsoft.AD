@@ -28,27 +28,27 @@ function Get-AbrADCAAIA {
 
     process {
         if ($CA) {
-            Section -Style Heading3 'Authority Information Access (AIA)' {
-                Paragraph 'This section provides the Authority Information Access (AIA) configuration for the Certification Authority, which specifies where certificates and certificate revocation information can be retrieved.'
+            Section -Style Heading3 $reportTranslate.GetAbrADCAAIA.Heading {
+                Paragraph $reportTranslate.GetAbrADCAAIA.Paragraph
                 BlankLine
                 try {
-                    Write-PScriboMessage -Message "Collecting AD CA Authority Information Access information on $($CA.Name)."
+                    Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrADCAAIA.Collecting, $CA.Name))
                     $AIA = Get-AuthorityInformationAccess -CertificationAuthority $CA
                     foreach ($URI in $AIA.URI) {
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {
                             $inObj = [ordered] @{
-                                'Reg URI' = $URI.RegURI
-                                'Config URI' = $URI.ConfigURI
-                                'Flags' = ($URI.Flags -join ', ')
-                                'Server Publish' = $URI.ServerPublish
-                                'Include To Extension' = $URI.IncludeToExtension
-                                'OCSP' = $URI.OCSP
+                                $reportTranslate.GetAbrADCAAIA.RegURI = $URI.RegURI
+                                $reportTranslate.GetAbrADCAAIA.ConfigURI = $URI.ConfigURI
+                                $reportTranslate.GetAbrADCAAIA.Flags = ($URI.Flags -join ', ')
+                                $reportTranslate.GetAbrADCAAIA.ServerPublish = $URI.ServerPublish
+                                $reportTranslate.GetAbrADCAAIA.IncludeToExtension = $URI.IncludeToExtension
+                                $reportTranslate.GetAbrADCAAIA.OCSP = $URI.OCSP
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                             $TableParams = @{
-                                Name = "Authority Information Access - $($CA.Name)"
+                                Name = "$($reportTranslate.GetAbrADCAAIA.TableName) - $($CA.Name)"
                                 List = $true
                                 ColumnWidths = 40, 60
                             }

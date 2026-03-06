@@ -20,13 +20,13 @@ function Get-AbrADDomainObject {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting AD Domain Objects information on forest $($Domain.DNSRoot)."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADDomainObject.Collecting -f $Domain.DNSRoot)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'AD Domain Objects'
     }
 
     process {
-        Section -Style Heading3 'Domain Objects' {
-            Paragraph "The following section provides detailed information about computer, group, and user objects found in the $($Domain.DNSRoot) domain."
+        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.DomainObjectsSection {
+            Paragraph ($reportTranslate.GetAbrADDomainObject.DomainObjectsParagraph -f $Domain.DNSRoot)
             try {
                 try {
                     $script:DomainSID = $Domain.domainsid
@@ -70,19 +70,19 @@ function Get-AbrADDomainObject {
                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Object Stats)"
             }
             try {
-                Section -Style Heading4 'User Objects' {
+                Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.UserObjectsSection {
                     Show-AbrDebugExecutionTime -Start -TitleMessage 'User Objects'
                     try {
                         $OutObj = [System.Collections.ArrayList]::new()
                         $inObj = [ordered] @{
-                            'Users' = ($Users | Measure-Object).Count
-                            'Privileged Users' = ($PrivilegedUsers | Measure-Object).Count
-                            'Foreign Security Principals' = ($FSP | Measure-Object).Count
+                            $reportTranslate.GetAbrADDomainObject.Users = ($Users | Measure-Object).Count
+                            $reportTranslate.GetAbrADDomainObject.PrivilegedUsers = ($PrivilegedUsers | Measure-Object).Count
+                            $reportTranslate.GetAbrADDomainObject.ForeignSecurityPrincipals = ($FSP | Measure-Object).Count
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                         $TableParams = @{
-                            Name = "User - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainObject.User) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $true
                             ColumnWidths = 40, 60
                         }
@@ -91,15 +91,15 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
-                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'User Objects' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title "$($reportTranslate.GetAbrADDomainObject.UserObjectsSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (User Object Count Chart)"
                         }
 
                         if ($OutObj) {
-                            Section -ExcludeFromTOC -Style NOTOCHeading5 'Users ' {
+                            Section -ExcludeFromTOC -Style NOTOCHeading5 $reportTranslate.GetAbrADDomainObject.UsersSubSection {
                                 if ($Chart) {
-                                    Image -Text 'Users Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                    Image -Text "$($reportTranslate.GetAbrADDomainObject.UserObjectsSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                             }
@@ -122,58 +122,47 @@ function Get-AbrADDomainObject {
                     $PasswordNotRequired = $Users | Where-Object { $_.PasswordNotRequired -eq $true }
                     $AccountExpired = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Search-ADAccount -Server $using:ValidDcFromDomain -AccountExpired }
                     $AccountLockout = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Search-ADAccount -Server $using:ValidDcFromDomain -LockedOut }
-                    $Categories = @('Total Users', 'Cannot Change Password', 'Password Never Expires', 'Must Change Password at Logon', 'Password Age (> 180 days)', 'SmartcardLogonRequired', 'SidHistory', 'Never Logged in', 'Dormant (> 90 days)', 'Password Not Required', 'Account Expired', 'Account Lockout')
-                    if ($Categories) {
-                        foreach ($Category in $Categories) {
+                    $CategoryMap = [ordered]@{
+                        $reportTranslate.GetAbrADDomainObject.CatTotalUsers             = $Users
+                        $reportTranslate.GetAbrADDomainObject.CatCannotChangePassword   = $CannotChangePassword
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordNeverExpires   = $passwordNeverExpires
+                        $reportTranslate.GetAbrADDomainObject.CatMustChangePasswordAtLogon = $PasswordNextLogon
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordAge180         = ($PasswordLastSet | Where-Object { $_.PasswordLastSet -le $passwordtime })
+                        $reportTranslate.GetAbrADDomainObject.CatSmartcardLogonRequired = $SmartcardLogonRequired
+                        $reportTranslate.GetAbrADDomainObject.CatSidHistory             = $SidHistory
+                        $reportTranslate.GetAbrADDomainObject.CatNeverLoggedIn          = $NeverloggedIn
+                        $reportTranslate.GetAbrADDomainObject.CatDormant90              = $Dormant
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordNotRequired    = $PasswordNotRequired
+                        $reportTranslate.GetAbrADDomainObject.CatAccountExpired         = $AccountExpired
+                        $reportTranslate.GetAbrADDomainObject.CatAccountLockout         = $AccountLockout
+                    }
+                    if ($CategoryMap) {
+                        foreach ($Category in $CategoryMap.Keys) {
                             try {
-                                if ($Category -eq 'Total Users') {
-                                    $Values = $Users
-                                } elseif ($Category -eq 'Cannot Change Password') {
-                                    $Values = $CannotChangePassword
-                                } elseif ($Category -eq 'Must Change Password at Logon') {
-                                    $Values = $PasswordNextLogon
-                                } elseif ($Category -eq 'Password Never Expires') {
-                                    $Values = $passwordNeverExpires
-                                } elseif ($Category -eq 'Password Age (> 42 days)') {
-                                    $Values = $PasswordLastSet | Where-Object { $_.PasswordLastSet -le $passwordtime }
-                                } elseif ($Category -eq 'SmartcardLogonRequired') {
-                                    $Values = $SmartcardLogonRequired
-                                } elseif ($Category -eq 'Never Logged in') {
-                                    $Values = $NeverloggedIn
-                                } elseif ($Category -eq 'Dormant (> 90 days)') {
-                                    $Values = $Dormant
-                                } elseif ($Category -eq 'Password Not Required') {
-                                    $Values = $PasswordNotRequired
-                                } elseif ($Category -eq 'Account Expired') {
-                                    $Values = $AccountExpired
-                                } elseif ($Category -eq 'Account Lockout') {
-                                    $Values = $AccountLockout
-                                } elseif ($Category -eq 'SidHistory') {
-                                    $Values = $SidHistory
-                                }
+                                $Values = $CategoryMap[$Category]
                                 $inObj = [ordered] @{
-                                    'Category' = $Category
-                                    'Enabled' = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
+                                    $reportTranslate.GetAbrADDomainObject.Category = $Category
+                                    $reportTranslate.GetAbrADDomainObject.Enabled = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
                                         $true { '0' }
                                         default { ($Values.Enabled -eq $True | Measure-Object).Count }
                                     }
-                                    'Enabled %' = switch ($Values.Count) {
+                                    $reportTranslate.GetAbrADDomainObject.EnabledPct = switch ($Values.Count) {
                                         0 { '0' }
                                         default { [math]::Round((($Values.Enabled -eq $True | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
-                                    'Disabled' = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
+                                    $reportTranslate.GetAbrADDomainObject.Disabled = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
                                         $true { '0' }
                                         default { ($Values.Enabled -eq $False | Measure-Object).Count }
                                     }
-                                    'Disabled %' = switch ($Values.Count) {
+                                    $reportTranslate.GetAbrADDomainObject.DisabledPct = switch ($Values.Count) {
                                         0 { '0' }
                                         default { [math]::Round((($Values.Enabled -eq $False | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
-                                    'Total' = switch ([string]::IsNullOrEmpty($Values)) {
+                                    $reportTranslate.GetAbrADDomainObject.Total = switch ([string]::IsNullOrEmpty($Values)) {
                                         $true { '0' }
                                         default { ($Values | Measure-Object).Count }
                                     }
-                                    'Total %' = switch ($Values.Count) {
+                                    $reportTranslate.GetAbrADDomainObject.TotalPct = switch ($Values.Count) {
                                         0 { '0' }
                                         default { [math]::Round((($Values | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
@@ -185,7 +174,7 @@ function Get-AbrADDomainObject {
                         }
 
                         $TableParams = @{
-                            Name = "Status of User Accounts - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainObject.StatusOfUsersSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 28, 12, 12, 12, 12, 12, 12
                         }
@@ -194,16 +183,16 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $OutObj
-                            $Chart = New-PieChart -Values $sampleData.Total -Labels $sampleData.Category -Title 'Status of Users Accounts' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 800 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.$($reportTranslate.GetAbrADDomainObject.Total) -Labels $sampleData.$($reportTranslate.GetAbrADDomainObject.Category) -Title "$($reportTranslate.GetAbrADDomainObject.StatusOfUsersSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 800 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of Users Accounts Chart)"
                         }
                     }
                     if ($OutObj) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading5 'Status of Users Accounts' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading5 $reportTranslate.GetAbrADDomainObject.StatusOfUsersSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Status of Users Accounts'
                             if ($Chart) {
-                                Image -Text 'Status of Users Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                Image -Text "$($reportTranslate.GetAbrADDomainObject.StatusOfUsersSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                             }
                             $OutObj | Table @TableParams
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Status of Users Accounts'
@@ -212,20 +201,20 @@ function Get-AbrADDomainObject {
 
                     if ($InfoLevel.Domain -ge 4) {
                         try {
-                            Section -Style Heading4 'Users Inventory' {
+                            Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.UsersInventorySection {
                                 Show-AbrDebugExecutionTime -Start -TitleMessage 'Users Inventory'
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($User in $Users) {
                                     try {
                                         $Groups = ($GroupOBj | Where-Object { $_.members -eq $User.DistinguishedName }).Name
                                         $inObj = [ordered] @{
-                                            'Name' = switch ([string]::IsNullOrEmpty($User.DisplayName)) {
+                                            $reportTranslate.GetAbrADDomainObject.Name = switch ([string]::IsNullOrEmpty($User.DisplayName)) {
                                                 $true { $User.Name }
                                                 $false { $User.DisplayName }
                                                 default { 'Unknown' }
                                             }
-                                            'Logon Name' = $User.SamAccountName
-                                            'Member Of Groups' = switch ([string]::IsNullOrEmpty($Groups)) {
+                                            $reportTranslate.GetAbrADDomainObject.LogonName = $User.SamAccountName
+                                            $reportTranslate.GetAbrADDomainObject.MemberOfGroups = switch ([string]::IsNullOrEmpty($Groups)) {
                                                 $true { '--' }
                                                 $false { $Groups }
                                                 default { 'Unknown' }
@@ -238,7 +227,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Users - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.UsersSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 33, 33, 34
                                 }
@@ -246,7 +235,7 @@ function Get-AbrADDomainObject {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.Name | Table @TableParams
                                 Show-AbrDebugExecutionTime -End -TitleMessage 'Users Inventory'
                             }
 
@@ -260,18 +249,18 @@ function Get-AbrADDomainObject {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
             }
             try {
-                Section -Style Heading4 'Group Objects' {
+                Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.GroupObjectsSection {
                     Show-AbrDebugExecutionTime -Start -TitleMessage 'Group Objects'
                     try {
                         $OutObj = [System.Collections.ArrayList]::new()
                         $inObj = [ordered] @{
-                            'Security Groups' = ($GroupOBj | Where-Object { $_.GroupCategory -eq 'Security' } | Measure-Object).Count
-                            'Distribution Groups' = ($GroupOBj | Where-Object { $_.GroupCategory -eq 'Distribution' } | Measure-Object).Count
+                            $reportTranslate.GetAbrADDomainObject.SecurityGroups = ($GroupOBj | Where-Object { $_.GroupCategory -eq 'Security' } | Measure-Object).Count
+                            $reportTranslate.GetAbrADDomainObject.DistributionGroups = ($GroupOBj | Where-Object { $_.GroupCategory -eq 'Distribution' } | Measure-Object).Count
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                         $TableParams = @{
-                            Name = "Group Categories - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $true
                             ColumnWidths = 40, 60
                         }
@@ -280,14 +269,14 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'Group Categories' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title $reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Category Object Chart)"
                         }
                         if ($OutObj) {
-                            Section -ExcludeFromTOC -Style NOTOCHeading4 'Groups Categories' {
+                            Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection {
                                 if ($Chart) {
-                                    Image -Text 'Groups Categories Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                    Image -Text "$($reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                             }
@@ -298,14 +287,14 @@ function Get-AbrADDomainObject {
                     try {
                         $OutObj = [System.Collections.ArrayList]::new()
                         $inObj = [ordered] @{
-                            'Domain Locals' = ($GroupOBj | Where-Object { $_.GroupScope -eq 'DomainLocal' } | Measure-Object).Count
-                            'Globals' = ($GroupOBj | Where-Object { $_.GroupScope -eq 'Global' } | Measure-Object).Count
-                            'Universal' = ($GroupOBj | Where-Object { $_.GroupScope -eq 'Universal' } | Measure-Object).Count
+                            $reportTranslate.GetAbrADDomainObject.DomainLocals = ($GroupOBj | Where-Object { $_.GroupScope -eq 'DomainLocal' } | Measure-Object).Count
+                            $reportTranslate.GetAbrADDomainObject.Globals = ($GroupOBj | Where-Object { $_.GroupScope -eq 'Global' } | Measure-Object).Count
+                            $reportTranslate.GetAbrADDomainObject.Universal = ($GroupOBj | Where-Object { $_.GroupScope -eq 'Universal' } | Measure-Object).Count
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                         $TableParams = @{
-                            Name = "Group Scopes - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainObject.GroupScopesSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $true
                             ColumnWidths = 40, 60
                         }
@@ -314,14 +303,14 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'Group Scopes' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title $reportTranslate.GetAbrADDomainObject.GroupScopesSubSection -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Scopes Object Chart)"
                         }
                         if ($OutObj) {
-                            Section -ExcludeFromTOC -Style NOTOCHeading4 'Groups Scopes' {
+                            Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDomainObject.GroupScopesSubSection {
                                 if ($Chart) {
-                                    Image -Text 'Groups Scopes Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                    Image -Text "$($reportTranslate.GetAbrADDomainObject.GroupScopesSubSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                             }
@@ -331,17 +320,17 @@ function Get-AbrADDomainObject {
                     }
                     if ($InfoLevel.Domain -ge 4) {
                         try {
-                            Section -Style Heading4 'Groups Inventory' {
+                            Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.GroupsInventorySection {
                                 Show-AbrDebugExecutionTime -Start -TitleMessage 'Groups Inventory'
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 foreach ($Group in $GroupOBj) {
                                     try {
                                         $UserCount = ($Group.Members | Measure-Object).Count
                                         $inObj = [ordered] @{
-                                            'Name' = $Group.Name
-                                            'Category' = $Group.GroupCategory
-                                            'Scope' = $Group.GroupScope
-                                            'User Count' = $UserCount
+                                            $reportTranslate.GetAbrADDomainObject.Name = $Group.Name
+                                            $reportTranslate.GetAbrADDomainObject.GroupCategory = $Group.GroupCategory
+                                            $reportTranslate.GetAbrADDomainObject.GroupScope = $Group.GroupScope
+                                            $reportTranslate.GetAbrADDomainObject.UserCount = $UserCount
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     } catch {
@@ -350,7 +339,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Groups - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.Group) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 35, 25, 25, 15
                                 }
@@ -358,7 +347,7 @@ function Get-AbrADDomainObject {
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.Name | Table @TableParams
                                 Show-AbrDebugExecutionTime -End -TitleMessage 'Groups Inventory'
                             }
 
@@ -367,7 +356,7 @@ function Get-AbrADDomainObject {
                         }
                     }
                     if ($GroupOBj) {
-                        Section -Style Heading5 'Privileged Groups (Built-in)' {
+                        Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.PrivilegedGroupsSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Privileged Groups (Built-in)'
                             $OutObj = [System.Collections.ArrayList]::new()
                             try {
@@ -377,14 +366,14 @@ function Get-AbrADDomainObject {
                                     $GroupsSID = "$DomainSID-512", 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', 'S-1-5-32-578'
                                 }
                                 if ($InfoLevel.Domain -eq 1) {
-                                    Paragraph 'The following section provides a summary of privileged group membership counts.'
+                                    Paragraph $reportTranslate.GetAbrADDomainObject.PrivilegedGroupsSummaryParagraph
                                     BlankLine
                                     foreach ($GroupSID in $GroupsSID) {
                                         try {
                                             if ($Group = $GroupOBj | Where-Object { $_.SID -like $GroupSID }) {
                                                 $inObj = [ordered] @{
-                                                    'Group Name' = $Group.Name
-                                                    'Count' = ($Group.Members | Measure-Object).Count
+                                                    $reportTranslate.GetAbrADDomainObject.GroupName = $Group.Name
+                                                    $reportTranslate.GetAbrADDomainObject.Count = ($Group.Members | Measure-Object).Count
                                                 }
                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                             }
@@ -394,54 +383,54 @@ function Get-AbrADDomainObject {
                                     }
 
                                     if ($HealthCheck.Domain.Security) {
-                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Schema Admins' -and $_.Count -gt 1 })) {
-                                            $OBJ.'Group Name' = '*' + $OBJ.'Group Name'
+                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq 'Schema Admins' -and $_.Count -gt 1 })) {
+                                            $OBJ.$($reportTranslate.GetAbrADDomainObject.GroupName) = '*' + $OBJ.$($reportTranslate.GetAbrADDomainObject.GroupName)
                                         }
-                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Enterprise Admins' -and $_.Count -gt 1 })) {
-                                            $OBJ.'Group Name' = '**' + $OBJ.'Group Name'
+                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq 'Enterprise Admins' -and $_.Count -gt 1 })) {
+                                            $OBJ.$($reportTranslate.GetAbrADDomainObject.GroupName) = '**' + $OBJ.$($reportTranslate.GetAbrADDomainObject.GroupName)
                                         }
-                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.'Group Name' -eq 'Domain Admins' -and $_.Count -gt 5 })) {
-                                            $OBJ.'Group Name' = '***' + $OBJ.'Group Name'
+                                        foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq 'Domain Admins' -and $_.Count -gt 5 })) {
+                                            $OBJ.$($reportTranslate.GetAbrADDomainObject.GroupName) = '***' + $OBJ.$($reportTranslate.GetAbrADDomainObject.GroupName)
                                         }
-                                        $OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
-                                        $OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
-                                        $OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 } | Set-Style -Style Warning
+                                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq '*Schema Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
+                                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq '**Enterprise Admins' -and $_.Count -gt 1 } | Set-Style -Style Warning
+                                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq '***Domain Admins' -and $_.Count -gt 5 } | Set-Style -Style Warning
                                     }
 
                                     $TableParams = @{
-                                        Name = "Privileged Groups - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADDomainObject.PrivilegedGroups) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 60, 40
                                     }
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
-                                    if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 })) {
-                                        Paragraph 'Health Check:' -Bold -Underline
+                                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.GroupName | Table @TableParams
+                                    if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq '*Schema Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq '**Enterprise Admins' -and $_.Count -gt 1 }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq '***Domain Admins' -and $_.Count -gt 5 })) {
+                                        Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                         BlankLine
-                                        Paragraph 'Security Best Practice:' -Bold
-                                        if ($OutObj | Where-Object { $_.'Group Name' -eq '*Schema Admins' -and $_.Count -gt 1 }) {
+                                        Paragraph $reportTranslate.GetAbrADDomainObject.SecurityBestPractice -Bold
+                                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq '*Schema Admins' -and $_.Count -gt 1 }) {
                                             BlankLine
                                             Paragraph {
-                                                Text '*The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed.'
+                                                Text $reportTranslate.GetAbrADDomainObject.SchemaAdminsSummaryBP
                                             }
                                         }
-                                        if ($OutObj | Where-Object { $_.'Group Name' -eq '**Enterprise Admins' -and $_.Count -gt 1 }) {
+                                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq '**Enterprise Admins' -and $_.Count -gt 1 }) {
                                             BlankLine
                                             Paragraph {
-                                                Text '**Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically.'
+                                                Text $reportTranslate.GetAbrADDomainObject.EnterpriseAdminsSummaryBP
                                             }
                                         }
-                                        if ($OutObj | Where-Object { $_.'Group Name' -eq '***Domain Admins' -and $_.Count -gt 5 }) {
+                                        if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GroupName) -eq '***Domain Admins' -and $_.Count -gt 5 }) {
                                             BlankLine
                                             Paragraph {
-                                                Text '***Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access.'
+                                                Text $reportTranslate.GetAbrADDomainObject.DomainAdminsSummaryBP
                                             }
                                         }
                                     }
                                 } else {
-                                    Paragraph 'The following section provides detailed information about the user members of each privileged group. Groups without members are excluded.'
+                                    Paragraph $reportTranslate.GetAbrADDomainObject.PrivilegedGroupsDetailParagraph
                                     BlankLine
                                     foreach ($GroupSID in $GroupsSID) {
                                         try {
@@ -453,14 +442,14 @@ function Get-AbrADDomainObject {
                                                         foreach ($GroupObject in $GroupObjFilter) {
                                                             try {
                                                                 $inObj = [ordered] @{
-                                                                    'Name' = "$($GroupObject.SamAccountName) ($($GroupObject.ObjectClass.toUpper()))"
-                                                                    'Last Logon Date' = switch ([string]::IsNullOrEmpty($GroupObject.LastLogonDate)) {
+                                                                    $reportTranslate.GetAbrADDomainObject.Name = "$($GroupObject.SamAccountName) ($($GroupObject.ObjectClass.toUpper()))"
+                                                                    $reportTranslate.GetAbrADDomainObject.LastLogonDate = switch ([string]::IsNullOrEmpty($GroupObject.LastLogonDate)) {
                                                                         $true { '--' }
                                                                         $false { $GroupObject.LastLogonDate.ToShortDateString() }
                                                                         default { 'Unknown' }
                                                                     }
-                                                                    'Password Never Expires' = $GroupObject.passwordNeverExpires
-                                                                    'Account Enabled' = $GroupObject.Enabled
+                                                                    $reportTranslate.GetAbrADDomainObject.PasswordNeverExpires = $GroupObject.passwordNeverExpires
+                                                                    $reportTranslate.GetAbrADDomainObject.AccountEnabled = $GroupObject.Enabled
                                                                 }
                                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                                             } catch {
@@ -470,14 +459,14 @@ function Get-AbrADDomainObject {
                                                         }
 
                                                         if ($HealthCheck.Domain.Security) {
-                                                            $OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Never Expires'
-                                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.'Password Never Expires' -eq 'Yes' })) {
-                                                                $OBJ.'Password Never Expires' = '**Yes'
+                                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.PasswordNeverExpires) -eq 'Yes' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.PasswordNeverExpires
+                                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.PasswordNeverExpires) -eq 'Yes' })) {
+                                                                $OBJ.$($reportTranslate.GetAbrADDomainObject.PasswordNeverExpires) = '**Yes'
                                                             }
-                                                            $OutObj | Where-Object { $_.'Account Enabled' -eq 'No' } | Set-Style -Style Warning -Property 'Account Enabled'
-                                                            $OutObj | Where-Object { $_.'Last Logon Date' -ne '--' -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) } | Set-Style -Style Warning -Property 'Last Logon Date'
-                                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.'Last Logon Date' -ne '--' -and [DateTime]$_.'Last Logon Date' -le (Get-Date).AddDays(-90) })) {
-                                                                $OBJ.'Last Logon Date' = '*' + $OBJ.'Last Logon Date'
+                                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.AccountEnabled) -eq 'No' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.AccountEnabled
+                                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.LastLogonDate) -ne '--' -and [DateTime]$_.$($reportTranslate.GetAbrADDomainObject.LastLogonDate) -le (Get-Date).AddDays(-90) } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.LastLogonDate
+                                                            foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.LastLogonDate) -ne '--' -and [DateTime]$_.$($reportTranslate.GetAbrADDomainObject.LastLogonDate) -le (Get-Date).AddDays(-90) })) {
+                                                                $OBJ.$($reportTranslate.GetAbrADDomainObject.LastLogonDate) = '*' + $OBJ.$($reportTranslate.GetAbrADDomainObject.LastLogonDate)
                                                             }
                                                         }
 
@@ -489,40 +478,40 @@ function Get-AbrADDomainObject {
                                                         if ($Report.ShowTableCaptions) {
                                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                                         }
-                                                        $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                                                        if ($HealthCheck.Domain.Security -and ((($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or ($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) -or ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) -or ($OutObj | Where-Object { $_.'Last Logon Date' -ne '--' -and $_.'Last Logon Date' -match '\*' })) {
-                                                            Paragraph 'Health Check:' -Bold -Underline
+                                                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.Name | Table @TableParams
+                                                        if ($HealthCheck.Domain.Security -and ((($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or ($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) -or (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.PasswordNeverExpires) -eq '**Yes' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.LastLogonDate) -ne '--' -and $_.$($reportTranslate.GetAbrADDomainObject.LastLogonDate) -match '\*' })) {
+                                                            Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                                             BlankLine
-                                                            Paragraph 'Security Best Practice:' -Bold
+                                                            Paragraph $reportTranslate.GetAbrADDomainObject.SecurityBestPractice -Bold
 
                                                             if (($Group.Name -eq 'Schema Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
                                                                 BlankLine
                                                                 Paragraph {
-                                                                    Text 'The Schema Admins group is a privileged group in a forest root domain. Members of the Schema Admins group can make changes to the schema, which is the framework for the Active Directory forest. Changes to the schema are not frequently required. This group only contains the Built-in Administrator account by default. Additional accounts must only be added when changes to the schema are necessary and then must be removed.'
+                                                                    Text $reportTranslate.GetAbrADDomainObject.SchemaAdminsBP
                                                                 }
                                                             }
                                                             if (($Group.Name -eq 'Enterprise Admins') -and ($GroupObjects | Measure-Object).count -gt 0) {
                                                                 BlankLine
                                                                 Paragraph {
-                                                                    Text 'Unless an account is doing specific tasks needing those highly elevated permissions, every account should be removed from Enterprise Admins (EA) group. A side benefit of having an empty Enterprise Admins group is that it adds just enough friction to ensure that enterprise-wide changes requiring Enterprise Admin rights are done purposefully and methodically.'
+                                                                    Text $reportTranslate.GetAbrADDomainObject.EnterpriseAdminsBP
                                                                 }
                                                             }
                                                             if (($Group.Name -eq 'Domain Admins') -and ($GroupObjects | Measure-Object).count -gt 5) {
                                                                 BlankLine
                                                                 Paragraph {
-                                                                    Text 'Microsoft recommends that Domain Admins contain no more than five members to minimize the risk of privilege escalation and to ensure better control over administrative access.'
+                                                                    Text $reportTranslate.GetAbrADDomainObject.DomainAdminsBP
                                                                 }
                                                             }
-                                                            if ($OutObj | Where-Object { $_.'Password Never Expires' -eq '**Yes' }) {
+                                                            if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.PasswordNeverExpires) -eq '**Yes' }) {
                                                                 BlankLine
                                                                 Paragraph {
-                                                                    Text '**Accounts with passwords set to never expire were found in the environment. Ensure there are no accounts with weak security postures. Accounts with passwords that never expire can pose a significant security risk as they may not be updated regularly. It is recommended to enforce password expiration policies to enhance security.'
+                                                                    Text $reportTranslate.GetAbrADDomainObject.PasswordNeverExpiresBP
                                                                 }
                                                             }
-                                                            if ($OutObj | Where-Object { $_.'Last Logon Date' -match '\*' }) {
+                                                            if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.LastLogonDate) -match '\*' }) {
                                                                 BlankLine
                                                                 Paragraph {
-                                                                    Text '*Regularly check for and remove inactive privileged user accounts in Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts have privileged access helps maintain a secure environment.'
+                                                                    Text $reportTranslate.GetAbrADDomainObject.InactivePrivilegedUserBP
                                                                 }
                                                             }
                                                         }
@@ -550,8 +539,8 @@ function Get-AbrADDomainObject {
                                     if ($Group.SID -notin $AdminGroupsBySID) {
                                         try {
                                             $inObj = [ordered] @{
-                                                'Group Name' = $Group.Name
-                                                'Group SID' = $Group.SID
+                                                $reportTranslate.GetAbrADDomainObject.GroupName = $Group.Name
+                                                $reportTranslate.GetAbrADDomainObject.GroupSID = $Group.SID
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         } catch {
@@ -561,7 +550,7 @@ function Get-AbrADDomainObject {
                                 }
 
                                 $TableParams = @{
-                                    Name = "Privileged Group (Non-Default) - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.PrivilegedGroupsNonDefault) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 50, 50
                                 }
@@ -570,15 +559,15 @@ function Get-AbrADDomainObject {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 if ($OutObj) {
-                                    Section -Style Heading5 'Privileged Group (Non-Default)' {
-                                        Paragraph 'The following section provides a summary of privileged groups with the AdminCount attribute set to 1 (excluding default groups).'
+                                    Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.PrivilegedGroupsNonDefaultSection {
+                                        Paragraph $reportTranslate.GetAbrADDomainObject.PrivilegedGroupsNonDefaultParagraph
                                         BlankLine
-                                        $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
-                                        Paragraph 'Health Check:' -Bold -Underline
+                                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.GroupName | Table @TableParams
+                                        Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                         BlankLine
                                         Paragraph {
-                                            Text 'Best Practice:' -Bold
-                                            Text 'Regularly validate and remove unneeded privileged group members in Active Directory. Ensuring that only necessary accounts have privileged access helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation. Regular audits and reviews of group memberships can help identify and mitigate potential security risks.'
+                                            Text $reportTranslate.GetAbrADDomainObject.BestPractice -Bold
+                                            Text $reportTranslate.GetAbrADDomainObject.NonDefaultPrivilegedGroupBP
                                         }
                                         Show-AbrDebugExecutionTime -End -TitleMessage 'Privileged Group (Non-Default)'
                                     }
@@ -592,15 +581,15 @@ function Get-AbrADDomainObject {
                     if ($HealthCheck.Domain.BestPractice -and ($EmptyGroupOBj)) {
                         try {
                             if ($EmptyGroupArray = $EmptyGroupOBj | Where-Object { $_.SID -notin $excludedForestGroupsBySID -and $_.SID -notin $excludedDomainGroupsBySID -and $_.Name -notin $excludedDomainGroupsByName }) {
-                                Section -Style Heading5 'Empty Groups (Non-Default)' {
+                                Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.EmptyGroupsSection {
                                     Show-AbrDebugExecutionTime -Start -TitleMessage 'Empty Groups (Non-Default)'
                                     $OutObj = [System.Collections.ArrayList]::new()
                                     foreach ($Group in $EmptyGroupArray) {
                                         if ($Group.SID -notin $excludedForestGroupsBySID -and $Group.SID -notin $excludedDomainGroupsBySID -and $Group.Name -notin $excludedDomainGroupsByName) {
                                             try {
                                                 $inObj = [ordered] @{
-                                                    'Group Name' = $Group.Name
-                                                    'Group SID' = $Group.SID
+                                                    $reportTranslate.GetAbrADDomainObject.GroupName = $Group.Name
+                                                    $reportTranslate.GetAbrADDomainObject.GroupSID = $Group.SID
                                                 }
                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                             } catch {
@@ -610,7 +599,7 @@ function Get-AbrADDomainObject {
                                     }
 
                                     $TableParams = @{
-                                        Name = "Empty Groups - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADDomainObject.EmptyGroupsTable) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 50, 50
                                     }
@@ -618,12 +607,12 @@ function Get-AbrADDomainObject {
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Sort-Object -Property 'Group Name' | Table @TableParams
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.GroupName | Table @TableParams
+                                    Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text 'Best Practice:' -Bold
-                                        Text 'Remove empty or unused Active Directory Groups. An empty Active Directory security group causes two major problems. First, they add unnecessary clutter and make active directory administration difficult, even when paired with user friendly Active Directory tools. The second and most important point to note is that empty groups are a security risk to your network.'
+                                        Text $reportTranslate.GetAbrADDomainObject.BestPractice -Bold
+                                        Text $reportTranslate.GetAbrADDomainObject.EmptyGroupBP
                                     }
                                     Show-AbrDebugExecutionTime -End -TitleMessage 'Empty Groups (Non-Default)'
                                 }
@@ -653,8 +642,8 @@ function Get-AbrADDomainObject {
                                         if ($nestedGroup) {
                                             try {
                                                 $inObj = [ordered] @{
-                                                    'Parent Group Name' = $Parent.Name
-                                                    'Child Group Name' = $nestedGroup.Name
+                                                    $reportTranslate.GetAbrADDomainObject.ParentGroupName = $Parent.Name
+                                                    $reportTranslate.GetAbrADDomainObject.ChildGroupName = $nestedGroup.Name
                                                 }
                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                             } catch {
@@ -666,18 +655,18 @@ function Get-AbrADDomainObject {
                             }
 
                             if ($OutObj) {
-                                Section -Style Heading5 'Circular Group Membership' {
-                                    Paragraph 'If an Active Directory (AD) group has another AD group as both its parent and as a child member you have a circular nested reference.'
+                                Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.CircularGroupMembershipSection {
+                                    Paragraph $reportTranslate.GetAbrADDomainObject.CircularGroupMembershipParagraph1
                                     BlankLine
-                                    Paragraph 'Why would that matter?'
+                                    Paragraph $reportTranslate.GetAbrADDomainObject.CircularGroupMembershipParagraph2
                                     BlankLine
-                                    Paragraph 'There is no technical reason preventing the use of circular references between AD groups, Active Directory can still calculate and grant access. The main reason that circular references are considered harmful is that they tend to make management more difficult.'
+                                    Paragraph $reportTranslate.GetAbrADDomainObject.CircularGroupMembershipParagraph3
                                     BlankLine
 
                                     $OutObj | Set-Style -Style Warning
 
                                     $TableParams = @{
-                                        Name = "Circular Group Membership - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADDomainObject.CircularGroupMembershipSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 50, 50
                                     }
@@ -685,12 +674,12 @@ function Get-AbrADDomainObject {
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Sort-Object -Property 'Parent Group Name' | Table @TableParams
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.ParentGroupName | Table @TableParams
+                                    Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text 'Best Practice:' -Bold
-                                        Text 'In a well structured Active Directory every group will have a single purpose, ideally with people and resources in separate groups and following a clear hierarchy. If the personnel group is a member of the color_printing group and the color_printing group is also a member of the personnel group, then neither group has a single clear purpose, both groups are now granting two permissions. Circular references are often the cause of unintended privilege escalation.'
+                                        Text $reportTranslate.GetAbrADDomainObject.BestPractice -Bold
+                                        Text $reportTranslate.GetAbrADDomainObject.CircularGroupBP
                                     }
                                     Show-AbrDebugExecutionTime -End -TitleMessage 'Circular Group Membership'
                                 }
@@ -722,8 +711,8 @@ function Get-AbrADDomainObject {
                                                 $MemberName = ($MemberDN -split ',')[0] -replace '^CN='
                                             }
                                             $inObj = [ordered] @{
-                                                'Name' = $MemberName
-                                                'Distinguished Name' = $MemberDN
+                                                $reportTranslate.GetAbrADDomainObject.Name = $MemberName
+                                                $reportTranslate.GetAbrADDomainObject.DistinguishedName = $MemberDN
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                         } catch {
@@ -731,24 +720,24 @@ function Get-AbrADDomainObject {
                                         }
                                     }
                                     if ($OutObj) {
-                                        Section -Style Heading5 'Pre-Windows 2000 Compatible Access Group Membership' {
-                                            Paragraph 'The following section provides information about the members of the Pre-Windows 2000 Compatible Access group.'
+                                        Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.PreWin2000Section {
+                                            Paragraph $reportTranslate.GetAbrADDomainObject.PreWin2000Paragraph
                                             BlankLine
-                                            $OutObj | Where-Object { $_.'Name' -match 'Authenticated Users|ANONYMOUS LOGON' } | Set-Style -Style Critical
+                                            $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.Name) -match 'Authenticated Users|ANONYMOUS LOGON' } | Set-Style -Style Critical
                                             $TableParams = @{
-                                                Name = "Pre-Windows 2000 Compatible Access - $($Domain.DNSRoot.ToString().ToUpper())"
+                                                Name = "$($reportTranslate.GetAbrADDomainObject.PreWin2000Table) - $($Domain.DNSRoot.ToString().ToUpper())"
                                                 List = $false
                                                 ColumnWidths = 40, 60
                                             }
                                             if ($Report.ShowTableCaptions) {
                                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                                             }
-                                            $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                                            Paragraph 'Health Check:' -Bold -Underline
+                                            $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.Name | Table @TableParams
+                                            Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                             BlankLine
                                             Paragraph {
-                                                Text 'Security Risk:' -Bold
-                                                Text 'The Pre-Windows 2000 Compatible Access group provides backward compatibility with Windows NT 4.0 and earlier systems. If Authenticated Users or Anonymous Logon are members, it grants read access to all Active Directory objects to any authenticated or unauthenticated user, creating a significant security vulnerability. Review and remove any unnecessary members from this group.'
+                                                Text $reportTranslate.GetAbrADDomainObject.SecurityRisk -Bold
+                                                Text $reportTranslate.GetAbrADDomainObject.PreWin2000BP
                                             }
                                         }
                                     }
@@ -764,18 +753,18 @@ function Get-AbrADDomainObject {
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
             }
-            Section -Style Heading4 'Computer Objects' {
+            Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.ComputerObjectsSection {
                 Show-AbrDebugExecutionTime -Start -TitleMessage 'Computer Objects'
                 try {
                     $OutObj = [System.Collections.ArrayList]::new()
                     $inObj = [ordered] @{
-                        'Computers' = ($Computers | Measure-Object).Count
-                        'Servers' = ($Servers).Count
+                        $reportTranslate.GetAbrADDomainObject.Computers = ($Computers | Measure-Object).Count
+                        $reportTranslate.GetAbrADDomainObject.Servers = ($Servers).Count
                     }
                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                     $TableParams = @{
-                        Name = "Computers - $($Domain.DNSRoot.ToString().ToUpper())"
+                        Name = "$($reportTranslate.GetAbrADDomainObject.ComputersSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }
@@ -784,15 +773,15 @@ function Get-AbrADDomainObject {
                     }
                     try {
                         $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'Computers Count' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title "$($reportTranslate.GetAbrADDomainObject.ComputersCount)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers Object Count Chart)"
                     }
                     if ($OutObj) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Computers' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDomainObject.ComputersSubSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Computers Object - Diagram'
                             if ($Chart) {
-                                Image -Text 'Computers Object - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                Image -Text "$($reportTranslate.GetAbrADDomainObject.ComputerObjectsSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                             }
                             $OutObj | Table @TableParams
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Computers Object - Diagram'
@@ -809,42 +798,39 @@ function Get-AbrADDomainObject {
                     $Dormant = $Computers | Where-Object { [datetime]::FromFileTime($_.lastlogontimestamp) -lt $dormanttime }
                     $PasswordAge = $Computers | Where-Object { $_.PasswordLastSet -le $passwordtime }
                     $SidHistory = $Computers.SIDHistory
-                    $Categories = @('Total Computers', 'Dormant (> 90 days)', 'Password Age (> 30 days)', 'SidHistory')
-                    if ($Categories) {
-                        foreach ($Category in $Categories) {
+                    $CategoryMap = [ordered]@{
+                        $reportTranslate.GetAbrADDomainObject.CatTotalComputers = $Computers
+                        $reportTranslate.GetAbrADDomainObject.CatDormant90     = $Dormant
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordAge30 = $PasswordAge
+                        $reportTranslate.GetAbrADDomainObject.CatSidHistory    = $SidHistory
+                    }
+                    if ($CategoryMap) {
+                        foreach ($Category in $CategoryMap.Keys) {
                             try {
-                                if ($Category -eq 'Total Computers') {
-                                    $Values = $Computers
-                                } elseif ($Category -eq 'Dormant (> 90 days)') {
-                                    $Values = $Dormant
-                                } elseif ($Category -eq 'Password Age (> 30 days)') {
-                                    $Values = $PasswordAge
-                                } elseif ($Category -eq 'SidHistory') {
-                                    $Values = $SidHistory
-                                }
+                                $Values = $CategoryMap[$Category]
                                 $inObj = [ordered] @{
-                                    'Category' = $Category
-                                    'Enabled' = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
+                                    $reportTranslate.GetAbrADDomainObject.Category = $Category
+                                    $reportTranslate.GetAbrADDomainObject.Enabled = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
                                         $true { '0' }
                                         default { ($Values.Enabled -eq $True | Measure-Object).Count }
                                     }
-                                    'Enabled %' = switch ($Values.Count) {
+                                    $reportTranslate.GetAbrADDomainObject.EnabledPct = switch ($Values.Count) {
                                         0 { '0' }
                                         default { [math]::Round((($Values.Enabled -eq $True | Measure-Object).Count / $Computers.Count * 100), 2) }
                                     }
-                                    'Disabled' = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
+                                    $reportTranslate.GetAbrADDomainObject.Disabled = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
                                         $true { '0' }
                                         default { ($Values.Enabled -eq $False | Measure-Object).Count }
                                     }
-                                    'Disabled %' = switch ($Values.Count) {
+                                    $reportTranslate.GetAbrADDomainObject.DisabledPct = switch ($Values.Count) {
                                         0 { '0' }
                                         default { [math]::Round((($Values.Enabled -eq $False | Measure-Object).Count / $Computers.Count * 100), 2) }
                                     }
-                                    'Total' = switch ([string]::IsNullOrEmpty($Values)) {
+                                    $reportTranslate.GetAbrADDomainObject.Total = switch ([string]::IsNullOrEmpty($Values)) {
                                         $true { '0' }
                                         default { ($Values | Measure-Object).Count }
                                     }
-                                    'Total %' = switch ($Values.Count) {
+                                    $reportTranslate.GetAbrADDomainObject.TotalPct = switch ($Values.Count) {
                                         0 { '0' }
                                         default { [math]::Round((($Values | Measure-Object).Count / $Computers.Count * 100), 2) }
                                     }
@@ -856,7 +842,7 @@ function Get-AbrADDomainObject {
                         }
 
                         $TableParams = @{
-                            Name = "Status of Computer Accounts - $($Domain.DNSRoot.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 28, 12, 12, 12, 12, 12, 12
                         }
@@ -865,15 +851,15 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $OutObj
-                            $Chart = New-PieChart -Values $sampleData.Total -Labels $sampleData.Category -Title 'Status of Computers Accounts' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.$($reportTranslate.GetAbrADDomainObject.Total) -Labels $sampleData.$($reportTranslate.GetAbrADDomainObject.Category) -Title "$($reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of Computers Accounts Chart)"
                         }
 
                         if ($OutObj) {
-                            Section -Style Heading5 'Status of Computer Accounts' {
+                            Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection {
                                 if ($Chart -and ($OutObj.'Total' | Measure-Object -Sum).Sum -ne 0) {
-                                    Image -Text 'Status of Computer Accounts - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                    Image -Text "$($reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection) - Diagram" -Align 'Center' -Percent 100 -Base64 $Chart
                                 }
                                 $OutObj | Table @TableParams
                                 Show-AbrDebugExecutionTime -End -TitleMessage 'Status of Computer Accounts'
@@ -884,7 +870,7 @@ function Get-AbrADDomainObject {
                     Write-PScriboMessage -IsWarning $($_.Exception.Message)
                 }
                 try {
-                    Section -Style Heading5 'Operating Systems Count' {
+                    Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.OperatingSystemsCountSection {
                         Show-AbrDebugExecutionTime -Start -TitleMessage 'Operating Systems Count'
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {
@@ -892,33 +878,33 @@ function Get-AbrADDomainObject {
                             if ($OSObjects) {
                                 foreach ($OSObject in $OSObjects) {
                                     $inObj = [ordered] @{
-                                        'Operating System' = switch ([string]::IsNullOrEmpty($OSObject.Name)) {
+                                        $reportTranslate.GetAbrADDomainObject.OperatingSystem = switch ([string]::IsNullOrEmpty($OSObject.Name)) {
                                             $True { 'No OS Specified' }
                                             default { $OSObject.Name }
                                         }
-                                        'Count' = $OSObject.Count
+                                        $reportTranslate.GetAbrADDomainObject.Count = $OSObject.Count
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 }
                                 if ($HealthCheck.Domain.Security) {
-                                    $OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' } | Set-Style -Style Critical -Property 'Operating System'
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2003*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2008*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 95*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 7*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 8 *' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 98*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*XP*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* Vista*' } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainObject.OperatingSystem
                                 }
 
                                 $TableParams = @{
-                                    Name = "Operating System Count - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.OperatingSystemCountSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     ColumnWidths = 60, 40
                                 }
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
-                                $OutObj | Sort-Object -Property 'Operating System' | Table @TableParams
-                                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '*2003*' -or $_.'Operating System' -like '*2008*' -or $_.'Operating System' -like '* NT*' -or $_.'Operating System' -like '*2000*' -or $_.'Operating System' -like '* 95*' -or $_.'Operating System' -like '* 7*' -or $_.'Operating System' -like '* 8 *' -or $_.'Operating System' -like '* 98*' -or $_.'Operating System' -like '*XP*' -or $_.'Operating System' -like '* Vista*' })) {
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.OperatingSystem | Table @TableParams
+                                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2003*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2008*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 95*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 7*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 8 *' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 98*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*XP*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* Vista*' })) {
+                                    Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text 'Security Best Practice:' -Bold
-                                        Text 'Operating systems that are no longer supported for security updates are not maintained or updated for vulnerabilities leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to increase the organization security posture.'
+                                        Text $reportTranslate.GetAbrADDomainObject.SecurityBestPractice -Bold
+                                        Text $reportTranslate.GetAbrADDomainObject.UnsupportedOSBP
                                     }
                                 }
                             }
@@ -934,14 +920,14 @@ function Get-AbrADDomainObject {
                     if ($HealthCheck.Domain.Security) {
                         if ($ComputerObjects = $Computers | Where-Object { $_.PasswordNeverExpires }) {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Computers with Password-Not-Required Attribute Set'
-                            Section -ExcludeFromTOC -Style NOTOCHeading5 'Computers with Password-Not-Required Attribute Set' {
+                            Section -ExcludeFromTOC -Style NOTOCHeading5 $reportTranslate.GetAbrADDomainObject.PasswordNotRequiredSection {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 try {
                                     foreach ($ComputerObject in $ComputerObjects) {
                                         $inObj = [ordered] @{
-                                            'Computer Name' = $ComputerObject.Name
-                                            'Distinguished Name' = $ComputerObject.DistinguishedName
-                                            'Enabled' = $ComputerObject.Enabled
+                                            $reportTranslate.GetAbrADDomainObject.ComputerName = $ComputerObject.Name
+                                            $reportTranslate.GetAbrADDomainObject.DistinguishedName = $ComputerObject.DistinguishedName
+                                            $reportTranslate.GetAbrADDomainObject.Enabled = $ComputerObject.Enabled
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                     }
@@ -949,19 +935,19 @@ function Get-AbrADDomainObject {
                                     $OutObj | Set-Style -Style Warning
 
                                     $TableParams = @{
-                                        Name = "Computers with Password-Not-Required - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADDomainObject.PasswordNotRequiredSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         ColumnWidths = 30, 58, 12
                                     }
                                     if ($Report.ShowTableCaptions) {
                                         $TableParams['Caption'] = "- $($TableParams.Name)"
                                     }
-                                    $OutObj | Sort-Object -Property 'Computer Name' | Table @TableParams
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.ComputerName | Table @TableParams
+                                    Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {
-                                        Text 'Security Best Practice:' -Bold
-                                        Text 'Computers with Password-Not-Required attribute set can pose a significant security risk. This setting allows computer accounts to have no password, which can be exploited by malicious actors to gain unauthorized access to the network. It is recommended to review and update these accounts to ensure they comply with security policies and have strong, complex passwords set.'
+                                        Text $reportTranslate.GetAbrADDomainObject.SecurityBestPractice -Bold
+                                        Text $reportTranslate.GetAbrADDomainObject.PasswordNotRequiredBP
                                     }
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers with Password-Not-Required table)"
@@ -975,19 +961,19 @@ function Get-AbrADDomainObject {
                 }
                 if ($InfoLevel.Domain -ge 4) {
                     try {
-                        Section -Style Heading4 'Computers Inventory' {
+                        Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.ComputersInventorySection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Computers Inventory'
                             $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($Computer in $Computers) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'Name' = $Computer.Name
-                                        'DNS HostName' = $Computer.DNSHostName
-                                        'Operating System' = $Computer.operatingSystem
-                                        'Status' = switch ($Computer.Enabled) {
-                                            'True' { 'Enabled' }
-                                            'False' { 'Disabled' }
-                                            default { 'Unknown' }
+                                        $reportTranslate.GetAbrADDomainObject.Name = $Computer.Name
+                                        $reportTranslate.GetAbrADDomainObject.DNSHostName = $Computer.DNSHostName
+                                        $reportTranslate.GetAbrADDomainObject.OperatingSystem = $Computer.operatingSystem
+                                        $reportTranslate.GetAbrADDomainObject.Status = switch ($Computer.Enabled) {
+                                            'True' { $reportTranslate.GetAbrADDomainObject.StatusEnabled }
+                                            'False' { $reportTranslate.GetAbrADDomainObject.StatusDisabled }
+                                            default { $reportTranslate.GetAbrADDomainObject.StatusUnknown }
                                         }
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -997,7 +983,7 @@ function Get-AbrADDomainObject {
                             }
 
                             $TableParams = @{
-                                Name = "Computers - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADDomainObject.ComputersInventorySection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 30, 30, 25, 15
                             }
@@ -1005,7 +991,7 @@ function Get-AbrADDomainObject {
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                            $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.Name | Table @TableParams
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Computers Inventory'
                         }
 
@@ -1016,32 +1002,32 @@ function Get-AbrADDomainObject {
                 Show-AbrDebugExecutionTime -End -TitleMessage 'Computer Objects'
             }
             try {
-                Section -Style Heading3 'Default Domain Password Policy' {
+                Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.DefaultPasswordPolicySection {
                     Show-AbrDebugExecutionTime -Start -TitleMessage 'Default Domain Password Policy'
                     $OutObj = [System.Collections.ArrayList]::new()
                     try {
                         $PasswordPolicy = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDefaultDomainPasswordPolicy -Identity ($using:Domain).DNSRoot }
                         if ($PasswordPolicy) {
                             $inObj = [ordered] @{
-                                'Password Must Meet Complexity Requirements' = $PasswordPolicy.ComplexityEnabled
-                                'Path' = ConvertTo-ADCanonicalName -DN $PasswordPolicy.DistinguishedName -Domain $Domain.Name
-                                'Lockout Duration' = $PasswordPolicy.LockoutDuration.toString("mm' minutes'")
-                                'Lockout Threshold' = $PasswordPolicy.LockoutThreshold
-                                'Lockout Observation Window' = $PasswordPolicy.LockoutObservationWindow.toString("mm' minutes'")
-                                'Maximum Password Age' = $PasswordPolicy.MaxPasswordAge.toString("dd' days'")
-                                'Minimum Password Age' = $PasswordPolicy.MinPasswordAge.toString("dd' days'")
-                                'Minimum Password Length' = $PasswordPolicy.MinPasswordLength
-                                'Enforce Password History' = $PasswordPolicy.PasswordHistoryCount
-                                'Store Password using Reversible Encryption' = $PasswordPolicy.ReversibleEncryptionEnabled
+                                $reportTranslate.GetAbrADDomainObject.PasswordComplexity = $PasswordPolicy.ComplexityEnabled
+                                $reportTranslate.GetAbrADDomainObject.Path = ConvertTo-ADCanonicalName -DN $PasswordPolicy.DistinguishedName -Domain $Domain.Name
+                                $reportTranslate.GetAbrADDomainObject.LockoutDuration = $PasswordPolicy.LockoutDuration.toString("mm' minutes'")
+                                $reportTranslate.GetAbrADDomainObject.LockoutThreshold = $PasswordPolicy.LockoutThreshold
+                                $reportTranslate.GetAbrADDomainObject.LockoutObservationWindow = $PasswordPolicy.LockoutObservationWindow.toString("mm' minutes'")
+                                $reportTranslate.GetAbrADDomainObject.MaxPasswordAge = $PasswordPolicy.MaxPasswordAge.toString("dd' days'")
+                                $reportTranslate.GetAbrADDomainObject.MinPasswordAge = $PasswordPolicy.MinPasswordAge.toString("dd' days'")
+                                $reportTranslate.GetAbrADDomainObject.MinPasswordLength = $PasswordPolicy.MinPasswordLength
+                                $reportTranslate.GetAbrADDomainObject.EnforcePasswordHistory = $PasswordPolicy.PasswordHistoryCount
+                                $reportTranslate.GetAbrADDomainObject.StorePasswordReversible = $PasswordPolicy.ReversibleEncryptionEnabled
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                             if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
-                                $OutObj | Set-Style -Style Warning -Property 'Maximun Password Age'
+                                $OutObj | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.MaxPasswordAge
                             }
 
                             $TableParams = @{
-                                Name = "Default Domain Password Policy - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADDomainObject.DefaultPasswordPolicySection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $true
                                 ColumnWidths = 40, 60
                             }
@@ -1051,11 +1037,11 @@ function Get-AbrADDomainObject {
                             $OutObj | Table @TableParams
 
                             if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
-                                Paragraph 'Health Check:' -Bold -Underline
+                                Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text 'Security Best Practice:' -Bold
-                                    Text 'The MS-ISAC recommends organizations establish a standard for the creation, maintenance, and storage of strong passwords. A Password policies should enforce a maximum password age of between 30 and 90 days.'
+                                    Text $reportTranslate.GetAbrADDomainObject.SecurityBestPractice -Bold
+                                    Text $reportTranslate.GetAbrADDomainObject.MaxPasswordAgeBP
                                 }
                             }
                         }
@@ -1070,7 +1056,7 @@ function Get-AbrADDomainObject {
             try {
                 foreach ($Item in $Domain) {
                     if ($PasswordPolicy = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADFineGrainedPasswordPolicy -Server ($using:Domain).PDCEmulator -Filter { Name -like '*' } -Properties * -SearchBase ($using:Domain).distinguishedName } | Sort-Object -Property Name) {
-                        Section -Style Heading3 'Fined Grained Password Policies' {
+                        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.FineGrainedPasswordPoliciesSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Fined Grained Password Policies'
                             $FGPPInfo = [System.Collections.ArrayList]::new()
                             foreach ($FGPP in $PasswordPolicy) {
@@ -1080,20 +1066,20 @@ function Get-AbrADDomainObject {
                                         $Accounts.Add(($Users | Where-Object { $_.distinguishedName -eq $ADObject }).sAMAccountName) | Out-Null
                                     }
                                     $inObj = [ordered] @{
-                                        'Name' = $FGPP.Name
-                                        'Domain Name' = $Item
-                                        'Complexity Enabled' = $FGPP.ComplexityEnabled
-                                        'Path' = ConvertTo-ADCanonicalName -DN $FGPP.DistinguishedName -Domain $Domain.DNSRoot
-                                        'Lockout Duration' = $FGPP.LockoutDuration.toString("mm' minutes'")
-                                        'Lockout Threshold' = $FGPP.LockoutThreshold
-                                        'Lockout Observation Window' = $FGPP.LockoutObservationWindow.toString("mm' minutes'")
-                                        'Max Password Age' = $FGPP.MaxPasswordAge.toString("dd' days'")
-                                        'Min Password Age' = $FGPP.MinPasswordAge.toString("dd' days'")
-                                        'Min Password Length' = $FGPP.MinPasswordLength
-                                        'Password History Count' = $FGPP.PasswordHistoryCount
-                                        'Reversible Encryption Enabled' = $FGPP.ReversibleEncryptionEnabled
-                                        'Precedence' = $FGPP.Precedence
-                                        'Applies To' = $Accounts -join ', '
+                                        $reportTranslate.GetAbrADDomainObject.FGPPName = $FGPP.Name
+                                        $reportTranslate.GetAbrADDomainObject.FGPPDomainName = $Item
+                                        $reportTranslate.GetAbrADDomainObject.FGPPComplexityEnabled = $FGPP.ComplexityEnabled
+                                        $reportTranslate.GetAbrADDomainObject.FGPPPath = ConvertTo-ADCanonicalName -DN $FGPP.DistinguishedName -Domain $Domain.DNSRoot
+                                        $reportTranslate.GetAbrADDomainObject.FGPPLockoutDuration = $FGPP.LockoutDuration.toString("mm' minutes'")
+                                        $reportTranslate.GetAbrADDomainObject.FGPPLockoutThreshold = $FGPP.LockoutThreshold
+                                        $reportTranslate.GetAbrADDomainObject.FGPPLockoutObservationWindow = $FGPP.LockoutObservationWindow.toString("mm' minutes'")
+                                        $reportTranslate.GetAbrADDomainObject.FGPPMaxPasswordAge = $FGPP.MaxPasswordAge.toString("dd' days'")
+                                        $reportTranslate.GetAbrADDomainObject.FGPPMinPasswordAge = $FGPP.MinPasswordAge.toString("dd' days'")
+                                        $reportTranslate.GetAbrADDomainObject.FGPPMinPasswordLength = $FGPP.MinPasswordLength
+                                        $reportTranslate.GetAbrADDomainObject.FGPPPasswordHistoryCount = $FGPP.PasswordHistoryCount
+                                        $reportTranslate.GetAbrADDomainObject.FGPPReversibleEncryptionEnabled = $FGPP.ReversibleEncryptionEnabled
+                                        $reportTranslate.GetAbrADDomainObject.FGPPPrecedence = $FGPP.Precedence
+                                        $reportTranslate.GetAbrADDomainObject.FGPPAppliesTo = $Accounts -join ', '
                                     }
                                     $FGPPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
@@ -1103,9 +1089,9 @@ function Get-AbrADDomainObject {
 
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($FGPP in $FGPPInfo) {
-                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($FGPP.Name)" {
+                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($FGPP.$($reportTranslate.GetAbrADDomainObject.FGPPName))" {
                                         $TableParams = @{
-                                            Name = "Fined Grained Password Policies - $($FGPP.Name)"
+                                            Name = "$($reportTranslate.GetAbrADDomainObject.FGPPName) - $($FGPP.Name)"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -1117,9 +1103,9 @@ function Get-AbrADDomainObject {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Fined Grained Password Policies -  $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.FineGrainedPasswordPoliciesSection) -  $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
-                                    Columns = 'Name', 'Lockout Duration', 'Max Password Age', 'Min Password Age', 'Min Password Length', 'Password History Count'
+                                    Columns = $reportTranslate.GetAbrADDomainObject.FGPPName, $reportTranslate.GetAbrADDomainObject.FGPPLockoutDuration, $reportTranslate.GetAbrADDomainObject.FGPPMaxPasswordAge, $reportTranslate.GetAbrADDomainObject.FGPPMinPasswordAge, $reportTranslate.GetAbrADDomainObject.FGPPMinPasswordLength, $reportTranslate.GetAbrADDomainObject.FGPPPasswordHistoryCount
                                     ColumnWidths = 20, 20, 15, 15, 15, 15
                                 }
                                 if ($Report.ShowTableCaptions) {
@@ -1139,24 +1125,24 @@ function Get-AbrADDomainObject {
                 if ($Domain.DNSRoot -eq $ADSystem.RootDomain) {
                     foreach ($Item in $Domain) {
                         $LAPS = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Server ($using:Domain).PDCEmulator "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:Domain).distinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
-                        Section -Style Heading3 'Microsoft LAPS' {
+                        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Microsoft LAPS'
                             $LAPSInfo = [System.Collections.ArrayList]::new()
                             try {
                                 $inObj = [ordered] @{
-                                    'Name' = 'Local Administrator Password Solution'
-                                    'Domain Name' = $Item
-                                    'Enabled' = switch ($LAPS.Count) {
+                                    $reportTranslate.GetAbrADDomainObject.LAPSName = $reportTranslate.GetAbrADDomainObject.LAPSName_Value
+                                    $reportTranslate.GetAbrADDomainObject.LAPSDomainName = $Item
+                                    $reportTranslate.GetAbrADDomainObject.LAPSEnabled = switch ($LAPS.Count) {
                                         0 { 'No' }
                                         default { 'Yes' }
                                     }
-                                    'Distinguished Name' = $LAPS.DistinguishedName
+                                    $reportTranslate.GetAbrADDomainObject.LAPSDistinguishedName = $LAPS.DistinguishedName
 
                                 }
                                 $LAPSInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                 if ($HealthCheck.Domain.Security) {
-                                    $LAPSInfo | Where-Object { $_.'Enabled' -eq 'No' } | Set-Style -Style Warning -Property 'Enabled'
+                                    $LAPSInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.LAPSEnabled) -eq 'No' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.LAPSEnabled
                                 }
 
                             } catch {
@@ -1166,7 +1152,7 @@ function Get-AbrADDomainObject {
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($LAP in $LAPSInfo) {
                                     $TableParams = @{
-                                        Name = "Microsoft LAPS - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $true
                                         ColumnWidths = 40, 60
                                     }
@@ -1177,9 +1163,9 @@ function Get-AbrADDomainObject {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "Microsoft LAPS -  $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection) -  $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
-                                    Columns = 'Name', 'Domain Name', 'Enabled'
+                                    Columns = $reportTranslate.GetAbrADDomainObject.LAPSName, $reportTranslate.GetAbrADDomainObject.LAPSDomainName, $reportTranslate.GetAbrADDomainObject.LAPSEnabled
                                     ColumnWidths = 34, 33, 33
                                 }
                                 if ($Report.ShowTableCaptions) {
@@ -1188,12 +1174,12 @@ function Get-AbrADDomainObject {
                                 $LAPSInfo | Table @TableParams
                             }
 
-                            if ($HealthCheck.Domain.Security -and ($LAPSInfo | Where-Object { $_.'Enabled' -eq 'No' })) {
-                                Paragraph 'Health Check:' -Bold -Underline
+                            if ($HealthCheck.Domain.Security -and ($LAPSInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.LAPSEnabled) -eq 'No' })) {
+                                Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text 'Security Best Practice:' -Bold
-                                    Text 'LAPS simplifies password management while helping customers implement additional recommended defenses against cyberattacks. In particular, the solution mitigates the risk of lateral escalation that results when customers use the same administrative local account and password combination on their computers. Download, install, and configure Microsoft LAPS or a third-party solution.'
+                                    Text $reportTranslate.GetAbrADDomainObject.SecurityBestPractice -Bold
+                                    Text $reportTranslate.GetAbrADDomainObject.LAPSInstalledBP
                                 }
                             }
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Microsoft LAPS'
@@ -1207,31 +1193,31 @@ function Get-AbrADDomainObject {
             try {
                 try {
                     if ($GMSA = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADServiceAccount -Server $using:ValidDcFromDomain -Filter * -Properties * }) {
-                        Section -Style Heading3 'gMSA Identities' {
+                        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.GMSASection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'gMSA Identities'
                             $GMSAInfo = [System.Collections.ArrayList]::new()
                             foreach ($Account in $GMSA) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'Name' = $Account.Name
-                                        'SamAccountName' = $Account.SamAccountName
-                                        'Created' = switch ($Account.Created) {
+                                        $reportTranslate.GetAbrADDomainObject.GMSAName = $Account.Name
+                                        $reportTranslate.GetAbrADDomainObject.GMSASamAccountName = $Account.SamAccountName
+                                        $reportTranslate.GetAbrADDomainObject.GMSACreated = switch ($Account.Created) {
                                             $null { '--' }
                                             default { $Account.Created.ToShortDateString() }
                                         }
-                                        'Enabled' = $Account.Enabled
-                                        'DNS Host Name' = $Account.DNSHostName
-                                        'Host Computers' = ((ConvertTo-ADObjectName -DN $Account.HostComputers -Session $TempPssSession -DC $ValidDcFromDomain) -join ', ')
-                                        'Retrieve Managed Password' = ((ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $TempPssSession -DC $ValidDcFromDomain) -join ', ')
-                                        'Primary Group' = (ConvertTo-ADObjectName $Account.PrimaryGroup -Session $TempPssSession -DC $ValidDcFromDomain) -join ', '
-                                        'Last Logon Date' = switch ($Account.LastLogonDate) {
+                                        $reportTranslate.GetAbrADDomainObject.GMSAEnabled = $Account.Enabled
+                                        $reportTranslate.GetAbrADDomainObject.GMSADNSHostName = $Account.DNSHostName
+                                        $reportTranslate.GetAbrADDomainObject.GMSAHostComputers = ((ConvertTo-ADObjectName -DN $Account.HostComputers -Session $TempPssSession -DC $ValidDcFromDomain) -join ', ')
+                                        $reportTranslate.GetAbrADDomainObject.GMSARetrieveManagedPassword = ((ConvertTo-ADObjectName $Account.PrincipalsAllowedToRetrieveManagedPassword -Session $TempPssSession -DC $ValidDcFromDomain) -join ', ')
+                                        $reportTranslate.GetAbrADDomainObject.GMSAPrimaryGroup = (ConvertTo-ADObjectName $Account.PrimaryGroup -Session $TempPssSession -DC $ValidDcFromDomain) -join ', '
+                                        $reportTranslate.GetAbrADDomainObject.GMSALastLogonDate = switch ($Account.LastLogonDate) {
                                             $null { '--' }
                                             default { $Account.LastLogonDate.ToShortDateString() }
                                         }
-                                        'Locked Out' = $Account.LockedOut
-                                        'Logon Count' = $Account.logonCount
-                                        'Password Expired' = $Account.PasswordExpired
-                                        'Password Last Set' = switch ([string]::IsNullOrEmpty($Account.PasswordLastSet)) {
+                                        $reportTranslate.GetAbrADDomainObject.GMSALockedOut = $Account.LockedOut
+                                        $reportTranslate.GetAbrADDomainObject.GMSALogonCount = $Account.logonCount
+                                        $reportTranslate.GetAbrADDomainObject.GMSAPasswordExpired = $Account.PasswordExpired
+                                        $reportTranslate.GetAbrADDomainObject.GMSAPasswordLastSet = switch ([string]::IsNullOrEmpty($Account.PasswordLastSet)) {
                                             $true { '--' }
                                             $false { $Account.PasswordLastSet.ToShortDateString() }
                                             default { 'Unknown' }
@@ -1245,35 +1231,35 @@ function Get-AbrADDomainObject {
                             }
 
                             if ($HealthCheck.Domain.GMSA) {
-                                $GMSAInfo | Where-Object { $_.'Enabled' -ne 'Yes' } | Set-Style -Style Warning -Property 'Enabled'
-                                $GMSAInfo | Where-Object { $_.'Password Last Set' -ne '--' -and [datetime]$_.'Password Last Set' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Password Last Set'
-                                $GMSAInfo | Where-Object { $_.'Password Last Set' -eq '--' } | Set-Style -Style Warning -Property 'Password Last Set'
-                                $GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property 'Last Logon Date'
-                                $GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' } | Set-Style -Style Warning -Property 'Last Logon Date'
-                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '--' })) {
-                                    $OBJ.'Last Logon Date' = '*' + $OBJ.'Last Logon Date'
+                                $GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSAEnabled) -ne 'Yes' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.GMSAEnabled
+                                $GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSAPasswordLastSet) -ne '--' -and [datetime]$_.$($reportTranslate.GetAbrADDomainObject.GMSAPasswordLastSet) -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.GMSAPasswordLastSet
+                                $GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSAPasswordLastSet) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.GMSAPasswordLastSet
+                                $GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -ne '--' -and [datetime]$_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -lt (Get-Date).adddays(-60) } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.GMSALastLogonDate
+                                $GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.GMSALastLogonDate
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -eq '--' })) {
+                                    $OBJ.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) = '*' + $OBJ.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate)
                                 }
-                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Last Logon Date' -ne '*--' -and [datetime]$_.'Last Logon Date' -lt (Get-Date).adddays(-60) })) {
-                                    $OBJ.'Last Logon Date' = '*' + $OBJ.'Last Logon Date'
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -ne '*--' -and [datetime]$_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -lt (Get-Date).adddays(-60) })) {
+                                    $OBJ.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) = '*' + $OBJ.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate)
                                 }
-                                $GMSAInfo | Where-Object { $_.'Locked Out' -eq 'Yes' } | Set-Style -Style Warning -Property 'Locked Out'
-                                $GMSAInfo | Where-Object { $_.'Logon Count' -eq 0 } | Set-Style -Style Warning -Property 'Logon Count'
-                                $GMSAInfo | Where-Object { $_.'Password Expired' -eq 'Yes' } | Set-Style -Style Warning -Property 'Password Expired'
-                                $GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' } | Set-Style -Style Warning -Property 'Host Computers'
-                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Host Computers' -eq '--' })) {
-                                    $OBJ.'Host Computers' = '**' + $OBJ.'Host Computers'
+                                $GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSALockedOut) -eq 'Yes' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.GMSALockedOut
+                                $GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSALogonCount) -eq 0 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.GMSALogonCount
+                                $GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSAPasswordExpired) -eq 'Yes' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.GMSAPasswordExpired
+                                $GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSAHostComputers) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.GMSAHostComputers
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSAHostComputers) -eq '--' })) {
+                                    $OBJ.$($reportTranslate.GetAbrADDomainObject.GMSAHostComputers) = '**' + $OBJ.$($reportTranslate.GetAbrADDomainObject.GMSAHostComputers)
                                 }
-                                $GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' } | Set-Style -Style Warning -Property 'Retrieve Managed Password'
-                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.'Retrieve Managed Password' -eq '--' })) {
-                                    $OBJ.'Retrieve Managed Password' = '***' + $OBJ.'Retrieve Managed Password'
+                                $GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSARetrieveManagedPassword) -eq '--' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.GMSARetrieveManagedPassword
+                                foreach ( $OBJ in ($GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSARetrieveManagedPassword) -eq '--' })) {
+                                    $OBJ.$($reportTranslate.GetAbrADDomainObject.GMSARetrieveManagedPassword) = '***' + $OBJ.$($reportTranslate.GetAbrADDomainObject.GMSARetrieveManagedPassword)
                                 }
                             }
 
                             if ($InfoLevel.Domain -ge 2) {
                                 foreach ($Account in $GMSAInfo) {
-                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($Account.Name)" {
+                                    Section -Style NOTOCHeading4 -ExcludeFromTOC "$($Account.$($reportTranslate.GetAbrADDomainObject.GMSAName))" {
                                         $TableParams = @{
-                                            Name = "gMSA - $($Account.Name)"
+                                            Name = "gMSA - $($Account.$($reportTranslate.GetAbrADDomainObject.GMSAName))"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -1281,26 +1267,26 @@ function Get-AbrADDomainObject {
                                             $TableParams['Caption'] = "- $($TableParams.Name)"
                                         }
                                         $Account | Table @TableParams
-                                        if (($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '--') }) -or ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) -or ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '**--' })) {
-                                            Paragraph 'Health Check:' -Bold -Underline
+                                        if (($Account | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -ne '*--' -or $_.$($reportTranslate.GetAbrADDomainObject.GMSAEnabled) -ne 'Yes' -or ($_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -eq '--') }) -or ($Account | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSAHostComputers) -eq '**--' }) -or ($Account | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSARetrieveManagedPassword) -eq '**--' })) {
+                                            Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                             BlankLine
-                                            Paragraph 'Security Best Practice:' -Bold
-                                            if ($Account | Where-Object { $_.'Last Logon Date' -ne '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '*--') -and ($_.'Last Logon Date' -match '\*') }) {
+                                            Paragraph $reportTranslate.GetAbrADDomainObject.SecurityBestPractice -Bold
+                                            if ($Account | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -ne '*--' -or $_.$($reportTranslate.GetAbrADDomainObject.GMSAEnabled) -ne 'Yes' -or ($_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -eq '*--') -and ($_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -match '\*') }) {
                                                 BlankLine
                                                 Paragraph {
-                                                    Text '*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation.'
+                                                    Text $reportTranslate.GetAbrADDomainObject.GMSAInactiveBP
                                                 }
                                             }
-                                            if ($Account | Where-Object { $_.'Host Computers' -eq '**--' }) {
+                                            if ($Account | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSAHostComputers) -eq '**--' }) {
                                                 BlankLine
                                                 Paragraph {
-                                                    Text "**No 'Host Computers' has been defined, please validate that the gMSA is currently in use. If not, it is recommended to remove these unused resources from Active Directory."
+                                                    Text $reportTranslate.GetAbrADDomainObject.GMSANoHostComputersBP
                                                 }
                                             }
-                                            if ($Account | Where-Object { $_.'Retrieve Managed Password' -eq '***--' }) {
+                                            if ($Account | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSARetrieveManagedPassword) -eq '***--' }) {
                                                 BlankLine
                                                 Paragraph {
-                                                    Text "***No 'Retrieve Managed Password' has been defined, please validate that the gMSA is currently in use. If not, it is recommended to remove these unused resources from Active Directory."
+                                                    Text $reportTranslate.GetAbrADDomainObject.GMSANoRetrieveManagedPasswordBP
                                                 }
                                             }
                                         }
@@ -1310,20 +1296,20 @@ function Get-AbrADDomainObject {
                                 $TableParams = @{
                                     Name = "gMSA - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
-                                    Columns = 'Name', 'Logon Count', 'Locked Out', 'Last Logon Date', 'Password Last Set', 'Enabled'
+                                    Columns = $reportTranslate.GetAbrADDomainObject.GMSAName, $reportTranslate.GetAbrADDomainObject.GMSALogonCount, $reportTranslate.GetAbrADDomainObject.GMSALockedOut, $reportTranslate.GetAbrADDomainObject.GMSALastLogonDate, $reportTranslate.GetAbrADDomainObject.GMSAPasswordLastSet, $reportTranslate.GetAbrADDomainObject.GMSAEnabled
                                     ColumnWidths = 25, 15, 15, 15, 15, 15
                                 }
                                 if ($Report.ShowTableCaptions) {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $GMSAInfo | Table @TableParams
-                                if (($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '*--' -or $_.'Enabled' -ne 'Yes' -or ($_.'Last Logon Date' -eq '--') })) {
-                                    Paragraph 'Health Check:' -Bold -Underline
+                                if (($GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -eq '*--' -or $_.$($reportTranslate.GetAbrADDomainObject.GMSAEnabled) -ne 'Yes' -or ($_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -eq '--') })) {
+                                    Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                     BlankLine
-                                    if ($GMSAInfo | Where-Object { $_.'Last Logon Date' -eq '*--' }) {
+                                    if ($GMSAInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.GMSALastLogonDate) -eq '*--' }) {
                                         Paragraph {
-                                            Text 'Security Best Practice:' -Bold
-                                            Text '*Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation.'
+                                            Text $reportTranslate.GetAbrADDomainObject.SecurityBestPractice -Bold
+                                            Text $reportTranslate.GetAbrADDomainObject.GMSAInactiveBP
                                         }
                                     }
                                 }
@@ -1340,14 +1326,14 @@ function Get-AbrADDomainObject {
             try {
                 try {
                     if ($FSP) {
-                        Section -Style Heading3 'Foreign Security Principals' {
+                        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.FSPSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Foreign Security Principals'
                             $FSPInfo = [System.Collections.ArrayList]::new()
                             foreach ($Account in $FSP) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'Name' = $Account.'msds-principalname'
-                                        'Principal Name' = $Account.memberof | ForEach-Object {
+                                        $reportTranslate.GetAbrADDomainObject.FSPName = $Account.'msds-principalname'
+                                        $reportTranslate.GetAbrADDomainObject.FSPPrincipalName = $Account.memberof | ForEach-Object {
                                             if ($Null -ne $_) {
                                                 ConvertTo-ADObjectName -DN $_ -Session $TempPssSession -DC $ValidDcFromDomain
                                             } else {
@@ -1363,7 +1349,7 @@ function Get-AbrADDomainObject {
                             }
 
                             $TableParams = @{
-                                Name = "Foreign Security Principals - $($Domain.DNSRoot.ToString().ToUpper())"
+                                Name = "$($reportTranslate.GetAbrADDomainObject.FSPSection) - $($Domain.DNSRoot.ToString().ToUpper())"
                                 List = $false
                                 ColumnWidths = 50, 50
                             }

@@ -26,7 +26,7 @@ function Get-AbrADDCDiag {
     )
 
     begin {
-        Write-PScriboMessage -Message "Collecting Active Directory $DC DCDiag information for domain $Domain."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrADDCDiag.Collecting -f $DC, $Domain)
         Show-AbrDebugExecutionTime -Start -TitleMessage 'DCDiag'
     }
 
@@ -62,10 +62,10 @@ function Get-AbrADDCDiag {
                     foreach ($Result in $DCDIAG | Where-Object { $_.Entity -eq $($DC.ToString().split('.')[0].ToUpper()) }) {
                         try {
                             $inObj = [ordered] @{
-                                'Test Name' = $Result.TestName
-                                'Result' = $TextInfo.ToTitleCase($Result.TestResult)
-                                'Impact' = $Description[$Result.TestName][1]
-                                'Description' = $Description[$Result.TestName][0]
+                                $reportTranslate.GetAbrADDCDiag.TestName = $Result.TestName
+                                $reportTranslate.GetAbrADDCDiag.Result = $TextInfo.ToTitleCase($Result.TestResult)
+                                $reportTranslate.GetAbrADDCDiag.Impact = $Description[$Result.TestName][1]
+                                $reportTranslate.GetAbrADDCDiag.Description = $Description[$Result.TestName][0]
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                         } catch {
@@ -73,10 +73,10 @@ function Get-AbrADDCDiag {
                         }
                     }
                     if ($HealthCheck.DomainController.Diagnostic) {
-                        $OutObj | Where-Object { $_.'Result' -like 'failed' } | Set-Style -Style Critical
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDCDiag.Result) -like 'failed' } | Set-Style -Style Critical
                     }
                     $TableParams = @{
-                        Name = "DCDiag Test Status - $($DC.ToString().split('.')[0].ToUpper())"
+                        Name = "$($reportTranslate.GetAbrADDCDiag.TableName) - $($DC.ToString().split('.')[0].ToUpper())"
                         List = $false
                         ColumnWidths = 23, 10, 10, 57
                     }
@@ -86,7 +86,7 @@ function Get-AbrADDCDiag {
                     $OutObj | Sort-Object -Property 'Entity' | Table @TableParams
                 }
             } else {
-                Write-PScriboMessage -Message "No DCDiag information found in $DC, Disabling this section."
+                Write-PScriboMessage -Message ($reportTranslate.GetAbrADDCDiag.NoData -f $DC)
             }
         } catch {
             Write-PScriboMessage -IsWarning -Message "Active Directory DCDiag Section: $($_.Exception.Message)"

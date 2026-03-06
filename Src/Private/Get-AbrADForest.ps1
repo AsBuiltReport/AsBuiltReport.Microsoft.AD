@@ -74,8 +74,8 @@ function Get-AbrADForest {
                 }
 
                 if ($HealthCheck.Domain.Security) {
-                    $OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled' } | Set-Style -Style Critical -Property 'Anonymous Access (dsHeuristics)'
-                    $OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 } | Set-Style -Style Warning -Property 'Tombstone Lifetime (days)'
+                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.AnonymousAccess) -eq $reportTranslate.GetAbrADForest.AnonymousAccessEnabled } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADForest.AnonymousAccess
+                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.TombstoneLifetime) -lt 180 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADForest.TombstoneLifetime
                 }
 
                 $TableParams = @{
@@ -87,23 +87,23 @@ function Get-AbrADForest {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
                 $OutObj | Table @TableParams
-                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled' }) ) {
-                    Paragraph 'Health Check:' -Bold -Underline
+                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.AnonymousAccess) -eq $reportTranslate.GetAbrADForest.AnonymousAccessEnabled }) ) {
+                    Paragraph $reportTranslate.GetAbrADForest.HealthCheck -Bold -Underline
                     BlankLine
-                    if ($OutObj | Where-Object { $_.'Anonymous Access (dsHeuristics)' -eq 'Enabled' }) {
+                    if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.AnonymousAccess) -eq $reportTranslate.GetAbrADForest.AnonymousAccessEnabled }) {
                         Paragraph {
-                            Text 'Best Practice:' -Bold
-                            Text 'Anonymous access to Active Directory forest data above the rootDSE level must be disabled. This is to ensure that unauthorized users cannot access sensitive directory information, which could potentially be exploited for malicious purposes.'
+                            Text $reportTranslate.GetAbrADForest.BestPractice -Bold
+                            Text $reportTranslate.GetAbrADForest.AnonAccessBP
                         }
                         BlankLine
-                        Paragraph 'Reference:' -Bold
+                        Paragraph $reportTranslate.GetAbrADForest.Reference -Bold
                         BlankLine
-                        Paragraph 'https://www.stigviewer.com/stig/active_directory_forest/2016-02-19/finding/V-8555' -Color blue
+                        Paragraph $reportTranslate.GetAbrADForest.AnonAccessRef -Color blue
                     }
-                    if ($OutObj | Where-Object { $_.'Tombstone Lifetime (days)' -lt 180 }) {
+                    if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.TombstoneLifetime) -lt 180 }) {
                         Paragraph {
-                            Text 'Best Practice:' -Bold
-                            Text 'Set the Tombstone Lifetime to a minimum of 180 days to ensure that deleted objects are retained for a sufficient period before being permanently removed from the directory. This allows for recovery of accidentally deleted objects and helps in maintaining the integrity of the Active Directory environment.'
+                            Text $reportTranslate.GetAbrADForest.BestPractice -Bold
+                            Text $reportTranslate.GetAbrADForest.TombstoneBP
                         }
                     }
                 }
@@ -117,8 +117,8 @@ function Get-AbrADForest {
 
                         if ($Graph) {
                             $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
-                            Section -Style Heading3 'Forest Diagram' {
-                                Image -Base64 $Graph -Text 'Forest Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                            Section -Style Heading3 $reportTranslate.GetAbrADForest.ForestDiagram {
+                                Image -Base64 $Graph -Text $reportTranslate.GetAbrADForest.ForestDiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                             }
                             BlankLine -Count 2
                         }
@@ -135,23 +135,23 @@ function Get-AbrADForest {
             $rootCA = Get-ADObjectSearch -DN "CN=Certification Authorities,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq 'certificationAuthority' } -Properties 'Name' -SelectPrty 'DistinguishedName', 'Name' -Session $TempPssSession
             $subordinateCA = Get-ADObjectSearch -DN "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($ConfigNCDN -join ',')" -Filter { objectClass -eq 'pKIEnrollmentService' } -Properties '*' -SelectPrty 'dNSHostName', 'Name' -Session $TempPssSession
             if ($rootCA -or $subordinateCA) {
-                Section -Style Heading3 'Certificate Authority' {
+                Section -Style Heading3 $reportTranslate.GetAbrADForest.CASection {
                     if ($Options.ShowDefinitionInfo) {
-                        Paragraph 'In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.'
+                        Paragraph $reportTranslate.GetAbrADForest.CADefinition
                         BlankLine
                     }
                     if (-not $Options.ShowDefinitionInfo) {
-                        Paragraph 'The following section provides an overview of the Public Key Infrastructure (PKI) configuration deployed within the Active Directory environment.'
+                        Paragraph $reportTranslate.GetAbrADForest.CAParagraph
                         BlankLine
                     }
                     if ($rootCA) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Certificate Authority Root(s)' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADForest.CARootSection {
                             $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($Item in $rootCA) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'Name' = $Item.Name
-                                        'Distinguished Name' = $Item.DistinguishedName
+                                        $reportTranslate.GetAbrADForest.CAName = $Item.Name
+                                        $reportTranslate.GetAbrADForest.CADistinguishedName = $Item.DistinguishedName
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
@@ -164,20 +164,20 @@ function Get-AbrADForest {
                             }
 
                             $TableParams = @{
-                                Name = "Certificate Authority Root(s) - $($ForestInfo)"
+                                Name = "$($reportTranslate.GetAbrADForest.CARootSection) - $($ForestInfo)"
                                 List = $false
                                 ColumnWidths = 40, 60
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                            $OutObj | Sort-Object -Property $reportTranslate.GetAbrADForest.CAName | Table @TableParams
                             if ($HealthCheck.Forest.BestPractice -and (($OutObj | Measure-Object).Count -gt 1 ) ) {
-                                Paragraph 'Health Check:' -Bold -Underline
+                                Paragraph $reportTranslate.GetAbrADForest.HealthCheck -Bold -Underline
                                 BlankLine
                                 Paragraph {
-                                    Text 'Best Practice:' -Bold
-                                    Text 'In most PKI (Public Key Infrastructure) implementations, it is not typical to have multiple Root CAs (Certificate Authorities). The Root CA is the top-most authority in a PKI hierarchy and is responsible for issuing certificates to subordinate CAs and end entities. Having multiple Root CAs can complicate the trust relationships and management of certificates. It is recommended to conduct a detailed review of the current PKI infrastructure and Root CA requirements to ensure proper security and management practices are followed.'
+                                    Text $reportTranslate.GetAbrADForest.BestPractice -Bold
+                                    Text $reportTranslate.GetAbrADForest.MultipleRootCABP
                                 }
                             }
                         }
@@ -186,13 +186,13 @@ function Get-AbrADForest {
                     }
 
                     if ($subordinateCA) {
-                        Section -ExcludeFromTOC -Style NOTOCHeading4 'Certificate Authority Issuer(s)' {
+                        Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADForest.CAIssuerSection {
                             $OutObj = [System.Collections.ArrayList]::new()
                             foreach ($Item in $subordinateCA) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'Name' = $Item.Name
-                                        'DNS Name' = $Item.dNSHostName
+                                        $reportTranslate.GetAbrADForest.CAName = $Item.Name
+                                        $reportTranslate.GetAbrADForest.CADnsName = $Item.dNSHostName
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
@@ -201,14 +201,14 @@ function Get-AbrADForest {
                             }
 
                             $TableParams = @{
-                                Name = "Certificate Authority Issuer(s) - $($ForestInfo)"
+                                Name = "$($reportTranslate.GetAbrADForest.CAIssuerSection) - $($ForestInfo)"
                                 List = $false
                                 ColumnWidths = 40, 60
                             }
                             if ($Report.ShowTableCaptions) {
                                 $TableParams['Caption'] = "- $($TableParams.Name)"
                             }
-                            $OutObj | Sort-Object -Property 'Name' | Table @TableParams
+                            $OutObj | Sort-Object -Property $reportTranslate.GetAbrADForest.CAName | Table @TableParams
                         }
                     } else {
                         Write-PScriboMessage -Message 'No Certificate Authority Issuer information found, Disabling this section.'
@@ -224,8 +224,8 @@ function Get-AbrADForest {
 
                         if ($Graph) {
                             $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
-                            Section -Style Heading4 'Certificate Authority Diagram' {
-                                Image -Base64 $Graph -Text 'Certificate Authority Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                            Section -Style Heading4 $reportTranslate.GetAbrADForest.CADiagram {
+                                Image -Base64 $Graph -Text $reportTranslate.GetAbrADForest.CADiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                             }
                             BlankLine -Count 2
                         }
@@ -238,18 +238,18 @@ function Get-AbrADForest {
             Write-PScriboMessage -IsWarning $_.Exception.Message
         }
         try {
-            Section -Style Heading3 'Optional Features' {
+            Section -Style Heading3 $reportTranslate.GetAbrADForest.OptionalFeatures {
                 $Data = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADOptionalFeature -Filter * }
                 $OutObj = [System.Collections.ArrayList]::new()
                 if ($Data) {
                     foreach ($Item in $Data) {
                         try {
                             $inObj = [ordered] @{
-                                'Name' = $Item.Name
-                                'Required Forest Mode' = $Item.RequiredForestMode
-                                'Enabled' = switch (($Item.EnabledScopes).count) {
-                                    0 { 'No' }
-                                    default { 'Yes' }
+                                $reportTranslate.GetAbrADForest.OFName = $Item.Name
+                                $reportTranslate.GetAbrADForest.OFRequiredForestMode = $Item.RequiredForestMode
+                                $reportTranslate.GetAbrADForest.OFEnabled = switch (($Item.EnabledScopes).count) {
+                                    0 { $reportTranslate.GetAbrADForest.OFEnabledNo }
+                                    default { $reportTranslate.GetAbrADForest.OFEnabledYes }
                                 }
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
@@ -259,30 +259,30 @@ function Get-AbrADForest {
                     }
 
                     if ($HealthCheck.Forest.BestPractice) {
-                        $OutObj | Where-Object { $_.'Name' -eq 'Recycle Bin Feature' -and $_.'Enabled' -eq 'No' } | Set-Style -Style Warning -Property 'Enabled'
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.OFName) -eq 'Recycle Bin Feature' -and $_.$($reportTranslate.GetAbrADForest.OFEnabled) -eq $reportTranslate.GetAbrADForest.OFEnabledNo } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADForest.OFEnabled
                     }
 
                     $TableParams = @{
-                        Name = "Optional Features - $($ForestInfo)"
+                        Name = "$($reportTranslate.GetAbrADForest.OptionalFeatures) - $($ForestInfo)"
                         List = $false
                         ColumnWidths = 40, 30, 30
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Sort-Object -Property 'Name' | Table @TableParams
-                    if ($HealthCheck.Forest.BestPractice -and ($OutObj | Where-Object { $_.'Name' -eq 'Recycle Bin Feature' -and $_.'Enabled' -eq 'No' }) ) {
-                        Paragraph 'Health Check:' -Bold -Underline
+                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADForest.OFName | Table @TableParams
+                    if ($HealthCheck.Forest.BestPractice -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADForest.OFName) -eq 'Recycle Bin Feature' -and $_.$($reportTranslate.GetAbrADForest.OFEnabled) -eq $reportTranslate.GetAbrADForest.OFEnabledNo }) ) {
+                        Paragraph $reportTranslate.GetAbrADForest.HealthCheck -Bold -Underline
                         BlankLine
                         Paragraph {
-                            Text 'Best Practice:' -Bold
-                            Text 'Accidental deletion of Active Directory objects is a common issue for AD DS users. Enabling the Recycle Bin feature allows for the recovery of these accidentally deleted objects, helping to maintain the integrity and continuity of the Active Directory environment.'
+                            Text $reportTranslate.GetAbrADForest.BestPractice -Bold
+                            Text $reportTranslate.GetAbrADForest.RecycleBinBP
                         }
                         BlankLine
                         Paragraph {
-                            Text 'Reference:' -Bold
+                            Text $reportTranslate.GetAbrADForest.Reference -Bold
                             BlankLine
-                            Text 'https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944' -Color blue
+                            Text $reportTranslate.GetAbrADForest.RecycleBinRef -Color blue
 
                         }
                     }

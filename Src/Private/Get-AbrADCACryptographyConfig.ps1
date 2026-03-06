@@ -23,7 +23,7 @@ function Get-AbrADCACryptographyConfig {
     )
 
     begin {
-        Write-PScriboMessage -Message 'Collecting CA Certification Authority Cryptography Config information.'
+        Write-PScriboMessage -Message $reportTranslate.GetAbrADCACryptographyConfig.Collecting
         Show-AbrDebugExecutionTime -Start -TitleMessage 'CA Cryptography Configuration'
     }
 
@@ -31,24 +31,24 @@ function Get-AbrADCACryptographyConfig {
         if ($CA) {
             $CryptoConfig = Get-CACryptographyConfig -CertificationAuthority $CA
             if ($CryptoConfig) {
-                Section -Style Heading3 'Cryptography Configuration' {
-                    Paragraph 'The following section provides detailed information about the cryptography configuration settings for the Certification Authority, including algorithms, providers, and key specifications.'
+                Section -Style Heading3 $reportTranslate.GetAbrADCACryptographyConfig.Heading {
+                    Paragraph $reportTranslate.GetAbrADCACryptographyConfig.Paragraph
                     BlankLine
                     $OutObj = [System.Collections.ArrayList]::new()
                     try {
                         $inObj = [ordered] @{
-                            'CA Name' = $CryptoConfig.Name
-                            'Server Name' = $CryptoConfig.ComputerName.ToString().ToUpper().Split('.')[0]
-                            'PublicKey Algorithm' = $CryptoConfig.PublicKeyAlgorithm | Select-Object -ExpandProperty FriendlyName
-                            'Hashing Algorithm' = ($CryptoConfig.HashingAlgorithm | Select-Object -ExpandProperty FriendlyName).ToUpper()
-                            'Provider Name' = $CryptoConfig.ProviderName
-                            'Alternate Signature Algorithm' = $CryptoConfig.AlternateSignatureAlgorithm
-                            'Provider Is CNG' = $CryptoConfig.ProviderIsCNG
+                            $reportTranslate.GetAbrADCACryptographyConfig.CAName = $CryptoConfig.Name
+                            $reportTranslate.GetAbrADCACryptographyConfig.ServerName = $CryptoConfig.ComputerName.ToString().ToUpper().Split('.')[0]
+                            $reportTranslate.GetAbrADCACryptographyConfig.PublicKeyAlgorithm = $CryptoConfig.PublicKeyAlgorithm | Select-Object -ExpandProperty FriendlyName
+                            $reportTranslate.GetAbrADCACryptographyConfig.HashingAlgorithm = ($CryptoConfig.HashingAlgorithm | Select-Object -ExpandProperty FriendlyName).ToUpper()
+                            $reportTranslate.GetAbrADCACryptographyConfig.ProviderName = $CryptoConfig.ProviderName
+                            $reportTranslate.GetAbrADCACryptographyConfig.AlternateSignatureAlgorithm = $CryptoConfig.AlternateSignatureAlgorithm
+                            $reportTranslate.GetAbrADCACryptographyConfig.ProviderIsCNG = $CryptoConfig.ProviderIsCNG
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                         $TableParams = @{
-                            Name = "Cryptography Configuration - $($ForestInfo.ToString().ToUpper())"
+                            Name = "$($reportTranslate.GetAbrADCACryptographyConfig.TableName) - $($ForestInfo.ToString().ToUpper())"
                             List = $true
                             ColumnWidths = 40, 60
                         }

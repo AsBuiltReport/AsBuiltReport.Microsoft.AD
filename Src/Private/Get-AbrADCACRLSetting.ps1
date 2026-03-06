@@ -28,22 +28,22 @@ function Get-AbrADCACRLSetting {
 
     process {
         try {
-            Section -Style Heading3 'Certificate Revocation List (CRL)' {
-                Paragraph 'This section provides detailed information about the Certificate Revocation List (CRL) distribution settings and health status for the Certification Authority.'
+            Section -Style Heading3 $reportTranslate.GetAbrADCACRLSetting.CRLHeading {
+                Paragraph $reportTranslate.GetAbrADCACRLSetting.CRLParagraph
                 BlankLine
-                Section -Style Heading4 'CRL Validity Period' {
+                Section -Style Heading4 $reportTranslate.GetAbrADCACRLSetting.CRLValidityPeriod {
                     $OutObj = [System.Collections.ArrayList]::new()
                     try {
-                        Write-PScriboMessage -Message "Collecting AD CA CRL Validity Period information on $($CA.Name)."
+                        Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrADCACRLSetting.CollectingVP, $CA.Name))
                         $CRLs = Get-CRLValidityPeriod -CertificationAuthority $CA
                         foreach ($VP in $CRLs) {
                             try {
                                 $inObj = [ordered] @{
-                                    'CA Name' = $VP.Name
-                                    'Base CRL' = $VP.BaseCRL
-                                    'Base CRL Overlap' = $VP.BaseCRLOverlap
-                                    'Delta CRL' = $VP.DeltaCRL
-                                    'Delta CRL Overlap' = $VP.DeltaCRLOverlap
+                                    $reportTranslate.GetAbrADCACRLSetting.CAName = $VP.Name
+                                    $reportTranslate.GetAbrADCACRLSetting.BaseCRL = $VP.BaseCRL
+                                    $reportTranslate.GetAbrADCACRLSetting.BaseCRLOverlap = $VP.BaseCRLOverlap
+                                    $reportTranslate.GetAbrADCACRLSetting.DeltaCRL = $VP.DeltaCRL
+                                    $reportTranslate.GetAbrADCACRLSetting.DeltaCRLOverlap = $VP.DeltaCRLOverlap
                                 }
                                 $OutObj.add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                             } catch {
@@ -55,27 +55,27 @@ function Get-AbrADCACRLSetting {
                     }
 
                     $TableParams = @{
-                        Name = "CRL Validity Preriod - $($ForestInfo.toUpper())"
+                        Name = "$($reportTranslate.GetAbrADCACRLSetting.CRLValidityPeriodTable) - $($ForestInfo.toUpper())"
                         List = $false
                         ColumnWidths = 40, 15, 15, 15, 15
                     }
                     if ($Report.ShowTableCaptions) {
                         $TableParams['Caption'] = "- $($TableParams.Name)"
                     }
-                    $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
+                    $OutObj | Sort-Object -Property $reportTranslate.GetAbrADCACRLSetting.CAName | Table @TableParams
                 }
                 try {
-                    Section -Style Heading4 'CRL Flags Settings' {
+                    Section -Style Heading4 $reportTranslate.GetAbrADCACRLSetting.CRLFlagsSettings {
                         $OutObj = [System.Collections.ArrayList]::new()
                         try {
-                            Write-PScriboMessage -Message "Collecting AD CA CRL Distribution Point information on $($CA.Name)."
+                            Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrADCACRLSetting.CollectingCDP, $CA.Name))
                             $CRLs = Get-CertificateRevocationListFlag -CertificationAuthority $CA
                             foreach ($Flag in $CRLs) {
                                 try {
                                     $inObj = [ordered] @{
-                                        'CA Name' = $Flag.Name
-                                        'Server Name' = $Flag.ComputerName.ToString().ToUpper().Split('.')[0]
-                                        'CRL Flags' = $Flag.CRLFlags
+                                        $reportTranslate.GetAbrADCACRLSetting.CAName = $Flag.Name
+                                        $reportTranslate.GetAbrADCACRLSetting.ServerName = $Flag.ComputerName.ToString().ToUpper().Split('.')[0]
+                                        $reportTranslate.GetAbrADCACRLSetting.CRLFlags = $Flag.CRLFlags
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                                 } catch {
@@ -87,43 +87,43 @@ function Get-AbrADCACRLSetting {
                         }
 
                         $TableParams = @{
-                            Name = "CRL Flags - $($ForestInfo.toUpper())"
+                            Name = "$($reportTranslate.GetAbrADCACRLSetting.CRLFlagsTable) - $($ForestInfo.toUpper())"
                             List = $false
                             ColumnWidths = 40, 25, 35
                         }
                         if ($Report.ShowTableCaptions) {
                             $TableParams['Caption'] = "- $($TableParams.Name)"
                         }
-                        $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
+                        $OutObj | Sort-Object -Property $reportTranslate.GetAbrADCACRLSetting.CAName | Table @TableParams
                     }
                 } catch {
                     Write-PScriboMessage -IsWarning -Message "CRL Validity Period Section: $($_.Exception.Message)"
                 }
                 try {
-                    Section -Style Heading4 'CRL Distribution Point' {
-                        Paragraph 'This section provides detailed information about the Certificate Revocation List (CRL) Distribution Points configured on the Certification Authority, including URI locations and publication settings.'
+                    Section -Style Heading4 $reportTranslate.GetAbrADCACRLSetting.CRLDistributionPoint {
+                        Paragraph $reportTranslate.GetAbrADCACRLSetting.CRLDistributionPointParagraph
                         BlankLine
-                        Write-PScriboMessage -Message "Collecting AD CA CRL Distribution Point information on $($CA.NAme)."
+                        Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrADCACRLSetting.CollectingCDP, $CA.Name))
                         $CRL = Get-CRLDistributionPoint -CertificationAuthority $CA
                         foreach ($URI in $CRL.URI) {
                             $OutObj = [System.Collections.ArrayList]::new()
                             try {
                                 $inObj = [ordered] @{
-                                    'Reg URI' = $URI.RegURI
-                                    'Config URI' = $URI.ConfigURI
-                                    'Url Scheme' = $URI.UrlScheme
-                                    'ProjectedURI' = $URI.ProjectedURI
-                                    'Flags' = ($URI.Flags -join ', ')
-                                    'CRL Publish' = $URI.IncludeToExtension
-                                    'Delta CRL Publish' = $URI.DeltaCRLPublish
-                                    'Add To Cert CDP' = $URI.AddToCertCDP
-                                    'Add To Fresh est CRL' = $URI.AddToFreshestCRL
-                                    'Add To Crl cdp' = $URI.AddToCrlcdp
+                                    $reportTranslate.GetAbrADCACRLSetting.RegURI = $URI.RegURI
+                                    $reportTranslate.GetAbrADCACRLSetting.ConfigURI = $URI.ConfigURI
+                                    $reportTranslate.GetAbrADCACRLSetting.UrlScheme = $URI.UrlScheme
+                                    $reportTranslate.GetAbrADCACRLSetting.ProjectedURI = $URI.ProjectedURI
+                                    $reportTranslate.GetAbrADCACRLSetting.Flags = ($URI.Flags -join ', ')
+                                    $reportTranslate.GetAbrADCACRLSetting.CRLPublish = $URI.IncludeToExtension
+                                    $reportTranslate.GetAbrADCACRLSetting.DeltaCRLPublish = $URI.DeltaCRLPublish
+                                    $reportTranslate.GetAbrADCACRLSetting.AddToCertCDP = $URI.AddToCertCDP
+                                    $reportTranslate.GetAbrADCACRLSetting.AddToFreshestCRL = $URI.AddToFreshestCRL
+                                    $reportTranslate.GetAbrADCACRLSetting.AddToCrlCDP = $URI.AddToCrlcdp
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
 
                                 $TableParams = @{
-                                    Name = "CRL Distribution Point - $($CA.Name)"
+                                    Name = "$($reportTranslate.GetAbrADCACRLSetting.CRLDistributionPointTable) - $($CA.Name)"
                                     List = $true
                                     ColumnWidths = 40, 60
                                 }
@@ -144,18 +144,18 @@ function Get-AbrADCACRLSetting {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (CRL Distribution Point)"
         }
         try {
-            Section -Style Heading3 'AIA and CDP Health Status' {
-                Paragraph 'This section provides a comprehensive health check of the Certification Authority by verifying the CA certificate chain status and validating the accessibility of all Certificate Revocation List (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain.'
+            Section -Style Heading3 $reportTranslate.GetAbrADCACRLSetting.AIACDPHealth {
+                Paragraph $reportTranslate.GetAbrADCACRLSetting.AIACDPHealthParagraph
                 BlankLine
                 $OutObj = [System.Collections.ArrayList]::new()
                 $CAHealth = Get-EnterprisePKIHealthStatus -CertificateAuthority $CA
                 foreach ($Health in $CAHealth) {
                     try {
-                        Write-PScriboMessage -Message "Collecting AIA and CDP Health Status from $($Health.Name)."
+                        Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrADCACRLSetting.CollectingHealth, $Health.Name))
                         $inObj = [ordered] @{
-                            'CA Name' = $Health.Name
-                            'Childs' = ($Health.Childs).Name
-                            'Health' = $Health.Status
+                            $reportTranslate.GetAbrADCACRLSetting.CAName = $Health.Name
+                            $reportTranslate.GetAbrADCACRLSetting.Childs = ($Health.Childs).Name
+                            $reportTranslate.GetAbrADCACRLSetting.Health = $Health.Status
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
                     } catch {
@@ -164,18 +164,18 @@ function Get-AbrADCACRLSetting {
                 }
 
                 if ($HealthCheck.CA.Status) {
-                    $OutObj | Where-Object { $_.'Health' -notlike 'OK' } | Set-Style -Style Critical -Property 'Health'
+                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADCACRLSetting.Health) -notlike $reportTranslate.GetAbrADCACRLSetting.OK } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADCACRLSetting.Health
                 }
 
                 $TableParams = @{
-                    Name = "Certification Authority Health - $($ForestInfo.ToString().ToUpper())"
+                    Name = "$($reportTranslate.GetAbrADCACRLSetting.CAHealthTable) - $($ForestInfo.ToString().ToUpper())"
                     List = $false
                     ColumnWidths = 40, 40, 20
                 }
                 if ($Report.ShowTableCaptions) {
                     $TableParams['Caption'] = "- $($TableParams.Name)"
                 }
-                $OutObj | Sort-Object -Property 'CA Name' | Table @TableParams
+                $OutObj | Sort-Object -Property $reportTranslate.GetAbrADCACRLSetting.CAName | Table @TableParams
             }
         } catch {
             Write-PScriboMessage -IsWarning "AIA and CDP Health Status Section: $($_.Exception.Message)"
