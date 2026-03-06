@@ -90,7 +90,7 @@ function Get-AbrADSecurityAssessment {
                             Paragraph ($reportTranslate.GetAbrADSecurityAssessment.UserAccountParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                             BlankLine
                             if ($Chart) {
-                                Image -Text 'User Account Security Assessment - Diagram' -Align 'Center' -Percent 100 -Base64 $Chart
+                                Image -Text $reportTranslate.GetAbrADSecurityAssessment.UserAccountDiagram -Align 'Center' -Percent 100 -Base64 $Chart
                             }
                             $OutObj | Table @TableParams
                             Paragraph $reportTranslate.GetAbrADSecurityAssessment.UserAccountHealthCheck -Bold -Underline
@@ -172,15 +172,15 @@ function Get-AbrADSecurityAssessment {
                                 BlankLine
                                 if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.EmailEnabled) -eq "* $($reportTranslate.GetAbrADSecurityAssessment.EmailEnabledYes)" }) {
                                     Paragraph {
-                                        Text '* Privileged accounts such as those belonging to any of the Administrators groups must not have configured email.'
+                                        Text $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersEmailNote
                                     }
                                     BlankLine
                                 }
                                 if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegation) -eq "** $($reportTranslate.GetAbrADSecurityAssessment.TrustedForDelegationYes)" }) {
                                     Paragraph {
-                                        Text '** Privileged accounts such as those belonging to any of the administrator groups must not be trusted for delegation. Allowing privileged accounts to be trusted for delegation provides a means for privilege escalation from a compromised system. Delegation of privileged accounts must be prohibited.'
-                                        Text 'Reference: '
-                                        Text 'https://www.stigviewer.com/stig/active_directory_domain/2017-12-15/finding/V-36435' -Color blue
+                                        Text $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersDelegationNote
+                                        Text $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersReference
+                                        Text $reportTranslate.GetAbrADSecurityAssessment.PrivilegedUsersReferenceURL -Color blue
                                     }
                                 }
                             }
@@ -300,8 +300,7 @@ function Get-AbrADSecurityAssessment {
                             if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADSecurityAssessment.Username) -match '\*' }) {
                                 Paragraph {
                                     Text $reportTranslate.GetAbrADSecurityAssessment.ServiceAccountsSecurityBP -Bold
-
-                                    Text '** Attackers are most interested in Service Accounts that are members of highly privileged groups like Domain Admins. A quick way to check for this is to enumerate all user accounts with the attribute AdminCount equal to 1. This means an attacker may just ask Active Directory for all user accounts with an SPN and with AdminCount=1. Ensure that there are no privileged accounts that have SPNs assigned to them.'
+                                    Text $reportTranslate.GetAbrADSecurityAssessment.ServiceAccountsAdminCountNote
                                 }
                             }
                         }

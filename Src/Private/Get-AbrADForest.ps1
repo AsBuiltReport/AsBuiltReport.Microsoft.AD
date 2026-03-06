@@ -224,8 +224,8 @@ function Get-AbrADForest {
 
                         if ($Graph) {
                             $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
-                            Section -Style Heading4 'Certificate Authority Diagram' {
-                                Image -Base64 $Graph -Text 'Certificate Authority Diagram' -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                            Section -Style Heading4 $reportTranslate.GetAbrADForest.CADiagram {
+                                Image -Base64 $Graph -Text $reportTranslate.GetAbrADForest.CADiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                             }
                             BlankLine -Count 2
                         }

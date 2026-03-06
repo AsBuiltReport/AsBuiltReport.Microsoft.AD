@@ -12,6 +12,7 @@
     ProjectWebsite = - Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project.
     CommunityProject = - AsBuiltReport is a community-maintained open source project. It has no sponsorship, endorsement, or affiliation with any technology vendors, their employees, or affiliates.
     DISCLAIMER = This report combines automated data analysis with professional observations. While these findings offer expert insight, this assessment is not exhaustive. All recommendations should be reviewed and implemented by qualified personnel. The author(s) assume no liability for any damages-including lost profits, business interruptions, or financial losses-arising from the use of this report or its recommendations.
+    DisclaimerSection = DISCLAIMER
 '@
 
     # InvokeAsBuiltReportMicrosoftAD
@@ -81,7 +82,9 @@
     TombstoneBP = Set the Tombstone Lifetime to a minimum of 180 days to ensure that deleted objects are retained for a sufficient period before being permanently removed from the directory. This allows for recovery of accidentally deleted objects and helps in maintaining the integrity of the Active Directory environment.
     RecycleBinBP = Accidental deletion of Active Directory objects is a common issue for AD DS users. Enabling the Recycle Bin feature allows for the recovery of these accidentally deleted objects, helping to maintain the integrity and continuity of the Active Directory environment.
     RecycleBinRef = https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944
+    CADiagram = Certificate Authority Diagram
 '@
+
     NewADDiagram = ConvertFrom-StringData @'
     genMain = Please wait while the {0} diagram is being generated
     gereratingDiag = Generating {0} diagram
@@ -1245,6 +1248,12 @@
     ServiceAccountsTableName = Service Accounts Assessment (Kerberoastable)
     ServiceAccountsHealthCheck = Health Check:
     ServiceAccountsSecurityBP = Security Best Practice:
+    UserAccountDiagram = User Account Security Assessment - Diagram
+    PrivilegedUsersEmailNote = * Privileged accounts such as those belonging to any of the Administrators groups must not have configured email.
+    PrivilegedUsersDelegationNote = ** Privileged accounts such as those belonging to any of the administrator groups must not be trusted for delegation. Allowing privileged accounts to be trusted for delegation provides a means for privilege escalation from a compromised system. Delegation of privileged accounts must be prohibited.
+    PrivilegedUsersReference = Reference:
+    PrivilegedUsersReferenceURL = https://www.stigviewer.com/stig/active_directory_domain/2017-12-15/finding/V-36435
+    ServiceAccountsAdminCountNote = ** Attackers are most interested in Service Accounts that are members of highly privileged groups like Domain Admins. A quick way to check for this is to enumerate all user accounts with the attribute AdminCount equal to 1. This means an attacker may just ask Active Directory for all user accounts with an SPN and with AdminCount=1. Ensure that there are no privileged accounts that have SPNs assigned to them.
 '@
 
     # Get-AbrADGPO
@@ -1451,6 +1460,7 @@
     MissingUpdatesTableName = Missing Windows Updates
     MissingUpdatesParagraph = Below is a summary of pending or missing Windows updates detected on Domain Controllers in the {0} domain.
     MissingUpdatesBestPractice = It is critical to install security updates to protect your systems from malicious attacks. Regularly applying updates ensures that your systems are safeguarded against newly discovered vulnerabilities. Additionally, installing software updates provides access to new features and improvements, enhancing overall system performance and stability. Neglecting updates can leave your systems exposed to potential threats and exploitation. Therefore, it is in your best interest to maintain an up-to-date environment by promptly installing all recommended updates.
+    DCObjectChart = Domain Controller Object - Chart
 '@
 
 }

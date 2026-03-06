@@ -130,7 +130,7 @@ function Get-AbrADDomainController {
             if ($OutObj) {
                 if ($Chart) {
                     BlankLine
-                    Image -Text 'Domain Controller Object - Chart' -Align 'Center' -Percent 100 -Base64 $Chart
+                    Image -Text $reportTranslate.GetAbrADDomainController.DCObjectChart -Align 'Center' -Percent 100 -Base64 $Chart
                 }
                 $OutObj | Table @TableParams
             }

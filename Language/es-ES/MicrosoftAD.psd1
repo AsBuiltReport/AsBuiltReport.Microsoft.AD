@@ -12,6 +12,7 @@
     ProjectWebsite = - Please refer to the AsBuiltReport.Microsoft.AD github website for more detailed information about this project.
     CommunityProject = - AsBuiltReport is a community-maintained open source project. It has no sponsorship, endorsement, or affiliation with any technology vendors, their employees, or affiliates.
     DISCLAIMER = This report combines automated data analysis with professional observations. While these findings offer expert insight, this assessment is not exhaustive. All recommendations should be reviewed and implemented by qualified personnel. The author(s) assume no liability for any damages-including lost profits, business interruptions, or financial losses-arising from the use of this report or its recommendations.
+    DisclaimerSection = DESCARGO DE RESPONSABILIDAD
 '@
 
     # InvokeAsBuiltReportMicrosoftAD
@@ -81,7 +82,9 @@
     TombstoneBP = Set the Tombstone Lifetime to a minimum of 180 days to ensure that deleted objects are retained for a sufficient period before being permanently removed from the directory. This allows for recovery of accidentally deleted objects and helps in maintaining the integrity of the Active Directory environment.
     RecycleBinBP = Accidental deletion of Active Directory objects is a common issue for AD DS users. Enabling the Recycle Bin feature allows for the recovery of these accidentally deleted objects, helping to maintain the integrity and continuity of the Active Directory environment.
     RecycleBinRef = https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944
+    CADiagram = Diagrama de Autoridad de Certificacion
 '@
+
     NewADDiagram = ConvertFrom-StringData @'
     genMain = Please wait while the {0} diagram is being generated
     gereratingDiag = Generating {0} diagram
@@ -1245,6 +1248,12 @@
     ServiceAccountsTableName = Service Accounts Assessment (Kerberoastable)
     ServiceAccountsHealthCheck = Health Check:
     ServiceAccountsSecurityBP = Security Best Practice:
+    UserAccountDiagram = Evaluacion de Seguridad de Cuenta de Usuario - Diagrama
+    PrivilegedUsersEmailNote = * Las cuentas privilegiadas, como las que pertenecen a cualquiera de los grupos de Administradores, no deben tener correo electronico configurado.
+    PrivilegedUsersDelegationNote = ** Las cuentas privilegiadas, como las que pertenecen a cualquiera de los grupos de administradores, no deben ser de confianza para la delegacion. Permitir que las cuentas privilegiadas sean de confianza para la delegacion proporciona un medio de escalada de privilegios desde un sistema comprometido. La delegacion de cuentas privilegiadas debe estar prohibida.
+    PrivilegedUsersReference = Referencia:
+    PrivilegedUsersReferenceURL = https://www.stigviewer.com/stig/active_directory_domain/2017-12-15/finding/V-36435
+    ServiceAccountsAdminCountNote = ** Los atacantes estan mas interesados en las Cuentas de Servicio que son miembros de grupos con altos privilegios como Administradores de Dominio. Una forma rapida de verificar esto es enumerar todas las cuentas de usuario con el atributo AdminCount igual a 1. Asegurese de que no haya cuentas privilegiadas que tengan SPNs asignados.
 '@
 
     # Get-AbrADGPO
@@ -1451,6 +1460,7 @@
     MissingUpdatesTableName = Actualizaciones de Windows Pendientes
     MissingUpdatesParagraph = A continuacion se muestra un resumen de las actualizaciones de Windows pendientes o faltantes detectadas en los Controladores de Dominio en el dominio {0}.
     MissingUpdatesBestPractice = Es fundamental instalar las actualizaciones de seguridad para proteger sus sistemas de ataques maliciosos. Aplicar actualizaciones regularmente garantiza que sus sistemas esten protegidos contra vulnerabilidades recien descubiertas. Descuidar las actualizaciones puede dejar sus sistemas expuestos a amenazas potenciales y explotacion.
+    DCObjectChart = Grafico de Objeto del Controlador de Dominio
 '@
 
 }
