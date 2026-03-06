@@ -1346,7 +1346,6 @@
     Valid = Valid
     Unknown = Unknown
 '@
-
     # Get-AbrADDomainController
     GetAbrADDomainController = ConvertFrom-StringData @'
     Collecting = Collecting AD Domain Controller information.
@@ -1450,11 +1449,11 @@
     FileSharesParagraph = The following Domain Controllers contain non-default file shares beyond the standard administrative, NETLOGON, and SYSVOL shares:
     FileSharesBestPractice = Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non-default file shares should be moved to another server, preferably a dedicated file server. This helps to minimize the attack surface and ensures that the Domain Controller is dedicated to its primary role of managing security and authentication within the domain. Additionally, it reduces the risk of performance degradation and potential conflicts that can arise from running multiple services on a single server.
     InstalledSoftwareTitle = Installed Software
+    InstalledSoftwareParagraph = This section provides an overview of third-party and non-default software installations detected on Domain Controllers within the { 0 } domain.
+    InstalledSoftwareBestPractices = Do not run other software or services on a Domain Controller. Running additional software or services on a Domain Controller can introduce security vulnerabilities, increase the attack surface, and potentially degrade the performance of critical domain services. It is recommended to keep Domain Controllers dedicated to their primary role of managing security and authentication within the domain. If additional services are required, consider deploying them on separate, dedicated servers.
     Publisher = Publisher
     InstallDate = Install Date
     InstalledSoftwareTableName = Installed Software
-    InstalledSoftwareParagraph = This section provides an overview of third-party and non-default software installations detected on Domain Controllers within the {0} domain.
-    InstalledSoftwareBestPractices = Do not run other software or services on a Domain Controller. Running additional software or services on a Domain Controller can introduce security vulnerabilities, increase the attack surface, and potentially degrade the performance of critical domain services. It is recommended to keep Domain Controllers dedicated to their primary role of managing security and authentication within the domain. If additional services are required, consider deploying them on separate, dedicated servers.
     MissingUpdatesTitle = Missing Windows Updates
     KBArticle = KB Article
     MissingUpdatesTableName = Missing Windows Updates
