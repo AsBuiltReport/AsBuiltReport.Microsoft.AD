@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add Authentication Policies and Authentication Policy Silos support (`Get-AbrADAuthenticationPolicy`)
 - Add condition to check for members of Pre-Windows 2000 group
+- Add a Replication diagram to the report
 
 ### :arrows_clockwise: Changed
 

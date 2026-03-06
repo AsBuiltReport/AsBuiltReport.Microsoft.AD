@@ -53,7 +53,7 @@ function Get-AbrADReplicationInfo {
                             Domain = $Domain
                             AditionalInfo = $AditionalInfo
                             TransportProtocol = switch ([string]::IsNullOrEmpty($Conn.InterSiteTransportProtocol)) {
-                                $true { 'Unknown' }
+                                $true { 'RPC' }
                                 $false { $Conn.InterSiteTransportProtocol }
                                 default { 'Unknown' }
                             }
