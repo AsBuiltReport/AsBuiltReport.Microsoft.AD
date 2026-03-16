@@ -5,7 +5,7 @@ function Get-AbrADDomainController {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.12
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -315,7 +315,7 @@ function Get-AbrADDomainController {
                                         }
 
                                         if ($HealthCheck.DomainController.Diagnostic) {
-                                            if ([int]([regex]::Matches($DCHWInfo.$($reportTranslate.GetAbrADDomainController.PhysicalMemory), '\d+(\.*\d+)').value) -lt 8) {
+                                            if ($HW.CsTotalPhysicalMemory -lt 8589934592) {
                                                 $DCHWInfo | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainController.PhysicalMemory
                                             }
                                         }
@@ -331,7 +331,7 @@ function Get-AbrADDomainController {
                                                 }
                                                 $DCHWInfo | Table @TableParams
                                                 if ($HealthCheck.DomainController.Diagnostic) {
-                                                    if ([int]([regex]::Matches($DCHWInfo.$($reportTranslate.GetAbrADDomainController.PhysicalMemory), '\d+(\.*\d+)').value) -lt 8) {
+                                                    if ($HW.CsTotalPhysicalMemory -lt 8589934592) {
                                                         Paragraph $reportTranslate.GetAbrADDomainController.HealthCheck -Bold -Underline
                                                         BlankLine
                                                         Paragraph {

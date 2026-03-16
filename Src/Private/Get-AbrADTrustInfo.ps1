@@ -70,10 +70,10 @@ function Get-AbrADTrustsInfo {
                         }
                     }
                     $TempTrustsInfo = [PSCustomObject]@{
-                        Name = Remove-SpecialChar -String "$($Trust.Target)Trusts" -SpecialChars '\-. '
-                        Label = Add-DiaNodeIcon -Name $Trust.Target -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -RowsOrdered $AditionalInfo
+                        Name = Remove-SpecialCharacter -String "$($Trust.Target)Trusts" -SpecialChars '\-. '
+                        Label = Add-NodeIcon -Name $Trust.Target -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -RowsOrdered $AditionalInfo
                         Source = $Trust.CanonicalName.split('/')[0]
-                        SourceLabel = Add-DiaNodeIcon -Name $Trust.CanonicalName.split('/')[0] -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug
+                        SourceLabel = Add-NodeIcon -Name $Trust.CanonicalName.split('/')[0] -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug
                         Direction = $TrustDirectionID[[int]$Trust.TrustDirection]
                     }
                     $TrustsInfo.Add($TempTrustsInfo) | Out-Null

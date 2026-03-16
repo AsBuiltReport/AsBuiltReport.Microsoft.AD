@@ -32,15 +32,15 @@ function Get-AbrDiagForest {
                 $ForestInfo = Get-AbrADForestInfo
 
                 if ($ForestInfo) {
-                    SubGraph ForestSubGraph -Attributes @{Label = (Add-DiaHtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold) ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
+                    SubGraph ForestSubGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold) ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
                         SubGraph MainSubGraph -Attributes @{Label = ' ' ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style; color = $SubGraphDebug.color } {
                             if ($ForestInfo.ChildDomain ) {
 
-                                $ForestRootDomain = Remove-SpecialChar -String "$($ForestInfo[0].RootDomain)ChildDomain" -SpecialChars '\-. '
+                                $ForestRootDomain = Remove-SpecialCharacter -String "$($ForestInfo[0].RootDomain)ChildDomain" -SpecialChars '\-. '
                                 Node -Name $ForestRootDomain -Attributes @{Label = ($ForestInfo[0]).RootDomainLabel; shape = 'plain'; fillColor = 'transparent' }
 
                                 foreach ($ForestObj in $ForestInfo) {
-                                    $ParentDomain = Remove-SpecialChar -String "$($ForestObj.ParentDomain)" -SpecialChars '\-. '
+                                    $ParentDomain = Remove-SpecialCharacter -String "$($ForestObj.ParentDomain)" -SpecialChars '\-. '
                                     Node -Name $ForestObj.Name -Attributes @{Label = $ForestObj.Label; shape = 'plain'; fillColor = 'transparent' }
                                     Edge -From $ParentDomain -To $ForestObj.Name @{minlen = 2 }
                                 }

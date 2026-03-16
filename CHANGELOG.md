@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.12] - 2026-02-27
+## [0.9.12] - 2026-03-??
 
 ### :toolbox: Added
 
@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### :arrows_clockwise: Changed
 
 - Update module version to `0.9.12`
+- Upgrade AsBuiltReport.Chart module to version `0.3.0`
+- Migrate Diagrammer.Core to AsBuiltReport.Diagram module
 
 ## [0.9.11] - 2026-02-21
 
@@ -42,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Certficate Authority Autiting status not being properly evaluated in Get-AbrADCARoot
   and Get-AbrADCASubordinate cmdlets
 - Fix missing BOM encoding for non-ASCII encoded file
+- Fix Domain Controller memory health check to properly evaluate the total physical memory, which could lead to incorrect health check results.
 
 ### :x: Removed
 

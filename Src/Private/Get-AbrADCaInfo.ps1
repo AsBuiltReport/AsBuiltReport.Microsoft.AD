@@ -41,9 +41,9 @@ function Get-AbrADCAInfo {
                     }
 
                     $TempCAInfo = [PSCustomObject]@{
-                        Name = Remove-SpecialChar -String "$($rootCA.Name)RootCA" -SpecialChars '\-. '
+                        Name = Remove-SpecialCharacteracter -String "$($rootCA.Name)RootCA" -SpecialChars '\-. '
                         CAName = $rootCA.Name
-                        Label = Add-DiaNodeIcon -Name $rootCA.Name -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo
+                        Label = Add-NodeIcon -Name $rootCA.Name -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo
                         AditionalInfo = $AditionalInfo
                         IsRoot = $true
                     }
@@ -62,9 +62,9 @@ function Get-AbrADCAInfo {
                         $RootCAName = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($subordinateCA.cACertificate[0]).Issuer.Split(',').Split('=')[1]
 
                         $TempCAInfo = [PSCustomObject]@{
-                            Name = Remove-SpecialChar -String $RootCAName -SpecialChars '\-. '
+                            Name = Remove-SpecialCharacter -String $RootCAName -SpecialChars '\-. '
                             CAName = $RootCAName
-                            Label = Add-DiaNodeIcon -Name $RootCAName -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo
+                            Label = Add-NodeIcon -Name $RootCAName -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo
                             AditionalInfo = $AditionalInfo
                             IsRoot = $true
                         }
@@ -84,9 +84,9 @@ function Get-AbrADCAInfo {
                     }
 
                     $TempCAInfo = [PSCustomObject]@{
-                        Name = Remove-SpecialChar -String $subordinateCA.Name -SpecialChars '\-. '
+                        Name = Remove-SpecialCharacter -String $subordinateCA.Name -SpecialChars '\-. '
                         CAName = $subordinateCA.Name
-                        Label = Add-DiaNodeIcon -Name $subordinateCA.dNSHostName -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo
+                        Label = Add-NodeIcon -Name $subordinateCA.dNSHostName -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo
                         AditionalInfo = $AditionalInfo
                         IsRoot = $false
                     }

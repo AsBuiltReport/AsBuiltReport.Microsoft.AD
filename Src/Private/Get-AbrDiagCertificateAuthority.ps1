@@ -32,7 +32,7 @@ function Get-AbrDiagCertificateAuthority {
                 $CAInfo = Get-AbrADCAInfo
 
                 if ($CAInfo) {
-                    SubGraph ForestSubGraph -Attributes @{Label = (Add-DiaHtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold) ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
+                    SubGraph ForestSubGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold) ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
                         SubGraph MainSubGraph -Attributes @{Label = ' ' ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style; color = $SubGraphDebug.color } {
                             if ($CAInfo | Where-Object { $_.IsRoot }) {
 
@@ -42,16 +42,16 @@ function Get-AbrDiagCertificateAuthority {
                                     $CALabel = $reportTranslate.NewADDiagram.caEntRootCA
                                 }
 
-                                $CARootNodes = Add-DiaHtmlNodeTable -Name CARootNodes -ImagesObj $Images -inputObject ($CAInfo | Where-Object { $_.IsRoot }).CAName -Align 'Center' -iconType 'AD_Certificate' -ColumnSize 4 -IconDebug $IconDebug -MultiIcon -AditionalInfo ($CAInfo | Where-Object { $_.IsRoot }).AditionalInfo -FontSize 18 -TableBorderColor $Edgecolor
+                                $CARootNodes = Add-HtmlNodeTable -Name CARootNodes -ImagesObj $Images -inputObject ($CAInfo | Where-Object { $_.IsRoot }).CAName -Align 'Center' -iconType 'AD_Certificate' -ColumnSize 4 -IconDebug $IconDebug -MultiIcon -AditionalInfo ($CAInfo | Where-Object { $_.IsRoot }).AditionalInfo -FontSize 18 -TableBorderColor $Edgecolor
 
-                                Node -Name 'RootCA' -Attributes @{Label = (Add-DiaHtmlSubGraph -Name RootCA -ImagesObj $Images -TableArray $CARootNodes -Align 'Center' -IconDebug $IconDebug -Label $CALabel -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -IconType 'AD_PKI_Logo' -FontColor $Fontcolor -FontSize 24 -FontBold -TableBorderColor $Edgecolor); shape = 'plain'; fillColor = 'transparent'; fontsize = 18; fontname = 'Segoe Ui' }
+                                Node -Name 'RootCA' -Attributes @{Label = (Add-HtmlSubGraph -Name RootCA -ImagesObj $Images -TableArray $CARootNodes -Align 'Center' -IconDebug $IconDebug -Label $CALabel -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -IconType 'AD_PKI_Logo' -FontColor $Fontcolor -FontSize 24 -FontBold -TableBorderColor $Edgecolor); shape = 'plain'; fillColor = 'transparent'; fontsize = 18; fontname = 'Segoe Ui' }
                             }
 
                             if ($CAInfo | Where-Object { $_.IsRoot -eq $false }) {
 
-                                $CASubordinateNodes = Add-DiaHtmlNodeTable -Name CASubordinateNodes -ImagesObj $Images -inputObject ($CAInfo | Where-Object { $_.IsRoot -eq $false }).CAName -Align 'Center' -iconType 'AD_Certificate' -ColumnSize 4 -IconDebug $IconDebug -MultiIcon -AditionalInfo ($CAInfo | Where-Object { $_.IsRoot -eq $false }).AditionalInfo -FontSize 18 -TableBorderColor $Edgecolor
+                                $CASubordinateNodes = Add-HtmlNodeTable -Name CASubordinateNodes -ImagesObj $Images -inputObject ($CAInfo | Where-Object { $_.IsRoot -eq $false }).CAName -Align 'Center' -iconType 'AD_Certificate' -ColumnSize 4 -IconDebug $IconDebug -MultiIcon -AditionalInfo ($CAInfo | Where-Object { $_.IsRoot -eq $false }).AditionalInfo -FontSize 18 -TableBorderColor $Edgecolor
 
-                                Node -Name 'SubordinateCA' -Attributes @{Label = (Add-DiaHtmlSubGraph -Name SubordinateCA -ImagesObj $Images -TableArray $CASubordinateNodes -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.caEntSubCA -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -IconType 'AD_PKI_Logo' -FontColor $Fontcolor -FontSize 24 -FontBold -TableBorderColor $Edgecolor); shape = 'plain'; fillColor = 'transparent'; fontsize = 18; fontname = 'Segoe Ui' }
+                                Node -Name 'SubordinateCA' -Attributes @{Label = (Add-HtmlSubGraph -Name SubordinateCA -ImagesObj $Images -TableArray $CASubordinateNodes -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.caEntSubCA -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -IconType 'AD_PKI_Logo' -FontColor $Fontcolor -FontSize 24 -FontBold -TableBorderColor $Edgecolor); shape = 'plain'; fillColor = 'transparent'; fontsize = 18; fontname = 'Segoe Ui' }
 
                             }
 

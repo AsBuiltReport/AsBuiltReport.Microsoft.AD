@@ -129,13 +129,13 @@ function Get-AbrADForestInfo {
                         }
 
                         $TempForestInfo = [PSCustomObject]@{
-                            Name = Remove-SpecialChar -String "$($ChildDomain)ChildDomain" -SpecialChars '\-. '
+                            Name = Remove-SpecialCharacter -String "$($ChildDomain)ChildDomain" -SpecialChars '\-. '
                             ChildDomainLabel = $ChildDomain
-                            Label = Add-DiaNodeIcon -Name $ChildDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalDomainInfo -FontSize 18
+                            Label = Add-NodeIcon -Name $ChildDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalDomainInfo -FontSize 18
                             RootDomain = $ForestObj.RootDomain
-                            RootDomainLabel = Add-DiaNodeIcon -Name $ForestObj.RootDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalForestInfo -FontSize 18
+                            RootDomainLabel = Add-NodeIcon -Name $ForestObj.RootDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalForestInfo -FontSize 18
                             ChildDomain = $ChildDomain
-                            ParentDomain = Remove-SpecialChar -String "$($Childs.Parent)ChildDomain" -SpecialChars '\-. '
+                            ParentDomain = Remove-SpecialCharacter -String "$($Childs.Parent)ChildDomain" -SpecialChars '\-. '
                             AditionalInfo = $AditionalDomainInfo
                             IsForest = $IsForest
                         }
@@ -180,8 +180,8 @@ function Get-AbrADForestInfo {
                 }
 
                 $TempForestInfo = [PSCustomObject]@{
-                    Name = Remove-SpecialChar -String "$($ForestObj.Name)RootDomain" -SpecialChars '\-. '
-                    Label = Add-DiaNodeIcon -Name $ForestObj.RootDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalForestInfo -FontSize 18
+                    Name = Remove-SpecialCharacter -String "$($ForestObj.Name)RootDomain" -SpecialChars '\-. '
+                    Label = Add-NodeIcon -Name $ForestObj.RootDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalForestInfo -FontSize 18
                     AditionalInfo = $AditionalForestInfo
                 }
                 $ForestInfo.Add($TempForestInfo) | Out-Null

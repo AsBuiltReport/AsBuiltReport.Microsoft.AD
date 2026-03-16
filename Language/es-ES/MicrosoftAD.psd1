@@ -242,7 +242,7 @@
     Replication = Replication
     ReplicationParagraph1 = Replication is the process by which Active Directory objects are transferred and synchronized between domain controllers within the domain and forest, ensuring consistency across the infrastructure.
     ReplicationParagraph2 = The following section provides detailed information about Active Directory replication and its associated relationships.
-    SiteInventoryDiagram = Site Inventory Diagram
+    ReplicationDiagram = Replication Diagram
     SiteTopologyDiagram = Site Topology Diagram
     Sites = Sites
     SiteName = Site Name

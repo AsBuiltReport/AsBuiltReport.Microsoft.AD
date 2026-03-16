@@ -53,8 +53,8 @@ function Get-AbrADDCRoleFeature {
 
                     if ($HealthCheck.DomainController.BestPractice) {
                         $List = @()
-                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDCRoleFeature.Name) -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') } | Set-Style -Style Warning
-                        foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDCRoleFeature.Name) -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services', 'DHCP Server') })) {
+                        $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDCRoleFeature.Name) -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services') } | Set-Style -Style Warning
+                        foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDCRoleFeature.Name) -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services') })) {
                             $OBJ.$($reportTranslate.GetAbrADDCRoleFeature.Name) = $OBJ.$($reportTranslate.GetAbrADDCRoleFeature.Name) + ' (1)'
                             $List = $reportTranslate.GetAbrADDCRoleFeature.RoleBP
                         }

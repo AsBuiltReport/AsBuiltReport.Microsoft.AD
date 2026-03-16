@@ -32,7 +32,7 @@ function Get-AbrDiagSiteInventory {
                 $SitesGroups = Get-AbrADSitesInventoryInfo
 
                 if ($SitesGroups) {
-                    SubGraph ForestSubGraph -Attributes @{Label = (Add-DiaHtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold) ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
+                    SubGraph ForestSubGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold) ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
                         SubGraph MainSubGraph -Attributes @{Label = ' ' ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style; color = $SubGraphDebug.color } {
                             if (($SitesGroups | Measure-Object).Count -ge 1) {
                                 $ChildSiteSubgraphArray = [System.Collections.ArrayList]::new()
@@ -40,23 +40,23 @@ function Get-AbrDiagSiteInventory {
 
                                     if ($SiteGroupOBJ.DomainControllers.DCsArray) {
 
-                                        $ChildDCsNodes = Add-DiaHtmlTable -Name ChildDCsNodes -ImagesObj $Images -Rows $SiteGroupOBJ.DomainControllers.DCsArray -ALIGN 'Center' -ColumnSize 3 -IconDebug $IconDebug -TableStyle 'dashed,rounded' -NoFontBold -FontSize 18
+                                        $ChildDCsNodes = Add-HtmlTable -Name ChildDCsNodes -ImagesObj $Images -Rows $SiteGroupOBJ.DomainControllers.DCsArray -ALIGN 'Center' -ColumnSize 3 -IconDebug $IconDebug -TableStyle 'dashed,rounded' -NoFontBold -FontSize 18
 
-                                        $ChildDCsNodesSubgraph = Add-DiaHtmlSubGraph -Name ChildDCsNodesSubgraph -ImagesObj $Images -TableArray $ChildDCsNodes -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.DomainControllers -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -IconType 'AD_DC' -FontSize 18
+                                        $ChildDCsNodesSubgraph = Add-HtmlSubGraph -Name ChildDCsNodesSubgraph -ImagesObj $Images -TableArray $ChildDCsNodes -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.DomainControllers -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -IconType 'AD_DC' -FontSize 18
 
                                     } else {
 
-                                        $ChildDCsNodesSubgraph = Add-DiaHtmlSubGraph -Name ChildDCsNodesSubgraph -ImagesObj $Images -TableArray $reportTranslate.NewADDiagram.NoSiteDC -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.DomainControllers -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -IconType 'AD_DC' -FontSize 22
+                                        $ChildDCsNodesSubgraph = Add-HtmlSubGraph -Name ChildDCsNodesSubgraph -ImagesObj $Images -TableArray $reportTranslate.NewADDiagram.NoSiteDC -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.DomainControllers -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -IconType 'AD_DC' -FontSize 22
                                     }
 
                                     if ($SiteGroupOBJ.Subnets.SubnetArray) {
 
-                                        $ChildSubnetsNodes = Add-DiaHtmlTable -Name ChildSubnetsNodes -ImagesObj $Images -Rows $SiteGroupOBJ.Subnets.SubnetArray -ALIGN 'Center' -ColumnSize 3 -IconDebug $IconDebug -TableStyle 'dashed,rounded' -NoFontBold -FontSize 18
+                                        $ChildSubnetsNodes = Add-HtmlTable -Name ChildSubnetsNodes -ImagesObj $Images -Rows $SiteGroupOBJ.Subnets.SubnetArray -ALIGN 'Center' -ColumnSize 3 -IconDebug $IconDebug -TableStyle 'dashed,rounded' -NoFontBold -FontSize 18
 
-                                        $ChildSubnetsNodesSubgraph = Add-DiaHtmlSubGraph -Name ChildSubnetsNodesSubgraph -ImagesObj $Images -TableArray $ChildSubnetsNodes -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.Subnets -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -IconType 'AD_Site_Subnet' -FontSize 22
+                                        $ChildSubnetsNodesSubgraph = Add-HtmlSubGraph -Name ChildSubnetsNodesSubgraph -ImagesObj $Images -TableArray $ChildSubnetsNodes -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.Subnets -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -IconType 'AD_Site_Subnet' -FontSize 22
                                     } else {
 
-                                        $ChildSubnetsNodesSubgraph = Add-DiaHtmlSubGraph -Name ChildSubnetsNodesSubgraph -ImagesObj $Images -TableArray $reportTranslate.NewADDiagram.NoSiteSubnet -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.Subnets -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -IconType 'AD_Site_Subnet' -FontSize 22
+                                        $ChildSubnetsNodesSubgraph = Add-HtmlSubGraph -Name ChildSubnetsNodesSubgraph -ImagesObj $Images -TableArray $reportTranslate.NewADDiagram.NoSiteSubnet -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.Subnets -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -IconType 'AD_Site_Subnet' -FontSize 22
                                     }
 
                                     $ChildSiteSubgraph = [System.Collections.ArrayList]::new()
@@ -65,11 +65,11 @@ function Get-AbrDiagSiteInventory {
                                     $ChildSiteSubgraph.Add($ChildSubnetsNodesSubgraph) | Out-Null
 
                                     $ChildSiteSubgraphArray.Add(
-                                        (Add-DiaHtmlSubGraph -Name ChildSiteSubgraphArray -ImagesObj $Images -TableArray $ChildSiteSubgraph -Align 'Center' -IconType 'AD_Site' -IconDebug $IconDebug -Label $SiteGroupOBJ.Name -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -FontSize 22)
+                                        (Add-HtmlSubGraph -Name ChildSiteSubgraphArray -ImagesObj $Images -TableArray $ChildSiteSubgraph -Align 'Center' -IconType 'AD_Site' -IconDebug $IconDebug -Label $SiteGroupOBJ.Name -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -FontSize 22)
                                     ) | Out-Null
                                 }
 
-                                Node -Name 'SitesTopology' -Attributes @{Label = (Add-DiaHtmlSubGraph -Name SitesTopology -ImagesObj $Images -TableArray $ChildSiteSubgraphArray -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.Sites -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -FontSize 22); shape = 'plain'; fillColor = 'transparent'; fontsize = 14; fontname = 'Segoe Ui' }
+                                Node -Name 'SitesTopology' -Attributes @{Label = (Add-HtmlSubGraph -Name SitesTopology -ImagesObj $Images -TableArray $ChildSiteSubgraphArray -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.Sites -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -TableBorderColor 'gray' -FontColor $Fontcolor -FontSize 22); shape = 'plain'; fillColor = 'transparent'; fontsize = 14; fontname = 'Segoe Ui' }
 
                             } else {
                                 Node -Name NoSites -Attributes @{Label = $reportTranslate.NewADDiagram.NoSites; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 0 }

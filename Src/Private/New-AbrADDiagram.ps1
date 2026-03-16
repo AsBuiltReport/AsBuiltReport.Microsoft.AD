@@ -414,13 +414,13 @@ function New-AbrADDiagram {
 
         # Validate Custom logo
         if ($Logo) {
-            $CustomLogo = Test-Logo -LogoPath (Get-ChildItem -Path $Logo).FullName -IconPath $IconPath -ImagesObj $Images
+            $CustomLogo = Test-AbrLogo -LogoPath (Get-ChildItem -Path $Logo).FullName -IconPath $IconPath -ImagesObj $Images
         } else {
             $CustomLogo = 'Microsoft_Logo'
         }
         # Validate Custom Signature Logo
         if ($SignatureLogo) {
-            $CustomSignatureLogo = Test-Logo -LogoPath (Get-ChildItem -Path $SignatureLogo).FullName -IconPath $IconPath -ImagesObj $Images
+            $CustomSignatureLogo = Test-AbrLogo -LogoPath (Get-ChildItem -Path $SignatureLogo).FullName -IconPath $IconPath -ImagesObj $Images
         }
 
         # Change variable Scope
@@ -496,9 +496,9 @@ function New-AbrADDiagram {
                 if ($Signature) {
                     Write-Verbose 'Generating diagram signature'
                     if ($CustomSignatureLogo) {
-                        $Signature = (Add-DiaHtmlSignatureTable -ImagesObj $Images -Rows "Author: $($AuthorName)", "Company: $($CompanyName)" -TableBorder 2 -CellBorder 0 -Align 'left' -Logo $CustomSignatureLogo -IconDebug $IconDebug)
+                        $Signature = (Add-HtmlSignatureTable -ImagesObj $Images -Rows "Author: $($AuthorName)", "Company: $($CompanyName)" -TableBorder 2 -CellBorder 0 -Align 'left' -Logo $CustomSignatureLogo -IconDebug $IconDebug)
                     } else {
-                        $Signature = (Add-DiaHtmlSignatureTable -ImagesObj $Images -Rows "Author: $($AuthorName)", "Company: $($CompanyName)" -TableBorder 2 -CellBorder 0 -Align 'left' -Logo 'AD_LOGO_Footer' -IconDebug $IconDebug)
+                        $Signature = (Add-HtmlSignatureTable -ImagesObj $Images -Rows "Author: $($AuthorName)", "Company: $($CompanyName)" -TableBorder 2 -CellBorder 0 -Align 'left' -Logo 'AD_LOGO_Footer' -IconDebug $IconDebug)
                     }
                 } else {
                     Write-Verbose $reportTranslate.NewADDiagram.diagramSignature
@@ -511,7 +511,7 @@ function New-AbrADDiagram {
                     Write-Verbose $reportTranslate.NewADDiagram.genDiagramSignature
 
                     # Main Graph SubGraph
-                    SubGraph MainGraph -Attributes @{Label = (Add-DiaHtmlLabel -ImagesObj $Images -Label $MainGraphLabel -IconType $CustomLogo -IconDebug $IconDebug -IconWidth 250 -IconHeight 80 -Fontsize 24 -FontName 'Segoe UI Bold' -FontColor $Fontcolor ); fontsize = 22; penwidth = 0; labelloc = 't'; labeljust = 'c' } {
+                    SubGraph MainGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $MainGraphLabel -IconType $CustomLogo -IconDebug $IconDebug -IconWidth 250 -IconHeight 80 -Fontsize 24 -FontName 'Segoe UI Bold' -FontColor $Fontcolor ); fontsize = 22; penwidth = 0; labelloc = 't'; labeljust = 'c' } {
                         Write-Verbose $reportTranslate.NewADDiagram.genDiagramMain
 
                         $script:ForestRoot = $ADSystem.Name.ToString().ToUpper()
@@ -557,12 +557,12 @@ function New-AbrADDiagram {
         #Export Diagram
         foreach ($OutputFormat in $Format) {
 
-            $OutputDiagram = Export-Diagrammer -GraphObj ($Graph | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) -ErrorDebug $EnableErrorDebug -Format $OutputFormat -Filename $Filename -OutputFolderPath $OutputFolderPath -WaterMarkText $WaterMarkText -WaterMarkColor $WaterMarkColor -IconPath $IconPath -Verbose:$Verbose -Rotate $Rotate
+            $OutputDiagram = Export-AbrDiagram -GraphObj ($Graph | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) -ErrorDebug $EnableErrorDebug -Format $OutputFormat -Filename $Filename -OutputFolderPath $OutputFolderPath -WaterMarkText $WaterMarkText -WaterMarkColor $WaterMarkColor -IconPath $IconPath -Verbose:$Verbose -Rotate $Rotate
 
             if ($OutputDiagram) {
                 if ($OutputFormat -ne 'Base64') {
                     # If not Base64 format image path
-                    Write-ColorOutput -Color 'White' -String ($reportTranslate.NewADDiagram.DiagramOutput -f $MainGraphLabel, $OutputDiagram.Name, $OutputDiagram.Directory)
+                    Write-AbrColorOutput -Color 'White' -String ($reportTranslate.NewADDiagram.DiagramOutput -f $MainGraphLabel, $OutputDiagram.Name, $OutputDiagram.Directory)
                 } else {
                     Write-Verbose $reportTranslate.NewADDiagram.Base64Output
                     # Return Base64 string

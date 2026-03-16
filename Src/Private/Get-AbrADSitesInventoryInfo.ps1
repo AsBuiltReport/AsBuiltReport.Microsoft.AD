@@ -45,8 +45,8 @@ function Get-AbrADSitesInventoryInfo {
 
                             $SubnetTable.Add(
                                 [PSCustomObject]@{
-                                    Name = Remove-SpecialChar -String "$($Site.Name)SubNets" -SpecialChars '\-. '
-                                    Label = (Add-DiaHtmlTable -Name SubnetTable -ImagesObj $Images -Rows $SubnetArray -ColumnSize 3 -ALIGN 'Center' -IconDebug $IconDebug)
+                                    Name = Remove-SpecialCharacter -String "$($Site.Name)SubNets" -SpecialChars '\-. '
+                                    Label = (Add-HtmlTable -Name SubnetTable -ImagesObj $Images -Rows $SubnetArray -ColumnSize 3 -ALIGN 'Center' -IconDebug $IconDebug)
                                     SubnetArray = $SubnetArray
                                 }
                             ) | Out-Null
@@ -65,8 +65,8 @@ function Get-AbrADSitesInventoryInfo {
                             # $DCsArray = @("Server-dc-01v","Server-dc-02v","Server-dc-03v","Server-dc-04v","Server-dc-05v","Server-dc-06v","Server-dc-07v","Server-dc-08v","Server-dc-09v","DC-Server-01v","DC-Server-02v","DC-Server-03v","DC-Server-04v")
 
                             $DCsTable.Add([PSCustomObject]@{
-                                    Name = Remove-SpecialChar -String "$($Site.Name)DCs" -SpecialChars '\-. '
-                                    Label = (Add-DiaHtmlTable -Name DCsTable -Rows $DCsArray -ColumnSize 3 -ALIGN 'Center' -ImagesObj $Images -IconDebug $IconDebug)
+                                    Name = Remove-SpecialCharacter -String "$($Site.Name)DCs" -SpecialChars '\-. '
+                                    Label = (Add-HtmlTable -Name DCsTable -Rows $DCsArray -ColumnSize 3 -ALIGN 'Center' -ImagesObj $Images -IconDebug $IconDebug)
                                     DCsArray = $DCsArray
                                 }) | Out-Null
 

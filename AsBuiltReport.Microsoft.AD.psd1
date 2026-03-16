@@ -58,15 +58,15 @@
         },
         @{
             ModuleName = 'AsBuiltReport.Chart';
-            ModuleVersion = '0.2.0'
+            ModuleVersion = '0.3.0'
         },
         @{
             ModuleName = 'PSPKI';
             ModuleVersion = '4.3.0'
         },
         @{
-            ModuleName = 'Diagrammer.Core';
-            ModuleVersion = '0.2.38'
+            ModuleName = 'AsBuiltReport.Diagram';
+            ModuleVersion = '1.0.2'
         }
     )
 

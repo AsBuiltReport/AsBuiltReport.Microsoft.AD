@@ -25,10 +25,10 @@ jobs:
         shell: pwsh
         run: |
           Install-Module -Name PSPKI -Repository PSGallery -Force
-      - name: Install Diagrammer.Core module
+      - name: Install AsBuiltReport.Diagram module
         shell: pwsh
         run: |
-          Install-Module -Name Diagrammer.Core -Repository PSGallery -Force
+          Install-Module -Name AsBuiltReport.Diagram -Repository PSGallery -Force
       - name: Test Module Manifest
         shell: pwsh
         run: |

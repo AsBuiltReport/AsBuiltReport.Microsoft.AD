@@ -5,7 +5,7 @@ function Get-AbrADInfrastructureService {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.12
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -55,8 +55,8 @@ function Get-AbrADInfrastructureService {
                 }
 
                 if ($HealthCheck.DomainController.Services) {
-                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADInfrastructureService.Status) -notlike 'Running' -and $_.$($reportTranslate.GetAbrADInfrastructureService.ShortName) -notlike 'Spooler' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADInfrastructureService.Status
                     $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADInfrastructureService.ShortName) -eq 'Spooler' } | Set-Style -Style Critical
+                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADInfrastructureService.ShortName) -eq 'DHCPServer' } | Set-Style -Style Critical
                 }
 
                 if ($OutObj) {
@@ -73,12 +73,21 @@ function Get-AbrADInfrastructureService {
                         }
 
                         $OutObj | Sort-Object -Property $reportTranslate.GetAbrADInfrastructureService.DisplayName | Table @TableParams
-                        if ($HealthCheck.DomainController.Services -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADInfrastructureService.ShortName) -eq 'Spooler' -and $_.$($reportTranslate.GetAbrADInfrastructureService.Status) -like 'Running' })) {
+                        if ($HealthCheck.DomainController.Services -and (($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADInfrastructureService.ShortName) -eq 'Spooler' -and $_.$($reportTranslate.GetAbrADInfrastructureService.Status) -like 'Running' }) -or ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADInfrastructureService.ShortName) -eq 'DHCPServer' -and $_.$($reportTranslate.GetAbrADInfrastructureService.Status) -like 'Running' }))) {
                             Paragraph $reportTranslate.GetAbrADInfrastructureService.HealthCheck -Bold -Underline
-                            BlankLine
-                            Paragraph {
-                                Text $reportTranslate.GetAbrADInfrastructureService.CorrectiveActions -Bold
-                                Text $reportTranslate.GetAbrADInfrastructureService.SpoolerBP
+                            if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADInfrastructureService.ShortName) -eq 'Spooler' -and $_.$($reportTranslate.GetAbrADInfrastructureService.Status) -like 'Running' }) {
+                                BlankLine
+                                Paragraph {
+                                    Text $reportTranslate.GetAbrADInfrastructureService.CorrectiveActions -Bold
+                                    Text $reportTranslate.GetAbrADInfrastructureService.SpoolerBP
+                                }
+                            }
+                            if ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADInfrastructureService.ShortName) -eq 'DHCPServer' -and $_.$($reportTranslate.GetAbrADInfrastructureService.Status) -like 'Running' }) {
+                                BlankLine
+                                Paragraph {
+                                    Text $reportTranslate.GetAbrADInfrastructureService.CorrectiveActions -Bold
+                                    Text $reportTranslate.GetAbrADInfrastructureService.DHCPServerBP
+                                }
                             }
                         }
                     }
