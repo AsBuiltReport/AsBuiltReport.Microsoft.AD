@@ -41,7 +41,7 @@ function Get-AbrADCAInfo {
                     }
 
                     $TempCAInfo = [PSCustomObject]@{
-                        Name = Remove-SpecialCharacteracter -String "$($rootCA.Name)RootCA" -SpecialChars '\-. '
+                        Name = Remove-SpecialCharacter -String "$($rootCA.Name)RootCA" -SpecialChars '\-. '
                         CAName = $rootCA.Name
                         Label = Add-NodeIcon -Name $rootCA.Name -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo
                         AditionalInfo = $AditionalInfo
