@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add condition to check for members of Pre-Windows 2000 group
 - Add a Replication diagram to the report
 - Add comprehensive copilot instructions for project structure, build, test, architecture, and coding conventions.
+- Add Get-AbrADReportBrief function to generate a one-page summary of Active Directory configuration and integrate it into the report generation process
 
 ### :arrows_clockwise: Changed
 

@@ -184,6 +184,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
         Write-Host "    - Finishing building $RootDomains forest domains list: $($OrderedDomains -join ', ' )"
 
+        # Report Brief
+        Write-Host '- Working on Report Brief section.'
+        Get-AbrADReportBrief
 
         # Forest Section
         if ($InfoLevel.Forest -ge 1) {

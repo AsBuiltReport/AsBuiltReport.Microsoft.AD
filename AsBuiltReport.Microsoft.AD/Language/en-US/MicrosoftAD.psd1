@@ -21,6 +21,42 @@
     No = No
 '@
 
+    # Get-AbrADReportBrief
+    GetAbrADReportBrief = ConvertFrom-StringData @'
+    Collecting = Generating Active Directory Report Brief for {0}.
+    ReportBrief = Report Brief
+    ReportBriefParagraph = This report brief provides a high-level summary of the Active Directory environment, including infrastructure topology, domain configuration, and the scope of this document.
+    ReportOverview = Report Overview
+    ReportName = Report Name
+    ReportVersion = Report Version
+    TargetForest = Target Forest
+    GeneratedOn = Generated On
+    ForestSummary = Forest Summary
+    ForestName = Forest Name
+    ForestMode = Forest Functional Level
+    RootDomain = Root Domain
+    TotalDomains = Total Domains
+    TotalSites = Total Sites
+    TotalGlobalCatalogs = Global Catalog Servers
+    TotalUPNSuffixes = UPN Suffixes
+    DomainSummary = Domain Summary
+    DomainName = Domain Name
+    DomainMode = Domain Functional Level
+    DomainControllers = Domain Controllers
+    PDCEmulator = PDC Emulator
+    ReportScope = Report Scope
+    Section = Section
+    DetailLevel = Detail Level
+    ScopeForest = Forest
+    ScopeDomain = Domain
+    ScopeDNS = DNS
+    ScopeCA = Certificate Authority (PKI)
+    ScopeDisabled = Disabled
+    ScopeEnabled = Enabled (Summary)
+    ScopeAdvanced = Enabled (Advanced Summary)
+    ScopeDetailed = Enabled (Detailed)
+'@
+
     # Get-AbrForestSection
     GetAbrForestSection = ConvertFrom-StringData @'
     Collecting = Collecting Forest information from {0}.
@@ -262,7 +298,7 @@
     HealthCheck = Health Check:
     BestPractice = Best Practice:
     DescBP = It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.
-    SiteSubnetBP = Ensure Sites have an associated subnet. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication, which in turn might result in excessive use of a remote domain controller.
+    SiteSubnetBP = Ensure Sites have an associated subnet. If subnets are not associated with AD Sites, users might choose a remote domain controller for authentication, which could result in excessive use of remote domain controllers.
     SiteDCBP = It is important to ensure that each site has at least one assigned domain controller. Missing domain controllers can lead to authentication delays and potential service disruptions for users in the site.
     ConnectionObjects = Connection Objects
     Name = Name
@@ -1358,8 +1394,8 @@
     OrphanedGPONoData = No Orphaned GPO information found in {0}, Disabling this section.
     OrphanedGPOHealthCheck = Health Check:
     OrphanedGPOCorrectiveActions = Corrective Actions:
-    OrphanedGPOMissingADBP = Evaluate orphaned Group Policy objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment.
-    OrphanedGPOMissingSYSVOLBP = Evaluate orphaned Group Policy folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment.
+    OrphanedGPOMissingADBP = Evaluate orphaned Group Policy objects that exist in SYSVOL but not in AD or the Group Policy Management Console (GPMC). These take up space in SYSVOL and consume bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment.
+    OrphanedGPOMissingSYSVOLBP = Evaluate orphaned Group Policy folders and files that exist in AD or the Group Policy Management Console (GPMC) but not in SYSVOL. These take up space in the AD database and consume bandwidth during replication. Ensure that these orphaned objects are reviewed and removed if they are no longer needed to maintain a clean and efficient Active Directory environment.
     Missing = Missing
     Valid = Valid
     Unknown = Unknown
