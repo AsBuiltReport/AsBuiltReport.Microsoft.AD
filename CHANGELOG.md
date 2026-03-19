@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a Replication diagram to the report
 - Add comprehensive copilot instructions for project structure, build, test, architecture, and coding conventions.
 
-
 ### :arrows_clockwise: Changed
 
 - Update module version to `0.9.12`
@@ -29,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve known issues section for clarity and detail.
 - Enhance documentation clarity in MicrosoftAD.psd1 for English and Spanish languages
 - Refactor localization strings in MicrosoftAD.psd1 for clarity and consistency. Improved grammar, punctuation, and readability across various best practice descriptions related to Active Directory configurations.
+- Enhance Active Directory report structure by adding detailed sections for Forest, Sites, Infrastructure, GPOs, and Account Policies. Improve localization strings for English and Spanish, and handle missing infrastructure scenarios in Exchange, SCCM, and DHCP sections.
 
 ## [0.9.11] - 2026-02-21
 
