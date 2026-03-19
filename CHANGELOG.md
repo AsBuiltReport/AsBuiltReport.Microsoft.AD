@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace references to Diagrammer.Core with AsBuiltReport.Chart and AsBuiltReport.Diagram modules.
 - Improve known issues section for clarity and detail.
 - Enhance documentation clarity in MicrosoftAD.psd1 for English and Spanish languages
+- Refactor localization strings in MicrosoftAD.psd1 for clarity and consistency. Improved grammar, punctuation, and readability across various best practice descriptions related to Active Directory configurations.
 
 ## [0.9.11] - 2026-02-21
 
