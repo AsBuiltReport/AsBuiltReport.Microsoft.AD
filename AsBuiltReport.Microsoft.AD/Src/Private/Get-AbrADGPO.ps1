@@ -33,6 +33,9 @@ function Get-AbrADGPO {
                 $OutObj = [System.Collections.ArrayList]::new()
                 $GPOs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPO -Domain ($using:Domain).DNSRoot -All }
                 if ($GPOs) {
+                    Section -Style Heading5 $reportTranslate.GetAbrADGPO.GPOInventoryTitle {
+                        Paragraph $reportTranslate.GetAbrADGPO.GPOInventoryParagraph
+                        BlankLine
                     if ($InfoLevel.Domain -eq 1) {
                         try {
                             foreach ($GPO in $GPOs) {
@@ -192,6 +195,10 @@ function Get-AbrADGPO {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (WMI Filters)"
                         }
                     }
+                    }
+                    Section -Style Heading5 $reportTranslate.GetAbrADGPO.GPOSettingsTitle {
+                        Paragraph $reportTranslate.GetAbrADGPO.GPOSettingsParagraph
+                        BlankLine
                     if ($InfoLevel.Domain -ge 2) {
                         try {
                             $DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)
@@ -207,7 +214,7 @@ function Get-AbrADGPO {
                             }
 
                             if ($WmiFilters) {
-                                Section -Style Heading5 $reportTranslate.GetAbrADGPO.WMIFiltersTitle {
+                                Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADGPO.WMIFiltersTitle {
                                     foreach ($WmiFilter in $WmiFilters) {
                                         $OutObj = [System.Collections.ArrayList]::new()
                                         $inObj = [ordered] @{
@@ -245,7 +252,7 @@ function Get-AbrADGPO {
                         $PATH = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies\PolicyDefinitions"
                         $CentralStore = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Test-Path $using:PATH }
                         if ($PATH) {
-                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.CentralStoreTitle {
+                            Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADGPO.CentralStoreTitle {
                                 $OutObj = [System.Collections.ArrayList]::new()
                                 $inObj = [ordered] @{
                                     $reportTranslate.GetAbrADGPO.CentralStoreDomain = $Domain.Name.ToString().ToUpper()
@@ -311,7 +318,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.LogonLogoffTitle {
+                            Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADGPO.LogonLogoffTitle {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.GPOStatus) -like $reportTranslate.GetAbrADGPO.AllSettingsDisabled } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.GPOStatus
                                 }
@@ -361,7 +368,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.StartupShutdownTitle {
+                            Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADGPO.StartupShutdownTitle {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADGPO.GPOStatus) -like $reportTranslate.GetAbrADGPO.AllSettingsDisabled } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADGPO.GPOStatus
                                 }
@@ -384,8 +391,12 @@ function Get-AbrADGPO {
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Section)"
                     }
+                    }
                 }
                 if ($HealthCheck.Domain.GPO) {
+                    Section -Style Heading5 $reportTranslate.GetAbrADGPO.GPOHealthTitle {
+                        Paragraph $reportTranslate.GetAbrADGPO.GPOHealthParagraph
+                        BlankLine
                     try {
                         $OutObj = [System.Collections.ArrayList]::new()
                         if ($GPOs) {
@@ -408,7 +419,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.UnlinkedGPOTitle {
+                            Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADGPO.UnlinkedGPOTitle {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -457,7 +468,7 @@ function Get-AbrADGPO {
                             }
                         }
                         if ($OutObj) {
-                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.EmptyGPOTitle {
+                            Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADGPO.EmptyGPOTitle {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -513,7 +524,7 @@ function Get-AbrADGPO {
                         }
 
                         if ($OutObj) {
-                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.EnforcedGPOTitle {
+                            Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADGPO.EnforcedGPOTitle {
                                 if ($HealthCheck.Domain.GPO) {
                                     $OutObj | Set-Style -Style Warning
                                 }
@@ -574,7 +585,7 @@ function Get-AbrADGPO {
                             $OrphanGPOs.Add($MissingSYSVOLGPOs) | Out-Null
                         }
                         if ($OrphanGPOs) {
-                            Section -Style Heading5 $reportTranslate.GetAbrADGPO.OrphanedGPOTitle {
+                            Section -ExcludeFromTOC -Style NOTOCHeading6 $reportTranslate.GetAbrADGPO.OrphanedGPOTitle {
                                 Paragraph $reportTranslate.GetAbrADGPO.OrphanedGPOParagraph
                                 BlankLine
                                 foreach ($OrphanGPO in $OrphanGPOs) {
@@ -648,6 +659,7 @@ function Get-AbrADGPO {
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Orphaned GPO)"
+                    }
                     }
                 }
             }

@@ -39,6 +39,10 @@ function Get-AbrDNSSection {
                                     BlankLine
                                     if ($TempCIMSession) {
                                         Get-AbrADDNSInfrastructure -Domain $DomainInfo -DCs $DCs
+                                    } else {
+                                        Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrDNSSection.NoCIMSession)
+                                        Paragraph $reportTranslate.GetAbrDNSSection.NoCIMSession
+                                        BlankLine
                                     }
                                     foreach ($DC in $DCs) {
                                         if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {

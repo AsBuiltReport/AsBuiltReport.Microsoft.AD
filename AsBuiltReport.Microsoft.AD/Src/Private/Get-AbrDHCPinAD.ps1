@@ -76,6 +76,8 @@ function Get-AbrDHCPinAD {
                 }
             } else {
                 Write-PScriboMessage -Message "No DHCP Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
+                Paragraph $reportTranslate.GetAbrDHCPinAD.NotFound
+                BlankLine
             }
         } catch {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DHCP Table)"

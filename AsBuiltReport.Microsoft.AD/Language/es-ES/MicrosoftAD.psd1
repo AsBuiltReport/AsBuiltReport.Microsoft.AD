@@ -29,6 +29,11 @@
     DefinitionText = The Active Directory framework that holds the objects can be viewed at several levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest, which is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are contained.
     ParagraphDetail = The following section provides a detailed overview of the Active Directory Forest infrastructure and configuration.
     ErrorForest = Error: Unable to retrieve Forest: {0} information.
+    TitleSuffix = Active Directory Forest
+    SitesHeading = AD Sites & Replication
+    SitesParagraph = The following section provides an overview of the Active Directory site topology, site links, replication connections, and inter-site transport configuration.
+    InfraHeading = Infrastructure Services
+    InfraParagraph = The following section provides an overview of infrastructure services registered in Active Directory, including Exchange, MECM/SCCM, and DHCP server information.
 '@
 
     # Get-AbrADForest
@@ -207,6 +212,7 @@
     Collecting = Collecting AD Exchange information of {0}.
     Heading = Exchange Infrastructure
     Paragraph = The following section provides an overview of the Microsoft Exchange Server infrastructure registered in Active Directory, including server names, roles, and version information.
+    NotFound = No Microsoft Exchange Server infrastructure was found registered in this forest.
     Name = Name
     DnsName = DNS Name
     ServerRoles = Server Roles
@@ -218,6 +224,7 @@
     Collecting = Collecting AD SCCM information of {0}.
     Heading = SCCM Infrastructure
     Paragraph = The following section provides a summary of the Microsoft Endpoint Configuration Manager (MECM/SCCM) infrastructure registered in Active Directory, including site codes, management points, and version details.
+    NotFound = No Microsoft Endpoint Configuration Manager (MECM/SCCM) infrastructure was found registered in this forest.
     Name = Name
     ManagementPoint = Management Point
     SiteCode = Site Code
@@ -229,6 +236,7 @@
     Collecting = Collecting AD DHCP Servers information of {0}.
     Heading = DHCP Infrastructure
     Paragraph = The following section provides an overview of the DHCP servers registered in Active Directory.
+    NotFound = No DHCP servers were found registered in Active Directory for this forest.
     ServerName = Server Name
     IsDomainController = Is Domain Controller?
     Yes = Yes
@@ -332,6 +340,7 @@
     Heading = DNS Configuration
     DefinitionParagraph = The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols.
     Paragraph = The following section provides a detailed overview of the DNS infrastructure configuration and settings within the Active Directory environment.
+    NoCIMSession = DNS infrastructure configuration data requires a CIM session and could not be collected. Verify that WinRM and CIM connectivity to the domain controllers is available.
 '@
 
     # Get-AbrADDNSInfrastructure
@@ -446,6 +455,7 @@
     DefinitionParagraph = In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.
     Paragraph = The following section provides a detailed overview of the Active Directory Public Key Infrastructure (PKI) configuration and its components.
     DetailsSuffix = Details
+    CAParagraph = The following section provides detailed configuration and operational information for the {0} ({1}) hosted on {2}.
     DomainNotInForest = Current PC Domain {0} is not in the Forest Domain list of {1}. Disabling Certificate Authority section
 '@
 
@@ -662,6 +672,10 @@
     WinRMErrorDCDiag = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (DCDiag Information)
     WinRMErrorInfraService = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (ADInfrastructureService)
     DomainExcluded = {0} disabled in Exclude.Domain variable
+    ReplicationSection = Replication
+    ReplicationParagraph = The following section provides an overview of Active Directory replication connections and status between domain controllers in this domain.
+    GPOSection = Group Policy
+    GPOParagraph = The following section provides an overview of the Group Policy Objects (GPOs) configured and applied within this domain.
 '@
 
     # Get-AbrADDomain
@@ -788,7 +802,10 @@
     # Get-AbrADDomainObject
     GetAbrADDomainObject = ConvertFrom-StringData @'
     Collecting = Collecting AD Domain Objects information on forest {0}.
-    DomainObjectsSection = Domain Objects
+    DirectoryObjectsSection = Directory Objects
+    DirectoryObjectsParagraph = The following section provides an inventory and statistical overview of user, group, and computer objects within the domain.
+    AccountPoliciesSection = Account Policies
+    AccountPoliciesParagraph = The following section provides details about password policies, fine-grained password policies, LAPS configuration, group Managed Service Accounts (gMSA), and Foreign Security Principals within the domain.
     DomainObjectsParagraph = The following section provides detailed information about computer, group, and user objects found in the {0} domain.
     UserObjectsSection = User Objects
     User = User
@@ -1345,6 +1362,12 @@
     Missing = Missing
     Valid = Valid
     Unknown = Unknown
+    GPOInventoryTitle = GPO Inventory
+    GPOInventoryParagraph = The following section provides an overview of all Group Policy Objects configured in the domain, including their status, security filtering, and link count.
+    GPOSettingsTitle = GPO Settings
+    GPOSettingsParagraph = The following section provides details about Group Policy configuration resources, including WMI filters, the Central Store repository, and scripts attached to GPOs.
+    GPOHealthTitle = GPO Health
+    GPOHealthParagraph = The following section highlights Group Policy Objects that may require attention, including unlinked, empty, enforced, and orphaned GPOs.
 '@
     # Get-AbrADDomainController
     GetAbrADDomainController = ConvertFrom-StringData @'

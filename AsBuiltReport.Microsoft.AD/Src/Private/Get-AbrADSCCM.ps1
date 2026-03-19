@@ -75,6 +75,8 @@ function Get-AbrADSCCM {
                 }
             } else {
                 Write-PScriboMessage -Message "No SCCM Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
+                Paragraph $reportTranslate.GetAbrADSCCM.NotFound
+                BlankLine
             }
         } catch {
             Write-PScriboMessage -IsWarning -Message "$($_.SCCMception.Message) (SCCM Table)"

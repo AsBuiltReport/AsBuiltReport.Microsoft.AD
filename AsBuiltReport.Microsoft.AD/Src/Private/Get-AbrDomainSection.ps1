@@ -41,20 +41,7 @@ function Get-AbrDomainSection {
                                     Get-AbrADFSMO -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADTrust -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADAuthenticationPolicy -Domain $DomainInfo -ValidDcFromDomain $ValidDC
-                                    Get-AbrADHardening -Domain $DomainInfo -ValidDcFromDomain $ValidDC
                                     Get-AbrADDomainObject -Domain $DomainInfo -ValidDcFromDomain $ValidDC
-                                    if ($HealthCheck.Domain.Backup -or $HealthCheck.Domain.DFS -or $HealthCheck.Domain.SPN -or $HealthCheck.Domain.Security -or $HealthCheck.Domain.DuplicateObject) {
-                                        Section -Style Heading3 $reportTranslate.GetAbrDomainSection.HealthChecks {
-                                            Get-AbrADDomainLastBackup -Domain $DomainInfo
-                                            Get-AbrADDFSHealth -Domain $DomainInfo -DCs $DCs -ValidDcFromDomain $ValidDC
-                                            if ($DomainInfo -like $ADSystem.RootDomain) {
-                                                Get-AbrADDuplicateSPN -Domain $ADSystem.RootDomain
-                                            }
-                                            Get-AbrADSecurityAssessment -Domain $DomainInfo
-                                            Get-AbrADKerberosAudit -Domain $DomainInfo -ValidDcFromDomain $ValidDC
-                                            Get-AbrADDuplicateObject -Domain $DomainInfo
-                                        }
-                                    }
                                     Section -Style Heading3 $reportTranslate.GetAbrDomainSection.DomainControllersSection {
                                         if ($Options.ShowDefinitionInfo) {
                                             Paragraph $reportTranslate.GetAbrDomainSection.DCDefinitionText
@@ -126,9 +113,30 @@ function Get-AbrDomainSection {
                                             }
                                         }
                                     }
-                                    Get-AbrADSiteReplication -Domain $DomainInfo -ValidDcFromDomain $ValidDC -DCs $DCs
-                                    Get-AbrADGPO -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    Section -Style Heading3 $reportTranslate.GetAbrDomainSection.ReplicationSection {
+                                        Paragraph $reportTranslate.GetAbrDomainSection.ReplicationParagraph
+                                        BlankLine
+                                        Get-AbrADSiteReplication -Domain $DomainInfo -ValidDcFromDomain $ValidDC -DCs $DCs
+                                    }
+                                    Section -Style Heading3 $reportTranslate.GetAbrDomainSection.GPOSection {
+                                        Paragraph $reportTranslate.GetAbrDomainSection.GPOParagraph
+                                        BlankLine
+                                        Get-AbrADGPO -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    }
                                     Get-AbrADOU -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    Get-AbrADHardening -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                    if ($HealthCheck.Domain.Backup -or $HealthCheck.Domain.DFS -or $HealthCheck.Domain.SPN -or $HealthCheck.Domain.Security -or $HealthCheck.Domain.DuplicateObject) {
+                                        Section -Style Heading3 $reportTranslate.GetAbrDomainSection.HealthChecks {
+                                            Get-AbrADDomainLastBackup -Domain $DomainInfo
+                                            Get-AbrADDFSHealth -Domain $DomainInfo -DCs $DCs -ValidDcFromDomain $ValidDC
+                                            if ($DomainInfo -like $ADSystem.RootDomain) {
+                                                Get-AbrADDuplicateSPN -Domain $ADSystem.RootDomain
+                                            }
+                                            Get-AbrADSecurityAssessment -Domain $DomainInfo
+                                            Get-AbrADKerberosAudit -Domain $DomainInfo -ValidDcFromDomain $ValidDC
+                                            Get-AbrADDuplicateObject -Domain $DomainInfo
+                                        }
+                                    }
                                 }
                             } else {
                                 Write-PScriboMessage -Message ($reportTranslate.GetAbrDomainSection.DomainExcluded -f $DomainInfo.DNSRoot)

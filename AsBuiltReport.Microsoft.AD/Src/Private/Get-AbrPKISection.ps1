@@ -67,6 +67,8 @@ function Get-AbrPKISection {
                                 $CAObject = Get-CertificationAuthority -Enterprise -ComputerName $CA
                                 if ($CAObject) {
                                     Section -Style Heading2 "$($CAObject.DisplayName) $($reportTranslate.GetAbrPKISection.DetailsSuffix)" {
+                                        Paragraph ($reportTranslate.GetAbrPKISection.CAParagraph -f $CAObject.DisplayName, $CAObject.Type, $CAObject.ComputerName)
+                                        BlankLine
                                         try {
                                             Get-AbrADCASecurity -CA $CAObject
                                         } catch {

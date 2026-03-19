@@ -24,7 +24,7 @@ function Get-AbrForestSection {
     }
 
     process {
-        Section -Style Heading1 "$($ForestInfo.toUpper())" {
+        Section -Style Heading1 "$($ForestInfo.toUpper()) $($reportTranslate.GetAbrForestSection.TitleSuffix)" {
             Paragraph ($reportTranslate.GetAbrForestSection.Paragraph -f $ForestInfo)
             BlankLine
             Write-PScriboMessage -Message ($reportTranslate.GetAbrADForest.InfoLevel -f 'Forest', $InfoLevel.Forest)
@@ -44,11 +44,19 @@ function Get-AbrForestSection {
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
+                    }
+                    Section -Style Heading2 $reportTranslate.GetAbrForestSection.SitesHeading {
+                        Paragraph $reportTranslate.GetAbrForestSection.SitesParagraph
+                        BlankLine
                         try {
                             Get-AbrADSite
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }
+                    }
+                    Section -Style Heading2 $reportTranslate.GetAbrForestSection.InfraHeading {
+                        Paragraph $reportTranslate.GetAbrForestSection.InfraParagraph
+                        BlankLine
                         try {
                             Get-AbrADExchange
                         } catch {

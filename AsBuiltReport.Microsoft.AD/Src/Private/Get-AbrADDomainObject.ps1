@@ -25,8 +25,9 @@ function Get-AbrADDomainObject {
     }
 
     process {
-        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.DomainObjectsSection {
-            Paragraph ($reportTranslate.GetAbrADDomainObject.DomainObjectsParagraph -f $Domain.DNSRoot)
+        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.DirectoryObjectsSection {
+            Paragraph $reportTranslate.GetAbrADDomainObject.DirectoryObjectsParagraph
+            BlankLine
             try {
                 try {
                     $script:DomainSID = $Domain.domainsid
@@ -1001,8 +1002,12 @@ function Get-AbrADDomainObject {
                 }
                 Show-AbrDebugExecutionTime -End -TitleMessage 'Computer Objects'
             }
+        }
+        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.AccountPoliciesSection {
+            Paragraph $reportTranslate.GetAbrADDomainObject.AccountPoliciesParagraph
+            BlankLine
             try {
-                Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.DefaultPasswordPolicySection {
+                Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.DefaultPasswordPolicySection {
                     Show-AbrDebugExecutionTime -Start -TitleMessage 'Default Domain Password Policy'
                     $OutObj = [System.Collections.ArrayList]::new()
                     try {
@@ -1056,7 +1061,7 @@ function Get-AbrADDomainObject {
             try {
                 foreach ($Item in $Domain) {
                     if ($PasswordPolicy = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADFineGrainedPasswordPolicy -Server ($using:Domain).PDCEmulator -Filter { Name -like '*' } -Properties * -SearchBase ($using:Domain).distinguishedName } | Sort-Object -Property Name) {
-                        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.FineGrainedPasswordPoliciesSection {
+                        Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.FineGrainedPasswordPoliciesSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Fined Grained Password Policies'
                             $FGPPInfo = [System.Collections.ArrayList]::new()
                             foreach ($FGPP in $PasswordPolicy) {
@@ -1125,7 +1130,7 @@ function Get-AbrADDomainObject {
                 if ($Domain.DNSRoot -eq $ADSystem.RootDomain) {
                     foreach ($Item in $Domain) {
                         $LAPS = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Server ($using:Domain).PDCEmulator "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:Domain).distinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
-                        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection {
+                        Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Microsoft LAPS'
                             $LAPSInfo = [System.Collections.ArrayList]::new()
                             try {
@@ -1193,7 +1198,7 @@ function Get-AbrADDomainObject {
             try {
                 try {
                     if ($GMSA = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADServiceAccount -Server $using:ValidDcFromDomain -Filter * -Properties * }) {
-                        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.GMSASection {
+                        Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.GMSASection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'gMSA Identities'
                             $GMSAInfo = [System.Collections.ArrayList]::new()
                             foreach ($Account in $GMSA) {
@@ -1326,7 +1331,7 @@ function Get-AbrADDomainObject {
             try {
                 try {
                     if ($FSP) {
-                        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.FSPSection {
+                        Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.FSPSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Foreign Security Principals'
                             $FSPInfo = [System.Collections.ArrayList]::new()
                             foreach ($Account in $FSP) {

@@ -74,6 +74,8 @@ function Get-AbrADExchange {
                 }
             } else {
                 Write-PScriboMessage -Message "No Exchange Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
+                Paragraph $reportTranslate.GetAbrADExchange.NotFound
+                BlankLine
             }
         } catch {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Exchabge Table)"
