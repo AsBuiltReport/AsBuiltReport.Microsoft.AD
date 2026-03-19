@@ -40,7 +40,7 @@ function Get-AbrADSite {
                             }
 
                             if ($Graph) {
-                                $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
+                                $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600
                                 Section -Style Heading4 $reportTranslate.GetAbrADSite.ReplicationDiagram {
                                     Image -Base64 $Graph -Text $reportTranslate.GetAbrADSite.ReplicationDiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                 }
@@ -334,7 +334,7 @@ function Get-AbrADSite {
                             }
 
                             if ($Graph) {
-                                $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
+                                $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600
                                 Section -Style Heading4 $reportTranslate.GetAbrADSite.SiteTopologyDiagram {
                                     Image -Base64 $Graph -Text $reportTranslate.GetAbrADSite.SiteTopologyDiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                 }

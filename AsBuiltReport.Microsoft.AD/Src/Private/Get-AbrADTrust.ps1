@@ -127,7 +127,7 @@ function Get-AbrADTrust {
                                     }
 
                                     if ($Graph) {
-                                        $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
+                                        $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600
                                         Section -Style Heading3 $reportTranslate.GetAbrADTrust.TrustDiagramSection {
                                             Image -Base64 $Graph -Text $reportTranslate.GetAbrADTrust.TrustDiagramSection -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                                         }

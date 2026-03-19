@@ -116,7 +116,7 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
-                            $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
+                            $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600
                             Section -Style Heading3 $reportTranslate.GetAbrADForest.ForestDiagram {
                                 Image -Base64 $Graph -Text $reportTranslate.GetAbrADForest.ForestDiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                             }
@@ -223,7 +223,7 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
-                            $BestAspectRatio = Get-DiaBestImageAspectRatio -GraphObj $Graph -MaxWidth 600
+                            $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600
                             Section -Style Heading4 $reportTranslate.GetAbrADForest.CADiagram {
                                 Image -Base64 $Graph -Text $reportTranslate.GetAbrADForest.CADiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
                             }
