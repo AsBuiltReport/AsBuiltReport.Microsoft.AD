@@ -24,10 +24,10 @@
     # Get-AbrForestSection
     GetAbrForestSection = ConvertFrom-StringData @'
     Collecting = Collecting Forest information from {0}.
-    Paragraph = This section provides a comprehensive overview of the Active Directory infrastructure and configuration for the {0} forest.
+    Paragraph = This section provides a detailed overview of the Active Directory infrastructure and configuration for the {0} forest.
     Heading = Forest Configuration
     DefinitionText = The Active Directory framework that holds the objects can be viewed at several levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest, which is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are contained.
-    ParagraphDetail = The following section provides a detailed summary of the Active Directory Forest infrastructure and configuration.
+    ParagraphDetail = The following section provides a detailed overview of the Active Directory Forest infrastructure and configuration.
     ErrorForest = Error: Unable to retrieve Forest: {0} information.
 '@
 
@@ -35,8 +35,8 @@
     GetAbrADForest = ConvertFrom-StringData @'
     InfoLevel  = {0} InfoLevel set at {1}.
     Collecting  = Collecting Active Directory forest information.
-    ParagraphDetail = The following sections detail the forest information.
-    ParagraphSummary = The following table summarises the forest information.
+    ParagraphDetail = The following sections provide a detailed configuration overview for each component of the Active Directory forest.
+    ParagraphSummary = The following table summarizes key configuration attributes of the Active Directory forest.
     Heading = Forest Information
 
     ForestName = Forest Name
@@ -206,7 +206,7 @@
     GetAbrADExchange = ConvertFrom-StringData @'
     Collecting = Collecting AD Exchange information of {0}.
     Heading = Exchange Infrastructure
-    Paragraph = The following section provides a comprehensive overview of the Exchange infrastructure deployed in the Active Directory environment.
+    Paragraph = The following section provides an overview of the Microsoft Exchange Server infrastructure registered in Active Directory, including server names, roles, and version information.
     Name = Name
     DnsName = DNS Name
     ServerRoles = Server Roles
@@ -217,7 +217,7 @@
     GetAbrADSCCM = ConvertFrom-StringData @'
     Collecting = Collecting AD SCCM information of {0}.
     Heading = SCCM Infrastructure
-    Paragraph = The following section provides a summary of the System Center Configuration Manager (SCCM) infrastructure registered in Active Directory.
+    Paragraph = The following section provides a summary of the Microsoft Endpoint Configuration Manager (MECM/SCCM) infrastructure registered in Active Directory, including site codes, management points, and version details.
     Name = Name
     ManagementPoint = Management Point
     SiteCode = Site Code
@@ -304,7 +304,7 @@
     SiteLinksCol = Site Links
     SiteLinkBridgesProtectedBP = If the Site Links Bridges in your Active Directory are not protected from accidental deletion, your environment can experience disruptions that might be caused by accidental bulk deletion of objects.
     SMTPSection = SMTP
-    SMTPParagraph = SMTP replication is used for sites that cannot use the others, but as a general rule, it should never be used. It is reserved when network connections are not always available, therefore, you can schedule replication.
+    SMTPParagraph = SMTP replication is used for sites that cannot use other replication protocols, but as a general rule, it should never be used. It is reserved for scenarios where network connections are not always available, allowing replication to be scheduled at specific intervals.
     SMTPChangeNotifBP = Enabling change notification treats an INTER-site replication connection like an INTRA-site connection. Replication between sites with change notification is almost instant. Microsoft recommends using an Option number value of 5 (Change Notification is Enabled without Compression).
     SysvolReplication = Sysvol Replication
     DCName = DC Name
@@ -326,21 +326,21 @@
     GetAbrDNSSection = ConvertFrom-StringData @'
     Collecting = Collecting DNS server information from {0}.
     CollectingDomain = Collecting DNS information from {0}.
-    DomainParagraph = The following section provides a comprehensive summary of the DNS service configuration and settings for this domain.
+    DomainParagraph = The following section provides a detailed overview of the DNS service configuration and settings for this domain.
     ExcludedDomain = {0} disabled in Exclude.Domain variable
     NoDCAvailable = Unable to get an available DC in {0} domain. Removing domain from the DNS section.
     Heading = DNS Configuration
     DefinitionParagraph = The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols.
-    Paragraph = The following section provides a comprehensive overview of the DNS infrastructure configuration and settings within the Active Directory environment.
+    Paragraph = The following section provides a detailed overview of the DNS infrastructure configuration and settings within the Active Directory environment.
 '@
 
     # Get-AbrADDNSInfrastructure
     GetAbrADDNSInfrastructure = ConvertFrom-StringData @'
     Collecting = Collecting Active Directory Domain Name System Infrastructure information for {0}
     InfrastructureSummary = Infrastructure Summary
-    InfrastructureSummaryParagraph = This section provides a comprehensive overview of the DNS infrastructure configuration for the domain.
+    InfrastructureSummaryParagraph = The following section provides a detailed overview of the DNS infrastructure configuration for the domain.
     AppDirectoryPartition = Application Directory Partition
-    AppDirectoryPartitionParagraph = This section provides detailed information about the Application Directory Partitions configured on each DNS server in the domain.
+    AppDirectoryPartitionParagraph = The following section provides detailed information about the Application Directory Partitions configured on each DNS server in the domain.
     ResponseRateLimiting = Response Rate Limiting (RRL)
     ResponseRateLimitingTable = Response Rate Limiting
     ScavengingOptions = Scavenging Options
@@ -348,7 +348,7 @@
     ForwarderOptions = Forwarder Options
     ForwardersTable = Forwarders
     RootHints = Root Hints
-    RootHintsParagraph = This section provides detailed information about the Root Hints configuration for each DNS server in the {0} domain.
+    RootHintsParagraph = The following section provides detailed information about the Root Hints configuration for each DNS server in the {0} domain.
     ZoneScopeRecursion = Zone Scope Recursion
     DirectoryPartitions = Directory Partitions
     DCName = DC Name
@@ -444,7 +444,7 @@
     DomainInForest = Current PC Domain {0} is in the Forest Domain list of {1}. Enabling Certificate Authority section
     Heading = PKI Configuration
     DefinitionParagraph = In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.
-    Paragraph = The following section provides a comprehensive overview of the Active Directory Public Key Infrastructure (PKI) configuration and its components.
+    Paragraph = The following section provides a detailed overview of the Active Directory Public Key Infrastructure (PKI) configuration and its components.
     DetailsSuffix = Details
     DomainNotInForest = Current PC Domain {0} is not in the Forest Domain list of {1}. Disabling Certificate Authority section
 '@
@@ -521,7 +521,7 @@
     GetAbrADCASecurity = ConvertFrom-StringData @'
     Collecting = Collecting AD Certification Authority Security information.
     CertValidityPeriod = Certificate Validity Period
-    CertValidityPeriodParagraph = The following section provides certificate validity period configuration for the Certification Authority.
+    CertValidityPeriodParagraph = The following section provides details about the certificate validity period configuration for the Certification Authority.
     CertValidityPeriodTable = Certificate Validity Period
     CAName = CA Name
     ServerName = Server Name
@@ -557,7 +557,7 @@
     GetAbrADCAAIA = ConvertFrom-StringData @'
     Collecting = Collecting AD CA Authority Information Access information on {0}.
     Heading = Authority Information Access (AIA)
-    Paragraph = This section provides the Authority Information Access (AIA) configuration for the Certification Authority, which specifies where certificates and certificate revocation information can be retrieved.
+    Paragraph = The following section provides the Authority Information Access (AIA) configuration for the Certification Authority, which specifies where certificates and certificate revocation information can be retrieved.
     RegURI = Reg URI
     ConfigURI = Config URI
     Flags = Flags
@@ -573,7 +573,7 @@
     CollectingCDP = Collecting AD CA CRL Distribution Point information on {0}.
     CollectingHealth = Collecting AIA and CDP Health Status from {0}.
     CRLHeading = Certificate Revocation List (CRL)
-    CRLParagraph = This section provides detailed information about the Certificate Revocation List (CRL) distribution settings and health status for the Certification Authority.
+    CRLParagraph = The following section provides detailed information about the Certificate Revocation List (CRL) distribution settings and health status for the Certification Authority.
     CRLValidityPeriod = CRL Validity Period
     CRLValidityPeriodTable = CRL Validity Period
     CAName = CA Name
@@ -586,7 +586,7 @@
     CRLFlagsSettings = CRL Flags Settings
     CRLFlagsTable = CRL Flags
     CRLDistributionPoint = CRL Distribution Point
-    CRLDistributionPointParagraph = This section provides detailed information about the Certificate Revocation List (CRL) Distribution Points configured on the Certification Authority, including URI locations and publication settings.
+    CRLDistributionPointParagraph = The following section provides detailed information about the Certificate Revocation List (CRL) Distribution Points configured on the Certification Authority, including URI locations and publication settings.
     RegURI = Reg URI
     ConfigURI = Config URI
     UrlScheme = Url Scheme
@@ -599,7 +599,7 @@
     AddToCrlCDP = Add To Crl cdp
     CRLDistributionPointTable = CRL Distribution Point
     AIACDPHealth = AIA and CDP Health Status
-    AIACDPHealthParagraph = This section provides a comprehensive health check of the Certification Authority by verifying the CA certificate chain status and validating the accessibility of all Certificate Revocation List (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain.
+    AIACDPHealthParagraph = The following section provides a health status assessment of the Certification Authority by verifying the CA certificate chain status and validating the accessibility of all Certificate Revocation List (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain.
     Childs = Childs
     Health = Health
     OK = OK
@@ -632,7 +632,7 @@
     GetAbrADCAKeyRecoveryAgent = ConvertFrom-StringData @'
     Collecting = Collecting AD Certification Authority Key Recovery Agent information.
     Heading = Key Recovery Agent Certificate
-    Paragraph = This section provides details about the Key Recovery Agent certificate, which encrypts users' certificate private keys for storage in the CA database. If a user loses access to their certificate private key, the Key Recovery Agent can recover it when key archival was configured for the certificate.
+    Paragraph = The following section provides details about the Key Recovery Agent certificate, which encrypts users' certificate private keys for storage in the CA database. If a user loses access to their certificate private key, the Key Recovery Agent can recover it when key archival was configured for the certificate.
     CAName = CA Name
     ServerName = Server Name
     Certificate = Certificate
@@ -642,10 +642,10 @@
     # Get-AbrDomainSection
     GetAbrDomainSection = ConvertFrom-StringData @'
     Collecting = Collecting Domain information from {0}.
-    Paragraph = This section provides a comprehensive overview of the Active Directory domain configuration, including key settings and critical details.
+    Paragraph = This section provides an overview of the Active Directory domain configuration, including key settings and operational details.
     SectionTitle = AD Domain Configuration
     DefinitionText = An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user, a group, or a hardware component such as a computer or printer. Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain, or an alternate version (which may end in .local).
-    ParagraphDetail = The following section provides a comprehensive overview of the Active Directory domain configuration, including critical settings and key operational details.
+    ParagraphDetail = The following table provides a detailed breakdown of the Active Directory domain configuration attributes.
     HealthChecks = Health Checks
     DomainControllersSection = Domain Controllers
     DCDefinitionText = A domain controller (DC) is a server computer that responds to security authentication requests within a computer network domain. It is a network server that is responsible for allowing host access to domain resources. It authenticates users, stores user account information and enforces security policy for a domain.
@@ -817,8 +817,8 @@
     EmptyGroupsSection = Empty Groups (Non-Default)
     EmptyGroupsTable = Empty Groups
     CircularGroupMembershipSection = Circular Group Membership
-    CircularGroupMembershipParagraph1 = If an Active Directory (AD) group has another AD group as both its parent and as a child member you have a circular nested reference.
-    CircularGroupMembershipParagraph2 = Why would that matter?
+    CircularGroupMembershipParagraph1 = If an Active Directory (AD) group has another AD group as both its parent and as a child member, you have a circular nested reference.
+    CircularGroupMembershipParagraph2 = Understanding the impact of circular group membership:
     CircularGroupMembershipParagraph3 = There is no technical reason preventing the use of circular references between AD groups, Active Directory can still calculate and grant access. The main reason that circular references are considered harmful is that they tend to make management more difficult.
     PreWin2000Section = Pre-Windows 2000 Compatible Access Group Membership
     PreWin2000Table = Pre-Windows 2000 Compatible Access
@@ -998,7 +998,7 @@
     GetAbrADDomainLastBackup = ConvertFrom-StringData @'
     Collecting = Collecting AD Domain last backup information on {0}.
     SectionTitle = Naming Context Last Backup
-    SectionParagraph = The following section provides the last backup times for each naming context in the {0} domain.
+    SectionParagraph = The following section provides the last backup timestamps for each Active Directory naming context (Domain, Configuration, and Schema partitions) in the {0} domain.
     NamingContext = Naming Context
     LastBackup = Last Backup
     LastBackupInDays = Last Backup in Days
@@ -1083,7 +1083,7 @@
     GetAbrADDFSHealth = ConvertFrom-StringData @'
     Collecting = Collecting AD Domain DFS Health information on {0}.
     SysvolReplicationTitle = Sysvol Replication Status
-    SysvolReplicationParagraph = This section provides the replication status of the SYSVOL folder for domain {0}.
+    SysvolReplicationParagraph = The following section provides the replication status of the SYSVOL folder for domain {0}.
     DCName = DC Name
     ReplicationStatus = Replication Status
     GPOCount = GPO Count
@@ -1126,7 +1126,7 @@
     UnconstrainedCorrectiveActions = Corrective Actions:
     UnconstrainedBP = Ensure there are no instances of unconstrained Kerberos delegation in Active Directory, as it poses a security risk by allowing any service to impersonate users.
     KRBTGTTitle = KRBTGT Account Audit
-    KRBTGTParagraph = The following section provides a comprehensive audit of the KRBTGT account, which is critical for Kerberos ticket-granting services in the domain {0}.
+    KRBTGTParagraph = The following section provides a detailed audit of the KRBTGT account, which is critical for Kerberos ticket-granting services in the domain {0}.
     Created = Created
     PasswordLastSet = Password Last Set
     KRBTGTTableName = KRBTGT Account Audit
@@ -1135,7 +1135,7 @@
     KRBTGTBestPractice = Best Practice:
     KRBTGTBP = Microsoft recommends changing the krbtgt account password regularly to enhance security and protect the environment.
     AdminTitle = Administrator Account Audit
-    AdminParagraph = The following section provides a comprehensive audit of the built-in Administrator account, which is a critical privileged account in the domain {0}.
+    AdminParagraph = The following section provides a detailed audit of the built-in Administrator account, which is a critical privileged account in the domain {0}.
     LastLogonDate = Last Logon Date
     AdminTableName = Administrator Account Audit
     AdminNoData = No Administrator Account Audit information found in {0}, Disabling this section.
@@ -1148,7 +1148,7 @@
     GetAbrADSiteReplication = ConvertFrom-StringData @'
     Collecting = Collecting Active Directory Sites Replication information on {0}. (Sites Replication)
     ReplicationConnectionTitle = Replication Connection
-    ReplicationConnectionParagraph = The following section provides comprehensive details about each Active Directory replication connection object configured in the domain.
+    ReplicationConnectionParagraph = The following section provides detailed information about each Active Directory replication connection object configured in the domain.
     ReplicationConnectionSummaryParagraph = The following section provides details about Active Directory replication connection objects between domain controllers.
     Name = Name
     FromSite = From Site
@@ -1180,7 +1180,7 @@
     GetAbrADOU = ConvertFrom-StringData @'
     Collecting = Collecting Active Directory Organizational Unit information on domain {0}
     OUSectionTitle = Organizational Units
-    OUSectionParagraph = The following section provides a comprehensive overview of Active Directory Organizational Units within the domain.
+    OUSectionParagraph = The following section provides a detailed overview of Active Directory Organizational Units within the domain.
     Name = Name
     LinkedGPO = Linked GPO
     Protected = Protected
@@ -1204,7 +1204,7 @@
     GetAbrADSecurityAssessment = ConvertFrom-StringData @'
     Collecting = Collecting Account Security Assessment information on {0}.
     UserAccountTitle = User Account Security Assessment
-    UserAccountParagraph = The following section provides a comprehensive summary of account security posture and potential vulnerabilities within the domain {0}.
+    UserAccountParagraph = The following section provides a detailed summary of account security posture and potential vulnerabilities within the domain {0}.
     Total = Total
     Enabled = Enabled
     Disabled = Disabled
@@ -1387,7 +1387,7 @@
     LDAPPort = LDAP Port
     LDAPSPort = LDAPS Port
     NetworkingTableName = Networking Settings
-    NetworkingBestPractice = On Domain Controllers with more than one NIC where each NIC is connected to separate Network, there is a possibility that the Host A DNS registration can occur for unwanted NICs. Avoid registering unwanted NICs in DNS on a multihomed domain controller.
+    NetworkingBestPractice = On Domain Controllers with more than one NIC where each NIC is connected to a separate network, there is a possibility that the Host A DNS registration can occur for unwanted NICs. Avoid registering unwanted NICs in DNS on a multihomed domain controller.
     HardwareInventoryTitle = Hardware Inventory
     Name = Name
     WindowsProductName = Windows Product Name
@@ -1405,7 +1405,7 @@
     NumberOfLogicalCores = Number of Logical Cores
     PhysicalMemory = Physical Memory
     HardwareInventoryTableName = Hardware Inventory
-    HWBestPractice = Microsoft recommend putting enough RAM 8GB+ to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on. Insufficient memory can lead to performance issues and slow response times, which can affect the overall health and efficiency of the domain controller. Ensuring adequate memory helps maintain optimal performance and reliability of the Active Directory services.
+    HWBestPractice = Microsoft recommends putting enough RAM (8GB+) to load the entire DIT into memory, plus accommodate the operating system and other installed applications, such as anti-virus, backup software, monitoring, and so on. Insufficient memory can lead to performance issues and slow response times, which can affect the overall health and efficiency of the domain controller. Ensuring adequate memory helps maintain optimal performance and reliability of the Active Directory services.
     ConfigurationTitle = Configuration
     DNSIPConfigTitle = DNS IP Configuration
     Interface = Interface
@@ -1446,7 +1446,7 @@
     FileSharesTitle = File Shares
     Path = Path
     FileSharesTableName = File Shares
-    FileSharesParagraph = The following Domain Controllers contain non-default file shares beyond the standard administrative, NETLOGON, and SYSVOL shares:
+    FileSharesParagraph = The following table lists non-default file shares detected on Domain Controllers, beyond the standard administrative, NETLOGON, and SYSVOL shares.
     FileSharesBestPractice = Only netlogon, sysvol and the default administrative shares should exist on a Domain Controller. If possible, non-default file shares should be moved to another server, preferably a dedicated file server. This helps to minimize the attack surface and ensures that the Domain Controller is dedicated to its primary role of managing security and authentication within the domain. Additionally, it reduces the risk of performance degradation and potential conflicts that can arise from running multiple services on a single server.
     InstalledSoftwareTitle = Installed Software
     InstalledSoftwareParagraph = This section provides an overview of third-party and non-default software installations detected on Domain Controllers within the {0} domain.
@@ -1457,7 +1457,7 @@
     MissingUpdatesTitle = Missing Windows Updates
     KBArticle = KB Article
     MissingUpdatesTableName = Missing Windows Updates
-    MissingUpdatesParagraph = Below is a summary of pending or missing Windows updates detected on Domain Controllers in the {0} domain.
+    MissingUpdatesParagraph = The following table provides a summary of pending or missing Windows updates detected on Domain Controllers in the {0} domain.
     MissingUpdatesBestPractice = It is critical to install security updates to protect your systems from malicious attacks. Regularly applying updates ensures that your systems are safeguarded against newly discovered vulnerabilities. Additionally, installing software updates provides access to new features and improvements, enhancing overall system performance and stability. Neglecting updates can leave your systems exposed to potential threats and exploitation. Therefore, it is in your best interest to maintain an up-to-date environment by promptly installing all recommended updates.
     DCObjectChart = Domain Controller Object - Chart
 '@
