@@ -32,7 +32,7 @@ function Get-AbrADCACRLSetting {
                 Paragraph $reportTranslate.GetAbrADCACRLSetting.CRLParagraph
                 BlankLine
                 Section -Style Heading4 $reportTranslate.GetAbrADCACRLSetting.CRLValidityPeriod {
-                    $OutObj = [System.Collections.ArrayList]::new()
+                    $OutObj = [System.Collections.Generic.List[object]]::new()
                     try {
                         Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrADCACRLSetting.CollectingVP, $CA.Name))
                         $CRLs = Get-CRLValidityPeriod -CertificationAuthority $CA
@@ -45,7 +45,7 @@ function Get-AbrADCACRLSetting {
                                     $reportTranslate.GetAbrADCACRLSetting.DeltaCRL = $VP.DeltaCRL
                                     $reportTranslate.GetAbrADCACRLSetting.DeltaCRLOverlap = $VP.DeltaCRLOverlap
                                 }
-                                $OutObj.add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "CRL Validity Period $($VP.Name) Section: $($_.Exception.Message)"
                             }
@@ -66,7 +66,7 @@ function Get-AbrADCACRLSetting {
                 }
                 try {
                     Section -Style Heading4 $reportTranslate.GetAbrADCACRLSetting.CRLFlagsSettings {
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         try {
                             Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrADCACRLSetting.CollectingCDP, $CA.Name))
                             $CRLs = Get-CertificateRevocationListFlag -CertificationAuthority $CA
@@ -77,7 +77,7 @@ function Get-AbrADCACRLSetting {
                                         $reportTranslate.GetAbrADCACRLSetting.ServerName = $Flag.ComputerName.ToString().ToUpper().Split('.')[0]
                                         $reportTranslate.GetAbrADCACRLSetting.CRLFlags = $Flag.CRLFlags
                                     }
-                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "CRL Validity Period $($Flag.Name) Section: $($_.Exception.Message)"
                                 }
@@ -106,7 +106,7 @@ function Get-AbrADCACRLSetting {
                         Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrADCACRLSetting.CollectingCDP, $CA.Name))
                         $CRL = Get-CRLDistributionPoint -CertificationAuthority $CA
                         foreach ($URI in $CRL.URI) {
-                            $OutObj = [System.Collections.ArrayList]::new()
+                            $OutObj = [System.Collections.Generic.List[object]]::new()
                             try {
                                 $inObj = [ordered] @{
                                     $reportTranslate.GetAbrADCACRLSetting.RegURI = $URI.RegURI
@@ -120,7 +120,7 @@ function Get-AbrADCACRLSetting {
                                     $reportTranslate.GetAbrADCACRLSetting.AddToFreshestCRL = $URI.AddToFreshestCRL
                                     $reportTranslate.GetAbrADCACRLSetting.AddToCrlCDP = $URI.AddToCrlcdp
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                 $TableParams = @{
                                     Name = "$($reportTranslate.GetAbrADCACRLSetting.CRLDistributionPointTable) - $($CA.Name)"
@@ -147,7 +147,7 @@ function Get-AbrADCACRLSetting {
             Section -Style Heading3 $reportTranslate.GetAbrADCACRLSetting.AIACDPHealth {
                 Paragraph $reportTranslate.GetAbrADCACRLSetting.AIACDPHealthParagraph
                 BlankLine
-                $OutObj = [System.Collections.ArrayList]::new()
+                $OutObj = [System.Collections.Generic.List[object]]::new()
                 $CAHealth = Get-EnterprisePKIHealthStatus -CertificateAuthority $CA
                 foreach ($Health in $CAHealth) {
                     try {
@@ -157,7 +157,7 @@ function Get-AbrADCACRLSetting {
                             $reportTranslate.GetAbrADCACRLSetting.Childs = ($Health.Childs).Name
                             $reportTranslate.GetAbrADCACRLSetting.Health = $Health.Status
                         }
-                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                     } catch {
                         Write-PScriboMessage -IsWarning "AIA and CDP Health Status Table: $($_.Exception.Message)"
                     }

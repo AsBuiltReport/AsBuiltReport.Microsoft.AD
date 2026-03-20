@@ -95,7 +95,7 @@
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
                         $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0].TrimEnd('\'))$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
-                    } catch { Out-Null }
+                    } catch { $null }
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
                         $ConflictObject.LiveWhenChanged = $LiveObject.WhenChanged
@@ -106,7 +106,7 @@
                     #Remove the conflict notation from the DN and try to get the live AD object
                     try {
                         $LiveObject = Get-ADObject -Credential $Credential -Identity "$($SplitConfDN[0])$($SplitConfDN[1].Substring(36))" -Properties WhenChanged -Server $DC -ErrorAction Stop
-                    } catch { Out-Null }
+                    } catch { $null }
                     if ($LiveObject) {
                         $ConflictObject.LiveDN = $LiveObject.DistinguishedName
                         $ConflictObject.LiveWhenChanged = $LiveObject.WhenChanged

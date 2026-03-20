@@ -36,7 +36,7 @@ function Get-AbrADInfrastructureService {
                 Write-PScriboMessage -IsWarning -Message "Domain Controller Infrastructure Services Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
             }
             if ($Available) {
-                $OutObj = [System.Collections.ArrayList]::new()
+                $OutObj = [System.Collections.Generic.List[object]]::new()
                 $Services = @('CertSvc', 'DHCPServer', 'DNS', 'DFS Replication', 'Intersite Messaging', 'Kerberos Key Distribution Center', 'NetLogon', 'Active Directory Domain Services', 'W32Time', 'ADWS', 'RPCSS', 'EVENTSYSTEM', 'DNSCACHE', 'SAMSS', 'WORKSTATION', 'Spooler')
                 foreach ($Service in $Services) {
                     try {
@@ -47,7 +47,7 @@ function Get-AbrADInfrastructureService {
                                 $reportTranslate.GetAbrADInfrastructureService.ShortName = $Status.Name
                                 $reportTranslate.GetAbrADInfrastructureService.Status = $Status.Status
                             }
-                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Infrastructure Services Item)"

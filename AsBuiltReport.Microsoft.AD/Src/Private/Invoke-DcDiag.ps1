@@ -13,6 +13,7 @@ function Invoke-DcDiag {
     .LINK
 
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]

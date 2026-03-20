@@ -13,7 +13,7 @@ function Get-AbrADSitesInventoryInfo {
         https://github.com/rebelinux/Diagrammer.Microsoft.AD
     #>
     [CmdletBinding()]
-    [OutputType([System.Collections.ArrayList])]
+    [OutputType([System.Collections.Generic.List[object]])]
 
     param()
 
@@ -25,19 +25,19 @@ function Get-AbrADSitesInventoryInfo {
         try {
             $Sites = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADReplicationSite -Filter * -Properties * }
 
-            $SitesInfo = [System.Collections.ArrayList]::new()
+            $SitesInfo = [System.Collections.Generic.List[object]]::new()
             if ($Sites) {
                 foreach ($Site in $Sites) {
                     $TempSitesInfo = [PSCustomObject]@{
                         Name = $Site.Name
                         Label = $Site.Name
                         Subnets = & {
-                            $SubnetTable = [System.Collections.ArrayList]::new()
-                            $SubnetArray = [System.Collections.ArrayList]::new()
+                            $SubnetTable = [System.Collections.Generic.List[object]]::new()
+                            $SubnetArray = [System.Collections.Generic.List[object]]::new()
                             $Subnets = $Site.Subnets
                             foreach ($Object in $Subnets) {
                                 $SubnetName = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADReplicationSubnet $using:Object }
-                                $SubnetArray.Add($SubnetName.Name) | Out-Null
+                                $SubnetArray.Add($SubnetName.Name)
                             }
 
                             # Used for Debug
@@ -49,16 +49,16 @@ function Get-AbrADSitesInventoryInfo {
                                     Label = (Add-HtmlTable -Name SubnetTable -ImagesObj $Images -Rows $SubnetArray -ColumnSize 3 -ALIGN 'Center' -IconDebug $IconDebug)
                                     SubnetArray = $SubnetArray
                                 }
-                            ) | Out-Null
+                            )
 
                             $SubnetTable
                         }
                         DomainControllers = & {
-                            $DCsTable = [System.Collections.ArrayList]::new()
-                            $DCsArray = [System.Collections.ArrayList]::new()
-                            $DCs = try { Get-ADObjectSearch -DN "CN=Servers,$($Site.DistinguishedName)" -Filter { objectClass -eq 'Server' } -Properties 'DNSHostName' -SelectPrty 'DNSHostName', 'Name' -Session $DiagramTempPssSession } catch { Out-Null }
+                            $DCsTable = [System.Collections.Generic.List[object]]::new()
+                            $DCsArray = [System.Collections.Generic.List[object]]::new()
+                            $DCs = try { Get-ADObjectSearch -DN "CN=Servers,$($Site.DistinguishedName)" -Filter { objectClass -eq 'Server' } -Properties 'DNSHostName' -SelectPrty 'DNSHostName', 'Name' -Session $DiagramTempPssSession } catch { $null }
                             foreach ($Object in $DCs) {
-                                $DCsArray.Add($Object.DNSHostName) | Out-Null
+                                $DCsArray.Add($Object.DNSHostName)
                             }
 
                             # Used for Debug
@@ -68,14 +68,14 @@ function Get-AbrADSitesInventoryInfo {
                                     Name = Remove-SpecialCharacter -String "$($Site.Name)DCs" -SpecialChars '\-. '
                                     Label = (Add-HtmlTable -Name DCsTable -Rows $DCsArray -ColumnSize 3 -ALIGN 'Center' -ImagesObj $Images -IconDebug $IconDebug)
                                     DCsArray = $DCsArray
-                                }) | Out-Null
+                                })
 
                             $DCsTable
                         }
 
                         SitesObj = $Site
                     }
-                    $SitesInfo.Add($TempSitesInfo) | Out-Null
+                    $SitesInfo.Add($TempSitesInfo)
                 }
             }
 

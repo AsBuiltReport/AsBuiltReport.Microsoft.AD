@@ -34,7 +34,7 @@ function Get-AbrADFSMO {
                     if ($DCPssSession = Get-ValidPSSession -ComputerName $ValidDCFromDomain -SessionName $($ValidDCFromDomain) -PSSTable ([ref]$PSSTable)) {
                         Section -Style Heading3 $reportTranslate.GetAbrADFSMO.SectionTitle {
                             $IsInfraMasterGC = (Invoke-CommandWithTimeout -Session $DCPssSession -ErrorAction Stop -ScriptBlock { Get-ADDomainController -Identity ($using:DomainData).InfrastructureMaster }).IsGlobalCatalog
-                            $OutObj = [System.Collections.ArrayList]::new()
+                            $OutObj = [System.Collections.Generic.List[object]]::new()
                             try {
                                 $inObj = [ordered] @{
                                     $reportTranslate.GetAbrADFSMO.InfrastructureMaster = $DomainData.InfrastructureMaster
@@ -43,7 +43,7 @@ function Get-AbrADFSMO {
                                     $reportTranslate.GetAbrADFSMO.DomainNamingMaster = $ForestData.DomainNamingMaster
                                     $reportTranslate.GetAbrADFSMO.SchemaMaster = $ForestData.SchemaMaster
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Flexible Single Master Operations)"
                             }

@@ -15,7 +15,8 @@ function Get-ADExchangeServer {
     https://codeandkeep.com/PowerShell-ActiveDirectory-Exchange-Part1/
     #>
     function ConvertToExchangeRole {
-        param(
+        [CmdletBinding()]
+    param(
             [Parameter(Position = 0)]
             [int]$roles
         )
@@ -28,7 +29,7 @@ function Get-ADExchangeServer {
             64 = 'EDGE';
         }
 
-        $roleList = [System.Collections.ArrayList]::new()
+        $roleList = [System.Collections.Generic.List[object]]::new()
 
         foreach ($key in ($roleNumber).Keys) {
             if ($key -band $roles) {

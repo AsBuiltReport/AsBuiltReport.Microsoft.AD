@@ -13,6 +13,7 @@ function Get-ADObjectSearch {
     .LINK
 
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
@@ -23,9 +24,9 @@ function Get-ADObjectSearch {
         $SelectPrty
 
     )
-    $ADObject = [System.Collections.ArrayList]::new()
+    $ADObject = [System.Collections.Generic.List[object]]::new()
     foreach ($Object in $DN) {
-        $ADObject.Add((Invoke-CommandWithTimeout -Session $Session -ScriptBlock { Get-ADObject -SearchBase $using:DN -SearchScope OneLevel -Filter $using:Filter -Properties $using:Properties -EA 0 | Select-Object $using:SelectPrty })) | Out-Null
+        $ADObject.Add((Invoke-CommandWithTimeout -Session $Session -ScriptBlock { Get-ADObject -SearchBase $using:DN -SearchScope OneLevel -Filter $using:Filter -Properties $using:Properties -EA 0 | Select-Object $using:SelectPrty }))
     }
     $ADObject;
 }# end

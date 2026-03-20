@@ -26,7 +26,7 @@ function Get-AbrADDomain {
     }
 
     process {
-        $OutObj = [System.Collections.ArrayList]::new()
+        $OutObj = [System.Collections.Generic.List[object]]::new()
         if ($Domain) {
             try {
                 $RIDPool = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject -Server $using:ValidDcFromDomain -Identity "CN=RID Manager$,CN=System,$(($using:DomainInfo).DistinguishedName)" -Properties rIDAvailablePool -ErrorAction SilentlyContinue }
@@ -59,7 +59,7 @@ function Get-AbrADDomain {
                         $reportTranslate.GetAbrADDomain.MachineAccountQuota = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADObject -Server $using:ValidDcFromDomain -Identity (($using:Domain).DistinguishedName) -Properties ms-DS-MachineAccountQuota -ErrorAction SilentlyContinue).'ms-DS-MachineAccountQuota' }
                         $reportTranslate.GetAbrADDomain.RIDIssuedAvailable = try { "$($RIDsIssued) / $($RIDsRemaining) ($([math]::Truncate($CompleteSIDS / $RIDsRemaining))% Issued)" } catch { "$($RIDsIssued)/$($RIDsRemaining)" }
                     }
-                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                     if ($HealthCheck.Domain.BestPractice) {
                         if ([math]::Truncate($CompleteSIDS / $RIDsRemaining) -gt 80) {

@@ -13,7 +13,7 @@ function Get-AbrADForestInfo {
         https://github.com/rebelinux/Diagrammer.Microsoft.AD
     #>
     [CmdletBinding()]
-    [OutputType([System.Collections.ArrayList])]
+    [OutputType([System.Collections.Generic.List[object]])]
 
     param()
 
@@ -52,7 +52,7 @@ function Get-AbrADForestInfo {
                 }
             }
 
-            $ForestInfo = [System.Collections.ArrayList]::new()
+            $ForestInfo = [System.Collections.Generic.List[object]]::new()
             if ($ParentChildObj.Children) {
                 foreach ($Childs in $ParentChildObj | Sort-Object) {
                     foreach ($ChildDomain in $Childs.Children) {
@@ -139,7 +139,7 @@ function Get-AbrADForestInfo {
                             AditionalInfo = $AditionalDomainInfo
                             IsForest = $IsForest
                         }
-                        $ForestInfo.Add($TempForestInfo) | Out-Null
+                        $ForestInfo.Add($TempForestInfo)
                     }
                 }
             } else {
@@ -184,7 +184,7 @@ function Get-AbrADForestInfo {
                     Label = Add-NodeIcon -Name $ForestObj.RootDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalForestInfo -FontSize 18
                     AditionalInfo = $AditionalForestInfo
                 }
-                $ForestInfo.Add($TempForestInfo) | Out-Null
+                $ForestInfo.Add($TempForestInfo)
             }
             $ForestInfo
         } catch {

@@ -30,7 +30,7 @@ function Get-AbrADSiteReplication {
         if ($DCs) {
             Write-PScriboMessage -Message ($reportTranslate.GetAbrADSiteReplication.Collecting -f $Domain.DNSRoot)
             try {
-                $ReplInfo = [System.Collections.ArrayList]::new()
+                $ReplInfo = [System.Collections.Generic.List[object]]::new()
                 foreach ($DC in $DCs) {
                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                         $Replication = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADReplicationConnection -Server $using:DC -Properties * }
@@ -57,7 +57,7 @@ function Get-AbrADSiteReplication {
                                             $reportTranslate.GetAbrADSiteReplication.Enabled = $Repl.enabledConnection
                                             $reportTranslate.GetAbrADSiteReplication.Created = ($Repl.Created).ToUniversalTime().toString('r')
                                         }
-                                        $ReplInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                        $ReplInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                         if ($HealthCheck.Site.Replication) {
                                             $ReplInfo | Where-Object { $_.$($reportTranslate.GetAbrADSiteReplication.Enabled) -ne 'Yes' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADSiteReplication.Enabled
@@ -129,7 +129,7 @@ function Get-AbrADSiteReplication {
                 }
                 if ($RepStatus) {
                     Section -Style Heading4 $reportTranslate.GetAbrADSiteReplication.ReplicationStatusTitle {
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         foreach ($Status in $RepStatus) {
                             try {
                                 $inObj = [ordered] @{
@@ -141,7 +141,7 @@ function Get-AbrADSiteReplication {
                                     $reportTranslate.GetAbrADSiteReplication.LastFailureTime = $Status.'Last Failure Time'
                                     $reportTranslate.GetAbrADSiteReplication.Failures = $Status.'Number of Failures'
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Replication Status)"

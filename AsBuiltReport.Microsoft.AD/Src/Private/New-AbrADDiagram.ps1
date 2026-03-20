@@ -160,7 +160,7 @@ function New-AbrADDiagram {
             HelpMessage = 'Please provide the path to the diagram output file'
         )]
         [ValidateScript({
-                if (-not ($_ | Test-Path) ) {
+                if (-not ($_ | Test-Path -PathType Container) ) {
                     throw 'Folder does not exist'
                 }
                 $true
@@ -172,7 +172,7 @@ function New-AbrADDiagram {
             HelpMessage = 'Please provide the path to the custom logo used for Signature'
         )]
         [ValidateScript( {
-                if (Test-Path -Path $_) {
+                if (Test-Path -Path $_ -PathType Leaf) {
                     $true
                 } else {
                     throw "File $_ not found!"
@@ -185,7 +185,7 @@ function New-AbrADDiagram {
             HelpMessage = 'Please provide the path to the custom logo'
         )]
         [ValidateScript( {
-                if (Test-Path -Path $_) {
+                if (Test-Path -Path $_ -PathType Leaf) {
                     $true
                 } else {
                     throw "File $_ not found!"
@@ -351,7 +351,7 @@ function New-AbrADDiagram {
             $Credential = New-Object System.Management.Automation.PSCredential ($Username, $SecurePassword)
         }
 
-        if (($Format -ne 'base64') -and -not (Test-Path $OutputFolderPath)) {
+        if (($Format -ne 'base64') -and -not (Test-Path $OutputFolderPath -PathType Container)) {
             Write-Error ($reportTranslate.NewADDiagram.outputfolderpatherror -f $OutputFolderPath)
             break
         }

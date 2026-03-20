@@ -50,7 +50,7 @@ function Get-ValidCIMSession {
                             Id = $CIMSessionObj.Id
                             InstanceId = $CIMSessionObj.InstanceId
                         }
-                    ) | Out-Null
+                    )
                     return $CIMSessionObj
                 }
             } catch {
@@ -64,7 +64,7 @@ function Get-ValidCIMSession {
                             Id = 'None'
                             InstanceId = 'None'
                         }
-                    ) | Out-Null
+                    )
                     try {
                         if ($CIMSessionObj = New-CimSession $ComputerName -Credential $Credential -Authentication $Options.PSDefaultAuthentication -ErrorAction Stop -Name $SessionName -Port $Options.WinRMPort) {
                             Write-PScriboMessage -Message "Connected to '$ComputerName' through CimSession without SSL."
@@ -76,7 +76,7 @@ function Get-ValidCIMSession {
                                     Id = $CIMSessionObj.Id
                                     InstanceId = $CIMSessionObj.InstanceId
                                 }
-                            ) | Out-Null
+                            )
                             return $CIMSessionObj
                         }
                     } catch {
@@ -89,7 +89,7 @@ function Get-ValidCIMSession {
                                 Id = 'None'
                                 InstanceId = 'None'
                             }
-                        ) | Out-Null
+                        )
                     }
                 }
             }
@@ -113,7 +113,7 @@ function Get-ValidCIMSession {
                             Id = $CIMSessionObj.Id
                             InstanceId = $CIMSessionObj.InstanceId
                         }
-                    ) | Out-Null
+                    )
                     return $CIMSessionObj
                 }
             } catch {
@@ -126,7 +126,7 @@ function Get-ValidCIMSession {
                         Id = 'None'
                         InstanceId = 'None'
                     }
-                ) | Out-Null
+                )
             }
         }
     }

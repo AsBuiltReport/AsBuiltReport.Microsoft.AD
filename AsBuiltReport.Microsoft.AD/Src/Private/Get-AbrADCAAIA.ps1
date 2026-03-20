@@ -35,7 +35,7 @@ function Get-AbrADCAAIA {
                     Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrADCAAIA.Collecting, $CA.Name))
                     $AIA = Get-AuthorityInformationAccess -CertificationAuthority $CA
                     foreach ($URI in $AIA.URI) {
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         try {
                             $inObj = [ordered] @{
                                 $reportTranslate.GetAbrADCAAIA.RegURI = $URI.RegURI
@@ -45,7 +45,7 @@ function Get-AbrADCAAIA {
                                 $reportTranslate.GetAbrADCAAIA.IncludeToExtension = $URI.IncludeToExtension
                                 $reportTranslate.GetAbrADCAAIA.OCSP = $URI.OCSP
                             }
-                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                             $TableParams = @{
                                 Name = "$($reportTranslate.GetAbrADCAAIA.TableName) - $($CA.Name)"
@@ -68,11 +68,6 @@ function Get-AbrADCAAIA {
     }
 
     end {
-        if ($Options.ShowExecutionTime) {
-            $SectionEndTime = Get-Date
-            $elapsedTime = New-TimeSpan -Start $SectionStartTime -End $SectionEndTime
-            Write-Host "CA Authority Information Access Objects Section execution time: $($elapsedTime.tostring('hh')) Hours $($elapsedTime.tostring('mm')) Minutes $($elapsedTime.tostring('ss')) Seconds"
-        }
         Show-AbrDebugExecutionTime -End -TitleMessage 'CA Authority Information Access Objects'
     }
 

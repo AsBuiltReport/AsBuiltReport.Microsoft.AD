@@ -28,7 +28,7 @@ function Get-AbrADCAKeyRecoveryAgent {
     }
 
     process {
-        $OutObj = [System.Collections.ArrayList]::new()
+        $OutObj = [System.Collections.Generic.List[object]]::new()
         try {
             $KRA = Get-CAKRACertificate -CertificationAuthority $CA
             if ($KRA.Certificate) {
@@ -37,7 +37,7 @@ function Get-AbrADCAKeyRecoveryAgent {
                     $reportTranslate.GetAbrADCAKeyRecoveryAgent.ServerName = $KRA.ComputerName.ToString().ToUpper().Split('.')[0]
                     $reportTranslate.GetAbrADCAKeyRecoveryAgent.Certificate = $KRA.Certificate
                 }
-                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
             }
         } catch {
             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Key Recovery Agent Certificate Item)"

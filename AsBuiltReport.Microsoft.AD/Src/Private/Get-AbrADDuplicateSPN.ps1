@@ -32,7 +32,7 @@ function Get-AbrADDuplicateSPN {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDuplicateSPN.SectionTitle {
                         Paragraph ($reportTranslate.GetAbrADDuplicateSPN.SectionParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         foreach ($SPN in $SPNs) {
                             try {
                                 $inObj = [ordered] @{
@@ -40,7 +40,7 @@ function Get-AbrADDuplicateSPN {
                                     $reportTranslate.GetAbrADDuplicateSPN.Count = $SPN.Count
                                     $reportTranslate.GetAbrADDuplicateSPN.DistinguishedName = $SPN.List
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                 if ($HealthCheck.Domain.SPN) {
                                     $OutObj | Set-Style -Style Warning

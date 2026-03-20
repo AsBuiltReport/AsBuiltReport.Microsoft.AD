@@ -24,7 +24,7 @@ function Get-AbrADCASummary {
     }
 
     process {
-        $OutObj = [System.Collections.ArrayList]::new()
+        $OutObj = [System.Collections.Generic.List[object]]::new()
         if ($ForestInfo) {
             foreach ($CA in $CAs) {
                 try {
@@ -34,7 +34,7 @@ function Get-AbrADCASummary {
                         $reportTranslate.GetAbrADCASummary.Type = $CA.Type
                         $reportTranslate.GetAbrADCASummary.Status = $CA.ServiceStatus
                     }
-                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                 } catch {
                     Write-PScriboMessage -IsWarning $_.Exception.Message
                 }

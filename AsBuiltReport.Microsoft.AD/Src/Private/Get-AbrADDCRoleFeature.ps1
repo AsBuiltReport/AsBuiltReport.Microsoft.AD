@@ -37,7 +37,7 @@ function Get-AbrADDCRoleFeature {
             }
             if ($Features) {
                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split('.')[0]) {
-                    $OutObj = [System.Collections.ArrayList]::new()
+                    $OutObj = [System.Collections.Generic.List[object]]::new()
                     foreach ($Feature in $Features) {
                         try {
                             $inObj = [ordered] @{
@@ -45,7 +45,7 @@ function Get-AbrADDCRoleFeature {
                                 $reportTranslate.GetAbrADDCRoleFeature.Parent = $Feature.FeatureType
                                 $reportTranslate.GetAbrADDCRoleFeature.Description = $Feature.Description
                             }
-                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "Roles $($Feature.DisplayName) Section: $($_.Exception.Message)"
                         }
@@ -55,7 +55,7 @@ function Get-AbrADDCRoleFeature {
                         $List = @()
                         $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDCRoleFeature.Name) -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services') } | Set-Style -Style Warning
                         foreach ( $OBJ in ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDCRoleFeature.Name) -notin @('Active Directory Domain Services', 'DNS Server', 'File and Storage Services') })) {
-                            $OBJ.$($reportTranslate.GetAbrADDCRoleFeature.Name) = $OBJ.$($reportTranslate.GetAbrADDCRoleFeature.Name) + ' (1)'
+                            $OBJ.$($reportTranslate.GetAbrADDCRoleFeature.Name) = "$($OBJ.$($reportTranslate.GetAbrADDCRoleFeature.Name)) (1)"
                             $List = $reportTranslate.GetAbrADDCRoleFeature.RoleBP
                         }
                     }

@@ -28,7 +28,7 @@ function Get-AbrDHCPinAD {
         if ($DomainInfo) {
             $DHCPServers = try {
                 Get-ADObjectSearch -DN "CN=NetServices,CN=Services,CN=Configuration,$(($DomainInfo).DistinguishedName)" -Filter { objectclass -eq 'dHCPClass' -AND Name -ne 'dhcproot' } -Properties '*' -SelectPrty 'Name' -Session $TempPssSession
-            } catch { Out-Null }
+            } catch { $null }
         }
         try {
             if ($Options.Exclude.Domains) {
@@ -40,14 +40,14 @@ function Get-AbrDHCPinAD {
                         foreach ($Domain in $ADSystem.Domains | Where-Object { $_ -notin $Options.Exclude.Domains }) {
                             try {
                                 (Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADDomain -Identity $using:Domain }).ReplicaDirectoryServers
-                            } catch { Out-Null }
+                            } catch { $null }
                         }
                     )
-                } catch { Out-Null }
+                } catch { $null }
                 Section -Style Heading3 $reportTranslate.GetAbrDHCPinAD.Heading {
                     Paragraph $reportTranslate.GetAbrDHCPinAD.Paragraph
                     BlankLine
-                    $DCHPInfo = [System.Collections.ArrayList]::new()
+                    $DCHPInfo = [System.Collections.Generic.List[object]]::new()
                     foreach ($DHCPServer in $DHCPServers) {
                         try {
                             $inObj = [ordered] @{
@@ -58,7 +58,7 @@ function Get-AbrDHCPinAD {
                                     default { $reportTranslate.GetAbrDHCPinAD.Unknown }
                                 }
                             }
-                            $DCHPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $DCHPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DHCP Item)"
                         }

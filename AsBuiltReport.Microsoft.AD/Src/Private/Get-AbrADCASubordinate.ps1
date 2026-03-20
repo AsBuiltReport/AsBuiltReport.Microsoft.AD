@@ -33,7 +33,7 @@ function Get-AbrADCASubordinate {
                         if (Get-DCWinRMState -ComputerName $CA.ComputerName -DCStatus ([ref]$DCStatus)) {
                             $DCPssSession = Get-ValidPSSession -ComputerName $CA.ComputerName -SessionName $($CA.ComputerName) -PSSTable ([ref]$PSSTable)
                             if ($DCPssSession) {
-                                $OutObj = [System.Collections.ArrayList]::new()
+                                $OutObj = [System.Collections.Generic.List[object]]::new()
                                 try {
                                     $AuditingIssue = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock {
                                         Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\$($using:CA.DisplayName)\" -Name 'AuditFilter'
@@ -60,7 +60,7 @@ function Get-AbrADCASubordinate {
                                         }
                                         $reportTranslate.GetAbrADCASubordinate.Status = $CA.ServiceStatus
                                     }
-                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                     if ($HealthCheck.CA.Status) {
                                         $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADCASubordinate.Status) -notlike 'Running' } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADCASubordinate.Status

@@ -32,7 +32,7 @@ function Get-AbrADDuplicateObject {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDuplicateObject.SectionTitle {
                         Paragraph ($reportTranslate.GetAbrADDuplicateObject.SectionParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         foreach ($Object in $Objects) {
                             try {
                                 $inObj = [ordered] @{
@@ -41,7 +41,7 @@ function Get-AbrADDuplicateObject {
                                     $reportTranslate.GetAbrADDuplicateObject.Changed = $Object.WhenChanged.ToString('yyyy:MM:dd')
                                     $reportTranslate.GetAbrADDuplicateObject.ConflictChanged = $Object.ConflictWhenChanged.ToString('yyyy:MM:dd')
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                 if ($HealthCheck.Domain.DuplicateObject) {
                                     $OutObj | Set-Style -Style Warning

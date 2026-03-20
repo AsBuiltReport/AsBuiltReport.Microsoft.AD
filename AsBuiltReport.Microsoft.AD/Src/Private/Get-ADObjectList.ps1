@@ -50,19 +50,19 @@ function Get-ADObjectList {
 
     $searcher = New-Object System.DirectoryServices.DirectorySearcher($directoryEntry)
     $searcher.PageSize = 1000
-    $searcher.PropertiesToLoad.Add('*') | Out-Null
+    $searcher.PropertiesToLoad.Add('*')
     $searcher.SearchScope = 'Subtree'
 
     # Construct the LDAP filter based on the -Object parameter
-    $filters = [System.Collections.ArrayList]::new()
+    $filters = [System.Collections.Generic.List[object]]::new()
     foreach ($item in $Object) {
         switch ($item) {
-            'Users' { $filters.Add('(objectCategory=person)') | Out-Null }
-            'Computers' { $filters.Add('(objectCategory=computer)') | Out-Null }
-            'Groups' { $filters.Add('(objectCategory=group)') | Out-Null }
-            'DomainControllers' { $filters.Add('(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))') | Out-Null }
-            'OUs' { $filters.Add('(objectCategory=organizationalUnit)') | Out-Null }
-            'GPOs' { $filters.Add('(objectClass=groupPolicyContainer)') | Out-Null }
+            'Users' { $filters.Add('(objectCategory=person)') }
+            'Computers' { $filters.Add('(objectCategory=computer)') }
+            'Groups' { $filters.Add('(objectCategory=group)') }
+            'DomainControllers' { $filters.Add('(&(objectCategory=computer)(userAccountControl:1.2.840.113556.1.4.803:=8192))') }
+            'OUs' { $filters.Add('(objectCategory=organizationalUnit)') }
+            'GPOs' { $filters.Add('(objectClass=groupPolicyContainer)') }
         }
     }
 
@@ -84,7 +84,7 @@ function Get-ADObjectList {
             $obj | Add-Member -NotePropertyName $propertyName -NotePropertyValue $value
         }
         $obj | Add-Member -NotePropertyName 'domain' -NotePropertyValue $Domain
-        $adObjects.Add($obj) | Out-Null
+        $adObjects.Add($obj)
     }
     $results.Dispose()
     $searcher.Dispose()

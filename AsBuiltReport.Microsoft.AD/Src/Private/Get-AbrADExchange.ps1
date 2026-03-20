@@ -24,13 +24,13 @@ function Get-AbrADExchange {
     }
 
     process {
-        $EXServers = try { Get-ADExchangeServer } catch { Out-Null }
+        $EXServers = try { Get-ADExchangeServer } catch { $null }
         try {
             if ($EXServers ) {
                 Section -Style Heading3 $reportTranslate.GetAbrADExchange.Heading {
                     Paragraph $reportTranslate.GetAbrADExchange.Paragraph
                     BlankLine
-                    $EXInfo = [System.Collections.ArrayList]::new()
+                    $EXInfo = [System.Collections.Generic.List[object]]::new()
                     foreach ($EXServer in $EXServers) {
                         try {
                             $inObj = [ordered] @{
@@ -39,7 +39,7 @@ function Get-AbrADExchange {
                                 $reportTranslate.GetAbrADExchange.ServerRoles = $EXServer.ServerRoles -join ', '
                                 $reportTranslate.GetAbrADExchange.Version = $EXServer.Version
                             }
-                            $EXInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $EXInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Exchange Item)"
                         }

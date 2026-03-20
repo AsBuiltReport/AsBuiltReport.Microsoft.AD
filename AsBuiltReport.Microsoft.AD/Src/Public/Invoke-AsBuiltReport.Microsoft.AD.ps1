@@ -115,10 +115,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         }
 
         # WinRM Session variables
-        $DCStatus = [System.Collections.ArrayList]::new()
-        $DomainStatus = [System.Collections.ArrayList]::new()
-        $CIMTable = [System.Collections.ArrayList]::new()
-        $PSSTable = [System.Collections.ArrayList]::new()
+        $DCStatus = [System.Collections.Generic.List[object]]::new()
+        $DomainStatus = [System.Collections.Generic.List[object]]::new()
+        $CIMTable = [System.Collections.Generic.List[object]]::new()
+        $PSSTable = [System.Collections.Generic.List[object]]::new()
 
         try {
             $script:TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System -PSSTable ([ref]$PSSTable) -InitialForrestConnection $true
@@ -142,7 +142,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         $script:ForestInfo = $ADSystem.RootDomain.toUpper()
         $RootDomains = $ADSystem.RootDomain
-        $ChildDomains = [System.Collections.ArrayList]::new()
+        $ChildDomains = [System.Collections.Generic.List[object]]::new()
         if ($Options.Include.Domains) {
             Write-Host "- Include.Domains option enabled: Including only the following domains in the report: $($Options.Include.Domains -join ', ' )"
             $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains -and $_ -in $Options.Include.Domains }
@@ -153,15 +153,15 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $ChildDomains = $ADSystem.Domains | Where-Object { $_ -ne $RootDomains }
         }
 
-        $script:OrderedDomains = [System.Collections.ArrayList]::new()
+        $script:OrderedDomains = [System.Collections.Generic.List[object]]::new()
         if (-not ($Options.Exclude.Domains -contains $RootDomains)) {
-            $OrderedDomains.Add($RootDomains) | Out-Null
+            $OrderedDomains.Add($RootDomains)
         }
 
         Write-Host "- Getting $RootDomains forest information."
 
         if ($ChildDomains) {
-            $OrderedDomains.Add($ChildDomains) | Out-Null
+            $OrderedDomains.Add($ChildDomains)
             Write-Host "    - Discovering $RootDomains forest child domains: $($OrderedDomains -join ', ' )"
         }
 
@@ -177,10 +177,10 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                             Name = $Domain
                             Status = 'Offline'
                         }
-                    ) | Out-Null
+                    )
                     $OrderedDomains = $OrderedDomains | Where-Object { $_ -ne $Domain }
                 }
-            } catch { Out-Null }
+            } catch { $null }
         }
         Write-Host "    - Finishing building $RootDomains forest domains list: $($OrderedDomains -join ', ' )"
 

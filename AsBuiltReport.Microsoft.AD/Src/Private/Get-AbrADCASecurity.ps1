@@ -35,14 +35,14 @@ function Get-AbrADCASecurity {
                     Section -Style Heading3 $reportTranslate.GetAbrADCASecurity.CertValidityPeriod {
                         Paragraph $reportTranslate.GetAbrADCASecurity.CertValidityPeriodParagraph
                         BlankLine
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         try {
                             $inObj = [ordered] @{
                                 $reportTranslate.GetAbrADCASecurity.CAName = $CFP.Name
                                 $reportTranslate.GetAbrADCASecurity.ServerName = $CFP.ComputerName
                                 $reportTranslate.GetAbrADCASecurity.ValidityPeriod = $CFP.ValidityPeriod
                             }
-                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Validity Period Table)"
                         }
@@ -65,7 +65,7 @@ function Get-AbrADCASecurity {
                 $ACLs = Get-CertificationAuthorityAcl -CertificationAuthority $CA
                 if ($ACLs) {
                     Section -Style Heading4 $reportTranslate.GetAbrADCASecurity.ACL {
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         try {
                             foreach ($ACL in $ACLs) {
                                 try {
@@ -74,7 +74,7 @@ function Get-AbrADCASecurity {
                                         $reportTranslate.GetAbrADCASecurity.Owner = $ACL.Owner
                                         $reportTranslate.GetAbrADCASecurity.Group = $ACL.Group
                                     }
-                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
@@ -94,7 +94,7 @@ function Get-AbrADCASecurity {
                         $OutObj | Sort-Object -Property $reportTranslate.GetAbrADCASecurity.DCName | Table @TableParams
                         try {
                             Section -Style Heading5 $reportTranslate.GetAbrADCASecurity.AccessRights {
-                                $OutObj = [System.Collections.ArrayList]::new()
+                                $OutObj = [System.Collections.Generic.List[object]]::new()
                                 foreach ($ACL in $ACLs.Access) {
                                     try {
                                         $inObj = [ordered] @{
@@ -102,7 +102,7 @@ function Get-AbrADCASecurity {
                                             $reportTranslate.GetAbrADCASecurity.AccessControlType = $ACL.AccessControlType
                                             $reportTranslate.GetAbrADCASecurity.Rights = $ACL.Rights
                                         }
-                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Access Control List Rights table)"
                                     }

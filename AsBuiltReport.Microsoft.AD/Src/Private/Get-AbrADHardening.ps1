@@ -107,7 +107,7 @@ function Get-AbrADHardening {
             Section -Style Heading3 $reportTranslate.GetAbrADHardening.SectionTitle {
                 Paragraph $reportTranslate.GetAbrADHardening.SectionParagraph
                 BlankLine
-                $OutObj = [System.Collections.ArrayList]::new()
+                $OutObj = [System.Collections.Generic.List[object]]::new()
                 try {
                     $inObj = [ordered] @{
                         $reportTranslate.GetAbrADHardening.NTLMv1Config = $NTLMversion
@@ -116,7 +116,7 @@ function Get-AbrADHardening {
                         $reportTranslate.GetAbrADHardening.EnforcingLDAPSigning = $LDAPSigning
                         $reportTranslate.GetAbrADHardening.EnforcingLDAPChannelBinding = $LDAPChannelBinding
                     }
-                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                     if ($HealthCheck.Domain.BestPractice) {
                         $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADHardening.NTLMv1Config) -in @('Send LM & NTLM responses', 'Send LM & NTLM - use NTLMv2 session security if negotiated', 'Send NTLM response only') } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADHardening.NTLMv1Config

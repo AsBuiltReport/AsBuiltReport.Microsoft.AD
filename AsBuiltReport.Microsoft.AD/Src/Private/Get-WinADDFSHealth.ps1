@@ -13,7 +13,7 @@
     .LINK
 
     #>
-    [cmdletBinding()]
+    [CmdletBinding()]
     param(
         [alias('ForestName')][string] $Forest,
         [string[]] $ExcludeDomains,

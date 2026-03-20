@@ -75,7 +75,7 @@ function Get-DCWinRMState {
                     Protocol = $WinRMType
                     PingStatus = $PingStatus
                 }
-            ) | Out-Null
+            )
             Write-PScriboMessage -Message "WinRM status in $ComputerName is Online ($WinRMType)."
             return $true
         }
@@ -93,7 +93,7 @@ function Get-DCWinRMState {
                         Protocol = $WinRMType
                         PingStatus = $PingStatus
                     }
-                ) | Out-Null
+                )
                 return $true
             } else {
                 Write-PScriboMessage -Message "Unable to connect to $ComputerName through $WinRMType."
@@ -104,7 +104,7 @@ function Get-DCWinRMState {
                         Protocol = $WinRMType
                         PingStatus = $PingStatus
                     }
-                ) | Out-Null
+                )
                 return $false
             }
 
@@ -116,7 +116,7 @@ function Get-DCWinRMState {
                     Protocol = $WinRMType
                     PingStatus = $PingStatus
                 }
-            ) | Out-Null
+            )
             Write-PScriboMessage -Message "Unable to connect to $ComputerName through $WinRMType."
             return $false
         }

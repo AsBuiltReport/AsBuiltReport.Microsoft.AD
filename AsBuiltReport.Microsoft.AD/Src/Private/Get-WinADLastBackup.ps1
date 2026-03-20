@@ -15,7 +15,7 @@ function Get-WinADLastBackup {
     .NOTES
     General notes
     #>
-    [cmdletBinding()]
+    [CmdletBinding()]
     param(
         [string[]] $Domains,
         [pscredential] $Credential,

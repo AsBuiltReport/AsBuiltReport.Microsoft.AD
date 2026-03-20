@@ -205,8 +205,8 @@
                 }
             }
             if ($SkipRODC) {
-                [Array] $Findings['DomainDomainControllers'][$Domain] = $AllDC | Where-Object { $_.IsReadOnly -eq $false }
-                #$Findings[$Domain] = $AllDC | Where-Object { $_.IsReadOnly -eq $false }
+                [Array] $Findings['DomainDomainControllers'][$Domain] = $AllDC | Where-Object { -not $_.IsReadOnly }
+                #$Findings[$Domain] = $AllDC | Where-Object { -not $_.IsReadOnly }
             } else {
                 [Array] $Findings['DomainDomainControllers'][$Domain] = $AllDC
                 #$Findings[$Domain] = $AllDC
@@ -339,12 +339,11 @@
                 $S
             }
             if ($SkipRODC) {
-                [Array] $Findings['DomainDomainControllers'][$Domain] = $AllDC | Where-Object { $_.IsReadOnly -eq $false }
+                [Array] $Findings['DomainDomainControllers'][$Domain] = $AllDC | Where-Object { -not $_.IsReadOnly }
             } else {
                 [Array] $Findings['DomainDomainControllers'][$Domain] = $AllDC
             }
             # Building all DCs for whole Forest
-            [Array] $Findings['DomainDomainControllers'][$Domain]
         }
         $Findings
     }

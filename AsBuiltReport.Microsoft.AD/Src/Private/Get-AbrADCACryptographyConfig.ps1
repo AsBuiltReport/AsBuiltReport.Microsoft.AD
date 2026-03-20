@@ -34,7 +34,7 @@ function Get-AbrADCACryptographyConfig {
                 Section -Style Heading3 $reportTranslate.GetAbrADCACryptographyConfig.Heading {
                     Paragraph $reportTranslate.GetAbrADCACryptographyConfig.Paragraph
                     BlankLine
-                    $OutObj = [System.Collections.ArrayList]::new()
+                    $OutObj = [System.Collections.Generic.List[object]]::new()
                     try {
                         $inObj = [ordered] @{
                             $reportTranslate.GetAbrADCACryptographyConfig.CAName = $CryptoConfig.Name
@@ -45,7 +45,7 @@ function Get-AbrADCACryptographyConfig {
                             $reportTranslate.GetAbrADCACryptographyConfig.AlternateSignatureAlgorithm = $CryptoConfig.AlternateSignatureAlgorithm
                             $reportTranslate.GetAbrADCACryptographyConfig.ProviderIsCNG = $CryptoConfig.ProviderIsCNG
                         }
-                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                         $TableParams = @{
                             Name = "$($reportTranslate.GetAbrADCACryptographyConfig.TableName) - $($ForestInfo.ToString().ToUpper())"

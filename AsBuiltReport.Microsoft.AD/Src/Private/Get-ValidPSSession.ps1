@@ -52,7 +52,7 @@ function Get-ValidPSSession {
                             Protocol = 'PSSessionSSL'
                             Id = $SessionObject.Id
                         }
-                    ) | Out-Null
+                    )
                     return $SessionObject
                 }
             } catch {
@@ -64,7 +64,7 @@ function Get-ValidPSSession {
                         Protocol = 'PSSessionSSL'
                         Id = 'None'
                     }
-                ) | Out-Null
+                )
                 if ($Options.WinRMFallbackToNoSSL) {
                     if ($PSessionObj = Get-PSSession | Where-Object { $_.ComputerName -eq $ComputerName -and $_.Availability -eq 'Available' -and $_.State -eq 'Opened' -and $_.Runspace.ConnectionInfo.Scheme -eq 'http' -and $_.Runspace.ConnectionInfo.Credential.Username -eq $Credential.UserName }) {
                         Write-PScriboMessage -Message "Using available '$ComputerName' PSSession id: $($PSessionObj.Id) (WinRM without SSL)."
@@ -75,7 +75,7 @@ function Get-ValidPSSession {
                                 Protocol = 'PSSession'
                                 Id = $PSessionObj.Id
                             }
-                        ) | Out-Null
+                        )
                         return $PSessionObj
                     } else {
                         Write-PScriboMessage -Message "Generating a PSSession to '$ComputerName' (WinRM without SSL)."
@@ -89,7 +89,7 @@ function Get-ValidPSSession {
                                         Protocol = 'PSSession'
                                         Id = $SessionObject.Id
                                     }
-                                ) | Out-Null
+                                )
                                 $SessionObject
                             }
                         } catch {
@@ -100,7 +100,7 @@ function Get-ValidPSSession {
                                     Protocol = 'PSSession'
                                     Id = 'None'
                                 }
-                            ) | Out-Null
+                            )
                             if ($InitialForrestConnection) {
                                 throw "Unable to Connect to '$ComputerName' through PSSession. Error details: $($_.Exception.Message)"
                             } else {
@@ -130,7 +130,7 @@ function Get-ValidPSSession {
                             Protocol = 'PSSession'
                             Id = $SessionObject.Id
                         }
-                    ) | Out-Null
+                    )
                     return $SessionObject
                 }
             } catch {
@@ -141,7 +141,7 @@ function Get-ValidPSSession {
                         Protocol = 'PSSession'
                         Id = 'None'
                     }
-                ) | Out-Null
+                )
                 if ($InitialForrestConnection) {
                     throw "Unable to Connect to '$ComputerName' through PSSession. Error details: $($_.Exception.Message)"
                 } else {

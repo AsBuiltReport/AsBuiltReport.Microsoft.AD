@@ -36,7 +36,7 @@
                     Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDFSHealth.SysvolReplicationTitle {
                         Paragraph ($reportTranslate.GetAbrADDFSHealth.SysvolReplicationParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         foreach ($Controller in $DCs) {
                             try {
                                 $RepState = $DFS | Where-Object { $_.DomainController -eq $Controller.Split('.')[0] } | Select-Object -Property ReplicationState, GroupPolicyCount, SysvolCount, IdenticalCount, StopReplicationOnAutoRecovery
@@ -69,7 +69,7 @@
                                     }
 
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "Sysvol Replication Status Iten Section: $($_.Exception.Message)"
                             }
@@ -123,7 +123,7 @@
                 $DCPssSession = Get-ValidPSSession -ComputerName $ValidDcFromDomain -SessionName $($ValidDcFromDomain) -PSSTable ([ref]$PSSTable)
                 if ($DCPssSession) {
                     # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
-                    $SYSVOLFolder = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-ChildItem -Path $('\\' + ($using:Domain).DNSRoot + '\SYSVOL\' + ($using:Domain).DNSRoot) -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
+                    $SYSVOLFolder = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-ChildItem -Path "\\$(($using:Domain).DNSRoot)\SYSVOL\$(($using:Domain).DNSRoot)" -Recurse | Where-Object -FilterScript { -not $_.PSIsContainer } | Group-Object -Property Extension | ForEach-Object -Process {
                             New-Object -TypeName PSObject -Property @{
                                 'Extension' = $_.name
                                 'Count' = $_.count
@@ -139,7 +139,7 @@
                     Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDFSHealth.SysvolContentTitle {
                         Paragraph ($reportTranslate.GetAbrADDFSHealth.SysvolContentParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         foreach ($Extension in $SYSVOLFolder) {
                             try {
                                 $inObj = [ordered] @{
@@ -147,7 +147,7 @@
                                     $reportTranslate.GetAbrADDFSHealth.FileCount = $Extension.Count
                                     $reportTranslate.GetAbrADDFSHealth.Size = "$($Extension.TotalSize) MB"
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "Sysvol Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }
@@ -186,7 +186,7 @@
                 $DCPssSession = Get-ValidPSSession -ComputerName $ValidDcFromDomain -SessionName $($ValidDcFromDomain) -PSSTable ([ref]$PSSTable)
                 if ($DCPssSession) {
                     # Code taken from ClaudioMerola (https://github.com/ClaudioMerola/ADxRay)
-                    $NetlogonFolder = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-ChildItem -Path $('\\' + ($using:Domain).DNSRoot + '\NETLOGON\') -Recurse | Where-Object -FilterScript { $_.PSIsContainer -eq $false } | Group-Object -Property Extension | ForEach-Object -Process {
+                    $NetlogonFolder = Invoke-CommandWithTimeout -Session $DCPssSession -ScriptBlock { Get-ChildItem -Path "\\$(($using:Domain).DNSRoot)\NETLOGON\" -Recurse | Where-Object -FilterScript { -not $_.PSIsContainer } | Group-Object -Property Extension | ForEach-Object -Process {
                             New-Object -TypeName PSObject -Property @{
                                 'Extension' = $_.name
                                 'Count' = $_.count
@@ -202,7 +202,7 @@
                     Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDFSHealth.NetlogonContentTitle {
                         Paragraph ($reportTranslate.GetAbrADDFSHealth.NetlogonContentParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         foreach ($Extension in $NetlogonFolder) {
                             try {
                                 $inObj = [ordered] @{
@@ -210,7 +210,7 @@
                                     $reportTranslate.GetAbrADDFSHealth.FileCount = $Extension.Count
                                     $reportTranslate.GetAbrADDFSHealth.Size = "$($Extension.TotalSize) MB"
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "Netlogon Health $($Extension.Extension) Section: $($_.Exception.Message)"
                             }

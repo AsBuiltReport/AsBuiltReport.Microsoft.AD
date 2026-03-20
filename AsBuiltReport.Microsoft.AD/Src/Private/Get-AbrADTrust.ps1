@@ -32,7 +32,7 @@ function Get-AbrADTrust {
                     $Trusts = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADTrust -Filter * -Properties * -Server $using:ValidDCFromDomain }
                     if ($Trusts) {
                         Section -Style Heading3 $reportTranslate.GetAbrADTrust.SectionTitle {
-                            $TrustInfo = [System.Collections.ArrayList]::new()
+                            $TrustInfo = [System.Collections.Generic.List[object]]::new()
                             foreach ($Trust in $Trusts) {
                                 try {
                                     $inObj = [ordered] @{
@@ -73,7 +73,7 @@ function Get-AbrADTrust {
                                         $reportTranslate.GetAbrADTrust.KerberosRC4Encryption = $Trust.UsesRC4Encryption
                                         $reportTranslate.GetAbrADTrust.UplevelOnly = $Trust.UplevelOnly
                                     }
-                                    $TrustInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $TrustInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Trust Item)"
                                 }

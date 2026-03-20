@@ -13,7 +13,7 @@ function Get-AbrADTrustsInfo {
         https://github.com/rebelinux/Diagrammer.Microsoft.AD
     #>
     [CmdletBinding()]
-    [OutputType([System.Collections.ArrayList])]
+    [OutputType([System.Collections.Generic.List[object]])]
 
     param()
 
@@ -56,7 +56,7 @@ function Get-AbrADTrustsInfo {
 
             $Trusts = Invoke-CommandWithTimeout -Session $DiagramTempPssSession -ScriptBlock { Get-ADTrust -Filter * -Properties CanonicalName, Target, TrustDirection, TrustAttributes, TrustType, SelectiveAuthentication } -ErrorAction Stop
 
-            $TrustsInfo = [System.Collections.ArrayList]::new()
+            $TrustsInfo = [System.Collections.Generic.List[object]]::new()
             if ($Trusts) {
                 foreach ($Trust in $Trusts) {
                     $AditionalInfo = [PSCustomObject] [ordered]@{
@@ -76,7 +76,7 @@ function Get-AbrADTrustsInfo {
                         SourceLabel = Add-NodeIcon -Name $Trust.CanonicalName.split('/')[0] -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug
                         Direction = $TrustDirectionID[[int]$Trust.TrustDirection]
                     }
-                    $TrustsInfo.Add($TempTrustsInfo) | Out-Null
+                    $TrustsInfo.Add($TempTrustsInfo)
                 }
             }
             $TrustsInfo

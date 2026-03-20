@@ -32,7 +32,7 @@ function Get-AbrADDomainLastBackup {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDomainLastBackup.SectionTitle {
                         Paragraph ($reportTranslate.GetAbrADDomainLastBackup.SectionParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         foreach ($LastBackup in $LastBackups) {
                             try {
                                 $inObj = [ordered] @{
@@ -43,7 +43,7 @@ function Get-AbrADDomainLastBackup {
                                     }
                                     $reportTranslate.GetAbrADDomainLastBackup.LastBackupInDays = $LastBackup.LastBackupDaysAgo
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                 if ($HealthCheck.Domain.Backup) {
                                     $OutObj | Where-Object { [int]$_.$($reportTranslate.GetAbrADDomainLastBackup.LastBackupInDays) -gt 180 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainLastBackup.LastBackupInDays

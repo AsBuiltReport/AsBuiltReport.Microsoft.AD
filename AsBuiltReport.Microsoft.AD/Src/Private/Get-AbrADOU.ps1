@@ -32,15 +32,15 @@ function Get-AbrADOU {
                 Section -Style Heading3 $reportTranslate.GetAbrADOU.OUSectionTitle {
                     Paragraph $reportTranslate.GetAbrADOU.OUSectionParagraph
                     BlankLine
-                    $OutObj = [System.Collections.ArrayList]::new()
+                    $OutObj = [System.Collections.Generic.List[object]]::new()
                     foreach ($OU in $OUs) {
                         try {
-                            $GPOArray = [System.Collections.ArrayList]::new()
-                            [System.Collections.ArrayList]$GPOs = $OU.LinkedGroupPolicyObjects
+                            $GPOArray = [System.Collections.Generic.List[object]]::new()
+                            $GPOs = $OU.LinkedGroupPolicyObjects
                             foreach ($Object in $GPOs) {
                                 try {
                                     $GP = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-GPO -Server $using:ValidDCFromDomain -Guid ($using:Object).Split(',')[0].Split('=')[1] -Domain ($using:Domain).DNSRoot }
-                                    $GPOArray.Add($GP.DisplayName) | Out-Null
+                                    $GPOArray.Add($GP.DisplayName)
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
@@ -50,7 +50,7 @@ function Get-AbrADOU {
                                 $reportTranslate.GetAbrADOU.LinkedGPO = ($GPOArray -join ', ')
                                 $reportTranslate.GetAbrADOU.Protected = $OU.ProtectedFromAccidentalDeletion
                             }
-                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Organizational Unit Item)"
                         }
@@ -79,7 +79,7 @@ function Get-AbrADOU {
                     }
                     if ($HealthCheck.Domain.GPO) {
                         try {
-                            $OutObj = [System.Collections.ArrayList]::new()
+                            $OutObj = [System.Collections.Generic.List[object]]::new()
                             if ($OUs) {
                                 foreach ($OU in $OUs) {
                                     try {
@@ -91,7 +91,7 @@ function Get-AbrADOU {
                                                 $reportTranslate.GetAbrADOU.InheritanceBlocked = $GpoInheritance.GpoInheritanceBlocked
                                                 $reportTranslate.GetAbrADOU.Path = ConvertTo-ADCanonicalName -DN $GpoInheritance.Path -Domain $Domain.DNSRoot -DC $ValidDCFromDomain
                                             }
-                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         }
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Blocked Inheritance GPO Item)"

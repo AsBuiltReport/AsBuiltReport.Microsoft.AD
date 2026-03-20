@@ -89,7 +89,7 @@ function Get-AbrDiagReplication {
                                 if ($FromNodeName -and $ToNodeName -and $FromNodeName -ne $ToNodeName) {
                                     $EdgeKey = "$FromNodeName->$ToNodeName"
                                     if (-not $DrawnEdges.Contains($EdgeKey)) {
-                                        $DrawnEdges.Add($EdgeKey) | Out-Null
+                                        $DrawnEdges.Add($EdgeKey)
                                         $EdgeLabel = $Repl.TransportProtocol
                                         if ($Repl.FromSite -eq $Repl.ToSite) {
                                             $EdgeColor = 'darkgreen'

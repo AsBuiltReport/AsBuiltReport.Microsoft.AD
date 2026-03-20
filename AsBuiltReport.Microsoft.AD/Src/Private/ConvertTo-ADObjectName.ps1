@@ -13,6 +13,7 @@ function ConvertTo-ADObjectName {
     .LINK
 
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
@@ -20,9 +21,9 @@ function ConvertTo-ADObjectName {
         $Session,
         $DC
     )
-    $ADObject = [System.Collections.ArrayList]::new()
+    $ADObject = [System.Collections.Generic.List[object]]::new()
     foreach ($Object in $DN) {
-        $ADObject.Add((Invoke-CommandWithTimeout -Session $Session -ScriptBlock { Get-ADObject $using:Object -Server $using:DC | Select-Object -ExpandProperty Name })) | Out-Null
+        $ADObject.Add((Invoke-CommandWithTimeout -Session $Session -ScriptBlock { Get-ADObject $using:Object -Server $using:DC | Select-Object -ExpandProperty Name }))
     }
     $ADObject;
 }# end

@@ -72,10 +72,10 @@ function Get-AbrDiagrammer {
             } else {
                 $DiagramTheme = $Options.DiagramTheme
             }
-            $DiagramTypeArray = [System.Collections.ArrayList]::new()
+            $DiagramTypeArray = [System.Collections.Generic.List[object]]::new()
 
             if (-not $Options.DiagramType) {
-                $DiagramTypeArray.Add('All') | Out-Null
+                $DiagramTypeArray.Add('All')
             } elseif ($Options.DiagramType) {
                 $DiagramTypeArray = $Options.DiagramType
             } else {
@@ -133,7 +133,7 @@ function Get-AbrDiagrammer {
                         if ($Graph) {
                             if ($ExportPath) {
                                 $FilePath = Join-Path -Path $OutputFolderPath -ChildPath $FileName
-                                if (Test-Path -Path $FilePath) {
+                                if (Test-Path -Path $FilePath -PathType Leaf) {
                                     $FilePath
                                 } else {
                                     Write-PScriboMessage -IsWarning -Message "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"

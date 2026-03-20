@@ -33,7 +33,7 @@ function Get-AbrADDNSZone {
             }
             if ($DNSSetting) {
                 Section -Style Heading3 "$($DC.ToString().ToUpper().Split('.')[0]) $($reportTranslate.GetAbrADDNSZone.DNSZonesSuffix)" {
-                    $OutObj = [System.Collections.ArrayList]::new()
+                    $OutObj = [System.Collections.Generic.List[object]]::new()
                     foreach ($Zones in $DNSSetting) {
                         try {
                             $inObj = [ordered] @{
@@ -45,7 +45,7 @@ function Get-AbrADDNSZone {
                                 $reportTranslate.GetAbrADDNSZone.ReadOnly = ($Zones.IsReadOnly)
                                 $reportTranslate.GetAbrADDNSZone.Signed = ($Zones.IsSigned)
                             }
-                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Name System Zone Item)"
                         }
@@ -64,7 +64,7 @@ function Get-AbrADDNSZone {
                         try {
                             $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like 'False' -and ($_.ZoneName -ne '_msdcs.pharmax.local' -and $_.ZoneName -ne 'TrustAnchors') -and ($_.ZoneType -like 'Primary' -or $_.ZoneType -like 'Secondary') } | Select-Object -ExpandProperty ZoneName
                             if ($DNSSetting) {
-                                $OutObj = [System.Collections.ArrayList]::new()
+                                $OutObj = [System.Collections.Generic.List[object]]::new()
                                 foreach ($Zone in $DNSSetting) {
                                     try {
                                         $Delegations = Get-DnsServerZoneDelegation -CimSession $TempCIMSession -Name $Zone -ComputerName $DC
@@ -77,7 +77,7 @@ function Get-AbrADDNSZone {
                                                         $reportTranslate.GetAbrADDNSZone.NameServer = $Delegation.NameServer.RecordData.NameServer
                                                         $reportTranslate.GetAbrADDNSZone.IPAddress = $Delegation.IPaddress.RecordData.IPv4Address.ToString()
                                                     }
-                                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                                 } catch {
                                                     Write-PScriboMessage -IsWarning $($_.Exception.Message)
                                                 }
@@ -126,7 +126,7 @@ function Get-AbrADDNSZone {
                             }
                             if ($DNSSetting) {
                                 Section -Style Heading4 $reportTranslate.GetAbrADDNSZone.ZoneTransfers {
-                                    $OutObj = [System.Collections.ArrayList]::new()
+                                    $OutObj = [System.Collections.Generic.List[object]]::new()
                                     foreach ($Zone in $DNSSetting) {
                                         try {
                                             $inObj = [ordered] @{
@@ -141,7 +141,7 @@ function Get-AbrADDNSZone {
                                                     default { $Zone.SecureSecondaries }
                                                 }
                                             }
-                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                             if ($HealthCheck.DNS.Zones) {
                                                 $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDNSZone.SecureSecondaries) -eq $reportTranslate.GetAbrADDNSZone.SecureSecondariesAll } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDNSZone.SecureSecondaries
@@ -180,7 +180,7 @@ function Get-AbrADDNSZone {
                         $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like 'True' }
                         if ($DNSSetting) {
                             Section -Style Heading4 $reportTranslate.GetAbrADDNSZone.ReverseLookupZone {
-                                $OutObj = [System.Collections.ArrayList]::new()
+                                $OutObj = [System.Collections.Generic.List[object]]::new()
                                 foreach ($Zones in $DNSSetting) {
                                     try {
                                         $inObj = [ordered] @{
@@ -192,7 +192,7 @@ function Get-AbrADDNSZone {
                                             $reportTranslate.GetAbrADDNSZone.ReadOnly = ($Zones.IsReadOnly)
                                             $reportTranslate.GetAbrADDNSZone.Signed = ($Zones.IsSigned)
                                         }
-                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Reverse Lookup Zone Configuration Item)"
                                     }
@@ -218,7 +218,7 @@ function Get-AbrADDNSZone {
                         $DNSSetting = Get-DnsServerZone -CimSession $TempCIMSession -ComputerName $DC | Where-Object { $_.IsReverseLookupZone -like 'False' -and $_.ZoneType -like 'Forwarder' }
                         if ($DNSSetting) {
                             Section -Style Heading4 $reportTranslate.GetAbrADDNSZone.ConditionalForwarder {
-                                $OutObj = [System.Collections.ArrayList]::new()
+                                $OutObj = [System.Collections.Generic.List[object]]::new()
                                 foreach ($Zones in $DNSSetting) {
                                     try {
                                         $inObj = [ordered] @{
@@ -228,7 +228,7 @@ function Get-AbrADDNSZone {
                                             $reportTranslate.GetAbrADDNSZone.MasterServers = $Zones.MasterServers
                                             $reportTranslate.GetAbrADDNSZone.DSIntegrated = $Zones.IsDsIntegrated
                                         }
-                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Conditional Forwarder Item)"
                                     }
@@ -256,7 +256,7 @@ function Get-AbrADDNSZone {
                             $Zones = Get-DnsServerZoneAging -CimSession $TempCIMSession -Name $DNSSetting -ComputerName $DC
                             if ($Zones) {
                                 Section -Style Heading4 $reportTranslate.GetAbrADDNSZone.ZoneScopeAging {
-                                    $OutObj = [System.Collections.ArrayList]::new()
+                                    $OutObj = [System.Collections.Generic.List[object]]::new()
                                     foreach ($Settings in $Zones) {
                                         try {
                                             $inObj = [ordered] @{
@@ -270,7 +270,7 @@ function Get-AbrADDNSZone {
                                                     default { (($Settings.AvailForScavengeTime).ToUniversalTime().toString('r')); break }
                                                 }
                                             }
-                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Scope Aging Item)"
                                         }

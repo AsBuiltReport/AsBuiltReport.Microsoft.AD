@@ -41,7 +41,7 @@ function Get-AbrADForest {
             elseif ($ADVersion -eq '44') { $server = 'Windows Server 2008' }
             elseif ($ADVersion -eq '31') { $server = 'Windows Server 2003 R2' }
             elseif ($ADVersion -eq '30') { $server = 'Windows Server 2003' }
-            $OutObj = [System.Collections.ArrayList]::new()
+            $OutObj = [System.Collections.Generic.List[object]]::new()
             if ($Data) {
                 foreach ($Item in $Data) {
                     try {
@@ -67,7 +67,7 @@ function Get-AbrADForest {
                                 }
                             }
                         }
-                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                     } catch {
                         Write-PScriboMessage -IsWarning $_.Exception.Message
                     }
@@ -146,14 +146,14 @@ function Get-AbrADForest {
                     }
                     if ($rootCA) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADForest.CARootSection {
-                            $OutObj = [System.Collections.ArrayList]::new()
+                            $OutObj = [System.Collections.Generic.List[object]]::new()
                             foreach ($Item in $rootCA) {
                                 try {
                                     $inObj = [ordered] @{
                                         $reportTranslate.GetAbrADForest.CAName = $Item.Name
                                         $reportTranslate.GetAbrADForest.CADistinguishedName = $Item.DistinguishedName
                                     }
-                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
@@ -187,14 +187,14 @@ function Get-AbrADForest {
 
                     if ($subordinateCA) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADForest.CAIssuerSection {
-                            $OutObj = [System.Collections.ArrayList]::new()
+                            $OutObj = [System.Collections.Generic.List[object]]::new()
                             foreach ($Item in $subordinateCA) {
                                 try {
                                     $inObj = [ordered] @{
                                         $reportTranslate.GetAbrADForest.CAName = $Item.Name
                                         $reportTranslate.GetAbrADForest.CADnsName = $Item.dNSHostName
                                     }
-                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
                                     Write-PScriboMessage -IsWarning $_.Exception.Message
                                 }
@@ -240,7 +240,7 @@ function Get-AbrADForest {
         try {
             Section -Style Heading3 $reportTranslate.GetAbrADForest.OptionalFeatures {
                 $Data = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADOptionalFeature -Filter * }
-                $OutObj = [System.Collections.ArrayList]::new()
+                $OutObj = [System.Collections.Generic.List[object]]::new()
                 if ($Data) {
                     foreach ($Item in $Data) {
                         try {
@@ -252,7 +252,7 @@ function Get-AbrADForest {
                                     default { $reportTranslate.GetAbrADForest.OFEnabledYes }
                                 }
                             }
-                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
                             Write-PScriboMessage -IsWarning $_.Exception.Message
                         }

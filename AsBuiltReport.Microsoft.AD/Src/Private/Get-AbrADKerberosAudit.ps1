@@ -33,14 +33,14 @@ function Get-AbrADKerberosAudit {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADKerberosAudit.UnconstrainedTitle {
                         Paragraph ($reportTranslate.GetAbrADKerberosAudit.UnconstrainedParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                         BlankLine
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         foreach ($Item in $Unconstrained) {
                             try {
                                 $inObj = [ordered] @{
                                     $reportTranslate.GetAbrADKerberosAudit.Name = $Item.Name
                                     $reportTranslate.GetAbrADKerberosAudit.DistinguishedName = $Item.DistinguishedName
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Item)"
                             }
@@ -76,7 +76,7 @@ function Get-AbrADKerberosAudit {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADKerberosAudit.KRBTGTTitle {
                             Paragraph ($reportTranslate.GetAbrADKerberosAudit.KRBTGTParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                             BlankLine
-                            $OutObj = [System.Collections.ArrayList]::new()
+                            $OutObj = [System.Collections.Generic.List[object]]::new()
                             try {
                                 $inObj = [ordered] @{
                                     $reportTranslate.GetAbrADKerberosAudit.Name = $KRBTGT.Name
@@ -84,7 +84,7 @@ function Get-AbrADKerberosAudit {
                                     $reportTranslate.GetAbrADKerberosAudit.PasswordLastSet = $KRBTGT.PasswordLastSet
                                     $reportTranslate.GetAbrADKerberosAudit.DistinguishedName = $KRBTGT.DistinguishedName
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (KRBTGT account Item)"
                             }
@@ -117,13 +117,13 @@ function Get-AbrADKerberosAudit {
                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
                 }
                 try {
-                    $SID = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { $($using:Domain).domainsid.ToString() + '-500' }
+                    $SID = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { "$($($using:Domain).domainsid.ToString())-500" }
                     $ADMIN = $Users | Where-Object { $_.SID -eq $SID }
                     if ($ADMIN) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADKerberosAudit.AdminTitle {
                             Paragraph ($reportTranslate.GetAbrADKerberosAudit.AdminParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                             BlankLine
-                            $OutObj = [System.Collections.ArrayList]::new()
+                            $OutObj = [System.Collections.Generic.List[object]]::new()
                             try {
                                 $inObj = [ordered] @{
                                     $reportTranslate.GetAbrADKerberosAudit.Name = $ADMIN.Name
@@ -132,7 +132,7 @@ function Get-AbrADKerberosAudit {
                                     $reportTranslate.GetAbrADKerberosAudit.LastLogonDate = $ADMIN.LastLogonDate
                                     $reportTranslate.GetAbrADKerberosAudit.DistinguishedName = $ADMIN.DistinguishedName
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (ADMIN account Item)"
                             }

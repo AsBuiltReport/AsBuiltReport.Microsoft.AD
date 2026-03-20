@@ -74,13 +74,13 @@ function Get-AbrADDomainObject {
                 Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.UserObjectsSection {
                     Show-AbrDebugExecutionTime -Start -TitleMessage 'User Objects'
                     try {
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         $inObj = [ordered] @{
                             $reportTranslate.GetAbrADDomainObject.Users = ($Users | Measure-Object).Count
                             $reportTranslate.GetAbrADDomainObject.PrivilegedUsers = ($PrivilegedUsers | Measure-Object).Count
                             $reportTranslate.GetAbrADDomainObject.ForeignSecurityPrincipals = ($FSP | Measure-Object).Count
                         }
-                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                         $TableParams = @{
                             Name = "$($reportTranslate.GetAbrADDomainObject.User) - $($Domain.DNSRoot.ToString().ToUpper())"
@@ -109,18 +109,18 @@ function Get-AbrADDomainObject {
                         Write-PScriboMessage -IsWarning $($_.Exception.Message)
                     }
 
-                    $OutObj = [System.Collections.ArrayList]::new()
+                    $OutObj = [System.Collections.Generic.List[object]]::new()
                     $dormanttime = ((Get-Date).AddDays(-90)).Date
                     $passwordtime = (Get-Date).Adddays(-180)
                     $CannotChangePassword = $Users | Where-Object { $_.CannotChangePassword }
                     $PasswordNextLogon = $Users | Where-Object { $_.PasswordLastSet -eq 0 -or $_.PwdLastSet -eq 0 }
                     $passwordNeverExpires = $Users | Where-Object { $_.passwordNeverExpires -eq 'true' }
-                    $SmartcardLogonRequired = $Users | Where-Object { $_.SmartcardLogonRequired -eq $True }
+                    $SmartcardLogonRequired = $Users | Where-Object { $_.SmartcardLogonRequired }
                     $SidHistory = $Users | Where-Object { $_.SIDHistory }
-                    $PasswordLastSet = $Users | Where-Object { $_.PasswordNeverExpires -eq $false -and $_.PasswordNotRequired -eq $false }
+                    $PasswordLastSet = $Users | Where-Object { -not $_.PasswordNeverExpires -and -not $_.PasswordNotRequired }
                     $NeverloggedIn = $Users | Where-Object { -not $_.LastLogonDate }
                     $Dormant = $Users | Where-Object { ($_.LastLogonDate) -lt $dormanttime }
-                    $PasswordNotRequired = $Users | Where-Object { $_.PasswordNotRequired -eq $true }
+                    $PasswordNotRequired = $Users | Where-Object { $_.PasswordNotRequired }
                     $AccountExpired = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Search-ADAccount -Server $using:ValidDcFromDomain -AccountExpired }
                     $AccountLockout = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Search-ADAccount -Server $using:ValidDcFromDomain -LockedOut }
                     $CategoryMap = [ordered]@{
@@ -145,19 +145,19 @@ function Get-AbrADDomainObject {
                                     $reportTranslate.GetAbrADDomainObject.Category = $Category
                                     $reportTranslate.GetAbrADDomainObject.Enabled = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
                                         $true { '0' }
-                                        default { ($Values.Enabled -eq $True | Measure-Object).Count }
+                                        default { ($Values.Enabled | Measure-Object).Count }
                                     }
                                     $reportTranslate.GetAbrADDomainObject.EnabledPct = switch ($Values.Count) {
                                         0 { '0' }
-                                        default { [math]::Round((($Values.Enabled -eq $True | Measure-Object).Count / $Users.Count * 100), 2) }
+                                        default { [math]::Round((($Values.Enabled | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
                                     $reportTranslate.GetAbrADDomainObject.Disabled = switch ([string]::IsNullOrEmpty($Values.Enabled)) {
                                         $true { '0' }
-                                        default { ($Values.Enabled -eq $False | Measure-Object).Count }
+                                        default { ($Values | Where-Object { -not $_.Enabled } | Measure-Object).Count }
                                     }
                                     $reportTranslate.GetAbrADDomainObject.DisabledPct = switch ($Values.Count) {
                                         0 { '0' }
-                                        default { [math]::Round((($Values.Enabled -eq $False | Measure-Object).Count / $Users.Count * 100), 2) }
+                                        default { [math]::Round((($Values | Where-Object { -not $_.Enabled } | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
                                     $reportTranslate.GetAbrADDomainObject.Total = switch ([string]::IsNullOrEmpty($Values)) {
                                         $true { '0' }
@@ -168,7 +168,7 @@ function Get-AbrADDomainObject {
                                         default { [math]::Round((($Values | Measure-Object).Count / $Users.Count * 100), 2) }
                                     }
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of User Accounts)"
                             }
@@ -204,7 +204,7 @@ function Get-AbrADDomainObject {
                         try {
                             Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.UsersInventorySection {
                                 Show-AbrDebugExecutionTime -Start -TitleMessage 'Users Inventory'
-                                $OutObj = [System.Collections.ArrayList]::new()
+                                $OutObj = [System.Collections.Generic.List[object]]::new()
                                 foreach ($User in $Users) {
                                     try {
                                         $Groups = ($GroupOBj | Where-Object { $_.members -eq $User.DistinguishedName }).Name
@@ -221,7 +221,7 @@ function Get-AbrADDomainObject {
                                                 default { 'Unknown' }
                                             }
                                         }
-                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Users Objects Table)"
                                     }
@@ -253,12 +253,12 @@ function Get-AbrADDomainObject {
                 Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.GroupObjectsSection {
                     Show-AbrDebugExecutionTime -Start -TitleMessage 'Group Objects'
                     try {
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         $inObj = [ordered] @{
                             $reportTranslate.GetAbrADDomainObject.SecurityGroups = ($GroupOBj | Where-Object { $_.GroupCategory -eq 'Security' } | Measure-Object).Count
                             $reportTranslate.GetAbrADDomainObject.DistributionGroups = ($GroupOBj | Where-Object { $_.GroupCategory -eq 'Distribution' } | Measure-Object).Count
                         }
-                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                         $TableParams = @{
                             Name = "$($reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
@@ -286,13 +286,13 @@ function Get-AbrADDomainObject {
                         Write-PScriboMessage -IsWarning $($_.Exception.Message)
                     }
                     try {
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         $inObj = [ordered] @{
                             $reportTranslate.GetAbrADDomainObject.DomainLocals = ($GroupOBj | Where-Object { $_.GroupScope -eq 'DomainLocal' } | Measure-Object).Count
                             $reportTranslate.GetAbrADDomainObject.Globals = ($GroupOBj | Where-Object { $_.GroupScope -eq 'Global' } | Measure-Object).Count
                             $reportTranslate.GetAbrADDomainObject.Universal = ($GroupOBj | Where-Object { $_.GroupScope -eq 'Universal' } | Measure-Object).Count
                         }
-                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                         $TableParams = @{
                             Name = "$($reportTranslate.GetAbrADDomainObject.GroupScopesSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
@@ -323,7 +323,7 @@ function Get-AbrADDomainObject {
                         try {
                             Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.GroupsInventorySection {
                                 Show-AbrDebugExecutionTime -Start -TitleMessage 'Groups Inventory'
-                                $OutObj = [System.Collections.ArrayList]::new()
+                                $OutObj = [System.Collections.Generic.List[object]]::new()
                                 foreach ($Group in $GroupOBj) {
                                     try {
                                         $UserCount = ($Group.Members | Measure-Object).Count
@@ -333,7 +333,7 @@ function Get-AbrADDomainObject {
                                             $reportTranslate.GetAbrADDomainObject.GroupScope = $Group.GroupScope
                                             $reportTranslate.GetAbrADDomainObject.UserCount = $UserCount
                                         }
-                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Groups Objects Table)"
                                     }
@@ -359,7 +359,7 @@ function Get-AbrADDomainObject {
                     if ($GroupOBj) {
                         Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.PrivilegedGroupsSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Privileged Groups (Built-in)'
-                            $OutObj = [System.Collections.ArrayList]::new()
+                            $OutObj = [System.Collections.Generic.List[object]]::new()
                             try {
                                 if ($Domain.DNSRoot -eq $ADSystem.Name) {
                                     $GroupsSID = "$DomainSID-512", "$DomainSID-519", 'S-1-5-32-544', 'S-1-5-32-549', 'S-1-5-32-555', 'S-1-5-32-557', "$DomainSID-526", 'S-1-5-32-551', "$DomainSID-517", 'S-1-5-32-550', 'S-1-5-32-548', "$DomainSID-518", 'S-1-5-32-578'
@@ -376,7 +376,7 @@ function Get-AbrADDomainObject {
                                                     $reportTranslate.GetAbrADDomainObject.GroupName = $Group.Name
                                                     $reportTranslate.GetAbrADDomainObject.Count = ($Group.Members | Measure-Object).Count
                                                 }
-                                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                             }
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group in Active Directory item)"
@@ -439,7 +439,7 @@ function Get-AbrADDomainObject {
                                                 $GroupObjects = $Group.Members
                                                 if ($GroupObjFilter = $ADObjects | Where-Object { $_.distinguishedName -in $GroupObjects }) {
                                                     Section -ExcludeFromTOC -Style NOTOCHeading4 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) Members)" {
-                                                        $OutObj = [System.Collections.ArrayList]::new()
+                                                        $OutObj = [System.Collections.Generic.List[object]]::new()
                                                         foreach ($GroupObject in $GroupObjFilter) {
                                                             try {
                                                                 $inObj = [ordered] @{
@@ -452,7 +452,7 @@ function Get-AbrADDomainObject {
                                                                     $reportTranslate.GetAbrADDomainObject.PasswordNeverExpires = $GroupObject.passwordNeverExpires
                                                                     $reportTranslate.GetAbrADDomainObject.AccountEnabled = $GroupObject.Enabled
                                                                 }
-                                                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                                             } catch {
                                                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group in Active Directory item)"
 
@@ -535,7 +535,7 @@ function Get-AbrADDomainObject {
                         Show-AbrDebugExecutionTime -Start -TitleMessage 'Privileged Group (Non-Default)'
                         try {
                             if ($AdminGroupOBj = $GroupOBj | Where-Object { $_.admincount -eq 1 }) {
-                                $OutObj = [System.Collections.ArrayList]::new()
+                                $OutObj = [System.Collections.Generic.List[object]]::new()
                                 foreach ($Group in $AdminGroupOBj) {
                                     if ($Group.SID -notin $AdminGroupsBySID) {
                                         try {
@@ -543,7 +543,7 @@ function Get-AbrADDomainObject {
                                                 $reportTranslate.GetAbrADDomainObject.GroupName = $Group.Name
                                                 $reportTranslate.GetAbrADDomainObject.GroupSID = $Group.SID
                                             }
-                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group (Non-Default) Table)"
                                         }
@@ -584,7 +584,7 @@ function Get-AbrADDomainObject {
                             if ($EmptyGroupArray = $EmptyGroupOBj | Where-Object { $_.SID -notin $excludedForestGroupsBySID -and $_.SID -notin $excludedDomainGroupsBySID -and $_.Name -notin $excludedDomainGroupsByName }) {
                                 Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.EmptyGroupsSection {
                                     Show-AbrDebugExecutionTime -Start -TitleMessage 'Empty Groups (Non-Default)'
-                                    $OutObj = [System.Collections.ArrayList]::new()
+                                    $OutObj = [System.Collections.Generic.List[object]]::new()
                                     foreach ($Group in $EmptyGroupArray) {
                                         if ($Group.SID -notin $excludedForestGroupsBySID -and $Group.SID -notin $excludedDomainGroupsBySID -and $Group.Name -notin $excludedDomainGroupsByName) {
                                             try {
@@ -592,7 +592,7 @@ function Get-AbrADDomainObject {
                                                     $reportTranslate.GetAbrADDomainObject.GroupName = $Group.Name
                                                     $reportTranslate.GetAbrADDomainObject.GroupSID = $Group.SID
                                                 }
-                                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                             } catch {
                                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Empty Groups Objects Table)"
                                             }
@@ -626,7 +626,7 @@ function Get-AbrADDomainObject {
                     if ($HealthCheck.Domain.BestPractice -and $InfoLevel.Domain -ge 2) {
                         Show-AbrDebugExecutionTime -Start -TitleMessage 'Circular Group Membership'
                         try {
-                            $OutObj = [System.Collections.ArrayList]::new()
+                            $OutObj = [System.Collections.Generic.List[object]]::new()
                             $NonEmptyGroups = ($GroupOBj | Where-Object { ( $_.Members ) })
                             # Loop through each parent group
                             foreach ($Parent in $NonEmptyGroups) {
@@ -646,7 +646,7 @@ function Get-AbrADDomainObject {
                                                     $reportTranslate.GetAbrADDomainObject.ParentGroupName = $Parent.Name
                                                     $reportTranslate.GetAbrADDomainObject.ChildGroupName = $nestedGroup.Name
                                                 }
-                                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                             } catch {
                                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Circular Group Membership Table)"
                                             }
@@ -695,7 +695,7 @@ function Get-AbrADDomainObject {
                             if ($PreWin2000Group = $GroupOBj | Where-Object { $_.SID -eq 'S-1-5-32-554' }) {
                                 $GroupMembers = $PreWin2000Group.Members
                                 if ($GroupMembers) {
-                                    $OutObj = [System.Collections.ArrayList]::new()
+                                    $OutObj = [System.Collections.Generic.List[object]]::new()
                                     foreach ($MemberDN in $GroupMembers) {
                                         try {
                                             if ($MemberUser = $Users | Where-Object { $_.DistinguishedName -eq $MemberDN }) {
@@ -715,7 +715,7 @@ function Get-AbrADDomainObject {
                                                 $reportTranslate.GetAbrADDomainObject.Name = $MemberName
                                                 $reportTranslate.GetAbrADDomainObject.DistinguishedName = $MemberDN
                                             }
-                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Pre-Windows 2000 Compatible Access Group Member)"
                                         }
@@ -757,12 +757,12 @@ function Get-AbrADDomainObject {
             Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.ComputerObjectsSection {
                 Show-AbrDebugExecutionTime -Start -TitleMessage 'Computer Objects'
                 try {
-                    $OutObj = [System.Collections.ArrayList]::new()
+                    $OutObj = [System.Collections.Generic.List[object]]::new()
                     $inObj = [ordered] @{
                         $reportTranslate.GetAbrADDomainObject.Computers = ($Computers | Measure-Object).Count
                         $reportTranslate.GetAbrADDomainObject.Servers = ($Servers).Count
                     }
-                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                     $TableParams = @{
                         Name = "$($reportTranslate.GetAbrADDomainObject.ComputersSubSection) - $($Domain.DNSRoot.ToString().ToUpper())"
@@ -793,7 +793,7 @@ function Get-AbrADDomainObject {
                 }
                 try {
                     Show-AbrDebugExecutionTime -Start -TitleMessage 'Status of Computer Accounts'
-                    $OutObj = [System.Collections.ArrayList]::new()
+                    $OutObj = [System.Collections.Generic.List[object]]::new()
                     $dormanttime = (Get-Date).Adddays(-90)
                     $passwordtime = (Get-Date).Adddays(-30)
                     $Dormant = $Computers | Where-Object { [datetime]::FromFileTime($_.lastlogontimestamp) -lt $dormanttime }
@@ -836,7 +836,7 @@ function Get-AbrADDomainObject {
                                         default { [math]::Round((($Values | Measure-Object).Count / $Computers.Count * 100), 2) }
                                     }
                                 }
-                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of Computer Accounts)"
                             }
@@ -873,7 +873,7 @@ function Get-AbrADDomainObject {
                 try {
                     Section -Style Heading5 $reportTranslate.GetAbrADDomainObject.OperatingSystemsCountSection {
                         Show-AbrDebugExecutionTime -Start -TitleMessage 'Operating Systems Count'
-                        $OutObj = [System.Collections.ArrayList]::new()
+                        $OutObj = [System.Collections.Generic.List[object]]::new()
                         try {
                             $OSObjects = $Computers | Where-Object { $_.name -like '*' } | Group-Object -Property operatingSystem | Select-Object Name, Count
                             if ($OSObjects) {
@@ -885,7 +885,7 @@ function Get-AbrADDomainObject {
                                         }
                                         $reportTranslate.GetAbrADDomainObject.Count = $OSObject.Count
                                     }
-                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 }
                                 if ($HealthCheck.Domain.Security) {
                                     $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2003*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2008*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 95*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 7*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 8 *' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 98*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*XP*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* Vista*' } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainObject.OperatingSystem
@@ -922,7 +922,7 @@ function Get-AbrADDomainObject {
                         if ($ComputerObjects = $Computers | Where-Object { $_.PasswordNeverExpires }) {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Computers with Password-Not-Required Attribute Set'
                             Section -ExcludeFromTOC -Style NOTOCHeading5 $reportTranslate.GetAbrADDomainObject.PasswordNotRequiredSection {
-                                $OutObj = [System.Collections.ArrayList]::new()
+                                $OutObj = [System.Collections.Generic.List[object]]::new()
                                 try {
                                     foreach ($ComputerObject in $ComputerObjects) {
                                         $inObj = [ordered] @{
@@ -930,7 +930,7 @@ function Get-AbrADDomainObject {
                                             $reportTranslate.GetAbrADDomainObject.DistinguishedName = $ComputerObject.DistinguishedName
                                             $reportTranslate.GetAbrADDomainObject.Enabled = $ComputerObject.Enabled
                                         }
-                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     }
 
                                     $OutObj | Set-Style -Style Warning
@@ -964,7 +964,7 @@ function Get-AbrADDomainObject {
                     try {
                         Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.ComputersInventorySection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Computers Inventory'
-                            $OutObj = [System.Collections.ArrayList]::new()
+                            $OutObj = [System.Collections.Generic.List[object]]::new()
                             foreach ($Computer in $Computers) {
                                 try {
                                     $inObj = [ordered] @{
@@ -977,7 +977,7 @@ function Get-AbrADDomainObject {
                                             default { $reportTranslate.GetAbrADDomainObject.StatusUnknown }
                                         }
                                     }
-                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers Objects Table)"
                                 }
@@ -1009,7 +1009,7 @@ function Get-AbrADDomainObject {
             try {
                 Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.DefaultPasswordPolicySection {
                     Show-AbrDebugExecutionTime -Start -TitleMessage 'Default Domain Password Policy'
-                    $OutObj = [System.Collections.ArrayList]::new()
+                    $OutObj = [System.Collections.Generic.List[object]]::new()
                     try {
                         $PasswordPolicy = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDefaultDomainPasswordPolicy -Identity ($using:Domain).DNSRoot }
                         if ($PasswordPolicy) {
@@ -1025,7 +1025,7 @@ function Get-AbrADDomainObject {
                                 $reportTranslate.GetAbrADDomainObject.EnforcePasswordHistory = $PasswordPolicy.PasswordHistoryCount
                                 $reportTranslate.GetAbrADDomainObject.StorePasswordReversible = $PasswordPolicy.ReversibleEncryptionEnabled
                             }
-                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                             if ($HealthCheck.Domain.Security -and ($PasswordPolicy.MaxPasswordAge.Days -gt 90)) {
                                 $OutObj | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.MaxPasswordAge
@@ -1063,12 +1063,12 @@ function Get-AbrADDomainObject {
                     if ($PasswordPolicy = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADFineGrainedPasswordPolicy -Server ($using:Domain).PDCEmulator -Filter { Name -like '*' } -Properties * -SearchBase ($using:Domain).distinguishedName } | Sort-Object -Property Name) {
                         Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.FineGrainedPasswordPoliciesSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Fined Grained Password Policies'
-                            $FGPPInfo = [System.Collections.ArrayList]::new()
+                            $FGPPInfo = [System.Collections.Generic.List[object]]::new()
                             foreach ($FGPP in $PasswordPolicy) {
                                 try {
-                                    $Accounts = [System.Collections.ArrayList]::new()
+                                    $Accounts = [System.Collections.Generic.List[object]]::new()
                                     foreach ($ADObject in $FGPP.AppliesTo) {
-                                        $Accounts.Add(($Users | Where-Object { $_.distinguishedName -eq $ADObject }).sAMAccountName) | Out-Null
+                                        $Accounts.Add(($Users | Where-Object { $_.distinguishedName -eq $ADObject }).sAMAccountName)
                                     }
                                     $inObj = [ordered] @{
                                         $reportTranslate.GetAbrADDomainObject.FGPPName = $FGPP.Name
@@ -1086,7 +1086,7 @@ function Get-AbrADDomainObject {
                                         $reportTranslate.GetAbrADDomainObject.FGPPPrecedence = $FGPP.Precedence
                                         $reportTranslate.GetAbrADDomainObject.FGPPAppliesTo = $Accounts -join ', '
                                     }
-                                    $FGPPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $FGPPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
                                     Write-PScriboMessage -IsWarning $($_.Exception.Message)
                                 }
@@ -1129,10 +1129,19 @@ function Get-AbrADDomainObject {
             try {
                 if ($Domain.DNSRoot -eq $ADSystem.RootDomain) {
                     foreach ($Item in $Domain) {
+<<<<<<< Updated upstream
                         $LAPS = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Server ($using:Domain).PDCEmulator "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:Domain).distinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
+<<<<<<< HEAD
                         Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection {
+=======
+                        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection {
+=======
+                        $LAPS = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Server ($using:Domain).PDCEmulator "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:Domain).distinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { $null }
+                        Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection {
+>>>>>>> Stashed changes
+>>>>>>> e8dc014 (Apply PowerShell 7.4+ best practices across all source files)
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Microsoft LAPS'
-                            $LAPSInfo = [System.Collections.ArrayList]::new()
+                            $LAPSInfo = [System.Collections.Generic.List[object]]::new()
                             try {
                                 $inObj = [ordered] @{
                                     $reportTranslate.GetAbrADDomainObject.LAPSName = $reportTranslate.GetAbrADDomainObject.LAPSName_Value
@@ -1144,7 +1153,7 @@ function Get-AbrADDomainObject {
                                     $reportTranslate.GetAbrADDomainObject.LAPSDistinguishedName = $LAPS.DistinguishedName
 
                                 }
-                                $LAPSInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                $LAPSInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                 if ($HealthCheck.Domain.Security) {
                                     $LAPSInfo | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.LAPSEnabled) -eq 'No' } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainObject.LAPSEnabled
@@ -1200,7 +1209,7 @@ function Get-AbrADDomainObject {
                     if ($GMSA = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADServiceAccount -Server $using:ValidDcFromDomain -Filter * -Properties * }) {
                         Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.GMSASection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'gMSA Identities'
-                            $GMSAInfo = [System.Collections.ArrayList]::new()
+                            $GMSAInfo = [System.Collections.Generic.List[object]]::new()
                             foreach ($Account in $GMSA) {
                                 try {
                                     $inObj = [ordered] @{
@@ -1228,7 +1237,7 @@ function Get-AbrADDomainObject {
                                             default { 'Unknown' }
                                         }
                                     }
-                                    $GMSAInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $GMSAInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Managed Service Accounts Item)"
@@ -1333,7 +1342,7 @@ function Get-AbrADDomainObject {
                     if ($FSP) {
                         Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.FSPSection {
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Foreign Security Principals'
-                            $FSPInfo = [System.Collections.ArrayList]::new()
+                            $FSPInfo = [System.Collections.Generic.List[object]]::new()
                             foreach ($Account in $FSP) {
                                 try {
                                     $inObj = [ordered] @{
@@ -1346,7 +1355,7 @@ function Get-AbrADDomainObject {
                                             }
                                         }
                                     }
-                                    $FSPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                    $FSPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Foreign Security Principals Item)"

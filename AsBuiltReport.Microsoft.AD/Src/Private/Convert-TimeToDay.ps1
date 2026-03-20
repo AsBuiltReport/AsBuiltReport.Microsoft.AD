@@ -12,7 +12,7 @@ function Convert-TimeToDay {
             if ($StartTime -notlike $Ignore -and $EndTime -notlike $Ignore) {
                 $Days = (New-TimeSpan -Start $StartTime -End $EndTime).Days
             }
-        } catch { Out-Null }
+        } catch { $null }
     } elseif ($null -ne $EndTime) {
         if ($StartTime -notlike $Ignore -and $EndTime -notlike $Ignore) {
             $Days = (New-TimeSpan -Start (Get-Date) -End ($EndTime)).Days

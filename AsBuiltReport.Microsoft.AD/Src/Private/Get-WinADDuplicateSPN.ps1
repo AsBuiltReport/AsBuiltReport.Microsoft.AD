@@ -67,7 +67,7 @@
     }
     Write-PScriboMessage -Message 'Get-WinADDuplicateSPN - Finalizing output. Processing...'
     foreach ($SPN in $SPNCache.Values) {
-        if ($SPN.Count -gt 1 -and $SPN.Excluded -ne $true) {
+        if ($SPN.Count -gt 1 -and -not $SPN.Excluded) {
             $SPN.Duplicate = $true
         }
         if ($All) {

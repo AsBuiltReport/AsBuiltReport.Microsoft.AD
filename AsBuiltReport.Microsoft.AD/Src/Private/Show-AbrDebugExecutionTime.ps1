@@ -45,15 +45,15 @@ function Show-AbrDebugExecutionTime {
             if ($Options.ShowExecutionTime -and $Start) {
                 $script:SectionStartTime = Get-Date
             }
-        } catch { Out-Null }
+        } catch { $null }
 
         try {
             if ($Options.ShowExecutionTime -and $End) {
                 $script:SectionEndTime = Get-Date
                 $elapsedTime = New-TimeSpan -Start $SectionStartTime -End $SectionEndTime
-                Write-Host -ForegroundColor Cyan "$($TitleMessage) section execution time [hh:mm:ss]: $($elapsedTime.tostring('hh')):$($elapsedTime.tostring('mm')):$($elapsedTime.tostring('ss'))"
+                Write-PScriboMessage -Message "$($TitleMessage) section execution time [hh:mm:ss]: $($elapsedTime.tostring('hh')):$($elapsedTime.tostring('mm')):$($elapsedTime.tostring('ss'))"
             }
-        } catch { Out-Null }
+        } catch { $null }
     }
 
     end {}

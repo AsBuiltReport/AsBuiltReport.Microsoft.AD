@@ -40,7 +40,7 @@ function Get-AbrADAuthenticationPolicy {
                             Section -Style Heading4 $reportTranslate.GetAbrADAuthenticationPolicy.SilosSection {
                                 Paragraph ($reportTranslate.GetAbrADAuthenticationPolicy.SilosParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                                 BlankLine
-                                $SiloInfo = [System.Collections.ArrayList]::new()
+                                $SiloInfo = [System.Collections.Generic.List[object]]::new()
                                 foreach ($Silo in $AuthPolicySilos) {
                                     try {
                                         $inObj = [ordered] @{
@@ -59,7 +59,7 @@ function Get-AbrADAuthenticationPolicy {
                                                 if ([string]::IsNullOrEmpty($Silo.ComputerAuthenticationPolicy)) { '--' } else { $Silo.ComputerAuthenticationPolicy }
                                             }
                                         }
-                                        $SiloInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                        $SiloInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Authentication Policy Silo Item)"
                                     }
@@ -107,7 +107,7 @@ function Get-AbrADAuthenticationPolicy {
                                 }
 
                                 try {
-                                    $SiloMemberInfo = [System.Collections.ArrayList]::new()
+                                    $SiloMemberInfo = [System.Collections.Generic.List[object]]::new()
                                     foreach ($Silo in $AuthPolicySilos) {
                                         foreach ($Member in $Silo.Members) {
                                             try {
@@ -123,7 +123,7 @@ function Get-AbrADAuthenticationPolicy {
                                                         $reportTranslate.GetAbrADAuthenticationPolicy.ObjectClass = $TextInfo.ToTitleCase($MemberObj.ObjectClass)
                                                         $reportTranslate.GetAbrADAuthenticationPolicy.DistinguishedName = $MemberObj.DistinguishedName
                                                     }
-                                                    $SiloMemberInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                                    $SiloMemberInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                                 }
                                             } catch {
                                                 Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Authentication Policy Silo Member Item)"
@@ -160,7 +160,7 @@ function Get-AbrADAuthenticationPolicy {
                             Section -Style Heading4 $reportTranslate.GetAbrADAuthenticationPolicy.PoliciesSection {
                                 Paragraph ($reportTranslate.GetAbrADAuthenticationPolicy.PoliciesParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                                 BlankLine
-                                $PolicyInfo = [System.Collections.ArrayList]::new()
+                                $PolicyInfo = [System.Collections.Generic.List[object]]::new()
                                 foreach ($Policy in $AuthPolicies) {
                                     try {
                                         $inObj = [ordered] @{
@@ -179,7 +179,7 @@ function Get-AbrADAuthenticationPolicy {
                                                 if ($null -eq $Policy.ComputerTGTLifetimeMins -or $Policy.ComputerTGTLifetimeMins -eq 0) { '--' } else { $Policy.ComputerTGTLifetimeMins }
                                             }
                                         }
-                                        $PolicyInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                        $PolicyInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Authentication Policy Item)"
                                     }

@@ -34,7 +34,7 @@ function Get-AbrADCATemplate {
                 Section -Style Heading3 $reportTranslate.GetAbrADCATemplate.Heading {
                     Paragraph $reportTranslate.GetAbrADCATemplate.Paragraph
                     BlankLine
-                    $OutObj = [System.Collections.ArrayList]::new()
+                    $OutObj = [System.Collections.Generic.List[object]]::new()
                     foreach ($Template in $Templates) {
                         try {
                             $inObj = [ordered] @{
@@ -43,7 +43,7 @@ function Get-AbrADCATemplate {
                                 $reportTranslate.GetAbrADCATemplate.SupportedCA = $Template.SupportedCA
                                 $reportTranslate.GetAbrADCATemplate.Autoenrollment = $Template.AutoenrollmentAllowed
                             }
-                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (CA Certificate Templates table)"
                         }
@@ -68,7 +68,7 @@ function Get-AbrADCATemplate {
                                         $Rights = Get-CertificateTemplateAcl -Template $Template | Select-Object -ExpandProperty Access
                                         if ($Rights) {
                                             Section -ExcludeFromTOC -Style NOTOCHeading5 "$($Template.DisplayName)" {
-                                                $OutObj = [System.Collections.ArrayList]::new()
+                                                $OutObj = [System.Collections.Generic.List[object]]::new()
                                                 foreach ($Right in $Rights) {
                                                     try {
                                                         $inObj = [ordered] @{
@@ -77,7 +77,7 @@ function Get-AbrADCATemplate {
                                                             $reportTranslate.GetAbrADCATemplate.Rights = $Right.Rights
                                                             $reportTranslate.GetAbrADCATemplate.Inherited = $Right.IsInherited
                                                         }
-                                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                                        $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                                     } catch {
                                                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Templates ACL Item)"
                                                     }
@@ -109,7 +109,7 @@ function Get-AbrADCATemplate {
                                 Section -Style Heading4 $reportTranslate.GetAbrADCATemplate.ADTemplates {
                                     Paragraph $reportTranslate.GetAbrADCATemplate.ADTemplatesParagraph
                                     BlankLine
-                                    $OutObj = [System.Collections.ArrayList]::new()
+                                    $OutObj = [System.Collections.Generic.List[object]]::new()
                                     foreach ($Template in $Templates) {
                                         try {
                                             $inObj = [ordered] @{
@@ -118,7 +118,7 @@ function Get-AbrADCATemplate {
                                                 $reportTranslate.GetAbrADCATemplate.SupportedCA = $Template.SupportedCA
                                                 $reportTranslate.GetAbrADCATemplate.Autoenrollment = $Template.AutoenrollmentAllowed
                                             }
-                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                                            $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         } catch {
                                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Certificate Template In Active Directory Item)"
                                         }

@@ -25,13 +25,13 @@ function Get-AbrADSCCM {
 
     process {
         $DomainDN = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { (Get-ADDomain -Identity (Get-ADForest | Select-Object -ExpandProperty RootDomain )).DistinguishedName }
-        $SCCMMP = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction SilentlyContinue -ScriptBlock { Get-ADObject -Filter { (objectClass -eq 'mSSMSManagementPoint') -and (Name -like 'SMS-MP-*') } -SearchBase "CN=System Management,CN=System,$using:DomainDN" -Properties * } } catch { Out-Null }
+        $SCCMMP = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction SilentlyContinue -ScriptBlock { Get-ADObject -Filter { (objectClass -eq 'mSSMSManagementPoint') -and (Name -like 'SMS-MP-*') } -SearchBase "CN=System Management,CN=System,$using:DomainDN" -Properties * } } catch { $null }
         try {
             if ($SCCMMP ) {
                 Section -Style Heading3 $reportTranslate.GetAbrADSCCM.Heading {
                     Paragraph $reportTranslate.GetAbrADSCCM.Paragraph
                     BlankLine
-                    $SCCMInfo = [System.Collections.ArrayList]::new()
+                    $SCCMInfo = [System.Collections.Generic.List[object]]::new()
                     foreach ($SCCMServer in $SCCMMP) {
                         try {
                             $inObj = [ordered] @{
@@ -40,7 +40,7 @@ function Get-AbrADSCCM {
                                 $reportTranslate.GetAbrADSCCM.SiteCode = $SCCMServer.mSSMSSiteCode
                                 $reportTranslate.GetAbrADSCCM.Version = $SCCMServer.mSSMSVersion
                             }
-                            $SCCMInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
+                            $SCCMInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.SCCMception.Message) (SCCM Item)"
                         }

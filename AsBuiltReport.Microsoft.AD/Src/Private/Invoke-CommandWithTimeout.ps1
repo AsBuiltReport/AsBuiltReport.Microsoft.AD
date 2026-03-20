@@ -26,6 +26,7 @@ function Invoke-CommandWithTimeout {
     .NOTES
         This function is useful for preventing indefinite hangs when executing commands on remote systems. If a timeout occurs, the job will be stopped and an error message will be written to the error stream.
     #>
+    [CmdletBinding()]
     param(
         [Parameter(
             Mandatory,

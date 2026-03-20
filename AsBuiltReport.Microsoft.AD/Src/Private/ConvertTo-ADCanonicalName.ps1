@@ -13,6 +13,7 @@ function ConvertTo-ADCanonicalName {
     .LINK
 
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
@@ -20,10 +21,10 @@ function ConvertTo-ADCanonicalName {
         $Domain,
         $DC
     )
-    $ADObject = [System.Collections.ArrayList]::new()
+    $ADObject = [System.Collections.Generic.List[object]]::new()
     $DC = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomainController -Discover -Domain $using:Domain | Select-Object -ExpandProperty HostName }
     foreach ($Object in $DN) {
-        $ADObject.Add((Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject $using:Object -Properties * -Server $using:DC | Select-Object -ExpandProperty CanonicalName })) | Out-Null
+        $ADObject.Add((Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADObject $using:Object -Properties * -Server $using:DC | Select-Object -ExpandProperty CanonicalName }))
     }
     $ADObject;
 }# end
