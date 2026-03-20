@@ -61,17 +61,18 @@ This report is compatible with the following PowerShell versions;
 <!-- ********** Update supported PowerShell versions ********** -->
 | Windows PowerShell 5.1 |    PowerShell 7    |
 | :--------------------: | :----------------: |
-|          :white_check_mark:           | :white_check_mark: |
+|          :x:           | :white_check_mark: |
 
 ## :wrench: System Requirements
 <!-- ********** Update system requirements ********** -->
 PowerShell 7+, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
 - [AsBuiltReport.Core Module](https://github.com/AsBuiltReport/AsBuiltReport.Core)
+- [AsBuiltReport.Chart Module](https://github.com/AsBuiltReport/AsBuiltReport.Chart)
+- [AsBuiltReport.Diagram Module](https://github.com/AsBuiltReport/AsBuiltReport.Diagram)
 - [AsBuiltReport.Microsoft.AD Module](https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/)
 - [PScribo Module](https://github.com/iainbrighton/PScribo)
 - [PSGraph Module](https://github.com/KevinMarquette/PSGraph)
-- [Diagrammer.Core Module](https://github.com/rebelinux/Diagrammer.Core)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
 - [ADCSAdministration Module](https://learn.microsoft.com/en-us/powershell/module/adcsadministration/?view=windowsserver2019-ps)
 - [PSPKI Module](https://www.powershellgallery.com/packages/PSPKI/3.7.2)
@@ -80,7 +81,7 @@ PowerShell 7+, and the following PowerShell modules are required for generating 
 
 ### Linux & macOS
 
-This report does not support Linux or Mac due to the fact that the ActiveDirectory/GroupPolicy modules are dependent on the .NET Framework. Until Microsoft migrates these modules to native PowerShell Core, only PowerShell >= 7 will be supported on Windows.
+This report is not supported on Linux or macOS because the ActiveDirectory and GroupPolicy modules depend on the .NET Framework. These modules are Windows-only until Microsoft migrates them to PowerShell Core. Therefore, only PowerShell 7+ on Windows is supported for generating this report.
 
 ### :closed_lock_with_key: Required Privileges
 
@@ -96,7 +97,8 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 ```powershell
 Install-Module -Name PSPKI
 Install-Module -Name PSGraph
-Install-Module -Name Diagrammer.Core
+Install-Module -Name AsBuiltReport.Chart
+Install-Module -Name AsBuiltReport.Diagram
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Install-WindowsFeature -Name RSAT-AD-PowerShell
 Install-WindowsFeature -Name RSAT-ADCS,RSAT-ADCS-mgmt
@@ -109,7 +111,8 @@ Install-WindowsFeature -Name GPMC
 ```powershell
 Install-Module -Name PSPKI
 Install-Module -Name PSGraph
-Install-Module -Name Diagrammer.Core
+Install-Module -Name AsBuiltReport.Chart
+Install-Module -Name AsBuiltReport.Diagram
 Install-Module -Name AsBuiltReport.Microsoft.AD
 Add-WindowsCapability -online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'
 Add-WindowsCapability -Online -Name 'Rsat.CertificateServices.Tools~~~~0.0.1.0'
@@ -245,13 +248,9 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 ```
 
 ## :x: Known Issues
-
-- This project uses the PScribo module to generate the documents. I have identified that the EvotecIT "PSWriteWord" project uses the same cmdlet. For this report to be generated successfully the PSWriteWord module must be uninstalled.
-- This project relies heavily on the remote connection function through WinRM. For this reason the use of a Windows 10 client is specifically used as a jumpbox.
-- The report provides the ability to extract the configuration of the DNS services. In order to obtain this information it is required that the servers running these services have powershell modules installed for each service (RSAT-DNS-Server & RSAT-AD-PowerShell).
-- This report assumes that the DNS Server service is running on the same server where Domain Controller is running (Cohost).
-- In some cases when trying to update the report, an error similar to this is generated:
-  - "PackageManagement\Install-Package : Authenticode issuer 'CN="xyz, INC.", O="xyz, INC.", L=San Jose, S=California on the previusly-installed module 'PSPKI'. If you still want to install or update, use -SkipPublisherCheck parameter."
-  - The expected workaround is to add the '-SkipPublisherCheck' to the install module 'Update-Module -Name PSPKI -Force -SkipPublisherCheck'
-- Issues when running the report against Windows Server 2012 and 2012 R2.
-  - Error: "Exception calling Save with 1 argument(s): hexadecimal value 0x00, is an invalid character."
+- **PSWriteWord Module Conflict**: PScribo and the EvotecIT "PSWriteWord" project use conflicting cmdlets. The PSWriteWord module must be uninstalled before generating reports.
+- **WinRM Dependency**: This report relies heavily on remote connections via WinRM. A Windows 10 client is recommended as a jumpbox for optimal connectivity.
+- **DNS Service Requirements**: To extract DNS service configuration, install PowerShell management modules on servers hosting DNS services (RSAT-DNS-Server and RSAT-AD-PowerShell).
+- **DNS Cohosting Assumption**: The report assumes DNS Server service runs on the same server as the Domain Controller.
+- **PSPKI Publisher Check Error**: When updating modules, you may encounter authentication errors. Resolve by adding the `-SkipPublisherCheck` parameter: `Update-Module -Name PSPKI -Force -SkipPublisherCheck`
+- **Windows Server 2012/2012 R2 Compatibility**: Hexadecimal character errors may occur when running against older Windows Server versions.
