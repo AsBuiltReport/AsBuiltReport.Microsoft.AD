@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add condition to check for members of Pre-Windows 2000 group
 - Add a Replication diagram to the report
 - Add comprehensive copilot instructions for project structure, build, test, architecture, and coding conventions.
-
+- Add Get-AbrADReportBrief function to generate a one-page summary of Active Directory configuration and integrate it into the report generation process
 
 ### :arrows_clockwise: Changed
 
@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve known issues section for clarity and detail.
 - Enhance documentation clarity in MicrosoftAD.psd1 for English and Spanish languages
 - Refactor localization strings in MicrosoftAD.psd1 for clarity and consistency. Improved grammar, punctuation, and readability across various best practice descriptions related to Active Directory configurations.
+- Enhance Active Directory report structure by adding detailed sections for Forest, Sites, Infrastructure, GPOs, and Account Policies. Improve localization strings for English and Spanish, and handle missing infrastructure scenarios in Exchange, SCCM, and DHCP sections.
 
 ## [0.9.11] - 2026-02-21
 

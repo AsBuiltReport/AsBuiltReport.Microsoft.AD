@@ -21,6 +21,42 @@
     No = No
 '@
 
+    # Get-AbrADReportBrief
+    GetAbrADReportBrief = ConvertFrom-StringData @'
+    Collecting = Generating Active Directory Report Brief for {0}.
+    ReportBrief = Report Brief
+    ReportBriefParagraph = This report brief provides a high-level summary of the Active Directory environment, including infrastructure topology, domain configuration, and the scope of this document.
+    ReportOverview = Report Overview
+    ReportName = Report Name
+    ReportVersion = Report Version
+    TargetForest = Target Forest
+    GeneratedOn = Generated On
+    ForestSummary = Forest Summary
+    ForestName = Forest Name
+    ForestMode = Forest Functional Level
+    RootDomain = Root Domain
+    TotalDomains = Total Domains
+    TotalSites = Total Sites
+    TotalGlobalCatalogs = Global Catalog Servers
+    TotalUPNSuffixes = UPN Suffixes
+    DomainSummary = Domain Summary
+    DomainName = Domain Name
+    DomainMode = Domain Functional Level
+    DomainControllers = Domain Controllers
+    PDCEmulator = PDC Emulator
+    ReportScope = Report Scope
+    Section = Section
+    DetailLevel = Detail Level
+    ScopeForest = Forest
+    ScopeDomain = Domain
+    ScopeDNS = DNS
+    ScopeCA = Certificate Authority (PKI)
+    ScopeDisabled = Disabled
+    ScopeEnabled = Enabled (Summary)
+    ScopeAdvanced = Enabled (Advanced Summary)
+    ScopeDetailed = Enabled (Detailed)
+'@
+
     # Get-AbrForestSection
     GetAbrForestSection = ConvertFrom-StringData @'
     Collecting = Collecting Forest information from {0}.
@@ -29,6 +65,11 @@
     DefinitionText = The Active Directory framework that holds the objects can be viewed at several levels. The forest, tree, and domain are the logical divisions in an Active Directory network. At the top of the structure is the forest, which is a collection of trees that share a common global catalog, directory schema, logical structure, and directory configuration. The forest represents the security boundary within which users, computers, groups, and other objects are contained.
     ParagraphDetail = The following section provides a detailed overview of the Active Directory Forest infrastructure and configuration.
     ErrorForest = Error: Unable to retrieve Forest: {0} information.
+    TitleSuffix = Active Directory Forest
+    SitesHeading = AD Sites & Replication
+    SitesParagraph = The following section provides an overview of the Active Directory site topology, site links, replication connections, and inter-site transport configuration.
+    InfraHeading = Infrastructure Services
+    InfraParagraph = The following section provides an overview of infrastructure services registered in Active Directory, including Exchange, MECM/SCCM, and DHCP server information.
 '@
 
     # Get-AbrADForest
@@ -207,6 +248,7 @@
     Collecting = Collecting AD Exchange information of {0}.
     Heading = Exchange Infrastructure
     Paragraph = The following section provides an overview of the Microsoft Exchange Server infrastructure registered in Active Directory, including server names, roles, and version information.
+    NotFound = No Microsoft Exchange Server infrastructure was found registered in this forest.
     Name = Name
     DnsName = DNS Name
     ServerRoles = Server Roles
@@ -218,6 +260,7 @@
     Collecting = Collecting AD SCCM information of {0}.
     Heading = SCCM Infrastructure
     Paragraph = The following section provides a summary of the Microsoft Endpoint Configuration Manager (MECM/SCCM) infrastructure registered in Active Directory, including site codes, management points, and version details.
+    NotFound = No Microsoft Endpoint Configuration Manager (MECM/SCCM) infrastructure was found registered in this forest.
     Name = Name
     ManagementPoint = Management Point
     SiteCode = Site Code
@@ -229,6 +272,7 @@
     Collecting = Collecting AD DHCP Servers information of {0}.
     Heading = DHCP Infrastructure
     Paragraph = The following section provides an overview of the DHCP servers registered in Active Directory.
+    NotFound = No DHCP servers were found registered in Active Directory for this forest.
     ServerName = Server Name
     IsDomainController = Is Domain Controller?
     Yes = Yes
@@ -254,7 +298,7 @@
     HealthCheck = Health Check:
     BestPractice = Best Practice:
     DescBP = It is a good practice to establish well-defined descriptions. This helps to speed up the fault identification process and enables better documentation of the environment.
-    SiteSubnetBP = Ensure Sites have an associated subnet. If subnets are not associated with AD Sites, users in the AD Sites might choose a remote domain controller for authentication, which can result in excessive use of a remote domain controller.
+    SiteSubnetBP = Ensure Sites have an associated subnet. If subnets are not associated with AD Sites, users might choose a remote domain controller for authentication, which could result in excessive use of remote domain controllers.
     SiteDCBP = It is important to ensure that each site has at least one assigned domain controller. Missing domain controllers can lead to authentication delays and potential service disruptions for users in the site.
     ConnectionObjects = Connection Objects
     Name = Name
@@ -332,6 +376,7 @@
     Heading = DNS Configuration
     DefinitionParagraph = The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols.
     Paragraph = The following section provides a detailed overview of the DNS infrastructure configuration and settings within the Active Directory environment.
+    NoCIMSession = DNS infrastructure configuration data requires a CIM session and could not be collected. Verify that WinRM and CIM connectivity to the domain controllers is available.
 '@
 
     # Get-AbrADDNSInfrastructure
@@ -446,6 +491,7 @@
     DefinitionParagraph = In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.
     Paragraph = The following section provides a detailed overview of the Active Directory Public Key Infrastructure (PKI) configuration and its components.
     DetailsSuffix = Details
+    CAParagraph = The following section provides detailed configuration and operational information for the {0} ({1}) hosted on {2}.
     DomainNotInForest = Current PC Domain {0} is not in the Forest Domain list of {1}. Disabling Certificate Authority section
 '@
 
@@ -662,6 +708,10 @@
     WinRMErrorDCDiag = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (DCDiag Information)
     WinRMErrorInfraService = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (ADInfrastructureService)
     DomainExcluded = {0} disabled in Exclude.Domain variable
+    ReplicationSection = Replication
+    ReplicationParagraph = The following section provides an overview of Active Directory replication connections and status between domain controllers in this domain.
+    GPOSection = Group Policy
+    GPOParagraph = The following section provides an overview of the Group Policy Objects (GPOs) configured and applied within this domain.
 '@
 
     # Get-AbrADDomain
@@ -788,7 +838,10 @@
     # Get-AbrADDomainObject
     GetAbrADDomainObject = ConvertFrom-StringData @'
     Collecting = Collecting AD Domain Objects information on forest {0}.
-    DomainObjectsSection = Domain Objects
+    DirectoryObjectsSection = Directory Objects
+    DirectoryObjectsParagraph = The following section provides an inventory and statistical overview of user, group, and computer objects within the domain.
+    AccountPoliciesSection = Account Policies
+    AccountPoliciesParagraph = The following section provides details about password policies, fine-grained password policies, LAPS configuration, group Managed Service Accounts (gMSA), and Foreign Security Principals within the domain.
     DomainObjectsParagraph = The following section provides detailed information about computer, group, and user objects found in the {0} domain.
     UserObjectsSection = User Objects
     User = User
@@ -938,7 +991,7 @@
     PasswordNeverExpiresBP = **Accounts with passwords set to never expire were found in the environment. Ensure there are no accounts with weak security postures. Accounts with passwords that never expire can pose a significant security risk as they may not be updated regularly. It is recommended to enforce password expiration policies to enhance security.
     InactivePrivilegedUserBP = *Regularly check for and remove inactive privileged user accounts in Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts have privileged access helps maintain a secure environment.
     NonDefaultPrivilegedGroupBP = Regularly validate and remove unneeded privileged group members in Active Directory. Ensuring that only necessary accounts have privileged access helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation. Regular audits and reviews of group memberships can help identify and mitigate potential security risks.
-    EmptyGroupBP = Remove empty or unused Active Directory groups. An empty Active Directory security group causes two major problems. First, it adds unnecessary clutter and makes Active Directory administration more difficult, even when paired with user-friendly tools. Second, and most importantly, empty groups are a security risk to your network.
+    EmptyGroupBP = Remove empty or unused Active Directory groups. An empty Active Directory security group creates two significant problems. First, it adds unnecessary clutter and makes Active Directory administration more difficult, even when paired with user-friendly Active Directory tools. More critically, empty groups represent a security risk to your network, as they can be repurposed or inadvertently granted permissions.
     CircularGroupBP = In a well-structured Active Directory, every group will have a single purpose, ideally with people and resources in separate groups and following a clear hierarchy. If the personnel group is a member of the color_printing group and the color_printing group is also a member of the personnel group, then neither group has a single clear purpose, and both groups are now granting two permissions. Circular references are often the cause of unintended privilege escalation.
     PreWin2000BP = The Pre-Windows 2000 Compatible Access group provides backward compatibility with Windows NT 4.0 and earlier systems. If Authenticated Users or Anonymous Logon are members, it grants read access to all Active Directory objects to any authenticated or unauthenticated user, creating a significant security vulnerability. Review and remove any unnecessary members from this group.
     UnsupportedOSBP = Operating systems that are no longer supported for security updates are not maintained or updated to address vulnerabilities, leaving them open to potential attack. Organizations must transition to a supported operating system to ensure continued support and to improve the organization's security posture.
@@ -1345,6 +1398,12 @@
     Missing = Missing
     Valid = Valid
     Unknown = Unknown
+    GPOInventoryTitle = GPO Inventory
+    GPOInventoryParagraph = The following section provides an overview of all Group Policy Objects configured in the domain, including their status, security filtering, and link count.
+    GPOSettingsTitle = GPO Settings
+    GPOSettingsParagraph = The following section provides details about Group Policy configuration resources, including WMI filters, the Central Store repository, and scripts attached to GPOs.
+    GPOHealthTitle = GPO Health
+    GPOHealthParagraph = The following section highlights Group Policy Objects that may require attention, including unlinked, empty, enforced, and orphaned GPOs.
 '@
     # Get-AbrADDomainController
     GetAbrADDomainController = ConvertFrom-StringData @'
