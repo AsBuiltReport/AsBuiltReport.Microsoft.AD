@@ -16,7 +16,7 @@ function Get-ADExchangeServer {
     #>
     function ConvertToExchangeRole {
         [CmdletBinding()]
-    param(
+        param(
             [Parameter(Position = 0)]
             [int]$roles
         )
