@@ -27,8 +27,9 @@
     ReportBrief = Report Brief
     ReportBriefParagraph = This report brief provides a high-level summary of the Active Directory environment, including infrastructure topology, domain configuration, and the scope of this document.
     ReportOverview = Report Overview
-    ReportName = Report Name
-    ReportVersion = Report Version
+    CompanyName = Company Name
+    CompanyContact = Contact
+    CompanyEmail = Contact Email
     TargetForest = Target Forest
     GeneratedOn = Generated On
     ForestSummary = Forest Summary

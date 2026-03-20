@@ -124,18 +124,18 @@ function Get-AbrADDomainObject {
                     $AccountExpired = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Search-ADAccount -Server $using:ValidDcFromDomain -AccountExpired }
                     $AccountLockout = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Search-ADAccount -Server $using:ValidDcFromDomain -LockedOut }
                     $CategoryMap = [ordered]@{
-                        $reportTranslate.GetAbrADDomainObject.CatTotalUsers             = $Users
-                        $reportTranslate.GetAbrADDomainObject.CatCannotChangePassword   = $CannotChangePassword
-                        $reportTranslate.GetAbrADDomainObject.CatPasswordNeverExpires   = $passwordNeverExpires
+                        $reportTranslate.GetAbrADDomainObject.CatTotalUsers = $Users
+                        $reportTranslate.GetAbrADDomainObject.CatCannotChangePassword = $CannotChangePassword
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordNeverExpires = $passwordNeverExpires
                         $reportTranslate.GetAbrADDomainObject.CatMustChangePasswordAtLogon = $PasswordNextLogon
-                        $reportTranslate.GetAbrADDomainObject.CatPasswordAge180         = ($PasswordLastSet | Where-Object { $_.PasswordLastSet -le $passwordtime })
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordAge180 = ($PasswordLastSet | Where-Object { $_.PasswordLastSet -le $passwordtime })
                         $reportTranslate.GetAbrADDomainObject.CatSmartcardLogonRequired = $SmartcardLogonRequired
-                        $reportTranslate.GetAbrADDomainObject.CatSidHistory             = $SidHistory
-                        $reportTranslate.GetAbrADDomainObject.CatNeverLoggedIn          = $NeverloggedIn
-                        $reportTranslate.GetAbrADDomainObject.CatDormant90              = $Dormant
-                        $reportTranslate.GetAbrADDomainObject.CatPasswordNotRequired    = $PasswordNotRequired
-                        $reportTranslate.GetAbrADDomainObject.CatAccountExpired         = $AccountExpired
-                        $reportTranslate.GetAbrADDomainObject.CatAccountLockout         = $AccountLockout
+                        $reportTranslate.GetAbrADDomainObject.CatSidHistory = $SidHistory
+                        $reportTranslate.GetAbrADDomainObject.CatNeverLoggedIn = $NeverloggedIn
+                        $reportTranslate.GetAbrADDomainObject.CatDormant90 = $Dormant
+                        $reportTranslate.GetAbrADDomainObject.CatPasswordNotRequired = $PasswordNotRequired
+                        $reportTranslate.GetAbrADDomainObject.CatAccountExpired = $AccountExpired
+                        $reportTranslate.GetAbrADDomainObject.CatAccountLockout = $AccountLockout
                     }
                     if ($CategoryMap) {
                         foreach ($Category in $CategoryMap.Keys) {
@@ -801,9 +801,9 @@ function Get-AbrADDomainObject {
                     $SidHistory = $Computers.SIDHistory
                     $CategoryMap = [ordered]@{
                         $reportTranslate.GetAbrADDomainObject.CatTotalComputers = $Computers
-                        $reportTranslate.GetAbrADDomainObject.CatDormant90     = $Dormant
+                        $reportTranslate.GetAbrADDomainObject.CatDormant90 = $Dormant
                         $reportTranslate.GetAbrADDomainObject.CatPasswordAge30 = $PasswordAge
-                        $reportTranslate.GetAbrADDomainObject.CatSidHistory    = $SidHistory
+                        $reportTranslate.GetAbrADDomainObject.CatSidHistory = $SidHistory
                     }
                     if ($CategoryMap) {
                         foreach ($Category in $CategoryMap.Keys) {
@@ -1129,17 +1129,8 @@ function Get-AbrADDomainObject {
             try {
                 if ($Domain.DNSRoot -eq $ADSystem.RootDomain) {
                     foreach ($Item in $Domain) {
-<<<<<<< Updated upstream
-                        $LAPS = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Server ($using:Domain).PDCEmulator "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:Domain).distinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { Out-Null }
-<<<<<<< HEAD
-                        Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection {
-=======
-                        Section -Style Heading3 $reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection {
-=======
                         $LAPS = try { Invoke-CommandWithTimeout -Session $TempPssSession -ErrorAction Stop -ScriptBlock { Get-ADObject -Server ($using:Domain).PDCEmulator "CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,$(($using:Domain).distinguishedName)" -ErrorAction SilentlyContinue } | Sort-Object -Property Name } catch { $null }
                         Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.MicrosoftLAPSSection {
->>>>>>> Stashed changes
->>>>>>> e8dc014 (Apply PowerShell 7.4+ best practices across all source files)
                             Show-AbrDebugExecutionTime -Start -TitleMessage 'Microsoft LAPS'
                             $LAPSInfo = [System.Collections.Generic.List[object]]::new()
                             try {

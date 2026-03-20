@@ -33,8 +33,9 @@ function Get-AbrADReportBrief {
                 # Report Overview
                 try {
                     $inObj = [ordered] @{
-                        $reportTranslate.GetAbrADReportBrief.ReportName = $Report.Name
-                        $reportTranslate.GetAbrADReportBrief.ReportVersion = $Report.Version
+                        $reportTranslate.GetAbrADReportBrief.CompanyName = $AsBuiltConfig.Company.FullName
+                        $reportTranslate.GetAbrADReportBrief.CompanyContact = $AsBuiltConfig.Company.Contact
+                        $reportTranslate.GetAbrADReportBrief.CompanyEmail = $AsBuiltConfig.Company.Email
                         $reportTranslate.GetAbrADReportBrief.TargetForest = $ForestInfo
                         $reportTranslate.GetAbrADReportBrief.GeneratedOn = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
                     }
@@ -85,11 +86,7 @@ function Get-AbrADReportBrief {
 
                 # Domain Summary
                 try {
-<<<<<<< HEAD
-                    $OutObj = [System.Collections.ArrayList]::new()
-=======
                     $OutObj = [System.Collections.Generic.List[object]]::new()
->>>>>>> e8dc014 (Apply PowerShell 7.4+ best practices across all source files)
                     foreach ($Domain in $OrderedDomains) {
                         try {
                             $DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock {
@@ -104,11 +101,7 @@ function Get-AbrADReportBrief {
                                 $reportTranslate.GetAbrADReportBrief.DomainControllers = $DCCount
                                 $reportTranslate.GetAbrADReportBrief.PDCEmulator = $DomainInfo.PDCEmulator
                             }
-<<<<<<< HEAD
-                            $OutObj.Add([pscustomobject]$inObj) | Out-Null
-=======
                             $OutObj.Add([pscustomobject]$inObj)
->>>>>>> e8dc014 (Apply PowerShell 7.4+ best practices across all source files)
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Report Brief - Domain Summary - $Domain)"
                         }
@@ -135,11 +128,7 @@ function Get-AbrADReportBrief {
 
                 # Report Scope
                 try {
-<<<<<<< HEAD
-                    $OutObj = [System.Collections.ArrayList]::new()
-=======
                     $OutObj = [System.Collections.Generic.List[object]]::new()
->>>>>>> e8dc014 (Apply PowerShell 7.4+ best practices across all source files)
                     $ScopeMap = [ordered] @{
                         $reportTranslate.GetAbrADReportBrief.ScopeForest = $InfoLevel.Forest
                         $reportTranslate.GetAbrADReportBrief.ScopeDomain = $InfoLevel.Domain
@@ -159,11 +148,7 @@ function Get-AbrADReportBrief {
                             $reportTranslate.GetAbrADReportBrief.Section = $Entry.Key
                             $reportTranslate.GetAbrADReportBrief.DetailLevel = $StatusText
                         }
-<<<<<<< HEAD
-                        $OutObj.Add([pscustomobject]$inObj) | Out-Null
-=======
                         $OutObj.Add([pscustomobject]$inObj)
->>>>>>> e8dc014 (Apply PowerShell 7.4+ best practices across all source files)
                     }
 
                     $TableParams = @{
