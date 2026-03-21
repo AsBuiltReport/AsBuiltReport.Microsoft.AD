@@ -71,7 +71,7 @@ function New-AbrADDiagram {
     .PARAMETER WatermarkColor
         Allow to specified the color used for the watermark text. Default: #565656.
     .NOTES
-        Version:        0.9.11
+        Version:        0.9.12
         Author(s):      Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux

@@ -33,7 +33,7 @@
     Description = 'A PowerShell module to generate an as built report on the configuration of Microsoft AD.'
 
     # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion = '5.1'
+    PowerShellVersion = '7.4'
 
     # Name of the Windows PowerShell host required by this module
     # PowerShellHostName = ''

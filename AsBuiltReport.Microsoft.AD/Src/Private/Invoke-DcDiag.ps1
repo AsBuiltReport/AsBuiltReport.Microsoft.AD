@@ -5,7 +5,7 @@ function Invoke-DcDiag {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.9
+        Version:        0.9.12
         Author:         Adam Bertram
 
     .EXAMPLE

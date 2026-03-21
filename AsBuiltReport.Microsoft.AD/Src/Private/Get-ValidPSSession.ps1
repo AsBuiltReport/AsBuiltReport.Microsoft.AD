@@ -5,7 +5,7 @@ function Get-ValidPSSession {
     .DESCRIPTION
         Function to generate a valid WinRM session from a computer string.
     .NOTES
-        Version:        0.9.11
+        Version:        0.9.12
         Author:         Jonathan Colon
     .EXAMPLE
         PS C:\Users\JohnDoe> Get-ValidPSSession -ComputerName 'server-dc-01v.pharmax.local'

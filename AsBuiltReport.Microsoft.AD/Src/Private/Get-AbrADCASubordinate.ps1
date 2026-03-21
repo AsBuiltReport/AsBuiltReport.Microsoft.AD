@@ -5,7 +5,7 @@ function Get-AbrADCASubordinate {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.11
+        Version:        0.9.12
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux

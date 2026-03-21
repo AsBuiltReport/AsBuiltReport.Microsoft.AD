@@ -35,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactor Get-AbrADReportBrief, Get-AbrDNSSection, and Get-AbrDomainSection for improved logging and PowerShell best practices
 - Updated Get-AbrADReportBrief to include company information (name, contact, email) in the report overview
 - Changed the collection of domain and report scope information to use [System.Collections.Generic.List[object]] instead of [System.Collections.ArrayList]
+- Updated PowerShell module version in AsBuiltReport.Microsoft.AD.psd1 to 7.4.
+- Incremented version number to 0.9.12 in multiple scripts for consistency.
 
 ### :bug: Fixed
 
@@ -43,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### :x: Removed
 
 - Remove unused Get-ColumnChart and Get-PieChart functions from the module
+- Remove support for PowerShell 5.1
 
 ## [0.9.11] - 2026-02-21
 
