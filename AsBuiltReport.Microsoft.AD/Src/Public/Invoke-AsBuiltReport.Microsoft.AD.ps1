@@ -36,7 +36,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     Write-Host $reportTranslate.InvokeAsBuiltReportMicrosoftAD.ReportModuleInfo6
 
     # Check the version of the dependency modules
-    $ModuleArray = @('AsBuiltReport.Core', 'AsBuiltReport.Chart', 'Diagrammer.Core', 'PSPKI')
+    $ModuleArray = @('AsBuiltReport.Core', 'AsBuiltReport.Chart', 'AsBuiltReport.Diagram', 'PSPKI')
 
     foreach ($Module in $ModuleArray) {
         try {

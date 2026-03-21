@@ -705,7 +705,6 @@
     InfraServicesSection = Infrastructure Services
     InfraServicesParagraph = The following section provides a detailed overview of the status and configuration of infrastructure services on the domain controllers.
     NoDCAvailable = Unable to get an available DC in {0} domain. Removing domain from the Domain section.
-    UnableToConnect = Unable to connect to {0}. Removing it from the {1} report.
     WinRMErrorDCDiag = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (DCDiag Information)
     WinRMErrorInfraService = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (ADInfrastructureService)
     DomainExcluded = {0} disabled in Exclude.Domain variable

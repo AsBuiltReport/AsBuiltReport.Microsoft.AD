@@ -65,8 +65,6 @@ function Get-AbrDomainSection {
                                                 $RolesObj = foreach ($DC in $DCs) {
                                                     if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
                                                         Get-AbrADDCRoleFeature -DC $DC
-                                                    } else {
-                                                        Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrDomainSection.UnableToConnect -f $DC, $DomainInfo.DNSRoot)
                                                     }
                                                 }
                                                 if ($RolesObj) {
