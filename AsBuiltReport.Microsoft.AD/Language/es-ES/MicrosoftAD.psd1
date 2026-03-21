@@ -29,7 +29,7 @@
     ReportOverview = Report Overview
     CompanyName = Company Name
     CompanyContact = Contact
-    CompanyEmail = Contact Email
+    CompanyEmail = Email Address
     TargetForest = Target Forest
     GeneratedOn = Generated On
     ForestSummary = Forest Summary
