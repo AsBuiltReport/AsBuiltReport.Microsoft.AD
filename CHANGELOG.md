@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Get-AbrADReportBrief to include company information (name, contact, email) in the report overview
 - Changed the collection of domain and report scope information to use [System.Collections.Generic.List[object]] instead of [System.Collections.ArrayList]
 
+### :bug: Fixed
+
+- Fix Sysvol Replication table not correctly displaying the replication status of the domain controllers
+
 ### :x: Removed
 
 - Remove unused Get-ColumnChart and Get-PieChart functions from the module

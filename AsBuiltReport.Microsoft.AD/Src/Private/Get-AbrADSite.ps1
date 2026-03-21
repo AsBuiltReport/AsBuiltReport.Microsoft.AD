@@ -783,17 +783,7 @@ function Get-AbrADSite {
                                         Write-PScriboMessage -Message "Unable to collect infromation from $DC."
                                         $inObj = [ordered] @{
                                             $reportTranslate.GetAbrADSite.DCName = $DC.split('.', 2)[0]
-                                            $reportTranslate.GetAbrADSite.ReplicationStatus = switch ($Replication.State) {
-                                                0 { $reportTranslate.GetAbrADSite.StatusUninitialized }
-                                                1 { $reportTranslate.GetAbrADSite.StatusInitialized }
-                                                2 { $reportTranslate.GetAbrADSite.StatusInitialSync }
-                                                3 { $reportTranslate.GetAbrADSite.StatusAutoRecovery }
-                                                4 { $reportTranslate.GetAbrADSite.StatusNormal }
-                                                5 { $reportTranslate.GetAbrADSite.StatusInErrorState }
-                                                6 { $reportTranslate.GetAbrADSite.StatusDisabled }
-                                                7 { $reportTranslate.GetAbrADSite.StatusUnknown }
-                                                default { $reportTranslate.GetAbrADSite.StatusOffline }
-                                            }
+                                            $reportTranslate.GetAbrADSite.ReplicationStatus = $reportTranslate.GetAbrADSite.StatusUnknown
                                             $reportTranslate.GetAbrADSite.Domain = $Domain
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
