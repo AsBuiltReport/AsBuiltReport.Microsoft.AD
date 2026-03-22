@@ -80,7 +80,6 @@
     ParagraphDetail = The following sections provide a detailed configuration overview for each component of the Active Directory forest.
     ParagraphSummary = The following table summarizes key configuration attributes of the Active Directory forest.
     Heading = Forest Information
-
     ForestName = Forest Name
     ForestFunctionalLevel = Forest Functional Level
     SchemaVersion = Schema Version
@@ -98,7 +97,6 @@
     AnonymousAccess = Anonymous Access (dsHeuristics)
     AnonymousAccessEnabled = Enabled
     AnonymousAccessDisabled = Disabled
-
     ForestDiagram = Forest Diagram
     CASection = Certificate Authority
     CADefinition = In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.
@@ -115,7 +113,6 @@
     OFEnabled = Enabled
     OFEnabledYes = Yes
     OFEnabledNo = No
-
     HealthCheck = Health Check:
     BestPractice = Best Practice:
     Reference = Reference:
@@ -147,7 +144,6 @@
     InfoVersion = - {0} v{1} is currently installed.
     WarningUpdate =   - {0} v{1} update is available.
     WarningUpdateCommand =   - Run 'Update-Module -Name {0} -Force' to install the latest version.
-
     forestgraphlabel = Active Directory Forest Architecture
     domaingraphlabel = Active Directory Domain Architecture
     emptyForest = No Forest Infrastructure available to diagram
@@ -163,11 +159,9 @@
     fForestRootLabel = Forest Root
     fChildDomains = Child Domains
     fNoChildDomains = No Child Domains
-
     connectingDomain = Collecting Microsoft AD Domain information from {0}.
     connectingForest = Collecting Microsoft AD Forest information from {0}.
     forestRootInfo = Forest Root Information
-
     DiagramLabel = Child Domains
     contiguous = Contiguous
     noncontiguous = Non Contiguous
@@ -183,7 +177,6 @@
     domainNaming = <B>Domain Naming:</B> {0}
     fsmoRoles = FSMO Roles
     MicrosoftLogo = Microsoft Logo
-
     SitesDiagramDummyLabel = Sites
     sitesgraphlabel = Active Directory Site Topology
     sitesinventorygraphlabel = Active Directory Site Inventory
@@ -198,7 +191,6 @@
     emptySites = No Site topology available to diagram
     connectingSites = Collecting Microsoft AD Sites information from {0}.
     buildingSites = Building Microsoft AD Sites diagram from {0}.
-
     NoTrusts = No Trusts Topology
     emptyTrusts = No Trust topology available to diagram
     connectingSTrusts = Collecting Microsoft AD Trusts information from {0}.
@@ -210,10 +202,8 @@
     TrustAttributes = Type
     AuthenticationLevel = Authentication
     TrustRelationships = Trust Relationships
-
     Base64Output = Displaying Base64 string
     DiagramOutput = '{0}' diagram file '{1}' has been saved to '{2}'
-
     caDiagramLabel = Active Directory Certificate Authority
     caStdRootCA = Standalone Root CA
     caEntRootCA = Enterprise Root CA
@@ -227,11 +217,9 @@
     caType = Type
     caRootCaIssuer = Root CA Issuer
     caDnsName = Dns Name
-
     DomainControllers = Domain Controllers
     Sites = Sites
     Subnets = Subnets
-
     replicationDiagramLabel = Active Directory Replication Topology
     NoReplication = No Replication Topology
     emptyReplication = No Replication topology available to diagram
