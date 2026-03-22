@@ -23,10 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade AsBuiltReport.Chart module to version `0.3.0`
 - Migrate Diagrammer.Core to AsBuiltReport.Diagram module
 - Reorganize module structure - moved module files to AsBuiltReport.System.Resources/ subdirectory
-- Bump AsBuiltReport.Diagram module version from 1.0.2 to 1.0.4 in the module manifest.
-- Revise README to reflect compatibility with PowerShell 7+, update system requirements, and clarify Linux/macOS support.
-- Replace references to Diagrammer.Core with AsBuiltReport.Chart and AsBuiltReport.Diagram modules.
-- Improve known issues section for clarity and detail.
+- Bump AsBuiltReport.Diagram module version from 1.0.2 to 1.0.4 in the module manifest
+- Revise README to reflect compatibility with PowerShell 7+, update system requirements, and clarify Linux/macOS support
+- Replace references to Diagrammer.Core with AsBuiltReport.Chart and AsBuiltReport.Diagram modules
+- Improve known issues section for clarity and detail
 - Enhance documentation clarity in MicrosoftAD.psd1 for English and Spanish languages
 - Refactor localization strings in MicrosoftAD.psd1 for clarity and consistency. Improved grammar, punctuation,
   and readability across various best practice descriptions related to Active Directory configurations
@@ -35,8 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactor Get-AbrADReportBrief, Get-AbrDNSSection, and Get-AbrDomainSection for improved logging and PowerShell best practices
 - Updated Get-AbrADReportBrief to include company information (name, contact, email) in the report overview
 - Changed the collection of domain and report scope information to use [System.Collections.Generic.List[object]] instead of [System.Collections.ArrayList]
-- Updated PowerShell module version in AsBuiltReport.Microsoft.AD.psd1 to 7.4.
-- Incremented version number to 0.9.12 in multiple scripts for consistency.
+- Updated PowerShell module version in AsBuiltReport.Microsoft.AD.psd1 to 7.4
+- Incremented version number to 0.9.12 in multiple scripts for consistency
+- Restructure Private folder to better organize helper functions and improve maintainability
 
 ### :bug: Fixed
 
