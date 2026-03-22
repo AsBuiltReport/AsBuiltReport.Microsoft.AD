@@ -324,8 +324,8 @@ function New-AbrADDiagram {
     begin {
 
         # Setup all paths required for script to run
-        $script:RootPath = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-        $script:IconPath = Join-Path $RootPath 'icons'
+        $script:IconPath = Join-Path -Path $PSScriptRoot -ChildPath 'icons'
+        # Write-Host "Icon Path: $script:IconPath" -ForegroundColor Green
 
 
         $MainGraphLabel = switch ($DiagramType) {
