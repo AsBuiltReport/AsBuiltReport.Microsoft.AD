@@ -231,6 +231,8 @@
     replYes = Yes
     replNo = No
     replUnknownSite = Unknown Site
+    replIntraSite = IntraSite
+    replInterSite = InterSite
 '@
     # Get-AbrADExchange
     GetAbrADExchange = ConvertFrom-StringData @'

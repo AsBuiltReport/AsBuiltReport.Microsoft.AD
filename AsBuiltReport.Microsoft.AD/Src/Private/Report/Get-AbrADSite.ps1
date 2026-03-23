@@ -40,11 +40,12 @@ function Get-AbrADSite {
                             }
 
                             if ($Graph) {
-                                $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600
+                                $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600 -MaxHeight 600
+                                PageBreak
                                 Section -Style Heading4 $reportTranslate.GetAbrADSite.ReplicationDiagram {
                                     Image -Base64 $Graph -Text $reportTranslate.GetAbrADSite.ReplicationDiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                                    PageBreak
                                 }
-                                BlankLine -Count 2
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "Replication Diagram Section: $($_.Exception.Message)"
@@ -334,11 +335,12 @@ function Get-AbrADSite {
                             }
 
                             if ($Graph) {
-                                $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600
+                                $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600 -MaxHeight 600
+                                PageBreak
                                 Section -Style Heading4 $reportTranslate.GetAbrADSite.SiteTopologyDiagram {
                                     Image -Base64 $Graph -Text $reportTranslate.GetAbrADSite.SiteTopologyDiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                                    PageBreak
                                 }
-                                BlankLine -Count 2
                             }
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "Site Topology Diagram Section: $($_.Exception.Message)"

@@ -78,7 +78,7 @@ function Get-AbrDomainSection {
                                                 try {
                                                     $DCDiagObj = foreach ($DC in $DCs) {
                                                         if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
-                                                            Get-AbrADDCDiag -Domain $Domain -DC $DC
+                                                            # Get-AbrADDCDiag -Domain $Domain -DC $DC
                                                         }
                                                     }
                                                     if ($DCDiagObj) {

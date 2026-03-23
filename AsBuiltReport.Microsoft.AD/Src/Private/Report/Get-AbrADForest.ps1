@@ -116,11 +116,12 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
-                            $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600
+                            $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600 -MaxHeight 600
+                            PageBreak
                             Section -Style Heading3 $reportTranslate.GetAbrADForest.ForestDiagram {
                                 Image -Base64 $Graph -Text $reportTranslate.GetAbrADForest.ForestDiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                                PageBreak
                             }
-                            BlankLine -Count 2
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "Forest Diagram Section: $($_.Exception.Message)"
@@ -223,11 +224,12 @@ function Get-AbrADForest {
                         }
 
                         if ($Graph) {
-                            $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600
+                            $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600 -MaxHeight 600
+                            PageBreak
                             Section -Style Heading4 $reportTranslate.GetAbrADForest.CADiagram {
                                 Image -Base64 $Graph -Text $reportTranslate.GetAbrADForest.CADiagram -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                                PageBreak
                             }
-                            BlankLine -Count 2
                         }
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "Certificate Authority Diagram Section: $($_.Exception.Message)"

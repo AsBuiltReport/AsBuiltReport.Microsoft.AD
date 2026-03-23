@@ -127,11 +127,12 @@ function Get-AbrADTrust {
                                     }
 
                                     if ($Graph) {
-                                        $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600
+                                        $BestAspectRatio = Get-BestImageAspectRatio -GraphObj $Graph -MaxWidth 600 -MaxHeight 600
+                                        PageBreak
                                         Section -Style Heading3 $reportTranslate.GetAbrADTrust.TrustDiagramSection {
                                             Image -Base64 $Graph -Text $reportTranslate.GetAbrADTrust.TrustDiagramSection -Width $BestAspectRatio.Width -Height $BestAspectRatio.Height -Align Center
+                                            PageBreak
                                         }
-                                        BlankLine -Count 2
                                     }
                                 } catch {
                                     Write-PScriboMessage -IsWarning -Message "Domain and Trusts Diagram Section: $($_.Exception.Message)"
