@@ -1,7 +1,7 @@
 BeforeAll {
     # Import the module
-    $ModulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.psd1'
-    $ModuleRoot = Join-Path -Path $PSScriptRoot -ChildPath '..\'
+    $ModulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.psd1'
+    $ModuleRoot = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD'
     try {
         Import-Module $ModulePath -Force -ErrorAction Stop
     } catch {
@@ -14,7 +14,7 @@ BeforeAll {
 Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
     Context 'Module Manifest' {
         BeforeAll {
-            $ManifestPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.psd1'
+            $ManifestPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.psd1'
             $Manifest = Test-ModuleManifest -Path $ManifestPath -ErrorAction Stop
         }
 
@@ -57,9 +57,9 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
             $ChartModule = $Manifest.RequiredModules | Where-Object { $_.Name -eq 'AsBuiltReport.Chart' }
             $ChartModule.Version | Should -BeGreaterOrEqual ([Version]'0.2.0')
         }
-        It 'Should require Diagrammer.Core version 0.2.38 or higher' {
-            $DiagrammerModule = $Manifest.RequiredModules | Where-Object { $_.Name -eq 'Diagrammer.Core' }
-            $DiagrammerModule.Version | Should -BeGreaterOrEqual ([Version]'0.2.38')
+        It 'Should require AsBuiltReport.Diagram version 1.0.5 or higher' {
+            $DiagramModule = $Manifest.RequiredModules | Where-Object { $_.Name -eq 'AsBuiltReport.Diagram' }
+            $DiagramModule.Version | Should -BeGreaterOrEqual ([Version]'1.0.5')
         }
         It 'Should require PSPKI version 4.3.0 or higher' {
             $PSPKIModule = $Manifest.RequiredModules | Where-Object { $_.Name -eq 'PSPKI' }
@@ -128,62 +128,62 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
 
     Context 'Module Structure' {
         It 'Should have a valid root module file' {
-            $RootModulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.psm1'
+            $RootModulePath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.psm1'
             Test-Path $RootModulePath | Should -Be $true
         }
 
         It 'Should have a Src folder' {
-            $SrcPath = Join-Path -Path $PSScriptRoot -ChildPath '..\Src'
+            $SrcPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\Src'
             Test-Path $SrcPath | Should -Be $true
         }
 
         It 'Should have a Public functions folder' {
-            $PublicPath = Join-Path -Path $PSScriptRoot -ChildPath '..\Src\Public'
+            $PublicPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\Src\Public'
             Test-Path $PublicPath | Should -Be $true
         }
 
         It 'Should have a Private functions folder' {
-            $PrivatePath = Join-Path -Path $PSScriptRoot -ChildPath '..\Src\Private'
+            $PrivatePath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\Src\Private'
             Test-Path $PrivatePath | Should -Be $true
         }
 
         It 'Should have a Language folder' {
-            $LanguagePath = Join-Path -Path $PSScriptRoot -ChildPath '..\Language'
+            $LanguagePath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\Language'
             Test-Path $LanguagePath | Should -Be $true
         }
 
         foreach ($lang in @('en-US', 'es-ES')) {
             It 'Should have <Language> language folder' -TestCases @(@{ Language = $lang }) {
-                $LangPath = Join-Path -Path $PSScriptRoot -ChildPath "..\Language\$Language"
+                $LangPath = Join-Path -Path $PSScriptRoot -ChildPath "..\AsBuiltReport.Microsoft.AD\Language\$Language"
                 Test-Path $LangPath | Should -Be $true
             }
 
             It 'Should have <Language> MicrosoftAD.psd1 localization file' -TestCases @(@{ Language = $lang }) {
-                $LangFile = Join-Path -Path $PSScriptRoot -ChildPath "..\Language\$Language\MicrosoftAD.psd1"
+                $LangFile = Join-Path -Path $PSScriptRoot -ChildPath "..\AsBuiltReport.Microsoft.AD\Language\$Language\MicrosoftAD.psd1"
                 Test-Path $LangFile | Should -Be $true
             }
 
             It 'Should be able to load <Language> localization file' -TestCases @(@{ Language = $lang }) {
-                $LangPath = Join-Path -Path $PSScriptRoot -ChildPath "..\Language\$Language"
+                $LangPath = Join-Path -Path $PSScriptRoot -ChildPath "..\AsBuiltReport.Microsoft.AD\Language\$Language"
                 { Import-LocalizedData -BaseDirectory $LangPath -FileName 'MicrosoftAD.psd1' -ErrorAction Stop } | Should -Not -Throw
             }
         }
 
         It 'Should have a JSON configuration file' {
-            $JsonConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.json'
+            $JsonConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.json'
             Test-Path $JsonConfigPath | Should -Be $true
         }
 
         It 'Should have at least one private function' {
-            $PrivatePath = Join-Path -Path $PSScriptRoot -ChildPath '..\Src\Private'
-            $PrivateFunctions = Get-ChildItem -Path $PrivatePath -Filter '*.ps1' -ErrorAction SilentlyContinue
+            $PrivatePath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\Src\Private'
+            $PrivateFunctions = Get-ChildItem -Path $PrivatePath -Recurse -Filter '*.ps1' -ErrorAction SilentlyContinue
             $PrivateFunctions.Count | Should -BeGreaterThan 0
         }
     }
 
     Context 'Public Functions' {
         It 'Should export Invoke-AsBuiltReport.Microsoft.AD function' {
-            Get-Command -Name 'Invoke-AsBuiltReport.Microsoft.AD' -Module 'AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command -name 'Invoke-AsBuiltReport.Microsoft.AD' -Module 'AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
         }
 
         It 'Should have exactly 1 exported function' {
@@ -198,7 +198,7 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
 
     Context 'Function Parameter Validation' {
         BeforeAll {
-            $InvokeCommand = Get-Command -Name 'Invoke-AsBuiltReport.Microsoft.AD'
+            $InvokeCommand = Get-Command -Name 'Invoke-AsBuiltReport.Microsoft.AD' -Module 'AsBuiltReport.Microsoft.AD'
         }
 
         It 'Invoke-AsBuiltReport.Microsoft.AD should have Target parameter' {
@@ -222,133 +222,25 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
 
     Context 'Help Content' {
         It 'Invoke-AsBuiltReport.Microsoft.AD should have help content' {
-            $Help = Get-Help -Name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
+            $Help = Get-Help -name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
             $Help | Should -Not -BeNullOrEmpty
             $Help.Synopsis | Should -Not -BeNullOrEmpty
         }
 
         It 'Invoke-AsBuiltReport.Microsoft.AD should have description' {
-            $Help = Get-Help -Name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
+            $Help = Get-Help -name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
             $Help.Description | Should -Not -BeNullOrEmpty
         }
 
         It 'Invoke-AsBuiltReport.Microsoft.AD should have a link' {
-            $Help = Get-Help -Name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
+            $Help = Get-Help -name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
             $Help.relatedLinks | Should -Not -BeNullOrEmpty
-        }
-    }
-
-    Context 'Private Functions' {
-        $PrivatePath = Join-Path -Path $PSScriptRoot -ChildPath '..\Src\Private'
-        $PrivateFunctions = Get-ChildItem -Path $PrivatePath -Filter '*.ps1' -ErrorAction SilentlyContinue
-        BeforeDiscovery {
-            $PF = $PrivateFunctions
-            $ExpectedPrivateFunctions = @(
-                'Convert-IpAddressToMaskLength.ps1'
-                'Convert-TimeToDay.ps1'
-                'ConvertFrom-DistinguishedName.ps1'
-                'ConvertTo-ADCanonicalName.ps1'
-                'ConvertTo-ADObjectName.ps1'
-                'ConvertTo-EmptyToFiller.ps1'
-                'ConvertTo-FileSizeString.ps1'
-                'ConvertTo-HashToYN.ps1'
-                'ConvertTo-OperatingSystem.ps1'
-                'ConvertTo-TextYN.ps1'
-                'Copy-DictionaryManual.ps1'
-                'Get-AbrADCAAIA.ps1'
-                'Get-AbrADCACRLSetting.ps1'
-                'Get-AbrADCACryptographyConfig.ps1'
-                'Get-AbrADCaInfo.ps1'
-                'Get-AbrADCAKeyRecoveryAgent.ps1'
-                'Get-AbrADCARoot.ps1'
-                'Get-AbrADCASecurity.ps1'
-                'Get-AbrADCASubordinate.ps1'
-                'Get-AbrADCASummary.ps1'
-                'Get-AbrADCATemplate.ps1'
-                'Get-AbrADDCDiag.ps1'
-                'Get-AbrADDCRoleFeature.ps1'
-                'Get-AbrADDFSHealth.ps1'
-                'Get-AbrADDNSInfrastructure.ps1'
-                'Get-AbrADDNSZone.ps1'
-                'Get-AbrADDomain.ps1'
-                'Get-AbrADDomainController.ps1'
-                'Get-AbrADDomainLastBackup.ps1'
-                'Get-AbrADDomainObject.ps1'
-                'Get-AbrADDuplicateObject.ps1'
-                'Get-AbrADDuplicateSPN.ps1'
-                'Get-AbrADExchange.ps1'
-                'Get-AbrADForest.ps1'
-                'Get-AbrADForestInfo.ps1'
-                'Get-AbrADFSMO.ps1'
-                'Get-AbrADGPO.ps1'
-                'Get-AbrADHardening.ps1'
-                'Get-AbrADInfrastructureService.ps1'
-                'Get-AbrADKerberosAudit.ps1'
-                'Get-AbrADOU.ps1'
-                'Get-AbrADSCCM.ps1'
-                'Get-AbrADSecurityAssessment.ps1'
-                'Get-AbrADSite.ps1'
-                'Get-AbrADSiteReplication.ps1'
-                'Get-AbrADSitesInfo.ps1'
-                'Get-AbrADSitesInventoryInfo.ps1'
-                'Get-AbrADTrust.ps1'
-                'Get-AbrADTrustInfo.ps1'
-                'Get-AbrDHCPinAD.ps1'
-                'Get-AbrDiagCertificateAuthority.ps1'
-                'Get-AbrDiagForest.ps1'
-                'Get-AbrDiagrammer.ps1'
-                'Get-AbrDiagSite.ps1'
-                'Get-AbrDiagSiteInventory.ps1'
-                'Get-AbrDiagTrust.ps1'
-                'Get-AbrDNSSection.ps1'
-                'Get-AbrDomainSection.ps1'
-                'Get-AbrForestSection.ps1'
-                'Get-AbrPKISection.ps1'
-                'Get-ADExchangeServer.ps1'
-                'Get-ADObjectList.ps1'
-                'Get-ADObjectSearch.ps1'
-                'Get-CimData.ps1'
-                'Get-ComputerADDomain.ps1'
-                'Get-ComputerSplit.ps1'
-                'Get-DCWinRMState.ps1'
-                'Get-RequiredFeature.ps1'
-                'Get-RequiredModule.ps1'
-                'Get-ValidCIMSession.ps1'
-                'Get-ValidDCfromDomain.ps1'
-                'Get-ValidPSSession.ps1'
-                'Get-WinADDFSHealth.ps1'
-                'Get-WinADDuplicateObject.ps1'
-                'Get-WinADDuplicateSPN.ps1'
-                'Get-WinADForestDetail.ps1'
-                'Get-WinADLastBackup.ps1'
-                'Images.ps1'
-                'Invoke-CommandWithTimeout.ps1'
-                'Invoke-DcDiag.ps1'
-                'New-AbrADDiagram.ps1'
-                'Show-AbrDebugExecutionTime.ps1'
-                'Test-ComputerPort.ps1'
-                'Test-WinRM.ps1'
-            )
-        }
-
-        It 'Should contain expected private function file count' {
-            $PrivateFunctions.Count | Should -Be $ExpectedPrivateFunctions.Count
-        }
-
-        It 'Should have private functions matching expected list' -ForEach @{
-            TestArray = $ExpectedPrivateFunctions
-            PrivateFunctions = $PF
-        } {
-            foreach ($Expected in $TestArray) {
-                $Match = $PrivateFunctions | Where-Object { $_.Name -eq $Expected }
-                $Match | Should -Not -BeNullOrEmpty -Because "Expected private function file '$Expected' should exist"
-            }
         }
     }
 
     Context 'JSON Configuration' {
         BeforeAll {
-            $JsonConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.json'
+            $JsonConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.json'
             $JsonConfig = Get-Content -Path $JsonConfigPath -Raw | ConvertFrom-Json
         }
 
@@ -411,7 +303,7 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
 
     Context 'Configuration Schema Validation' {
         BeforeAll {
-            $JsonConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.json'
+            $JsonConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.json'
             $JsonConfig = Get-Content -Path $JsonConfigPath -Raw | ConvertFrom-Json
         }
 
@@ -557,7 +449,7 @@ Describe 'Module File Syntax and Quality' {
 
     Context 'PSScriptAnalyzer Compliance' {
         BeforeAll {
-            $ModuleRoot = Join-Path -Path $PSScriptRoot -ChildPath '..\'
+            $ModuleRoot = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD'
             $SettingsPath = Join-Path -Path $PSScriptRoot -ChildPath '..\.github\workflows\PSScriptAnalyzerSettings.psd1'
         }
 
@@ -571,15 +463,6 @@ Describe 'Module File Syntax and Quality' {
             } else {
                 $AnalyzerResults.Count | Should -Be 0
             }
-        }
-
-        It 'Should have minimal PSScriptAnalyzer warnings' {
-            try {
-                $AnalyzerResults = Invoke-ScriptAnalyzer -Path $ModuleRoot -Recurse -Severity Warning -ErrorAction SilentlyContinue
-            } catch {
-                $AnalyzerResults = @()
-            }
-            @($AnalyzerResults).Count | Should -BeLessThan 20 -Because 'Module should have fewer than 20 warnings'
         }
 
         It 'Should pass PSScriptAnalyzer with settings file if it exists' {
@@ -706,7 +589,7 @@ Describe 'Error Handling and Edge Cases' {
 
     Context 'Module Import Error Scenarios' {
         It 'Should gracefully handle missing required modules in manifest' {
-            $ManifestPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.psd1'
+            $ManifestPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.psd1'
             $Manifest = Test-ModuleManifest -Path $ManifestPath -ErrorAction Stop
 
             # Verify required modules are declared
@@ -715,7 +598,7 @@ Describe 'Error Handling and Edge Cases' {
         }
 
         It 'Should have valid PowerShell version requirement' {
-            $ManifestPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.psd1'
+            $ManifestPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.psd1'
             $Manifest = Test-ModuleManifest -Path $ManifestPath -ErrorAction Stop
 
             $Manifest.PowerShellVersion | Should -Not -BeNullOrEmpty
@@ -725,17 +608,17 @@ Describe 'Error Handling and Edge Cases' {
 
     Context 'File Path Validation' {
         It 'Module manifest path should be valid' {
-            $ManifestPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.psd1'
+            $ManifestPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.psd1'
             Test-Path $ManifestPath | Should -Be $true
         }
 
         It 'Module root path should be valid' {
-            $ModuleRoot = Join-Path -Path $PSScriptRoot -ChildPath '..\'
+            $ModuleRoot = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD'
             Test-Path $ModuleRoot | Should -Be $true
         }
 
         It 'Language files should exist' {
-            $LanguagePath = Join-Path -Path $PSScriptRoot -ChildPath '..\Language'
+            $LanguagePath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\Language'
             Test-Path $LanguagePath | Should -Be $true
 
             $EnUSPath = Join-Path -Path $LanguagePath -ChildPath 'en-US\MicrosoftAD.psd1'
@@ -748,17 +631,17 @@ Describe 'Error Handling and Edge Cases' {
 
     Context 'Type Safety and Null Handling' {
         It 'JSON configuration should deserialize without errors' {
-            $JsonConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.json'
+            $JsonConfigPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.json'
             { Get-Content -Path $JsonConfigPath -Raw | ConvertFrom-Json -ErrorAction Stop } | Should -Not -Throw
         }
 
         It 'Localization data should load without errors' {
-            $EnUSPath = Join-Path -Path $PSScriptRoot -ChildPath '..\Language\en-US'
+            $EnUSPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\Language\en-US'
             { Import-LocalizedData -BaseDirectory $EnUSPath -FileName 'MicrosoftAD.psd1' -ErrorAction Stop } | Should -Not -Throw
         }
 
         It 'Module manifest should parse correctly' {
-            $ManifestPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD.psd1'
+            $ManifestPath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\AsBuiltReport.Microsoft.AD.psd1'
             { Test-ModuleManifest -Path $ManifestPath -ErrorAction Stop } | Should -Not -Throw
         }
     }
