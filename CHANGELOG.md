@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### :toolbox: Added
 
-- Add Authentication Policies and Authentication Policy Silos support (`Get-AbrADAuthenticationPolicy`)
+- Add Authentication Policies and Authentication Policy Silos support
 - Add condition to check for members of Pre-Windows 2000 group
 - Add a Replication diagram to the report
 - Add comprehensive copilot instructions for project structure, build, test, architecture, and coding conventions.
@@ -21,11 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update module version to `0.9.12`
 - Upgrade AsBuiltReport.Chart module to version `0.3.0`
-- Upgrade PSPKI module to version `4.4.0`
 - Migrate Diagrammer.Core to AsBuiltReport.Diagram module
 - Reorganize module structure - moved module files to AsBuiltReport.System.Resources/ subdirectory
-- Bump AsBuiltReport.Diagram module version from 1.0.2 to 1.0.4 in the module manifest
-- Revise README to reflect compatibility with PowerShell 7+, update system requirements, and clarify Linux/macOS support
+- Bump AsBuiltReport.Diagram module version from 1.0.2 to 1.0.5 in the module manifest
+- Revise README to reflect compatibility with PowerShell 7.4+, update system requirements, and clarify Linux/macOS support
 - Replace references to Diagrammer.Core with AsBuiltReport.Chart and AsBuiltReport.Diagram modules
 - Improve known issues section for clarity and detail
 - Enhance documentation clarity in MicrosoftAD.psd1 for English and Spanish languages
