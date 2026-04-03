@@ -13,6 +13,34 @@
     CommunityProject = - AsBuiltReport is a community-maintained open source project. It has no sponsorship, endorsement, or affiliation with any technology vendors, their employees, or affiliates.
     DISCLAIMER = This report combines automated data analysis with professional observations. While these findings offer expert insight, this assessment is not exhaustive. All recommendations should be reviewed and implemented by qualified personnel. The author(s) assume no liability for any damages-including lost profits, business interruptions, or financial losses-arising from the use of this report or its recommendations.
     DisclaimerSection = DISCLAIMER
+    ModuleInstalled = - Module {0} v{1} is currently installed.
+    ModuleAvailable = - Module {0} v{1} is available.
+    ModuleUpdate = - Run 'Update-Module -Name {0} -Force' to install the latest version.
+    IPAddressError = Please use the Fully Qualified Domain Name (FQDN) instead of an IP address when connecting to the Domain Controller: {0}
+    PSSessionError = Failed to establish a PSSession ({0}) with the Domain Controller '{1}': {2}
+    CIMSessionError = Failed to establish a CimSession ({0}) with the Domain Controller '{1}'.
+    ConnectingForest = Connecting to retrieve forest information from the Domain Controller '{0}'.
+    ForestError = Failed to retrieve forest information from the Domain Controller '{0}'. Ensure the provided system is a Domain Controller and the provided credentials have sufficient permissions to query Active Directory forest information. Error details: {1}
+    IncludeDomainsEnabled = - Include.Domains option enabled: Including only the following domains in the report: {0}
+    ExcludeDomainsEnabled = - Including all child domains in the report except the following excluded domains: {0}
+    GettingForestInfo = - Retrieving forest information {0}.
+    DiscoveringChildDomains = - Discovering child domains of the forest {0}: {1}
+    DCAvailable = - Initial configuration: A DC is available in the domain {0}. Adding domain to the report.
+    DCUnavailable = - Unable to obtain an available DC in the domain {0}. Removing domain from the report.
+    FinishingDomainList = - Finalizing the list of domains in the forest {0}: {1}
+    WorkingOnForest = - Working on the Forest section.
+    WorkingOnDomain = - Working on the Domain section.
+    WorkingOnDNS = - Working on the DNS section.
+    WorkingOnPKI = - Working on the PKI section.
+    ExportDiagramsEnabled = - ExportDiagrams option enabled: Exporting diagrams:
+    TrustsDiagramError = Unable to generate the 'Trusts' diagram for the domain '{0}': {1}
+    DiagramExportError = Unable to export the diagram {0}: {1}
+    ClearPSSession = Clearing PSSession with ID {0}
+    ClearCIMSession = Clearing CIM session with ID {0}
+    FinishedReport = - Finished generating the report for the forest {0}:
+    SystemsUnreachable = The following systems could not be contacted:
+    DomainControllers = Domain Controllers
+    Domains = Domains
 '@
 
     # InvokeAsBuiltReportMicrosoftAD
@@ -27,8 +55,9 @@
     ReportBrief = Report Brief
     ReportBriefParagraph = This report brief provides a high-level summary of the Active Directory environment, including infrastructure topology, domain configuration, and the scope of this document.
     ReportOverview = Report Overview
-    ReportName = Report Name
-    ReportVersion = Report Version
+    CompanyName = Company Name
+    CompanyContact = Contact
+    CompanyEmail = Email Address
     TargetForest = Target Forest
     GeneratedOn = Generated On
     ForestSummary = Forest Summary
@@ -79,7 +108,6 @@
     ParagraphDetail = The following sections provide a detailed configuration overview for each component of the Active Directory forest.
     ParagraphSummary = The following table summarizes key configuration attributes of the Active Directory forest.
     Heading = Forest Information
-
     ForestName = Forest Name
     ForestFunctionalLevel = Forest Functional Level
     SchemaVersion = Schema Version
@@ -97,7 +125,6 @@
     AnonymousAccess = Anonymous Access (dsHeuristics)
     AnonymousAccessEnabled = Enabled
     AnonymousAccessDisabled = Disabled
-
     ForestDiagram = Forest Diagram
     CASection = Certificate Authority
     CADefinition = In cryptography, a certificate authority or certification authority (CA) is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate. This allows others (relying parties) to rely upon signatures or on assertions made about the private key that corresponds to the certified public key. A CA acts as a trusted third party trusted both by the subject (owner) of the certificate and by the party relying upon the certificate. The format of these certificates is specified by the X.509 or EMV standard.
@@ -114,7 +141,6 @@
     OFEnabled = Enabled
     OFEnabledYes = Yes
     OFEnabledNo = No
-
     HealthCheck = Health Check:
     BestPractice = Best Practice:
     Reference = Reference:
@@ -146,7 +172,6 @@
     InfoVersion = - {0} v{1} is currently installed.
     WarningUpdate =   - {0} v{1} update is available.
     WarningUpdateCommand =   - Run 'Update-Module -Name {0} -Force' to install the latest version.
-
     forestgraphlabel = Active Directory Forest Architecture
     domaingraphlabel = Active Directory Domain Architecture
     emptyForest = No Forest Infrastructure available to diagram
@@ -162,11 +187,9 @@
     fForestRootLabel = Forest Root
     fChildDomains = Child Domains
     fNoChildDomains = No Child Domains
-
     connectingDomain = Collecting Microsoft AD Domain information from {0}.
     connectingForest = Collecting Microsoft AD Forest information from {0}.
     forestRootInfo = Forest Root Information
-
     DiagramLabel = Child Domains
     contiguous = Contiguous
     noncontiguous = Non Contiguous
@@ -182,7 +205,6 @@
     domainNaming = <B>Domain Naming:</B> {0}
     fsmoRoles = FSMO Roles
     MicrosoftLogo = Microsoft Logo
-
     SitesDiagramDummyLabel = Sites
     sitesgraphlabel = Active Directory Site Topology
     sitesinventorygraphlabel = Active Directory Site Inventory
@@ -197,7 +219,6 @@
     emptySites = No Site topology available to diagram
     connectingSites = Collecting Microsoft AD Sites information from {0}.
     buildingSites = Building Microsoft AD Sites diagram from {0}.
-
     NoTrusts = No Trusts Topology
     emptyTrusts = No Trust topology available to diagram
     connectingSTrusts = Collecting Microsoft AD Trusts information from {0}.
@@ -209,10 +230,8 @@
     TrustAttributes = Type
     AuthenticationLevel = Authentication
     TrustRelationships = Trust Relationships
-
     Base64Output = Displaying Base64 string
     DiagramOutput = '{0}' diagram file '{1}' has been saved to '{2}'
-
     caDiagramLabel = Active Directory Certificate Authority
     caStdRootCA = Standalone Root CA
     caEntRootCA = Enterprise Root CA
@@ -226,11 +245,9 @@
     caType = Type
     caRootCaIssuer = Root CA Issuer
     caDnsName = Dns Name
-
     DomainControllers = Domain Controllers
     Sites = Sites
     Subnets = Subnets
-
     replicationDiagramLabel = Active Directory Replication Topology
     NoReplication = No Replication Topology
     emptyReplication = No Replication topology available to diagram
@@ -242,6 +259,8 @@
     replYes = Yes
     replNo = No
     replUnknownSite = Unknown Site
+    replIntraSite = IntraSite
+    replInterSite = InterSite
 '@
     # Get-AbrADExchange
     GetAbrADExchange = ConvertFrom-StringData @'
@@ -494,197 +513,6 @@
     CAParagraph = The following section provides detailed configuration and operational information for the {0} ({1}) hosted on {2}.
     DomainNotInForest = Current PC Domain {0} is not in the Forest Domain list of {1}. Disabling Certificate Authority section
 '@
-
-    # Get-AbrADCASummary
-    GetAbrADCASummary = ConvertFrom-StringData @'
-    Collecting = Collecting Certification Authority information.
-    CAName = CA Name
-    ServerName = Server Name
-    Type = Type
-    Status = Status
-    TableName = Certification Authority
-'@
-
-    # Get-AbrADCARoot
-    GetAbrADCARoot = ConvertFrom-StringData @'
-    Collecting = Collecting AD Certification Authority Per Domain information.
-    Heading = Enterprise Root Certificate Authority
-    Paragraph = The following section provides detailed information about the Enterprise Root Certificate Authority (CA) configuration and operational status.
-    CAName = CA Name
-    ServerName = Server Name
-    Type = Type
-    ConfigString = Config String
-    OperatingSystem = Operating System
-    Certificate = Certificate
-    Auditing = Auditing
-    Status = Status
-    AuditingNotConfigured = Not Configured
-    Auditing1 = Start and stop Active Directory® Certificate Services (1)
-    Auditing2 = Back up and restore the CA database (2)
-    Auditing4 = Issue and manage certificate requests (4)
-    Auditing8 = Revoke certificates and publish CRLs (8)
-    Auditing16 = Change CA security settings (16)
-    Auditing32 = Change CA security settings (32)
-    Auditing64 = Change CA configuration (64)
-    AuditingFull = Auditing is fully enabled (127)
-    AuditingUnknown = Unknown
-    TableName = Enterprise Root CA
-    HealthCheck = Health Check:
-    SecurityBestPractice = Security Best Practice:
-    AuditingBP = Auditing should be fully enabled for the Certification Authority to ensure that all relevant events are logged for security monitoring and incident response purposes. This includes events related to certificate issuance, revocation, and changes to CA configuration.
-'@
-
-    # Get-AbrADCASubordinate
-    GetAbrADCASubordinate = ConvertFrom-StringData @'
-    Collecting = Collecting AD Certification Authority Per Domain information.
-    Heading = Enterprise Subordinate Certificate Authority
-    Paragraph = The following section provides detailed information about Enterprise Subordinate Certification Authorities within the domain.
-    CAName = CA Name
-    ServerName = Server Name
-    Type = Type
-    ConfigString = Config String
-    OperatingSystem = Operating System
-    Certificate = Certificate
-    Auditing = Auditing
-    Status = Status
-    AuditingNotConfigured = Not Configured
-    Auditing1 = Start and stop Active Directory® Certificate Services (1)
-    Auditing2 = Back up and restore the CA database (2)
-    Auditing4 = Issue and manage certificate requests (4)
-    Auditing8 = Revoke certificates and publish CRLs (8)
-    Auditing16 = Change CA security settings (16)
-    Auditing32 = Change CA security settings (32)
-    Auditing64 = Change CA configuration (64)
-    AuditingFull = Auditing is fully enabled (127)
-    AuditingUnknown = Unknown
-    TableName = Enterprise Subordinate CA
-    HealthCheck = Health Check:
-    SecurityBestPractice = Security Best Practice:
-    AuditingBP = Auditing should be fully enabled for the Certification Authority to ensure that all relevant events are logged for security monitoring and incident response purposes. This includes events related to certificate issuance, revocation, and changes to CA configuration.
-'@
-
-    # Get-AbrADCASecurity
-    GetAbrADCASecurity = ConvertFrom-StringData @'
-    Collecting = Collecting AD Certification Authority Security information.
-    CertValidityPeriod = Certificate Validity Period
-    CertValidityPeriodParagraph = The following section provides details about the certificate validity period configuration for the Certification Authority.
-    CertValidityPeriodTable = Certificate Validity Period
-    CAName = CA Name
-    ServerName = Server Name
-    ValidityPeriod = Validity Period
-    ACL = Access Control List (ACL)
-    ACLTable = Access Control List
-    DCName = DC Name
-    Owner = Owner
-    Group = Group
-    AccessRights = Access Rights
-    AccessRightsTable = Access Rights
-    Identity = Identity
-    AccessControlType = Access Control Type
-    Rights = Rights
-'@
-
-    # Get-AbrADCACryptographyConfig
-    GetAbrADCACryptographyConfig = ConvertFrom-StringData @'
-    Collecting = Collecting CA Certification Authority Cryptography Config information.
-    Heading = Cryptography Configuration
-    Paragraph = The following section provides detailed information about the cryptography configuration settings for the Certification Authority, including algorithms, providers, and key specifications.
-    CAName = CA Name
-    ServerName = Server Name
-    PublicKeyAlgorithm = PublicKey Algorithm
-    HashingAlgorithm = Hashing Algorithm
-    ProviderName = Provider Name
-    AlternateSignatureAlgorithm = Alternate Signature Algorithm
-    ProviderIsCNG = Provider Is CNG
-    TableName = Cryptography Configuration
-'@
-
-    # Get-AbrADCAAIA
-    GetAbrADCAAIA = ConvertFrom-StringData @'
-    Collecting = Collecting AD CA Authority Information Access information on {0}.
-    Heading = Authority Information Access (AIA)
-    Paragraph = The following section provides the Authority Information Access (AIA) configuration for the Certification Authority, which specifies where certificates and certificate revocation information can be retrieved.
-    RegURI = Reg URI
-    ConfigURI = Config URI
-    Flags = Flags
-    ServerPublish = Server Publish
-    IncludeToExtension = Include To Extension
-    OCSP = OCSP
-    TableName = Authority Information Access
-'@
-
-    # Get-AbrADCACRLSetting
-    GetAbrADCACRLSetting = ConvertFrom-StringData @'
-    CollectingVP = Collecting AD CA CRL Validity Period information on {0}.
-    CollectingCDP = Collecting AD CA CRL Distribution Point information on {0}.
-    CollectingHealth = Collecting AIA and CDP Health Status from {0}.
-    CRLHeading = Certificate Revocation List (CRL)
-    CRLParagraph = The following section provides detailed information about the Certificate Revocation List (CRL) distribution settings and health status for the Certification Authority.
-    CRLValidityPeriod = CRL Validity Period
-    CRLValidityPeriodTable = CRL Validity Period
-    CAName = CA Name
-    BaseCRL = Base CRL
-    BaseCRLOverlap = Base CRL Overlap
-    DeltaCRL = Delta CRL
-    DeltaCRLOverlap = Delta CRL Overlap
-    ServerName = Server Name
-    CRLFlags = CRL Flags
-    CRLFlagsSettings = CRL Flags Settings
-    CRLFlagsTable = CRL Flags
-    CRLDistributionPoint = CRL Distribution Point
-    CRLDistributionPointParagraph = The following section provides detailed information about the Certificate Revocation List (CRL) Distribution Points configured on the Certification Authority, including URI locations and publication settings.
-    RegURI = Reg URI
-    ConfigURI = Config URI
-    UrlScheme = Url Scheme
-    ProjectedURI = ProjectedURI
-    Flags = Flags
-    CRLPublish = CRL Publish
-    DeltaCRLPublish = Delta CRL Publish
-    AddToCertCDP = Add To Cert CDP
-    AddToFreshestCRL = Add To Freshest CRL
-    AddToCrlCDP = Add To Crl cdp
-    CRLDistributionPointTable = CRL Distribution Point
-    AIACDPHealth = AIA and CDP Health Status
-    AIACDPHealthParagraph = The following section provides a health status assessment of the Certification Authority by verifying the CA certificate chain status and validating the accessibility of all Certificate Revocation List (CDP) and Authority Information Access (AIA) URLs for each certificate in the chain.
-    Childs = Childs
-    Health = Health
-    OK = OK
-    CAHealthTable = Certification Authority Health
-'@
-
-    # Get-AbrADCATemplate
-    GetAbrADCATemplate = ConvertFrom-StringData @'
-    Collecting = Collecting AD Certification Authority Templates information from {0}.
-    Heading = Certificate Template Summary
-    Paragraph = The following section lists certificate templates assigned to the Certification Authority. The CA can only issue certificates based on these assigned templates.
-    TemplateName = Template Name
-    SchemaVersion = Schema Version
-    SupportedCA = Supported CA
-    Autoenrollment = Autoenrollment
-    IssuedTemplateTable = Issued Certificate Template
-    IssuedTemplateACLs = Issued Certificate Template ACLs
-    IssuedTemplateACLsParagraph = The following section provides the Access Control List (ACL) for certificate templates assigned to the Certification Authority.
-    Identity = Identity
-    AccessControlType = Access Control Type
-    Rights = Rights
-    Inherited = Inherited
-    TemplateACLTable = Certificate Template ACL
-    ADTemplates = Certificate Template In Active Directory
-    ADTemplatesParagraph = The following section lists all certificate templates registered in Active Directory, regardless of whether they are assigned to any Certification Authority.
-    ADTemplatesTable = Certificate Template in AD
-'@
-
-    # Get-AbrADCAKeyRecoveryAgent
-    GetAbrADCAKeyRecoveryAgent = ConvertFrom-StringData @'
-    Collecting = Collecting AD Certification Authority Key Recovery Agent information.
-    Heading = Key Recovery Agent Certificate
-    Paragraph = The following section provides details about the Key Recovery Agent certificate, which encrypts users' certificate private keys for storage in the CA database. If a user loses access to their certificate private key, the Key Recovery Agent can recover it when key archival was configured for the certificate.
-    CAName = CA Name
-    ServerName = Server Name
-    Certificate = Certificate
-    TableName = Key Recovery Agent Certificate
-'@
-
     # Get-AbrDomainSection
     GetAbrDomainSection = ConvertFrom-StringData @'
     Collecting = Collecting Domain information from {0}.
@@ -704,7 +532,6 @@
     InfraServicesSection = Infrastructure Services
     InfraServicesParagraph = The following section provides a detailed overview of the status and configuration of infrastructure services on the domain controllers.
     NoDCAvailable = Unable to get an available DC in {0} domain. Removing domain from the Domain section.
-    UnableToConnect = Unable to connect to {0}. Removing it from the {1} report.
     WinRMErrorDCDiag = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (DCDiag Information)
     WinRMErrorInfraService = Error: Connecting to remote server {0} failed: WinRM cannot complete the operation. (ADInfrastructureService)
     DomainExcluded = {0} disabled in Exclude.Domain variable

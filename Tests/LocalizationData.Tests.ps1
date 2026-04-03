@@ -1,6 +1,6 @@
 BeforeAll {
     # Get the language folder path
-    $LanguagePath = Join-Path -Path $PSScriptRoot -ChildPath '..\Language'
+    $LanguagePath = Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\Language'
 
     # Helper function to extract nested localization keys in Section.Key format
     function Get-NestedLocalizationKeys {
@@ -40,7 +40,7 @@ Describe 'Localization Data Consistency Tests' {
             $TemplateKeys.Count | Should -BeGreaterThan 0
         }
 
-        foreach ($folder in (Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath '..\Language') -Directory | Where-Object { $_.Name -ne 'en-US' })) {
+        foreach ($folder in (Get-ChildItem -Path (Join-Path -Path $PSScriptRoot -ChildPath '..\AsBuiltReport.Microsoft.AD\Language') -Directory | Where-Object { $_.Name -ne 'en-US' })) {
             It "Language '<Name>' should have all keys from en-US template for MicrosoftAD.psd1" -TestCases @(@{ Name = $folder.Name; FolderPath = $folder.FullName }) {
                 param($Name, $FolderPath)
 

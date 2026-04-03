@@ -12,10 +12,10 @@
     RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.9.11'
+    ModuleVersion = '0.9.12'
 
     # Supported PSEditions
-    CompatiblePSEditions = @('Desktop', 'Core')
+    CompatiblePSEditions = @('Core')
 
     # ID used to uniquely identify this module
     GUID = '0a3e1c04-13b8-418f-89bc-a5a18da07394'
@@ -33,7 +33,7 @@
     Description = 'A PowerShell module to generate an as built report on the configuration of Microsoft AD.'
 
     # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion = '5.1'
+    PowerShellVersion = '7.4'
 
     # Name of the Windows PowerShell host required by this module
     # PowerShellHostName = ''
@@ -61,12 +61,8 @@
             ModuleVersion = '0.3.0'
         },
         @{
-            ModuleName = 'PSPKI';
-            ModuleVersion = '4.3.0'
-        },
-        @{
             ModuleName = 'AsBuiltReport.Diagram';
-            ModuleVersion = '1.0.4'
+            ModuleVersion = '1.0.5'
         }
     )
 

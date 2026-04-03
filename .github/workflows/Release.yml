@@ -21,10 +21,6 @@ jobs:
         shell: pwsh
         run: |
           Install-Module -Name AsBuiltReport.Chart -Repository PSGallery -Force
-      - name: Install PSPKI module
-        shell: pwsh
-        run: |
-          Install-Module -Name PSPKI -Repository PSGallery -Force
       - name: Install AsBuiltReport.Diagram module
         shell: pwsh
         run: |
