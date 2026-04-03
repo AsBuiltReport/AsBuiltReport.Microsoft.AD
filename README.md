@@ -218,7 +218,6 @@ The table below outlines the default and maximum **InfoLevel** settings for each
 | Forest     |        2        |        1        |
 | Domain     |        2        |        4        |
 | DNS        |        1        |        2        |
-| CA         |        0        |        3        |
 
 ### Healthcheck
 
