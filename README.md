@@ -75,7 +75,6 @@ PowerShell 7.4+, and the following PowerShell modules are required for generatin
 - [PSGraph Module](https://github.com/KevinMarquette/PSGraph)
 - [ActiveDirectory Module](https://docs.microsoft.com/en-us/powershell/module/activedirectory/?view=windowsserver2019-ps)
 - [ADCSAdministration Module](https://learn.microsoft.com/en-us/powershell/module/adcsadministration/?view=windowsserver2019-ps)
-- [PSPKI Module](https://www.powershellgallery.com/packages/PSPKI/3.7.2)
 - [GroupPolicy Module](https://docs.microsoft.com/en-us/powershell/module/grouppolicy/?view=windowsserver2019-ps)
 - [DnsServer Module](https://docs.microsoft.com/en-us/powershell/module/dnsserver/?view=windowsserver2019-ps)
 
@@ -95,7 +94,6 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 ### PowerShell v5.x running on a Domain Controller server
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
-Install-Module -Name PSPKI
 Install-Module -Name PSGraph
 Install-Module -Name AsBuiltReport.Chart
 Install-Module -Name AsBuiltReport.Diagram
@@ -109,7 +107,6 @@ Install-WindowsFeature -Name GPMC
 ### PowerShell v5.x running on Windows 10 client computer
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
 ```powershell
-Install-Module -Name PSPKI
 Install-Module -Name PSGraph
 Install-Module -Name AsBuiltReport.Chart
 Install-Module -Name AsBuiltReport.Diagram
@@ -252,5 +249,4 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 - **WinRM Dependency**: This report relies heavily on remote connections via WinRM. A Windows 10 client is recommended as a jumpbox for optimal connectivity.
 - **DNS Service Requirements**: To extract DNS service configuration, install PowerShell management modules on servers hosting DNS services (RSAT-DNS-Server and RSAT-AD-PowerShell).
 - **DNS Cohosting Assumption**: The report assumes DNS Server service runs on the same server as the Domain Controller.
-- **PSPKI Publisher Check Error**: When updating modules, you may encounter authentication errors. Resolve by adding the `-SkipPublisherCheck` parameter: `Update-Module -Name PSPKI -Force -SkipPublisherCheck`
 - **Windows Server 2012/2012 R2 Compatibility**: Hexadecimal character errors may occur when running against older Windows Server versions.
