@@ -1,0 +1,85 @@
+name: Pester Tests
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - master
+  pull_request:
+    branches:
+      - main
+      - dev
+      - master
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Pester Tests - ${{ matrix.os }} - ${{ matrix.shell }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        shell: [pwsh]
+        include:
+          - os: windows-latest
+            shell: powershell
+        exclude:
+          - os: ubuntu-latest
+            shell: powershell
+          - os: macos-latest
+            shell: powershell
+
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PowerShell Gallery
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
+      - name: Install Pester
+        run: |
+          Install-Module -Name Pester -MinimumVersion 5.0.0 -Repository PSGallery -Force -AllowClobber -Scope CurrentUser
+
+      - name: Install PScribo
+        run: |
+          Install-Module -Name PScribo -MinimumVersion 0.11.1 -Repository PSGallery -Force -AllowClobber -Scope CurrentUser
+
+      - name: Install PSScriptAnalyzer
+        run: |
+          Install-Module -Name PSScriptAnalyzer -MinimumVersion 1.0.0 -Repository PSGallery -Force -AllowClobber -Scope CurrentUser
+
+      - name: Install AsBuiltReport.Core
+        run: |
+          Install-Module -Name AsBuiltReport.Core -MinimumVersion 1.6.2 -Repository PSGallery -Force -AllowClobber -Scope CurrentUser
+
+      - name: Run Pester Tests
+        run: |
+          $CodeCoverageParam = @{}
+          $OutputFormatParam = @{ OutputFormat = 'NUnitXml' }
+
+          .\Tests\Invoke-Tests.ps1 @CodeCoverageParam @OutputFormatParam
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.shell }}
+          path: Tests/testResults.xml
+          retention-days: 30
+
+      - name: Upload code coverage to Codecov
+        if: matrix.os == 'windows-latest' && matrix.shell == 'pwsh'
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./Tests/coverage.xml
+          flags: unit
+          name: codecov-${{ matrix.os }}-${{ matrix.shell }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false

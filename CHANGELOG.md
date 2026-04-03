@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [0.9.12] - 2026-04-02
+
+### :toolbox: Added
+
+- Add Authentication Policies and Authentication Policy Silos support
+- Add condition to check for members of Pre-Windows 2000 group
+- Add a Replication diagram to the report
+- Add comprehensive copilot instructions for project structure, build, test, architecture, and coding conventions.
+- Add Get-AbrADReportBrief function to generate a one-page summary of Active Directory configuration and integrate it into the report generation process
+
+### :arrows_clockwise: Changed
+
+- Update module version to `0.9.12`
+- Upgrade AsBuiltReport.Chart module to version `0.3.0`
+- Migrate Diagrammer.Core to AsBuiltReport.Diagram module
+- Reorganize module structure - moved module files to AsBuiltReport.System.Resources/ subdirectory
+- Bump AsBuiltReport.Diagram module version from 1.0.2 to 1.0.5 in the module manifest
+- Revise README to reflect compatibility with PowerShell 7.4+, update system requirements, and clarify Linux/macOS support
+- Replace references to Diagrammer.Core with AsBuiltReport.Chart and AsBuiltReport.Diagram modules
+- Improve known issues section for clarity and detail
+- Enhance documentation clarity in MicrosoftAD.psd1 for English and Spanish languages
+- Refactor localization strings in MicrosoftAD.psd1 for clarity and consistency. Improved grammar, punctuation,
+  and readability across various best practice descriptions related to Active Directory configurations
+- Enhance Active Directory report structure by adding detailed sections for Forest, Sites, Infrastructure, GPOs, and Account Policies.
+  Improve localization strings for English and Spanish, and handle missing infrastructure scenarios in Exchange, SCCM, and DHCP sections
+- Refactor Get-AbrADReportBrief, Get-AbrDNSSection, and Get-AbrDomainSection for improved logging and PowerShell best practices
+- Updated Get-AbrADReportBrief to include company information (name, contact, email) in the report overview
+- Changed the collection of domain and report scope information to use [System.Collections.Generic.List[object]] instead of [System.Collections.ArrayList]
+- Updated PowerShell module version in AsBuiltReport.Microsoft.AD.psd1 to 7.4
+- Incremented version number to 0.9.12 in multiple scripts for consistency
+- Restructure Private folder to better organize helper functions and improve maintainability
+
+### :bug: Fixed
+
+- Fix Sysvol Replication table not correctly displaying the replication status of the domain controllers
+
+### :x: Removed
+
+- Remove unused Get-ColumnChart and Get-PieChart functions from the module
+- Remove support for PowerShell 5.1
+- Remove PKI section from the report as it is not working properly and requires additional permissions to collect the information
+
 ## [0.9.11] - 2026-02-21
 
 ### :toolbox: Added
@@ -30,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Certficate Authority Autiting status not being properly evaluated in Get-AbrADCARoot
   and Get-AbrADCASubordinate cmdlets
 - Fix missing BOM encoding for non-ASCII encoded file
+- Fix Domain Controller memory health check to properly evaluate the total physical memory, which could lead to incorrect health check results.
 
 ### :x: Removed
 

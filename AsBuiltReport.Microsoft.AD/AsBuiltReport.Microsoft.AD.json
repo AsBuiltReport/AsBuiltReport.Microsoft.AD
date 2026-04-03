@@ -1,0 +1,89 @@
+{
+    "Report": {
+        "Name": "Microsoft Active Directory As Built Report",
+        "Version": "1.0",
+        "Status": "Released",
+        "Language": "en-US",
+        "ShowCoverPageImage": true,
+        "ShowTableOfContents": true,
+        "ShowHeaderFooter": true,
+        "ShowTableCaptions": true
+    },
+    "Options": {
+        "ShowExecutionTime": false,
+        "ShowDefinitionInfo": false,
+        "PSDefaultAuthentication": "Negotiate",
+        "Exclude": {
+            "Domains": [],
+            "DCs": []
+        },
+        "Include": {
+            "Domains": []
+        },
+        "WinRMSSL": false,
+        "WinRMFallbackToNoSSL": true,
+        "WinRMSSLPort": 5986,
+        "WinRMPort": 5985,
+        "EnableDiagrams": true,
+        "EnableDiagramDebug": false,
+        "DiagramTheme": "White",
+        "DiagramObjDebug": false,
+        "DiagramWaterMark": "",
+        "DiagramType": {
+            "CertificateAuthority": true,
+            "Forest": true,
+            "Replication": true,
+            "Sites": true,
+            "SitesInventory": true,
+            "Trusts": true
+        },
+        "ExportDiagrams": true,
+        "ExportDiagramsFormat": [
+            "pdf"
+        ],
+        "EnableDiagramSignature": false,
+        "SignatureAuthorName": "",
+        "SignatureCompanyName": "",
+        "JobsTimeOut": 900,
+        "DCStatusPingCount": 2
+    },
+    "InfoLevel": {
+        "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",
+        "Forest": 2,
+        "Domain": 2,
+        "DNS": 1
+    },
+    "HealthCheck": {
+        "Domain": {
+            "GMSA": true,
+            "GPO": true,
+            "Backup": true,
+            "DFS": true,
+            "SPN": true,
+            "DuplicateObject": true,
+            "Security": true,
+            "BestPractice": true
+        },
+        "DomainController": {
+            "Diagnostic": true,
+            "Services": true,
+            "Software": true,
+            "BestPractice": true
+        },
+        "Site": {
+            "Replication": true,
+            "BestPractice": true
+        },
+        "DNS": {
+            "Aging": true,
+            "DP": true,
+            "Zones": true,
+            "BestPractice": true
+        },
+        "CA": {
+            "Status": true,
+            "Statistics": true,
+            "BestPractice": true
+        }
+    }
+}
