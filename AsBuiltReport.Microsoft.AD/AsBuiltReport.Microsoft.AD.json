@@ -51,8 +51,7 @@
         "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",
         "Forest": 2,
         "Domain": 2,
-        "DNS": 1,
-        "CA": 0
+        "DNS": 1
     },
     "HealthCheck": {
         "Domain": {

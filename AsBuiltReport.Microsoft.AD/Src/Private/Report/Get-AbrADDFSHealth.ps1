@@ -80,7 +80,8 @@
                                 'Uninitialized',
                                 'Auto recovery',
                                 'In error state',
-                                'Disabled'
+                                'Disabled',
+                                'Offline'
                             )
                             $ReplicationStatusWarn = @(
                                 'Initialized',
@@ -93,7 +94,7 @@
                         }
 
                         $TableParams = @{
-                            Name = "$($reportTranslate.GetAbrADDFSHealth.SysvolReplicationTableName) - $($Domain.DNSRoot.ToString().ToUpper()))"
+                            Name = "$($reportTranslate.GetAbrADDFSHealth.SysvolReplicationTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                             List = $false
                             ColumnWidths = 20, 16, 16, 16, 16, 16
                         }

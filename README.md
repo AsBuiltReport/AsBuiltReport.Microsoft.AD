@@ -65,7 +65,7 @@ This report is compatible with the following PowerShell versions;
 
 ## :wrench: System Requirements
 <!-- ********** Update system requirements ********** -->
-PowerShell 7+, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
+PowerShell 7.4+, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
 - [AsBuiltReport.Core Module](https://github.com/AsBuiltReport/AsBuiltReport.Core)
 - [AsBuiltReport.Chart Module](https://github.com/AsBuiltReport/AsBuiltReport.Chart)
@@ -81,7 +81,7 @@ PowerShell 7+, and the following PowerShell modules are required for generating 
 
 ### Linux & macOS
 
-This report is not supported on Linux or macOS because the ActiveDirectory and GroupPolicy modules depend on the .NET Framework. These modules are Windows-only until Microsoft migrates them to PowerShell Core. Therefore, only PowerShell 7+ on Windows is supported for generating this report.
+This report is not supported on Linux or macOS because the ActiveDirectory and GroupPolicy modules depend on the .NET Framework. These modules are Windows-only until Microsoft migrates them to PowerShell Core. Therefore, only PowerShell 7.4+ on Windows is supported for generating this report.
 
 ### :closed_lock_with_key: Required Privileges
 

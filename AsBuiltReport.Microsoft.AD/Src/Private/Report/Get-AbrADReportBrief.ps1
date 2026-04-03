@@ -133,7 +133,6 @@ function Get-AbrADReportBrief {
                         $reportTranslate.GetAbrADReportBrief.ScopeForest = $InfoLevel.Forest
                         $reportTranslate.GetAbrADReportBrief.ScopeDomain = $InfoLevel.Domain
                         $reportTranslate.GetAbrADReportBrief.ScopeDNS = $InfoLevel.DNS
-                        $reportTranslate.GetAbrADReportBrief.ScopeCA = $InfoLevel.CA
                     }
 
                     foreach ($Entry in $ScopeMap.GetEnumerator()) {

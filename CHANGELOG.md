@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-## [0.9.12] - 2026-03-??
+## [0.9.12] - 2026-04-02
 
 ### :toolbox: Added
 
@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update module version to `0.9.12`
 - Upgrade AsBuiltReport.Chart module to version `0.3.0`
+- Upgrade PSPKI module to version `4.4.0`
 - Migrate Diagrammer.Core to AsBuiltReport.Diagram module
 - Reorganize module structure - moved module files to AsBuiltReport.System.Resources/ subdirectory
 - Bump AsBuiltReport.Diagram module version from 1.0.2 to 1.0.4 in the module manifest
@@ -47,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove unused Get-ColumnChart and Get-PieChart functions from the module
 - Remove support for PowerShell 5.1
+- Remove PKI section from the report as it is not working properly and requires additional permissions to collect the information
 
 ## [0.9.11] - 2026-02-21
 
