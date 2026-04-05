@@ -44,11 +44,11 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             $InstalledVersion = Get-Module -ListAvailable -Name $Module -ErrorAction SilentlyContinue | Sort-Object -Property Version -Descending | Select-Object -First 1 -ExpandProperty Version
 
             if ($InstalledVersion) {
-                Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ModuleInstalled -f $Module, $InstalledVersion.ToString())
+                Write-Host ("  $($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ModuleInstalled)" -f $Module, $InstalledVersion.ToString())
                 $LatestVersion = Find-Module -Name $Module -Repository PSGallery -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
                 if ($InstalledVersion -lt $LatestVersion) {
-                    Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ModuleAvailable -f $Module, $LatestVersion.ToString()) -ForegroundColor Red
-                    Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ModuleUpdate -f $Module) -ForegroundColor Red
+                    Write-Host ("  $($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ModuleAvailable)" -f $Module, $LatestVersion.ToString()) -ForegroundColor Red
+                    Write-Host ("  $($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ModuleUpdate)" -f $Module) -ForegroundColor Red
                 }
             }
         } catch {
@@ -163,16 +163,16 @@ function Invoke-AsBuiltReport.Microsoft.AD {
 
         if ($ChildDomains) {
             $OrderedDomains.Add($ChildDomains)
-            Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.DiscoveringChildDomains -f $RootDomains, ($OrderedDomains -join ', '))
+            Write-Host ("  $($reportTranslate.InvokeAsBuiltReportMicrosoftAD.DiscoveringChildDomains)" -f $RootDomains, ($OrderedDomains -join ', '))
         }
 
         # Set initial connection to childs domains to find out if there is an available DC to fulfill the requests
         foreach ($Domain in $OrderedDomains) {
             try {
                 if (Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
-                    Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.DCAvailable -f $Domain)
+                    Write-Host ("  $($reportTranslate.InvokeAsBuiltReportMicrosoftAD.DCAvailable)" -f $Domain)
                 } else {
-                    Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.DCUnavailable -f $Domain)
+                    Write-Host ("  $($reportTranslate.InvokeAsBuiltReportMicrosoftAD.DCUnavailable)" -f $Domain)
                     $DomainStatus.Add(
                         @{
                             Name = $Domain
@@ -183,7 +183,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
                 }
             } catch { $null }
         }
-        Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.FinishingDomainList -f $RootDomains, ($OrderedDomains -join ', '))
+        Write-Host ("  $($reportTranslate.InvokeAsBuiltReportMicrosoftAD.FinishingDomainList)" -f $RootDomains, ($OrderedDomains -join ', '))
 
         # Report Overview
         Get-AbrADReportBrief
