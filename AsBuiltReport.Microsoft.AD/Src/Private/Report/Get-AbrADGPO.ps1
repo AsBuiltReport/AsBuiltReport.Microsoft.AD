@@ -56,7 +56,7 @@ function Get-AbrADGPO {
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Policy Objects)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorGPOItem) $($_.Exception.Message)"
                                     }
                                 }
 
@@ -102,7 +102,7 @@ function Get-AbrADGPO {
                                     }
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Policy Objects)"
+                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorGPOItem) $($_.Exception.Message)"
                             }
                         }
                         if ($InfoLevel.Domain -ge 2) {
@@ -187,12 +187,12 @@ function Get-AbrADGPO {
                                                 }
                                             }
                                         } catch {
-                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Policy Objects)"
+                                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorGPOItem) $($_.Exception.Message)"
                                         }
                                     }
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (WMI Filters)"
+                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorWMIFiltersItem) $($_.Exception.Message)"
                             }
                         }
                     }
@@ -210,7 +210,7 @@ function Get-AbrADGPO {
                                     if (-not $_.Exception.MessageId) {
                                         $ErrorMessage = $_.FullyQualifiedErrorId
                                     } else { $ErrorMessage = $_.Exception.MessageId }
-                                    Write-PScriboMessage -IsWarning -Message "Wmi Filters Section: New-PSSession: Unable to connect to $($ValidDCFromDomain): $ErrorMessage"
+                                    Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrADGPO.ErrorWMIFiltersPSSession -f $ValidDCFromDomain, $ErrorMessage)
                                 }
 
                                 if ($WmiFilters) {
@@ -245,7 +245,7 @@ function Get-AbrADGPO {
                                     Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.WMINoData -f $Domain.DNSRoot)
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (WMI Filters)"
+                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorWMIFiltersItem) $($_.Exception.Message)"
                             }
                         }
                         try {
@@ -288,7 +288,7 @@ function Get-AbrADGPO {
                                 Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.CentralStoreNoData -f $Domain.DNSRoot)
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (GPO Central Store)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorGPOCentralStore) $($_.Exception.Message)"
                         }
                         try {
                             if ($GPOs) {
@@ -313,7 +313,7 @@ function Get-AbrADGPO {
                                             }
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (GPO with Logon/Logoff Script Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorGPOLogonLogoffItem) $($_.Exception.Message)"
                                     }
                                 }
                             }
@@ -338,7 +338,7 @@ function Get-AbrADGPO {
                                 Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.LogonLogoffNoData -f $Domain.DNSRoot)
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (GPO with Logon/Logoff Script Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorGPOLogonLogoffSection) $($_.Exception.Message)"
                         }
                         try {
                             if ($GPOs) {
@@ -358,12 +358,12 @@ function Get-AbrADGPO {
                                                     }
                                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                                 } catch {
-                                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Item)"
+                                                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorGPOStartupShutdownItem) $($_.Exception.Message)"
                                                 }
                                             }
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorGPOStartupShutdownItem) $($_.Exception.Message)"
                                     }
                                 }
                             }
@@ -389,7 +389,7 @@ function Get-AbrADGPO {
                                 Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.StartupShutdownNoData -f $Domain.DNSRoot)
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (GPO with Computer Startup/Shutdown Script Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorGPOStartupShutdownSection) $($_.Exception.Message)"
                         }
                     }
                 }
@@ -414,7 +414,7 @@ function Get-AbrADGPO {
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unlinked Group Policy Objects Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorUnlinkedGPOItem) $($_.Exception.Message)"
                                     }
                                 }
                             }
@@ -445,7 +445,7 @@ function Get-AbrADGPO {
                                 Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.UnlinkedGPONoData -f $Domain.DNSRoot)
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unlinked Group Policy Objects Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorUnlinkedGPOSection) $($_.Exception.Message)"
                         }
                         try {
                             $OutObj = [System.Collections.Generic.List[object]]::new()
@@ -463,7 +463,7 @@ function Get-AbrADGPO {
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Empty Group Policy Objects Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorEmptyGPOItem) $($_.Exception.Message)"
                                     }
                                 }
                             }
@@ -494,7 +494,7 @@ function Get-AbrADGPO {
                                 Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.EmptyGPONoData -f $Domain.DNSRoot)
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Empty Group Policy Objects Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorEmptyGPOSection) $($_.Exception.Message)"
                         }
                         try {
                             $OutObj = [System.Collections.Generic.List[object]]::new()
@@ -518,7 +518,7 @@ function Get-AbrADGPO {
                                             }
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "OU: $($OU): $($_.Exception.Message) (Enforced Group Policy Objects Item)"
+                                        Write-PScriboMessage -IsWarning -Message "OU: $($OU): $($reportTranslate.GetAbrADGPO.ErrorEnforcedGPOItem) $($_.Exception.Message)"
                                     }
                                 }
                             }
@@ -551,7 +551,7 @@ function Get-AbrADGPO {
                                 Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.EnforcedGPONoData -f $Domain.DNSRoot)
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Enforced Group Policy Objects Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorEnforcedGPOTable) $($_.Exception.Message)"
                         }
                         # Code taken from Jeremy Saunders
                         # https://github.com/jeremyts/ActiveDirectoryDomainServices/blob/master/Audit/FindOrphanedGPOs.ps1
@@ -564,7 +564,7 @@ function Get-AbrADGPO {
                                 if (-not $_.Exception.MessageId) {
                                     $ErrorMessage = $_.FullyQualifiedErrorId
                                 } else { $ErrorMessage = $_.Exception.MessageId }
-                                Write-PScriboMessage -IsWarning -Message "Orphaned GPO Section: New-PSSession: Unable to connect to $($ValidDCFromDomain): $ErrorMessage"
+                                Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrADGPO.ErrorOrphanedGPOPSSession -f $ValidDCFromDomain, $ErrorMessage)
                             }
                             $GPOPoliciesSYSVOLUNC = "\\$($Domain.DNSRoot)\SYSVOL\$($Domain.DNSRoot)\Policies"
                             $OrphanGPOs = [System.Collections.Generic.List[object]]::new()
@@ -658,13 +658,13 @@ function Get-AbrADGPO {
                                 Write-PScriboMessage -Message ($reportTranslate.GetAbrADGPO.OrphanedGPONoData -f $Domain.DNSRoot)
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Orphaned GPO)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorOrphanedGPOItem) $($_.Exception.Message)"
                         }
                     }
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Policy Objects Section)"
+            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADGPO.ErrorGPOSection) $($_.Exception.Message)"
         }
     }
 

@@ -33,7 +33,7 @@ function Get-AbrADInfrastructureService {
                 if (-not $_.Exception.MessageId) {
                     $ErrorMessage = $_.FullyQualifiedErrorId
                 } else { $ErrorMessage = $_.Exception.MessageId }
-                Write-PScriboMessage -IsWarning -Message "Domain Controller Infrastructure Services Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrADInfrastructureService.ErrorPSSession -f $DC, $ErrorMessage)
             }
             if ($Available) {
                 $OutObj = [System.Collections.Generic.List[object]]::new()
@@ -50,7 +50,7 @@ function Get-AbrADInfrastructureService {
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Infrastructure Services Item)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADInfrastructureService.ErrorDCInfraServicesItem))"
                     }
                 }
 
@@ -96,7 +96,7 @@ function Get-AbrADInfrastructureService {
                 Write-PScriboMessage -Message ($reportTranslate.GetAbrADInfrastructureService.NoData -f $DC)
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Controller Infrastructure Services Section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADInfrastructureService.ErrorDCInfraServicesTable))"
         }
     }
 

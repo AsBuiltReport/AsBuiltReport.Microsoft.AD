@@ -41,7 +41,7 @@ function Get-AbrADExchange {
                             }
                             $EXInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Exchange Item)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADExchange.ErrorExchangeItem))"
                         }
                     }
 
@@ -73,12 +73,12 @@ function Get-AbrADExchange {
                     }
                 }
             } else {
-                Write-PScriboMessage -Message "No Exchange Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
+                Write-PScriboMessage -Message ($reportTranslate.GetAbrADExchange.NoExchangeInfo -f $ForestInfo.toUpper())
                 Paragraph $reportTranslate.GetAbrADExchange.NotFound
                 BlankLine
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Exchabge Table)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADExchange.ErrorExchangeTable))"
         }
     }
 

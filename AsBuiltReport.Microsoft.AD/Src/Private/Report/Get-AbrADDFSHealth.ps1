@@ -71,7 +71,7 @@
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "Sysvol Replication Status Iten Section: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDFSHealth.ErrorSysvolReplicationStatusItemSection) $($_.Exception.Message)"
                             }
                         }
 
@@ -117,7 +117,7 @@
                     Write-PScriboMessage -Message ($reportTranslate.GetAbrADDFSHealth.SysvolReplicationNoData -f $Domain.DNSRoot)
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "Sysvol Replication Status Table Section: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDFSHealth.ErrorSysvolReplicationStatusTableSection) $($_.Exception.Message)"
             }
             try {
 
@@ -134,7 +134,7 @@
                     if (-not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning -Message "Sysvol Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
+                    Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrADDFSHealth.ErrorSysvolContentPSSession -f $ValidDcFromDomain, $ErrorMessage)
                 }
                 if ($SYSVOLFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDFSHealth.SysvolContentTitle {
@@ -150,7 +150,7 @@
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "Sysvol Health $($Extension.Extension) Section: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDFSHealth.ErrorSysvolHealthSection -f $Extension.Extension) $($_.Exception.Message)"
                             }
                         }
 
@@ -181,7 +181,7 @@
                     Write-PScriboMessage -Message ($reportTranslate.GetAbrADDFSHealth.SysvolContentNoData -f $Domain.DNSRoot)
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "Sysvol Health Table Section: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDFSHealth.ErrorSysvolHealthTableSection) $($_.Exception.Message)"
             }
             try {
                 $DCPssSession = Get-ValidPSSession -ComputerName $ValidDcFromDomain -SessionName $($ValidDcFromDomain) -PSSTable ([ref]$PSSTable)
@@ -197,7 +197,7 @@
                     if (-not $_.Exception.MessageId) {
                         $ErrorMessage = $_.FullyQualifiedErrorId
                     } else { $ErrorMessage = $_.Exception.MessageId }
-                    Write-PScriboMessage -IsWarning -Message "Netlogon Content Status Section: New-PSSession: Unable to connect to $($ValidDcFromDomain): $ErrorMessage"
+                    Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrADDFSHealth.ErrorNetlogonContentPSSession -f $ValidDcFromDomain, $ErrorMessage)
                 }
                 if ($NetlogonFolder) {
                     Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDFSHealth.NetlogonContentTitle {
@@ -213,7 +213,7 @@
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "Netlogon Health $($Extension.Extension) Section: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDFSHealth.ErrorNetlogonHealthSection -f $Extension.Extension) $($_.Exception.Message)"
                             }
                         }
 
@@ -244,7 +244,7 @@
                     Write-PScriboMessage -Message ($reportTranslate.GetAbrADDFSHealth.NetlogonContentNoData -f $Domain.DNSRoot)
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "Netlogon Content Status Section: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDFSHealth.ErrorNetlogonContentStatusSection) $($_.Exception.Message)"
             }
         }
     }

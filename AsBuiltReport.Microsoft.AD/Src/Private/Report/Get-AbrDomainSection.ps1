@@ -32,7 +32,7 @@ function Get-AbrDomainSection {
                         # Define Filter option for Domain variable
                         try {
                             if ($DomainInfo = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain }) {
-                                Write-Host "  - Collecting Domain information from $Domain."
+                                Write-Host ([string]::Format("  - $($reportTranslate.GetAbrDomainSection.CollectingDomain)", $Domain))
                                 $DCs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADDomain -Identity $using:Domain | Select-Object -ExpandProperty ReplicaDirectoryServers | Where-Object { $_ -notin ($using:Options).Exclude.DCs } } | Sort-Object
                                 Section -Style Heading2 "$($DomainInfo.DNSRoot.ToString().ToUpper())" {
                                     Paragraph $reportTranslate.GetAbrDomainSection.Paragraph
@@ -140,7 +140,7 @@ function Get-AbrDomainSection {
                                 Write-PScriboMessage -Message ($reportTranslate.GetAbrDomainSection.DomainExcluded -f $DomainInfo.DNSRoot)
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Active Directory Domain)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrDomainSection.ErrorADDomain))"
                         }
                     } else {
                         $DomainStatus.Value.Add(

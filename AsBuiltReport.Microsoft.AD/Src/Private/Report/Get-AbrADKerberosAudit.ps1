@@ -42,7 +42,7 @@ function Get-AbrADKerberosAudit {
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADKerberosAudit.ErrorUnconstrainedKerberosItem))"
                             }
                         }
 
@@ -86,7 +86,7 @@ function Get-AbrADKerberosAudit {
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (KRBTGT account Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADKerberosAudit.ErrorKRBTGTAccountItem))"
                             }
 
                             if ($HealthCheck.Domain.Security) {
@@ -114,7 +114,7 @@ function Get-AbrADKerberosAudit {
                         Write-PScriboMessage -Message ($reportTranslate.GetAbrADKerberosAudit.KRBTGTNoData -f $Domain.DNSRoot)
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADKerberosAudit.ErrorUnconstrainedKerberosItem))"
                 }
                 try {
                     $SID = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { "$($($using:Domain).domainsid.ToString())-500" }
@@ -134,7 +134,7 @@ function Get-AbrADKerberosAudit {
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (ADMIN account Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADKerberosAudit.ErrorAdminAccountItem))"
                             }
 
                             if ($HealthCheck.Domain.Security) {
@@ -162,10 +162,10 @@ function Get-AbrADKerberosAudit {
                         Write-PScriboMessage -Message ($reportTranslate.GetAbrADKerberosAudit.AdminNoData -f $Domain.DNSRoot)
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADKerberosAudit.ErrorUnconstrainedKerberosItem))"
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Unconstrained Kerberos delegation Table)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADKerberosAudit.ErrorUnconstrainedKerberosSection))"
             }
         }
     }

@@ -79,7 +79,7 @@ function Get-AbrADForest {
                 }
 
                 $TableParams = @{
-                    Name = "Forest Summary - $($ForestInfo)"
+                    Name = "$($reportTranslate.GetAbrADForest.TableName) - $($ForestInfo)"
                     List = $true
                     ColumnWidths = 40, 60
                 }
@@ -112,7 +112,7 @@ function Get-AbrADForest {
                         try {
                             $Graph = Get-AbrDiagrammer -DiagramType 'Forest' -DiagramOutput base64 -PSSessionObject $TempPssSession
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "Forest Diagram Graph: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADForest.ErrorForestDiagramGraph) $($_.Exception.Message)"
                         }
 
                         if ($Graph) {
@@ -124,7 +124,7 @@ function Get-AbrADForest {
                             }
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning -Message "Forest Diagram Section: $($_.Exception.Message)"
+                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADForest.ErrorForestDiagramSection) $($_.Exception.Message)"
                     }
                 }
             }
@@ -183,7 +183,7 @@ function Get-AbrADForest {
                             }
                         }
                     } else {
-                        Write-PScriboMessage -Message "No Certificate Authority Root information found in $ForestInfo, Disabling this section."
+                        Write-PScriboMessage -Message ($reportTranslate.GetAbrADForest.NoCARootInfo -f $ForestInfo)
                     }
 
                     if ($subordinateCA) {
@@ -212,7 +212,7 @@ function Get-AbrADForest {
                             $OutObj | Sort-Object -Property $reportTranslate.GetAbrADForest.CAName | Table @TableParams
                         }
                     } else {
-                        Write-PScriboMessage -Message 'No Certificate Authority Issuer information found, Disabling this section.'
+                        Write-PScriboMessage -Message $reportTranslate.GetAbrADForest.NoCAIssuerInfo
                     }
                 }
                 if ($Options.EnableDiagrams) {
@@ -220,7 +220,7 @@ function Get-AbrADForest {
                         try {
                             $Graph = Get-AbrDiagrammer -DiagramType 'CertificateAuthority' -DiagramOutput base64 -PSSessionObject $TempPssSession
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "Certificate Authority Diagram Graph: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADForest.ErrorCADiagramGraph) $($_.Exception.Message)"
                         }
 
                         if ($Graph) {
@@ -232,7 +232,7 @@ function Get-AbrADForest {
                             }
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning -Message "Certificate Authority Diagram Section: $($_.Exception.Message)"
+                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADForest.ErrorCADiagramSection) $($_.Exception.Message)"
                     }
                 }
             }
@@ -289,7 +289,7 @@ function Get-AbrADForest {
                         }
                     }
                 } else {
-                    Write-PScriboMessage -Message "No Optional Feature information found in $ForestInfo, Disabling this section."
+                    Write-PScriboMessage -Message ($reportTranslate.GetAbrADForest.NoOptionalFeatureInfo -f $ForestInfo)
                 }
             }
         } catch {

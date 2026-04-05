@@ -56,7 +56,7 @@ function Get-AbrADSecurityAssessment {
                         }
                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                     } catch {
-                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Account Security Assessment Item)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADSecurityAssessment.ErrorAccountSecurityAssessmentItem))"
                     }
 
                     if ($HealthCheck.Domain.Security) {
@@ -83,7 +83,7 @@ function Get-AbrADSecurityAssessment {
                         $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } }
                         $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Category -Title $reportTranslate.GetAbrADSecurityAssessment.UserAccountTitle -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 600 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                     } catch {
-                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (User Account Security Assessment Chart)"
+                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADSecurityAssessment.ErrorUserAccountSecurityAssessmentChart))"
                     }
                     if ($OutObj) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADSecurityAssessment.UserAccountTitle {
@@ -101,10 +101,10 @@ function Get-AbrADSecurityAssessment {
                         }
                     }
                 } else {
-                    Write-PScriboMessage -Message "No Domain users information found in $($Domain.DNSRoot), Disabling this section."
+                    Write-PScriboMessage -Message ($reportTranslate.GetAbrADSecurityAssessment.NoUserInfo -f $Domain.DNSRoot)
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Account Security Assessment Table)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADSecurityAssessment.ErrorAccountSecurityAssessmentTable))"
             }
             if ($InfoLevel.Domain -ge 2) {
                 try {
@@ -139,7 +139,7 @@ function Get-AbrADSecurityAssessment {
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
-                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Users Assessment Item)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADSecurityAssessment.ErrorPrivilegedUsersAssessmentItem))"
                                 }
                             }
 
@@ -186,10 +186,10 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PScriboMessage -Message "No Privileged User Assessment information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message ($reportTranslate.GetAbrADSecurityAssessment.NoPrivilegedUserInfo -f $Domain.DNSRoot)
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Users Table)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADSecurityAssessment.ErrorPrivilegedUsersTable))"
                 }
                 try {
                     $InactivePrivilegedUsers = $PrivilegedUsers | Where-Object { ($_.LastLogonDate -le (Get-Date).AddDays(-30)) -and ($_.PasswordLastSet -le (Get-Date).AddDays(-365)) -and ($_.SamAccountName -ne 'krbtgt') -and ($_.SamAccountName -ne 'Administrator') }
@@ -217,7 +217,7 @@ function Get-AbrADSecurityAssessment {
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
-                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Inactive Privileged Accounts Item)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADSecurityAssessment.ErrorInactivePrivilegedAccountsItem))"
                                 }
                             }
 
@@ -243,10 +243,10 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PScriboMessage -Message "No Inactive Privileged Accounts information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message ($reportTranslate.GetAbrADSecurityAssessment.NoInactivePrivilegedInfo -f $Domain.DNSRoot)
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Inactive Privileged Accounts Table)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADSecurityAssessment.ErrorInactivePrivilegedAccountsTable))"
                 }
                 try {
                     $UserSPNs = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADUser -ResultPageSize 1000 -Server ($using:Domain).DNSRoot -Filter { ServicePrincipalName -like '*' } -Properties AdminCount, PasswordLastSet, LastLogonDate, ServicePrincipalName, TrustedForDelegation, TrustedtoAuthForDelegation }
@@ -273,7 +273,7 @@ function Get-AbrADSecurityAssessment {
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
-                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Service Accounts Assessment Item)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADSecurityAssessment.ErrorServiceAccountsAssessmentItem))"
                                 }
                             }
 
@@ -305,10 +305,10 @@ function Get-AbrADSecurityAssessment {
                             }
                         }
                     } else {
-                        Write-PScriboMessage -Message "No Service Accounts Assessment information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message ($reportTranslate.GetAbrADSecurityAssessment.NoServiceAccountsInfo -f $Domain.DNSRoot)
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Service Accounts Assessment Table)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADSecurityAssessment.ErrorServiceAccountsAssessmentTable))"
                 }
             }
         }

@@ -69,7 +69,7 @@ function Get-AbrADDCDiag {
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "Active Directory DCDiag $($Result.TestName) Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDCDiag.ErrorDCDiagTestSection -f $Result.TestName) $($_.Exception.Message)"
                         }
                     }
                     if ($HealthCheck.DomainController.Diagnostic) {
@@ -89,7 +89,7 @@ function Get-AbrADDCDiag {
                 Write-PScriboMessage -Message ($reportTranslate.GetAbrADDCDiag.NoData -f $DC)
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "Active Directory DCDiag Section: $($_.Exception.Message)"
+            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDCDiag.ErrorDCDiagSection) $($_.Exception.Message)"
         }
     }
 

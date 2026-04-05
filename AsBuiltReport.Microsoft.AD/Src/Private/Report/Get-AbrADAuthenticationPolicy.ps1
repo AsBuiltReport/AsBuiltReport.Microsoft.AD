@@ -61,7 +61,7 @@ function Get-AbrADAuthenticationPolicy {
                                         }
                                         $SiloInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Authentication Policy Silo Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADAuthenticationPolicy.ErrorSiloItem) $($_.Exception.Message)"
                                     }
                                 }
 
@@ -73,7 +73,7 @@ function Get-AbrADAuthenticationPolicy {
                                     foreach ($Silo in $SiloInfo) {
                                         Section -Style NOTOCHeading5 -ExcludeFromTOC "$($Silo.Name)" {
                                             $TableParams = @{
-                                                Name = "Authentication Policy Silo - $($Silo.Name)"
+                                                Name = "$($reportTranslate.GetAbrADAuthenticationPolicy.SiloTableName) - $($Silo.Name)"
                                                 List = $true
                                                 ColumnWidths = 40, 60
                                             }
@@ -85,7 +85,7 @@ function Get-AbrADAuthenticationPolicy {
                                     }
                                 } else {
                                     $TableParams = @{
-                                        Name = "Authentication Policy Silos - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADAuthenticationPolicy.SilosTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         Columns = $reportTranslate.GetAbrADAuthenticationPolicy.SiloName, $reportTranslate.GetAbrADAuthenticationPolicy.SiloEnforce, $reportTranslate.GetAbrADAuthenticationPolicy.UserAuthPolicy, $reportTranslate.GetAbrADAuthenticationPolicy.ServiceAuthPolicy, $reportTranslate.GetAbrADAuthenticationPolicy.ComputerAuthPolicy
                                         ColumnWidths = 20, 12, 23, 23, 22
@@ -126,7 +126,7 @@ function Get-AbrADAuthenticationPolicy {
                                                     $SiloMemberInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                                 }
                                             } catch {
-                                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Authentication Policy Silo Member Item)"
+                                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADAuthenticationPolicy.ErrorSiloMemberItem) $($_.Exception.Message)"
                                             }
                                         }
                                     }
@@ -135,7 +135,7 @@ function Get-AbrADAuthenticationPolicy {
                                             Paragraph ($reportTranslate.GetAbrADAuthenticationPolicy.SiloMembersParagraph -f $Domain.DNSRoot.ToString().ToUpper())
                                             BlankLine
                                             $TableParams = @{
-                                                Name = "Authentication Policy Silo Members - $($Domain.DNSRoot.ToString().ToUpper())"
+                                                Name = "$($reportTranslate.GetAbrADAuthenticationPolicy.SiloMembersTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                                 List = $false
                                                 ColumnWidths = 20, 20, 15, 45
                                             }
@@ -146,14 +146,14 @@ function Get-AbrADAuthenticationPolicy {
                                         }
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Authentication Policy Silo Members Table)"
+                                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADAuthenticationPolicy.ErrorSiloMembersTable) $($_.Exception.Message)"
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Authentication Policy Silos Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADAuthenticationPolicy.ErrorSilosSectionA) $($_.Exception.Message)"
                         }
                     } else {
-                        Write-PScriboMessage -Message "No Authentication Policy Silo information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message ($reportTranslate.GetAbrADAuthenticationPolicy.NoSiloInfo -f $Domain.DNSRoot)
                     }
                     if ($AuthPolicies) {
                         try {
@@ -181,7 +181,7 @@ function Get-AbrADAuthenticationPolicy {
                                         }
                                         $PolicyInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Authentication Policy Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADAuthenticationPolicy.ErrorPolicyItem) $($_.Exception.Message)"
                                     }
                                 }
 
@@ -193,7 +193,7 @@ function Get-AbrADAuthenticationPolicy {
                                     foreach ($Policy in $PolicyInfo) {
                                         Section -Style NOTOCHeading5 -ExcludeFromTOC "$($Policy.Name)" {
                                             $TableParams = @{
-                                                Name = "Authentication Policy - $($Policy.Name)"
+                                                Name = "$($reportTranslate.GetAbrADAuthenticationPolicy.PolicyTableName) - $($Policy.Name)"
                                                 List = $true
                                                 ColumnWidths = 40, 60
                                             }
@@ -205,7 +205,7 @@ function Get-AbrADAuthenticationPolicy {
                                     }
                                 } else {
                                     $TableParams = @{
-                                        Name = "Authentication Policies - $($Domain.DNSRoot.ToString().ToUpper())"
+                                        Name = "$($reportTranslate.GetAbrADAuthenticationPolicy.PoliciesTableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                         List = $false
                                         Columns = $reportTranslate.GetAbrADAuthenticationPolicy.PolicyName, $reportTranslate.GetAbrADAuthenticationPolicy.PolicyEnforce, $reportTranslate.GetAbrADAuthenticationPolicy.UserTGTLifetime, $reportTranslate.GetAbrADAuthenticationPolicy.ServiceTGTLifetime, $reportTranslate.GetAbrADAuthenticationPolicy.ComputerTGTLifetime
                                         ColumnWidths = 20, 12, 23, 23, 22
@@ -227,17 +227,17 @@ function Get-AbrADAuthenticationPolicy {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Authentication Policies Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADAuthenticationPolicy.ErrorPoliciesSection) $($_.Exception.Message)"
                         }
                     } else {
-                        Write-PScriboMessage -Message "No Authentication Policy information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message ($reportTranslate.GetAbrADAuthenticationPolicy.NoPolicyInfo -f $Domain.DNSRoot)
                     }
                 }
             } else {
-                Write-PScriboMessage -Message "No Authentication Policy or Silo information found in $($Domain.DNSRoot), Disabling this section."
+                Write-PScriboMessage -Message ($reportTranslate.GetAbrADAuthenticationPolicy.NoAuthPolicyOrSiloInfo -f $Domain.DNSRoot)
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Authentication Policy Silos Section)"
+            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADAuthenticationPolicy.ErrorSilosSectionA) $($_.Exception.Message)"
         }
     }
 

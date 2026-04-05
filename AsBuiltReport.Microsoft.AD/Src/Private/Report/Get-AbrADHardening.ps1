@@ -175,11 +175,11 @@ function Get-AbrADHardening {
                         }
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (ADHardening Item)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADHardening.ErrorADHardeningItem))"
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (ADHardening Section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADHardening.ErrorADHardeningSection))"
         }
     }
 
