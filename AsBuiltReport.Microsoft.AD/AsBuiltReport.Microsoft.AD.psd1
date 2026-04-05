@@ -12,7 +12,7 @@
     RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
     # Version number of this module.
-    ModuleVersion = '0.9.12'
+    ModuleVersion = '1.0.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')

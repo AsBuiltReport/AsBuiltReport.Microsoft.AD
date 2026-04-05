@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [1.0.0] - 2026-04-??
+
+### :arrows_clockwise: Changed
+
+- Improved multi-language support by refactoring localization strings and enhancing documentation clarity in MicrosoftAD.psd1 for English and Spanish languages.
+  This includes improved grammar, punctuation, and readability across various best practice descriptions related to Active Directory configurations
+- Bump module version to `1.0.0`
+
 ## [0.9.12] - 2026-04-02
 
 ### :toolbox: Added
