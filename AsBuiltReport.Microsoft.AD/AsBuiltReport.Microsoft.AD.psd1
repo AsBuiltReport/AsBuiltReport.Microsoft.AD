@@ -58,11 +58,11 @@
         },
         @{
             ModuleName = 'AsBuiltReport.Chart';
-            ModuleVersion = '0.3.0'
+            ModuleVersion = '0.3.1'
         },
         @{
             ModuleName = 'AsBuiltReport.Diagram';
-            ModuleVersion = '1.0.5'
+            ModuleVersion = '1.0.6'
         }
     )
 
