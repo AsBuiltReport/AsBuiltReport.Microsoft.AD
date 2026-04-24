@@ -5,7 +5,7 @@ function Get-AbrADForestInfo {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        0.9.12
+        Version:        1.0.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -131,9 +131,9 @@ function Get-AbrADForestInfo {
                         $TempForestInfo = [PSCustomObject]@{
                             Name = Remove-SpecialCharacter -String "$($ChildDomain)ChildDomain" -SpecialChars '\-. '
                             ChildDomainLabel = $ChildDomain
-                            Label = Add-NodeIcon -Name $ChildDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalDomainInfo -FontSize 18
+                            Label = Add-NodeIcon -Name $ChildDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalDomainInfo -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor
                             RootDomain = $ForestObj.RootDomain
-                            RootDomainLabel = Add-NodeIcon -Name $ForestObj.RootDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalForestInfo -FontSize 18
+                            RootDomainLabel = Add-NodeIcon -Name $ForestObj.RootDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalForestInfo -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor
                             ChildDomain = $ChildDomain
                             ParentDomain = Remove-SpecialCharacter -String "$($Childs.Parent)ChildDomain" -SpecialChars '\-. '
                             AditionalInfo = $AditionalDomainInfo
@@ -181,7 +181,7 @@ function Get-AbrADForestInfo {
 
                 $TempForestInfo = [PSCustomObject]@{
                     Name = Remove-SpecialCharacter -String "$($ForestObj.Name)RootDomain" -SpecialChars '\-. '
-                    Label = Add-NodeIcon -Name $ForestObj.RootDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalForestInfo -FontSize 18
+                    Label = Add-NodeIcon -Name $ForestObj.RootDomain -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -AditionalInfo $AditionalForestInfo -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor
                     AditionalInfo = $AditionalForestInfo
                 }
                 $ForestInfo.Add($TempForestInfo)

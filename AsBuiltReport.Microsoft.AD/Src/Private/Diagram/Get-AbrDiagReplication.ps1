@@ -5,7 +5,7 @@ function Get-AbrDiagReplication {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        0.9.12
+        Version:        1.0.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -33,7 +33,7 @@ function Get-AbrDiagReplication {
                 Write-Verbose -Message ($reportTranslate.NewADDiagram.buildingReplication -f $($ForestRoot))
                 $HTMLLegend = ('<table border="0"><tr><td><font color="darkgreen">■</font> <b>{0}</b>  <font color="darkblue">■</font> <b>{1}</b></td></tr></table>' -f $reportTranslate.NewADDiagram.replIntraSite, $reportTranslate.NewADDiagram.replInterSite)
                 if ($ReplInfo) {
-                    SubGraph ForestSubGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold) ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style; color = $SubGraphDebug.color } {
+                    SubGraph ForestSubGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor) ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style; color = $SubGraphDebug.color } {
                         SubGraph MainSubGraph -Attributes @{Label = $HTMLLegend ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style; color = $SubGraphDebug.color } {
                             # Collect unique sites and DCs from replication data
                             $Sites = ($ReplInfo | Select-Object -ExpandProperty FromSite) + ($ReplInfo | Select-Object -ExpandProperty ToSite) | Select-Object -Unique | Where-Object { $_ -ne 'Unknown' }
@@ -49,10 +49,10 @@ function Get-AbrDiagReplication {
                                         ($ReplInfo | Where-Object { ($_.FromServer -eq $DC -and $_.FromSite -eq $Site) -or ($_.ToServer -eq $DC -and $_.ToSite -eq $Site) })
                                     } | Select-Object -Unique
 
-                                    SubGraph $SiteNodeName -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $Site -IconType 'AD_Site' -IconDebug $IconDebug -SubgraphLabel -IconWidth 35 -IconHeight 35 -Fontsize 18 -FontName 'Segoe UI' -FontColor $Fontcolor); fontsize = 18; penwidth = 1.5; labelloc = 't'; style = 'dashed,rounded'; color = 'gray' } {
+                                    SubGraph $SiteNodeName -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $Site -IconType 'AD_Site' -IconDebug $IconDebug -SubgraphLabel -IconWidth 35 -IconHeight 35 -Fontsize 18 -FontName 'Segoe UI' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 18; penwidth = 1.5; labelloc = 't'; style = 'dashed,rounded'; color = 'gray' } {
                                         foreach ($DC in $SiteDCs) {
                                             $DCNodeName = Remove-SpecialCharacter -String $DC -SpecialChars '\-. '
-                                            Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18); shape = 'plain'; fillColor = 'transparent' }
+                                            Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
                                         }
                                     }
                                 }
@@ -63,10 +63,10 @@ function Get-AbrDiagReplication {
                                     -not ($ReplInfo | Where-Object { ($_.FromServer -eq $DC -and $_.FromSite -ne 'Unknown') -or ($_.ToServer -eq $DC -and $_.ToSite -ne 'Unknown') })
                                 }
                                 if ($UnknownSiteDCs) {
-                                    SubGraph UnknownSite -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $reportTranslate.NewADDiagram.replUnknownSite -IconType 'AD_Site' -IconDebug $IconDebug -SubgraphLabel -IconWidth 35 -IconHeight 35 -Fontsize 18 -FontName 'Segoe UI' -FontColor $Fontcolor); fontsize = 18; penwidth = 1.5; labelloc = 't'; style = 'dashed,rounded'; color = 'gray' } {
+                                    SubGraph UnknownSite -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $reportTranslate.NewADDiagram.replUnknownSite -IconType 'AD_Site' -IconDebug $IconDebug -SubgraphLabel -IconWidth 35 -IconHeight 35 -Fontsize 18 -FontName 'Segoe UI' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 18; penwidth = 1.5; labelloc = 't'; style = 'dashed,rounded'; color = 'gray' } {
                                         foreach ($DC in $UnknownSiteDCs) {
                                             $DCNodeName = Remove-SpecialCharacter -String $DC -SpecialChars '\-. '
-                                            Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18); shape = 'plain'; fillColor = 'transparent' }
+                                            Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
                                         }
                                     }
                                 }
@@ -74,7 +74,7 @@ function Get-AbrDiagReplication {
                                 # No site information - draw all DCs without grouping
                                 foreach ($DC in $AllDCs) {
                                     $DCNodeName = Remove-SpecialCharacter -String $DC -SpecialChars '\-. '
-                                    Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18); shape = 'plain'; fillColor = 'transparent' }
+                                    Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
                                 }
                             }
 

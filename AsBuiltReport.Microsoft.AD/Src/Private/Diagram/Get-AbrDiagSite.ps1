@@ -5,7 +5,7 @@ function Get-AbrDiagSite {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        0.9.12
+        Version:        1.0.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,7 +32,7 @@ function Get-AbrDiagSite {
                 $SitesInfo = Get-AbrADSitesInfo
 
                 if ($SitesInfo) {
-                    SubGraph ForestSubGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold) ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
+                    SubGraph ForestSubGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor) ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
                         SubGraph MainSubGraph -Attributes @{Label = ' ' ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style; color = $SubGraphDebug.color } {
                             if ($SitesInfo.Site) {
                                 foreach ($SitesObj in $SitesInfo) {
@@ -41,7 +41,7 @@ function Get-AbrDiagSite {
                                     foreach ($Link in $SitesObj.SiteLink) {
                                         # Start - Information for each SiteLink. Example: "Name: (Pharmax-to-Acad) SiteLink (Cost: 10) (Frequency: 15 minutes)"
                                         $SiteLink = Remove-SpecialCharacter -String $Link.Name -SpecialChars '\-. '
-                                        Node -Name $SiteLink -Attributes @{Label = (Add-HtmlTable -Name SiteLink -ALIGN 'Center' -IconDebug $IconDebug -Rows ($Link.AditionalInfo.GetEnumerator() | ForEach-Object { "$($_.key): $($_.value)" }) -ColumnSize 1 -FontSize 12); shape = 'plain'; fillColor = 'transparent' }
+                                        Node -Name $SiteLink -Attributes @{Label = (Add-HtmlTable -Name SiteLink -ALIGN 'Center' -IconDebug $IconDebug -Rows ($Link.AditionalInfo.GetEnumerator() | ForEach-Object { "$($_.key): $($_.value)" }) -ColumnSize 1 -FontSize 12 -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor); shape = 'plain'; fillColor = 'transparent' }
                                         Edge -From $Site -To $SiteLink @{minlen = 2; arrowtail = 'none'; arrowhead = 'none' }
                                         # End - Information for each SiteLink
                                         foreach ($SiteLinkSite in $Link.Sites) {

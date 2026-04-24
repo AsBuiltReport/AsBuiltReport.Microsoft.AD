@@ -5,7 +5,7 @@ function Get-AbrDiagTrust {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        0.9.12
+        Version:        1.0.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -32,13 +32,13 @@ function Get-AbrDiagTrust {
                 $TrustsInfo = Get-AbrADTrustsInfo
 
                 if ($TrustsInfo) {
-                    SubGraph ForestSubGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold); fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
+                    SubGraph ForestSubGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $ForestRoot -IconType 'ForestRoot' -IconDebug $IconDebug -SubgraphLabel -IconWidth 50 -IconHeight 50 -Fontsize 22 -FontName 'Segoe UI' -FontColor $Fontcolor -FontBold -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style ; color = $SubGraphDebug.color } {
                         SubGraph MainSubGraph -Attributes @{Label = ' ' ; fontsize = 24; penwidth = 1.5; labelloc = 't'; style = $SubGraphDebug.style; color = $SubGraphDebug.color } {
                             if (($TrustsInfo.Name | Measure-Object).count -gt 10) {
 
                                 $ChildDomainsNodes = $TrustsInfo.Label
 
-                                Node -Name 'TrustDestinations' -Attributes @{Label = (Add-HtmlSubGraph -Name TrustDestinations -ImagesObj $Images -TableArray $ChildDomainsNodes -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.TrustRelationships -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -FontSize 22 -FontName 'Segoe UI' -TableBorderColor $Edgecolor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent'; fontsize = 18; fontname = 'Segoe Ui' }
+                                Node -Name 'TrustDestinations' -Attributes @{Label = (Add-HtmlSubGraph -Name TrustDestinations -ImagesObj $Images -TableArray $ChildDomainsNodes -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.TrustRelationships -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -FontSize 22 -FontName 'Segoe UI' -TableBorderColor $Edgecolor -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor); shape = 'plain'; fillColor = 'transparent'; fontsize = 18; fontname = 'Segoe Ui' }
 
                                 $ForestRootDomain = Remove-SpecialCharacter -String "$($TrustsInfo.Source[0])ForestRoot" -SpecialChars '\-. '
                                 Node -Name $ForestRootDomain -Attributes @{Label = $TrustsInfo.SourceLabel[0]; shape = 'plain'; fillColor = 'transparent' }

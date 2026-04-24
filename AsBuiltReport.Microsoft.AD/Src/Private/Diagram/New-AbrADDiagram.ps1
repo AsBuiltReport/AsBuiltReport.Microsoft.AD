@@ -71,7 +71,7 @@ function New-AbrADDiagram {
     .PARAMETER WatermarkColor
         Allow to specified the color used for the watermark text. Default: #565656.
     .NOTES
-        Version:        0.9.12
+        Version:        1.0.0
         Author(s):      Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -511,7 +511,7 @@ function New-AbrADDiagram {
                     Write-Verbose $reportTranslate.NewADDiagram.genDiagramSignature
 
                     # Main Graph SubGraph
-                    SubGraph MainGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $MainGraphLabel -IconType $CustomLogo -IconDebug $IconDebug -IconWidth 250 -IconHeight 80 -Fontsize 24 -FontName 'Segoe UI Bold' -FontColor $Fontcolor ); fontsize = 22; penwidth = 0; labelloc = 't'; labeljust = 'c' } {
+                    SubGraph MainGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $MainGraphLabel -IconType $CustomLogo -IconDebug $IconDebug -IconWidth 250 -IconHeight 80 -Fontsize 24 -FontName 'Segoe UI Bold' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 22; penwidth = 0; labelloc = 't'; labeljust = 'c' } {
                         Write-Verbose $reportTranslate.NewADDiagram.genDiagramMain
 
                         $script:ForestRoot = $ADSystem.Name.ToString().ToUpper()

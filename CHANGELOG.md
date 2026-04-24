@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-04-??
 
+### Added
+
+- Add support for GliderUI to generate the report using a graphical interface instead of command line. The GUI will allow users to select the target domain, customize report options, and initiate the report generation process with a user-friendly experience.
+
 ### :arrows_clockwise: Changed
 
 - Improved multi-language support by refactoring localization strings and enhancing documentation clarity in MicrosoftAD.psd1 for English and Spanish languages.
@@ -16,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump module version to `1.0.0`
 - Upgrade AsBuiltReport.Diagram module to version `1.0.6`
 - Upgrade AsBuiltReport.Chart module to version `0.3.1`
+
+## :bug: Fixed
+
+- Fix diagram theme generation not respecting the selected theme in the configuration file, ensuring that diagrams are rendered with the correct visual style as defined by the user.
 
 ## [0.9.12] - 2026-04-02
 
