@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add support for GliderUI to generate the report using a graphical interface instead of command line. The GUI will allow users to select the target domain, customize report options, and initiate the report generation process with a user-friendly experience.
+- Add support for GliderUI graphical interface to generate reports via an intuitive user interface instead of command-line execution. The GUI enables users to select target domains, customize report options (InfoLevel, HealthChecks, diagram settings), and initiate report generation with a streamlined, user-friendly experience, reducing friction for non-technical stakeholders.
 
 ### :arrows_clockwise: Changed
 
