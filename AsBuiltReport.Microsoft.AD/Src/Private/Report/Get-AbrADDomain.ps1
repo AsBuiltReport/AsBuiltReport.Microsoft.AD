@@ -68,7 +68,7 @@ function Get-AbrADDomain {
                     }
 
                     $TableParams = @{
-                        Name = "Domain Summary - $($Domain.DNSRoot.ToString().ToUpper())"
+                        Name = "$($reportTranslate.GetAbrADDomain.TableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                         List = $true
                         ColumnWidths = 40, 60
                     }
@@ -91,7 +91,7 @@ function Get-AbrADDomain {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "AD Domain Summary Section: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomain.ErrorSection) $($_.Exception.Message)"
             }
         }
     }

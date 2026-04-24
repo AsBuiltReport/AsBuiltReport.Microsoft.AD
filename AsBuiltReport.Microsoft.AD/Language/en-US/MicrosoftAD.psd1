@@ -21,13 +21,13 @@
     CIMSessionError = Failed to establish a CimSession ({0}) with the Domain Controller '{1}'.
     ConnectingForest = Connecting to retrieve forest information from the Domain Controller '{0}'.
     ForestError = Failed to retrieve forest information from the Domain Controller '{0}'. Ensure the provided system is a Domain Controller and the provided credentials have sufficient permissions to query Active Directory forest information. Error details: {1}
-    IncludeDomainsEnabled = - Include.Domains option enabled: Including only the following domains in the report: {0}
-    ExcludeDomainsEnabled = - Including all child domains in the report except the following excluded domains: {0}
+    IncludeDomainsEnabled =   - Include.Domains option enabled: Including only the following domains in the report: {0}
+    ExcludeDomainsEnabled =   - Including all child domains in the report except the following excluded domains: {0}
     GettingForestInfo = - Retrieving forest information {0}.
-    DiscoveringChildDomains = - Discovering child domains of the forest {0}: {1}
+    DiscoveringChildDomains =   - Discovering child domains of the forest {0}: {1}.
     DCAvailable = - Initial configuration: A DC is available in the domain {0}. Adding domain to the report.
-    DCUnavailable = - Unable to obtain an available DC in the domain {0}. Removing domain from the report.
-    FinishingDomainList = - Finalizing the list of domains in the forest {0}: {1}
+    DCUnavailable =   - Unable to obtain an available DC in the domain {0}. Removing domain from the report.
+    FinishingDomainList =   - Finalizing the list of domains in the forest {0}: {1}.
     WorkingOnForest = - Working on the Forest section.
     WorkingOnDomain = - Working on the Domain section.
     WorkingOnDNS = - Working on the DNS section.
@@ -84,6 +84,12 @@
     ScopeEnabled = Enabled (Summary)
     ScopeAdvanced = Enabled (Advanced Summary)
     ScopeDetailed = Enabled (Detailed)
+    ErrorReportOverview = Report Brief - Report Overview
+    ErrorForestSummary = Report Brief - Forest Summary
+    ErrorDomainSummaryItem = Report Brief - Domain Summary Item
+    ErrorDomainSummary = Report Brief - Domain Summary
+    ErrorReportScope = Report Brief - Report Scope
+    ErrorReportBriefSection = Report Brief Section
 '@
 
     # Get-AbrForestSection
@@ -150,6 +156,14 @@
     RecycleBinBP = Accidental deletion of Active Directory objects is a common issue for AD DS users. Enabling the Recycle Bin feature allows for the recovery of these accidentally deleted objects, helping to maintain the integrity and continuity of the Active Directory environment.
     RecycleBinRef = https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944
     CADiagram = Certificate Authority Diagram
+    TableName = Forest Summary
+    ErrorForestDiagramGraph = Forest Diagram Graph:
+    ErrorForestDiagramSection = Forest Diagram Section:
+    NoCARootInfo = No Certificate Authority Root information found in {0}, Disabling this section.
+    NoCAIssuerInfo = No Certificate Authority Issuer information found, Disabling this section.
+    ErrorCADiagramGraph = Certificate Authority Diagram Graph:
+    ErrorCADiagramSection = Certificate Authority Diagram Section:
+    NoOptionalFeatureInfo = No Optional Feature information found in {0}, Disabling this section.
 '@
 
     NewADDiagram = ConvertFrom-StringData @'
@@ -272,9 +286,11 @@
     DnsName = DNS Name
     ServerRoles = Server Roles
     Version = Version
+    ErrorExchangeItem = Exchange Item
+    NoExchangeInfo = No Exchange Infrastructure information found in {0}, Disabling this section.
+    ErrorExchangeTable = Exchange Table
+    ErrorExchangeServerItem = ExchangeServer: [{0}].
 '@
-
-    # Get-AbrADSCCM
     GetAbrADSCCM = ConvertFrom-StringData @'
     Collecting = Collecting AD SCCM information of {0}.
     Heading = SCCM Infrastructure
@@ -284,6 +300,9 @@
     ManagementPoint = Management Point
     SiteCode = Site Code
     Version = Version
+    ErrorSCCMItem = SCCM Item
+    NoSCCMInfo = No SCCM Infrastructure information found in {0}, Disabling this section.
+    ErrorSCCMTable = SCCM Table
 '@
 
     # Get-AbrDHCPinAD
@@ -297,6 +316,9 @@
     Yes = Yes
     No = No
     Unknown = Unknown
+    ErrorDHCPItem = DHCP Item
+    NoDHCPInfo = No DHCP Infrastructure information found in {0}, Disabling this section.
+    ErrorDHCPTable = DHCP Table
 '@
 
     # Get-AbrADSite
@@ -383,6 +405,41 @@
     StatusUnknown = Unknown
     StatusOffline = Offline
     SysvolBP = SYSVOL is a special directory that resides on each domain controller (DC) within a domain. The directory comprises folders that store Group Policy objects (GPOs) and logon scripts that clients need to access and synchronize between DCs. For these logon scripts and GPOs to function properly, SYSVOL should be replicated accurately and rapidly throughout the domain. Ensure that proper SYSVOL replication is in place to ensure identical GPO/SYSVOL content for the domain controller across all Active Directory domains.
+    ErrorReplicationDiagramGraph = Replication Diagram Graph:
+    ErrorReplicationDiagramSection = Replication Diagram Section:
+    ErrorDomainSite = Domain Site
+    ErrorSiteReplicationConnectionItem = Site Replication Connection Item
+    NoConnectionObjectsInfo = No Connection Objects information found in {0}, Disabling this section.
+    ErrorConnectionObjects = Connection Objects
+    ErrorSiteSubnets = Site Subnets
+    UnableToRead = Unable to read {0} on {1}
+    ErrorMissingSubnetPSSession = Missing Subnet in AD Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorMissingSubnetItemTable = Missing Subnet in AD Item table:
+    NoMissingSubnetsInfo = No Missing Subnets in AD information found in {0}, Disabling this section.
+    ErrorMissingSubnetItemSection = Missing Subnet in AD Item Section:
+    NoSiteSubnetsInfo = No Site Subnets information found in {0}, Disabling this section.
+    ErrorSiteTopologyDiagramGraph = Site Topology Diagram Graph:
+    ErrorSiteTopologyDiagramSection = Site Topology Diagram Section:
+    ErrorInterSiteTransports = Inter-Site Transports section
+    ErrorIPSiteLinksTable = IP Site Links table
+    NoIPSiteLinksInfo = No IP Site Links information found in {0}, Disabling this section.
+    ErrorIPSiteLinksSection = IP Site Links Section
+    ErrorIPSiteLinksBridgesTable = IP Site Links Bridges table
+    NoIPSiteLinksBridgesInfo = No IP Site Links Bridges information found in {0}, Disabling this section.
+    ErrorIP = IP
+    ErrorSMTPSiteLinksTable = SMTP Site Links table
+    ErrorSMTPSiteLinksSection = SMTP Site Links Section
+    ErrorSMTPSiteLinksBridgesTable = SMTP Site Links Bridges table
+    NoSMTPSiteLinksBridgesInfo = No SMTP Site Links Bridges information found in {0}, Disabling this section.
+    NoSMTPSiteLinksInfo = No SMTP Site Links information found in {0}, Disabling this section.
+    ErrorSMTP = SMTP
+    ErrorSysvolReplicationItemSection = Sysvol Replication Item Section:
+    UnableToCollect = Unable to collect information from {0}.
+    ErrorDNSIPConfigItem = DNS IP Configuration Item
+    NoSysvolReplicationInfo = No Sysvol Replication information found in {0}, Disabling this section.
+    ErrorSysvolReplicationTableSection = Sysvol Replication Table Section:
+    NoSitesInfo = No Sites information found in {0}, Disabling this section.
+    ErrorDomainSiteGlobal = Domain Site Global
 '@
 
     # Get-AbrDNSSection
@@ -396,6 +453,7 @@
     DefinitionParagraph = The Domain Name System (DNS) is a hierarchical and decentralized naming system for computers, services, or other resources connected to the Internet or a private network. It associates various information with domain names assigned to each of the participating entities. Most prominently, it translates more readily memorized domain names to the numerical IP addresses needed for locating and identifying computer services and devices with the underlying network protocols.
     Paragraph = The following section provides a detailed overview of the DNS infrastructure configuration and settings within the Active Directory environment.
     NoCIMSession = DNS infrastructure configuration data requires a CIM session and could not be collected. Verify that WinRM and CIM connectivity to the domain controllers is available.
+    ErrorDNSInfo = Domain Name System Information
 '@
 
     # Get-AbrADDNSInfrastructure
@@ -457,6 +515,21 @@
     ForwarderMinBP = For redundancy reasons, more than one forwarding server should be configured.
     RootHintsMissingCA = A default installation of the DNS server role should have root hints unless the server has a root zone - .(root). If the server has a root zone then delete it. If the server doesn't have a root zone and there are no root servers listed on the Root Hints tab of the DNS server properties then the server may be missing the cache.dns file in the %systemroot%\\system32\\dns directory, which is where the list of root servers is loaded from.
     RootHintsDuplicateCA = Duplicate IP Address found in the table of the DNS root hints servers. The DNS console does not show the duplicate Root Hint servers; you can only see them using the DNS PowerShell cmdlets. While there is a dnscmd utility to replace the Root Hints file, Using PowerShell is the best way to remediate this issue.
+    ErrorInfrastructureSummarySection = DNS Infrastructure Summary Section:
+    ErrorDirectoryPartitionsItemSection = Directory Partitions Item Section:
+    ErrorDirectoryPartitionsTableSection = Directory Partitions Table Section:
+    ErrorDirectoryPartitionsSection = Directory Partitions Section:
+    ErrorRRLItem = Response Rate Limiting (RRL) Item
+    ErrorRRLTable = Response Rate Limiting (RRL) Table
+    ErrorScavengingItem = Scavenging Item
+    ErrorScavengingTable = Scavenging Table
+    ErrorForwarderItem = Forwarder Item
+    ErrorForwarderTable = Forwarder Table
+    ErrorRootHintsTable = Root Hints Table
+    ErrorRootHintsSection = Root Hints Section
+    ErrorZoneScopeRecursionItem = Zone Scope Recursion Item
+    ErrorZoneScopeRecursionTable = Zone Scope Recursion Table
+    ErrorDNSInfrastructureSection = DNS Infrastructure Section
 '@
 
     # Get-AbrADDNSZone
@@ -499,6 +572,25 @@
     BestPractice = Best Practices:
     ZoneTransferBP = Configure all DNS zones to allow zone transfers only from trusted IP addresses. This ensures that only authorized DNS servers can receive zone data, reducing the risk of unauthorized access or data leakage. It is a best practice to specify the IP addresses of the secondary DNS servers that are allowed to receive zone transfers.
     ZoneAgingBP = Microsoft recommends enabling aging/scavenging on all DNS servers. However, with AD-integrated zones, ensure DNS scavenging is enabled on only one DC at the main site. The results will be replicated to other DCs.
+    ErrorDNSZoneItem = Domain Name System Zone Item
+    NoDelegationInfo = DNS Zones {0} Section: No Zone Delegation information found, Disabling this section.
+    ErrorZoneDelegationItem = Zone Delegation Item
+    NoDelegationInfoDC = DNS Zones Section: No Zone Delegation information found in {0}, Disabling this section.
+    ErrorZoneDelegationTable = Zone Delegation Table
+    ErrorZoneTransferPSSession = DNS Zones Transfers Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorZoneTransfersItem = Zone Transfers Item
+    NoZoneTransferInfo = DNS Zones Section: No Zone Transfer information found in {0}, Disabling this section.
+    ErrorZoneTransfersTable = Zone Transfers Table
+    ErrorReverseLookupZoneItem = Reverse Lookup Zone Configuration Item
+    NoReverseLookupZoneInfo = DNS Zones Section: No Reverse lookup zone information found in {0}, Disabling this section.
+    ErrorReverseLookupZoneTable = Reverse Lookup Zone Configuration Table
+    ErrorConditionalForwarderItem = Conditional Forwarder Item
+    NoConditionalForwarderInfo = DNS Zones Section: No Conditional forwarder zone information found in {0}, Disabling this section.
+    ErrorConditionalForwarderTable = Conditional Forwarder Table
+    ErrorZoneScopeAgingItem = Zone Scope Aging Item
+    NoZoneAgingInfo = DNS Zones Section: No Zone Aging property information found in {0}, Disabling this section.
+    ErrorZoneScopeAgingTable = Zone Scope Aging Table
+    ErrorGlobalDNSZoneInfo = Global DNS Zone Information
 '@
 
     # Get-AbrPKISection
@@ -516,6 +608,7 @@
     # Get-AbrDomainSection
     GetAbrDomainSection = ConvertFrom-StringData @'
     Collecting = Collecting Domain information from {0}.
+    CollectingDomain = Collecting Domain information from {0}.
     Paragraph = This section provides an overview of the Active Directory domain configuration, including key settings and operational details.
     SectionTitle = AD Domain Configuration
     DefinitionText = An Active Directory domain is a collection of objects within a Microsoft Active Directory network. An object can be a single user, a group, or a hardware component such as a computer or printer. Each domain holds a database containing object identity information. Active Directory domains can be identified using a DNS name, which can be the same as an organization's public domain name, a sub-domain, or an alternate version (which may end in .local).
@@ -539,6 +632,7 @@
     ReplicationParagraph = The following section provides an overview of Active Directory replication connections and status between domain controllers in this domain.
     GPOSection = Group Policy
     GPOParagraph = The following section provides an overview of the Group Policy Objects (GPOs) configured and applied within this domain.
+    ErrorADDomain = Active Directory Domain
 '@
 
     # Get-AbrADDomain
@@ -570,6 +664,8 @@
     Reference = Reference:
     RIDBestPractice = The RID Issued percentage exceeds 80%. It is recommended to evaluate the utilization of RIDs to prevent potential exhaustion and ensure the stability of the domain. The Relative Identifier (RID) is a crucial component in the SID (Security Identifier) for objects within the domain. Exhaustion of the RID pool can lead to the inability to create new security principals, such as user or computer accounts. Regular monitoring and proactive management of the RID pool are essential to maintain domain health and avoid disruptions.
     RIDReference = https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736
+    TableName = Domain Summary
+    ErrorSection = AD Domain Summary Section:
 '@
 
     # Get-AbrADFSMO
@@ -586,6 +682,9 @@
     Reference = Reference:
     InfraMasterBP = The infrastructure master role in the domain {0} should be held by a domain controller that is not a global catalog server. The infrastructure master is responsible for updating references from objects in its domain to objects in other domains. If the infrastructure master runs on a global catalog server, it will not function properly because the global catalog holds a partial replica of every object in the forest, and it will not update the references. This issue does not affect forests that have a single domain.
     InfraMasterRef = http://go.microsoft.com/fwlink/?LinkId=168841
+    TableName = FSMO Roles
+    ErrorFSMOItem = Flexible Single Master Operations
+    ErrorPSSession = FSMO Roles Section: New-PSSession: Unable to connect to {0}: {1}
 '@
 
     # Get-AbrADTrust
@@ -627,6 +726,12 @@
     BestPractice = Best Practice:
     AESBP = Ensure that AES Kerberos encryption is enabled on all Active Directory trusts. RC4 encryption is considered weak and vulnerable to various attacks. Enabling AES encryption on trusts enhances Kerberos security and aligns with modern security standards. Reference: https://techcommunity.microsoft.com/t5/itops-talk-blog/tough-questions-answered-can-i-disable-rc4-etype-for-kerberos-on/ba-p/382718
     TrustDiagramSection = Domain and Trusts Diagram
+    ErrorTrustItem = Trust Item
+    ErrorTrustDiagramGraph = Domain and Trusts Diagram Graph:
+    ErrorTrustDiagramSection = Domain and Trusts Diagram Section:
+    NoTrustInfo = No Domain Trust information found in {0}, Disabling this section.
+    ErrorTrustTable = Trust Table
+    ErrorTrustSection = Trust Section
 '@
 
     # Get-AbrADAuthenticationPolicy
@@ -660,6 +765,20 @@
     ServiceTGTLifetime = Service TGT Lifetime (mins)
     ComputerTGTLifetime = Computer TGT Lifetime (mins)
     PolicyBP = Authentication Policies should be set to Enforce mode to actively restrict Kerberos TGT lifetimes and account sign-in. Policies in audit mode only log events without enforcing restrictions.
+    ErrorSiloItem = Authentication Policy Silo Item
+    SiloTableName = Authentication Policy Silo
+    SilosTableName = Authentication Policy Silos
+    ErrorSiloMemberItem = Authentication Policy Silo Member Item
+    SiloMembersTableName = Authentication Policy Silo Members
+    ErrorSiloMembersTable = Authentication Policy Silo Members Table
+    ErrorSilosSectionA = Authentication Policy Silos Section
+    NoSiloInfo = No Authentication Policy Silo information found in {0}, Disabling this section.
+    ErrorPolicyItem = Authentication Policy Item
+    PolicyTableName = Authentication Policy
+    PoliciesTableName = Authentication Policies
+    ErrorPoliciesSection = Authentication Policies Section
+    NoPolicyInfo = No Authentication Policy information found in {0}, Disabling this section.
+    NoAuthPolicyOrSiloInfo = No Authentication Policy or Silo information found in {0}, Disabling this section.
 '@
 
     # Get-AbrADDomainObject
@@ -829,6 +948,45 @@
     GMSAInactiveBP = *Regularly check for and remove inactive group managed service accounts from Active Directory. Inactive accounts can pose a security risk as they may be exploited by malicious actors. Ensuring that only active and necessary accounts exist helps maintain a secure environment and reduces the risk of unauthorized access or privilege escalation.
     GMSANoHostComputersBP = **No 'Host Computers' has been defined; please validate that the gMSA is currently in use. If not, it is recommended to remove these unused resources from Active Directory.
     GMSANoRetrieveManagedPasswordBP = ***No 'Retrieve Managed Password' has been defined; please validate that the gMSA is currently in use. If not, it is recommended to remove these unused resources from Active Directory.
+    PrivilegedGroupMembersTableName = Privileged Group Members:
+    GMSATableName = gMSA
+    MembersLabel = Members
+    TypeLabelUser = USER
+    TypeLabelComputer = COMPUTER
+    TypeLabelGroup = GROUP
+    TypeLabelFSP = FOREIGN SECURITY PRINCIPAL
+    ErrorDomainObjectStats = Domain Object Stats
+    ErrorUserObjectCountChart = User Object Count Chart
+    ErrorStatusOfUserAccounts = Status of User Accounts
+    ErrorStatusOfUsersAccountsChart = Status of Users Accounts Chart
+    ErrorUsersObjectsTable = Users Objects Table
+    ErrorUsersObjectsSection = Users Objects Section
+    ErrorGroupCategoryObjectChart = Group Category Object Chart
+    ErrorGroupScopesObjectChart = Group Scopes Object Chart
+    ErrorGroupsObjectsTable = Groups Objects Table
+    ErrorGroupsObjectsSection = Groups Objects Section
+    ErrorPrivilegedGroup = Privileged Group in Active Directory
+    ErrorPrivilegedGroupNonDefaultTable = Privileged Group (Non-Default) Table
+    ErrorPrivilegedGroupNonDefaultSection = Privileged Group (Non-Default) Section
+    ErrorEmptyGroupsObjectsTable = Empty Groups Objects Table
+    ErrorEmptyGroupsObjectsSection = Empty Groups Objects Section
+    ErrorCircularGroupMembershipTable = Circular Group Membership Table
+    ErrorCircularGroupMembershipSection = Circular Group Membership Section
+    ErrorPreWin2000 = Pre-Windows 2000 Compatible Access
+    ErrorComputersObjectCountChart = Computers Object Count Chart
+    ErrorStatusOfComputerAccounts = Status of Computer Accounts
+    ErrorStatusOfComputersAccountsChart = Status of Computers Accounts Chart
+    ErrorOperatingSystemsInAD = Operating Systems in Active Directory
+    ErrorComputersPasswordNotRequired = Computers with Password-Not-Required
+    ErrorComputersObjectsTable = Computers Objects Table
+    ErrorComputersObjectsSection = Computers Objects Section
+    ErrorDefaultDomainPasswordPolicy = Default Domain Password Policy
+    ErrorFGPP = Fine Grained Password Policies
+    ErrorWindowsLAPS = Windows LAPS
+    ErrorGMSAItem = Group Managed Service Accounts Item
+    ErrorGMSASection = Group Managed Service Accounts Section
+    ErrorFSPItem = Foreign Security Principals Item
+    ErrorFSPSection = Foreign Security Principals Section
 '@
 
     # Get-AbrADHardening
@@ -872,6 +1030,8 @@
     LDAPSigningBP = LDAP signing enforcement is not configured on this domain controller. LDAP signing is a security feature that protects the integrity and confidentiality of LDAP communications by requiring data signing. Configure LDAP signing to require signing on all domain controllers.
     LDAPCBBindingBP = LDAP channel binding enforcement is not configured on this domain controller. LDAP channel binding is a security feature that protects against man-in-the-middle attacks by binding the LDAP session to the TLS channel, ensuring the authenticity and integrity of LDAP communications. Configure LDAP channel binding on all domain controllers.
     NTLMv1BP = NTLMv1 authentication is enabled on this domain controller. NTLMv1 is an outdated authentication protocol that is vulnerable to credential capture and relay attacks. Disable NTLMv1 on all systems; it has been superseded by NTLMv2, which offers significantly improved security protections.
+    ErrorADHardeningItem = ADHardening Item
+    ErrorADHardeningSection = ADHardening Section
 '@
 
     # Get-AbrADDomainLastBackup
@@ -890,6 +1050,8 @@
     BackupBP1 = Ensure there is a recent (<180 days) Active Directory backup.
     BackupBP2 = Regular backups are crucial for disaster recovery and maintaining the integrity of your Active Directory environment.
     BackupBP3 = Consider setting up automated backup schedules and regularly verifying the backup status to prevent data loss.
+    ErrorDomainLastBackupItem = Domain Last Backup Item
+    ErrorDomainLastBackupTable = Domain Last Backup Table
 '@
 
     # Get-AbrADDuplicateSPN
@@ -905,6 +1067,8 @@
     HealthCheck = Health Check:
     CorrectiveActions = Corrective Actions:
     SPNBP = Ensure there aren't any duplicate SPNs (other than krbtgt). Duplicate SPNs can cause authentication issues and should be resolved promptly. Use the `setspn -X` command to identify duplicate SPNs. Remove or reassign duplicate SPNs as necessary to maintain a healthy AD environment.
+    ErrorSPNItem = SPN Item
+    ErrorSPNTable = SPN Table
 '@
 
     # Get-AbrADDuplicateObject
@@ -921,6 +1085,8 @@
     HealthCheck = Health Check:
     CorrectiveActions = Corrective Actions:
     DuplicateObjectBP = Ensure there are no duplicate objects in Active Directory. Duplicate objects can cause various issues such as authentication problems, replication conflicts, and administrative overhead. It is recommended to regularly audit and clean up any duplicate objects to maintain a healthy and efficient Active Directory environment.
+    ErrorDuplicateObjectItem = Duplicate Object Item
+    ErrorDuplicateObjectTable = Duplicate Object Table
 '@
 
     # Get-AbrADDCRoleFeature
@@ -933,6 +1099,9 @@
     HealthCheck = Health Check:
     BestPractices = Best Practices:
     RoleBP = Domain Controllers should have limited software and agents installed including roles and services. Non-essential code running on Domain Controllers is a risk to the enterprise Active Directory environment. A Domain Controller should only run required software, services and roles critical to essential operation.
+    ErrorPSSession = Roles Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorRoleFeatureSection = Roles {0} Section:
+    ErrorRolesSection = Roles Section:
 '@
 
     # Get-AbrADDCDiag
@@ -944,6 +1113,9 @@
     Description = Description
     TableName = DCDiag Test Status
     NoData = No DCDiag information found in {0}, Disabling this section.
+    ErrorDCDiagTestSection = Active Directory DCDiag {0} Section:
+    ErrorDCDiagSection = Active Directory DCDiag Section:
+    ErrorInvokeDcDiag = Invoke-DcDiag - Failed to get DCDiag for {0} with error:
 '@
 
     # Get-AbrADInfrastructureService
@@ -958,6 +1130,9 @@
     CorrectiveActions = Corrective Actions:
     SpoolerBP = The Print Spooler service has known vulnerabilities that can be exploited by attackers to gain unauthorized access or execute malicious code. Disabling this service on Domain Controllers and other critical servers that do not require print services can reduce the attack surface and improve the overall security posture of your Active Directory environment.
     DHCPServerBP = Per security best practices, DHCP Server services should run on a dedicated server separate from domain controllers to minimize security risks, reduce resource contention, and ensure optimal performance of both DHCP and Active Directory services.
+    ErrorPSSession = Domain Controller Infrastructure Services Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorDCInfraServicesItem = Domain Controller Infrastructure Services Item
+    ErrorDCInfraServicesTable = Domain Controller Infrastructure Services Table
 '@
 
     # Get-AbrADDFSHealth
@@ -992,6 +1167,14 @@
     ContentCorrectiveActions = Corrective Actions:
     ContentSysvolBP = Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Sysvol folder to maintain a healthy and secure Active Directory environment.
     ContentNetlogonBP = Review the files and extensions listed above and ensure they are necessary for the operation of your domain. Remove any files that are not required or that appear suspicious. Regularly monitor the Netlogon folder to maintain a healthy and secure Active Directory environment.
+    ErrorSysvolReplicationStatusItemSection = Sysvol Replication Status Item Section:
+    ErrorSysvolReplicationStatusTableSection = Sysvol Replication Status Table Section:
+    ErrorSysvolContentPSSession = Sysvol Content Status Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorSysvolHealthSection = Sysvol Health {0} Section:
+    ErrorSysvolHealthTableSection = Sysvol Health Table Section:
+    ErrorNetlogonContentPSSession = Netlogon Content Status Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorNetlogonHealthSection = Netlogon Health {0} Section:
+    ErrorNetlogonContentStatusSection = Netlogon Content Status Section:
 '@
 
     # Get-AbrADKerberosAudit
@@ -1023,6 +1206,10 @@
     AdminHealthCheck = Health Check:
     AdminBestPractice = Best Practice:
     AdminBP = Microsoft recommends using a unique, complex password for the built-in Administrator account and rotating it regularly (at least every 90 days). Consider renaming the account and disabling it when not actively in use to reduce the risk of brute-force or credential-stuffing attacks targeting this well-known account.
+    ErrorUnconstrainedKerberosItem = Unconstrained Kerberos delegation
+    ErrorKRBTGTAccountItem = KRBTGT account Item
+    ErrorAdminAccountItem = ADMIN account Item
+    ErrorUnconstrainedKerberosSection = Unconstrained Kerberos delegation Section
 '@
 
     # Get-AbrADSiteReplication
@@ -1055,6 +1242,15 @@
     ReplicationStatusBestPractices = Best Practices:
     ReplicationStatusBP = Replication failures can lead to object inconsistencies, stale credentials, Group Policy application failures, and authentication issues across the environment. Investigate and resolve any replication errors promptly using tools such as repadmin /showrepl or the Active Directory Replication Status Tool to prevent further divergence between domain controllers.
     AutoGeneratedValue = <automatically generated>
+    ErrorSiteReplicationConnectionItem = Site Replication Connection Item
+    ErrorSiteReplicationConnectionSection = Site Replication Connection Section
+    SiteLabel = Site:
+    FromLabel = From:
+    ToLabel = To:
+    ErrorReplicationConnection = Replication Connection
+    ErrorPSSession = Replication Status Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorReplicationStatus = Replication Status
+    ErrorSiteReplicationStatus = Site Replication Status
 '@
 
     # Get-AbrADOU
@@ -1079,6 +1275,10 @@
     GPOBlockedHealthCheck = Health Check:
     GPOBlockedCorrectiveActions = Corrective Actions:
     GPOBlockedBP = Review the use of enforced policies and blocked policy inheritance in Active Directory. Enforced policies ensure that specific Group Policy Objects (GPOs) are applied and cannot be overridden by other GPOs. Blocked policy inheritance prevents GPOs from parent containers from being applied to the Organizational Unit (OU). While these settings can be useful for maintaining strict policy application, they can also lead to unexpected results and complicate troubleshooting. Ensure that the use of these settings aligns with your organization's policy management strategy and does not inadvertently cause issues.
+    ErrorOUItem = Organizational Unit Item
+    ErrorBlockedInheritanceGPOItem = Blocked Inheritance GPO Item
+    ErrorBlockedInheritanceGPOSection = Blocked Inheritance GPO Section
+    ErrorOUSection = Organizational Unit Section
 '@
 
     # Get-AbrADSecurityAssessment
@@ -1135,6 +1335,19 @@
     PrivilegedUsersReference = Reference:
     PrivilegedUsersReferenceURL = https://www.stigviewer.com/stig/active_directory_domain/2017-12-15/finding/V-36435
     ServiceAccountsAdminCountNote = ** Attackers are most interested in Service Accounts that are members of highly privileged groups like Domain Admins. A quick way to check for this is to enumerate all user accounts with the attribute AdminCount equal to 1. This means an attacker may just ask Active Directory for all user accounts with an SPN and with AdminCount=1. Ensure that there are no privileged accounts that have SPNs assigned to them.
+    ErrorAccountSecurityAssessmentItem = Account Security Assessment Item
+    ErrorUserAccountSecurityAssessmentChart = User Account Security Assessment Chart
+    NoUserInfo = No Domain users information found in {0}, Disabling this section.
+    ErrorAccountSecurityAssessmentTable = Account Security Assessment Table
+    ErrorPrivilegedUsersAssessmentItem = Privileged Users Assessment Item
+    NoPrivilegedUserInfo = No Privileged User Assessment information found in {0}, Disabling this section.
+    ErrorPrivilegedUsersTable = Privileged Users Table
+    ErrorInactivePrivilegedAccountsItem = Inactive Privileged Accounts Item
+    NoInactivePrivilegedInfo = No Inactive Privileged Accounts information found in {0}, Disabling this section.
+    ErrorInactivePrivilegedAccountsTable = Inactive Privileged Accounts Table
+    ErrorServiceAccountsAssessmentItem = Service Accounts Assessment Item
+    NoServiceAccountsInfo = No Service Accounts Assessment information found in {0}, Disabling this section.
+    ErrorServiceAccountsAssessmentTable = Service Accounts Assessment Table
 '@
 
     # Get-AbrADGPO
@@ -1232,6 +1445,23 @@
     GPOSettingsParagraph = The following section provides details about Group Policy configuration resources, including WMI filters, the Central Store repository, and scripts attached to GPOs.
     GPOHealthTitle = GPO Health
     GPOHealthParagraph = The following section highlights Group Policy Objects that may require attention, including unlinked, empty, enforced, and orphaned GPOs.
+    ErrorGPOItem = Group Policy Objects
+    ErrorWMIFiltersItem = WMI Filters
+    ErrorWMIFiltersPSSession = WMI Filters Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorGPOCentralStore = GPO Central Store
+    ErrorGPOLogonLogoffItem = GPO with Logon/Logoff Script Item
+    ErrorGPOLogonLogoffSection = GPO with Logon/Logoff Script Section
+    ErrorGPOStartupShutdownItem = GPO with Computer Startup/Shutdown Item
+    ErrorGPOStartupShutdownSection = GPO with Computer Startup/Shutdown Section
+    ErrorUnlinkedGPOItem = Unlinked Group Policy Objects Item
+    ErrorUnlinkedGPOSection = Unlinked Group Policy Objects Section
+    ErrorEmptyGPOItem = Empty Group Policy Objects Item
+    ErrorEmptyGPOSection = Empty Group Policy Objects Section
+    ErrorEnforcedGPOItem = Enforced Group Policy Objects Item
+    ErrorEnforcedGPOTable = Enforced Group Policy Objects Table
+    ErrorOrphanedGPOPSSession = Orphaned GPO Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorOrphanedGPOItem = Orphaned GPO
+    ErrorGPOSection = Group Policy Objects Section
 '@
     # Get-AbrADDomainController
     GetAbrADDomainController = ConvertFrom-StringData @'
@@ -1347,6 +1577,47 @@
     MissingUpdatesParagraph = The following table provides a summary of pending or missing Windows updates detected on Domain Controllers in the {0} domain.
     MissingUpdatesBestPractice = It is critical to install security updates to protect your systems from malicious attacks. Regularly applying updates ensures that your systems are safeguarded against newly discovered vulnerabilities. Additionally, installing software updates provides access to new features and improvements, enhancing overall system performance and stability. Neglecting updates can leave your systems exposed to potential threats and exploitation. Therefore, it is in your best interest to maintain an up-to-date environment by promptly installing all recommended updates.
     DCObjectChart = Domain Controller Object - Chart
+    ErrorNetworkInterfacesInfo = Unable to get {0} network interfaces information
+    ErrorDCNetSettingsPSSession = DC Net Settings Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorDCItem = Domain Controller Item
+    UnableToCollect = Unable to collect information from {0}.
+    ErrorDCTable = Domain Controller Table
+    ErrorGeneralInfoSection = General Information Section
+    ErrorPartitionsSection = Partitions Section
+    ErrorNetworkingSettingsSection = Networking Settings Section
+    ErrorHardwareInventoryTable = Hardware Inventory Table
+    ErrorDCHardwareSection = Domain Controller Hardware Section
+    ErrorDCSection = Domain Controller Section
+    ErrorDNSIPConfigPSSession = DNS IP Configuration Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorDNSIPConfigTableSection = Domain Controller DNS IP Configuration Table Section:
+    ErrorDNSIPConfigItem = DNS IP Configuration Item
+    ErrorDNSIPConfigSection = Domain Controller DNS IP Configuration Section:
+    ErrorNTDSPSSession = NTDS Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorNTDSItem = NTDS Item
+    ErrorNTDSSection = NTDS section
+    ErrorTimeSourcePSSession = Time Source Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorTimeSourceItem = Time Source Item
+    ErrorTimeSourceTable = Time Source Table
+    ErrorTimeSource = Time Source
+    ErrorSRVRecordsStatusItem = SRV Records Status Item
+    ErrorSRVRecordsStatusTable = SRV Records Status Table
+    ErrorSRVRecordsStatus = SRV Records Status
+    ErrorFileSharesPSSession = Domain Controllers File Shares Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorFileSharesItem = File Shares Item
+    ErrorFileSharesTable = File Shares Table
+    ErrorInstalledSoftwarePSSession = Domain Controller Installed Software Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorInstalledSoftwareTable = Installed Software Table
+    ErrorInstalledSoftwareSection = Installed Software Section
+    ErrorMissingPatchPSSession = Domain Controller Pending Missing Patch Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorMissingPatchTable = Installed Software Table
+    ErrorMissingPatchSection = Domain Controller Section
+'@
+
+    # Get-AbrDiagrammer
+    GetAbrDiagrammer = ConvertFrom-StringData @'
+    GettingDiagram = Getting {0} diagram from {1}.
+    ErrorExportDiagram = Unable to export the {0} Diagram:
+    ErrorGetDiagram = Unable to get the {0} Diagram:
 '@
 
 }

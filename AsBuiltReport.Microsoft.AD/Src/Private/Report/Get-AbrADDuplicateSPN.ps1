@@ -46,7 +46,7 @@ function Get-AbrADDuplicateSPN {
                                     $OutObj | Set-Style -Style Warning
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SPN Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADDuplicateSPN.ErrorSPNItem))"
                             }
                         }
 
@@ -73,7 +73,7 @@ function Get-AbrADDuplicateSPN {
                     Write-PScriboMessage -Message ($reportTranslate.GetAbrADDuplicateSPN.NoData -f $Domain.DNSRoot)
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (SPN Table)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADDuplicateSPN.ErrorSPNTable))"
             }
         }
     }

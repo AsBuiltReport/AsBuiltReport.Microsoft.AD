@@ -2,17 +2,45 @@
 @{
     # InvokeAsBuiltReportMicrosoftAD
     InvokeAsBuiltReportMicrosoftAD = ConvertFrom-StringData @'
-    PwshISE = Este script no se puede ejecutar dentro del ISE de PowerShell. Por favor, ejecútalo desde la ventana de comandos de PowerShell.
+    PwshISE = Este script no se puede ejecutar dentro de PowerShell ISE. Por favor, ejecútalo desde la ventana de comandos de PowerShell.
     ReportModuleInfo3 = - Documentación: https://github.com/AsBuiltReport/AsBuiltReport.{0}
     ReportModuleInfo2 = - Informes de problemas o errores: https://github.com/AsBuiltReport/AsBuiltReport.{0}/issues
-    ReportModuleInfo1 = - No olvides actualizar tu archivo de configuración de informe después de cada nueva versión: https://www.asbuiltreport.com/user-guide/new-asbuiltreportconfig/
+    ReportModuleInfo1 = - No olvides actualizar tu archivo de configuración de informe después de cada nuevo lanzamiento de versión: https://www.asbuiltreport.com/user-guide/new-asbuiltreportconfig/
     ReportModuleInfo4 = - Para patrocinar este proyecto, por favor visita:
     ReportModuleInfo5 = https://ko-fi.com/F1F8DEV80
     ReportModuleInfo6 = - Obteniendo información de dependencias:
     ProjectWebsite = - Por favor consulta el sitio web de GitHub de AsBuiltReport.Microsoft.AD para obtener información más detallada sobre este proyecto.
     CommunityProject = - AsBuiltReport es un proyecto de código abierto mantenido por la comunidad. No tiene patrocinio, respaldo o afiliación con ningún proveedor de tecnología, sus empleados o afiliados.
-    DISCLAIMER = Este informe combina análisis de datos automatizado con observaciones profesionales. Aunque estos hallazgos ofrecen información experta, esta evaluación no es exhaustiva. Todas las recomendaciones deben ser revisadas e implementadas por personal calificado. Los autores no asumen responsabilidad alguna por daños, incluidas pérdidas de ganancias, interrupciones comerciales o pérdidas financieras, derivadas del uso de este informe o sus recomendaciones.
-    DisclaimerSection = AVISO LEGAL
+    DISCLAIMER = Este informe combina análisis de datos automatizado con observaciones profesionales. Aunque estos hallazgos ofrecen información experta, esta evaluación no es exhaustiva. Todas las recomendaciones deben ser revisadas e implementadas por personal calificado. Los autores no asumen ninguna responsabilidad por daños, incluyendo pérdidas de ganancias, interrupciones comerciales o pérdidas financieras, derivados del uso de este informe o sus recomendaciones.
+    DisclaimerSection = DESCARGO DE RESPONSABILIDAD
+    ModuleInstalled =   - El módulo {0} v{1} está actualmente instalado.
+    ModuleAvailable =   - El módulo {0} v{1} está disponible.
+    ModuleUpdate = - Ejecuta 'Update-Module -Name {0} -Force' para instalar la versión más reciente.
+    IPAddressError = Por favor, usa el Nombre de Dominio Completamente Calificado (FQDN) en lugar de una dirección IP al conectar con el Controlador de Dominio: {0}
+    PSSessionError = Error al establecer una PSSession ({0}) con el Controlador de Dominio '{1}': {2}
+    CIMSessionError = Error al establecer una sesión CIM ({0}) con el Controlador de Dominio '{1}'.
+    ConnectingForest = Conectando para recuperar información del bosque desde el Controlador de Dominio '{0}'.
+    ForestError = Error al recuperar información del bosque desde el Controlador de Dominio '{0}'. Asegúrate de que el sistema proporcionado sea un Controlador de Dominio y que las credenciales proporcionadas tengan permisos suficientes para consultar información del bosque de Active Directory. Detalles del error: {1}
+    IncludeDomainsEnabled = - Opción Include.Domains habilitada: Incluyendo solo los siguientes dominios en el informe: {0}
+    ExcludeDomainsEnabled = - Incluyendo todos los dominios secundarios en el informe excepto los siguientes dominios excluidos: {0}
+    GettingForestInfo = - Recuperando información del bosque {0}.
+    DiscoveringChildDomains =   - Descubriendo dominios secundarios del bosque {0}: {1}.
+    DCAvailable =   - Configuración inicial: Un DC está disponible en el dominio {0}. Agregando dominio al informe.
+    DCUnavailable =   - No se puede obtener un DC disponible en el dominio {0}. Removiendo dominio del informe.
+    FinishingDomainList = - Finalizando la lista de dominios en el bosque {0}: {1}.
+    WorkingOnForest = - Trabajando en la sección del Bosque.
+    WorkingOnDomain = - Trabajando en la sección del Dominio.
+    WorkingOnDNS = - Trabajando en la sección de DNS.
+    WorkingOnPKI = - Trabajando en la sección de PKI.
+    ExportDiagramsEnabled = - Opción ExportDiagrams habilitada: Exportando diagramas:
+    TrustsDiagramError = No se puede generar el diagrama de 'Confianzas' para el dominio '{0}': {1}
+    DiagramExportError = No se puede exportar el diagrama {0}: {1}
+    ClearPSSession = Limpiando PSSession con ID {0}
+    ClearCIMSession = Limpiando sesión CIM con ID {0}
+    FinishedReport = - Se ha terminado de generar el informe para el bosque {0}:
+    SystemsUnreachable = Los siguientes sistemas no pudieron ser contactados:
+    DomainControllers = Controladores de Dominio
+    Domains = Dominios
 '@
 
     # ConvertToTextYN
@@ -56,6 +84,12 @@
     ScopeEnabled = Habilitado (Resumen)
     ScopeAdvanced = Habilitado (Resumen Avanzado)
     ScopeDetailed = Habilitado (Detallado)
+    ErrorReportOverview = Report Brief - Report Overview
+    ErrorForestSummary = Report Brief - Forest Summary
+    ErrorDomainSummaryItem = Report Brief - Domain Summary Item
+    ErrorDomainSummary = Report Brief - Domain Summary
+    ErrorReportScope = Report Brief - Report Scope
+    ErrorReportBriefSection = Report Brief Section
 '@
 
     # Get-AbrForestSection
@@ -122,6 +156,14 @@
     RecycleBinBP = La eliminación accidental de objetos de Active Directory es un problema común para usuarios de AD DS. Habilitar la función Papelera de Reciclaje permite la recuperación de estos objetos eliminados accidentalmente, ayudando a mantener la integridad y continuidad del entorno de Active Directory.
     RecycleBinRef = https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/the-ad-recycle-bin-understanding-implementing-best-practices-and/ba-p/396944
     CADiagram = Diagrama de Autoridad de Certificación
+    TableName = Resumen del Bosque
+    ErrorForestDiagramGraph = Forest Diagram Graph:
+    ErrorForestDiagramSection = Forest Diagram Section:
+    NoCARootInfo = No se encontró información de Autoridad de Certificación raíz en {0}, deshabilitando esta sección.
+    NoCAIssuerInfo = No se encontró información de Autoridad de Certificación emisora, deshabilitando esta sección.
+    ErrorCADiagramGraph = Certificate Authority Diagram Graph:
+    ErrorCADiagramSection = Certificate Authority Diagram Section:
+    NoOptionalFeatureInfo = No se encontró información de Características Opcionales en {0}, deshabilitando esta sección.
 '@
 
     NewADDiagram = ConvertFrom-StringData @'
@@ -245,6 +287,10 @@
     DnsName = Nombre DNS
     ServerRoles = Roles del Servidor
     Version = Versión
+    ErrorExchangeItem = Exchange Item
+    NoExchangeInfo = No se encontró información de infraestructura de Exchange en {0}, deshabilitando esta sección.
+    ErrorExchangeTable = Exchange Table
+    ErrorExchangeServerItem = ExchangeServer: [{0}].
 '@
 
     # Get-AbrADSCCM
@@ -257,6 +303,9 @@
     ManagementPoint = Punto de Gestión
     SiteCode = Código de Sitio
     Version = Versión
+    ErrorSCCMItem = SCCM Item
+    NoSCCMInfo = No se encontró información de infraestructura de SCCM en {0}, deshabilitando esta sección.
+    ErrorSCCMTable = SCCM Table
 '@
 
     # Get-AbrDHCPinAD
@@ -270,6 +319,9 @@
     Yes = Sí
     No = No
     Unknown = Desconocido
+    ErrorDHCPItem = DHCP Item
+    NoDHCPInfo = No se encontró información de infraestructura de DHCP en {0}, deshabilitando esta sección.
+    ErrorDHCPTable = DHCP Table
 '@
 
     # Get-AbrADSite
@@ -306,7 +358,7 @@
     MissingSubnets = Subredes Faltantes en AD
     MissingSubnetsTable = Subredes Faltantes
     MissingSubnetsParagraph = La siguiente tabla lista las entradas NO_CLIENT_SITE encontradas en el archivo netlogon.log en cada Controlador de Dominio del bosque. Estas entradas indican direcciones IP de clientes que no pudieron ser mapeadas a un sitio de Active Directory.
-    DC = CD
+    DC = DC
     IP = IP
     MissingSubnetsBP = Asegúrate de que todas las subredes en cada sitio estén correctamente definidas. Las definiciones de subred faltantes pueden impedir que los clientes usen sus Controladores de Dominio más cercanos, resultando en mayor latencia de autenticación.
     InterSiteTransports = Transportes Entre Sitios
@@ -343,7 +395,7 @@
     SMTPParagraph = La replicación SMTP se usa para sitios que no pueden usar otros protocolos de replicación, pero como regla general, nunca debe usarse. Se reserva para escenarios donde las conexiones de red no siempre están disponibles, permitiendo que la replicación se programe en intervalos específicos.
     SMTPChangeNotifBP = Habilitar la notificación de cambio trata una conexión de replicación entre sitios como si fuera una conexión dentro de un sitio. La replicación entre sitios con notificación de cambio es casi instantánea. Microsoft recomienda usar un valor de Opción de 5 (Notificación de Cambio Habilitada sin Compresión).
     SysvolReplication = Replicación de Sysvol
-    DCName = Nombre del CD
+    DCName = Nombre del DC
     ReplicationStatus = Estado de Replicación
     Domain = Dominio
     StatusUninitialized = No Inicializado
@@ -355,7 +407,42 @@
     StatusDisabled = Deshabilitado
     StatusUnknown = Desconocido
     StatusOffline = Fuera de Línea
-    SysvolBP = SYSVOL es un directorio especial que reside en cada controlador de dominio (CD) dentro de un dominio. El directorio comprende carpetas que almacenan objetos de Política de Grupo (GPO) y scripts de inicio de sesión que los clientes necesitan acceder y sincronizar entre CDs. Para que estos scripts de inicio de sesión y GPO funcionen correctamente, SYSVOL debe replicarse con precisión y rapidez en todo el dominio. Asegúrate de que se implemente una replicación correcta de SYSVOL para asegurar contenido idéntico de GPO/SYSVOL para el controlador de dominio en todos los dominios de Active Directory.
+    SysvolBP = SYSVOL es un directorio especial que reside en cada controlador de dominio (DC) dentro de un dominio. El directorio comprende carpetas que almacenan objetos de Política de Grupo (GPO) y scripts de inicio de sesión que los clientes necesitan acceder y sincronizar entre DCs. Para que estos scripts de inicio de sesión y GPO funcionen correctamente, SYSVOL debe replicarse con precisión y rapidez en todo el dominio. Asegúrate de que se implemente una replicación correcta de SYSVOL para asegurar contenido idéntico de GPO/SYSVOL para el controlador de dominio en todos los dominios de Active Directory.
+    ErrorReplicationDiagramGraph = Replication Diagram Graph:
+    ErrorReplicationDiagramSection = Replication Diagram Section:
+    ErrorDomainSite = Domain Site
+    ErrorSiteReplicationConnectionItem = Site Replication Connection Item
+    NoConnectionObjectsInfo = No se encontró información de Objetos de Conexión en {0}, deshabilitando esta sección.
+    ErrorConnectionObjects = Connection Objects
+    ErrorSiteSubnets = Site Subnets
+    UnableToRead = No se puede leer {0} en {1}
+    ErrorMissingSubnetPSSession = Missing Subnet in AD Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorMissingSubnetItemTable = Missing Subnet in AD Item table:
+    NoMissingSubnetsInfo = No se encontró información de Subredes Faltantes en {0}, deshabilitando esta sección.
+    ErrorMissingSubnetItemSection = Missing Subnet in AD Item Section:
+    NoSiteSubnetsInfo = No se encontró información de Subredes de Sitio en {0}, deshabilitando esta sección.
+    ErrorSiteTopologyDiagramGraph = Site Topology Diagram Graph:
+    ErrorSiteTopologyDiagramSection = Site Topology Diagram Section:
+    ErrorInterSiteTransports = Inter-Site Transports section
+    ErrorIPSiteLinksTable = IP Site Links table
+    NoIPSiteLinksInfo = No se encontró información de Vínculos de Sitio IP en {0}, deshabilitando esta sección.
+    ErrorIPSiteLinksSection = IP Site Links Section
+    ErrorIPSiteLinksBridgesTable = IP Site Links Bridges table
+    NoIPSiteLinksBridgesInfo = No se encontró información de Puentes de Vínculos de Sitio IP en {0}, deshabilitando esta sección.
+    ErrorIP = IP
+    ErrorSMTPSiteLinksTable = SMTP Site Links table
+    ErrorSMTPSiteLinksSection = SMTP Site Links Section
+    ErrorSMTPSiteLinksBridgesTable = SMTP Site Links Bridges table
+    NoSMTPSiteLinksBridgesInfo = No se encontró información de Puentes de Vínculos de Sitio SMTP en {0}, deshabilitando esta sección.
+    NoSMTPSiteLinksInfo = No se encontró información de Vínculos de Sitio SMTP en {0}, deshabilitando esta sección.
+    ErrorSMTP = SMTP
+    ErrorSysvolReplicationItemSection = Sysvol Replication Item Section:
+    UnableToCollect = No se puede recopilar información de {0}.
+    ErrorDNSIPConfigItem = DNS IP Configuration Item
+    NoSysvolReplicationInfo = No se encontró información de Replicación Sysvol en {0}, deshabilitando esta sección.
+    ErrorSysvolReplicationTableSection = Sysvol Replication Table Section:
+    NoSitesInfo = No se encontró información de Sitios en {0}, deshabilitando esta sección.
+    ErrorDomainSiteGlobal = Domain Site Global
 '@
 
     # Get-AbrDNSSection
@@ -364,11 +451,12 @@
     CollectingDomain = Recopilando información de DNS desde {0}.
     DomainParagraph = La siguiente sección proporciona una descripción general detallada de la configuración del servicio DNS y su configuración para este dominio.
     ExcludedDomain = {0} deshabilitado en variable Exclude.Domain
-    NoDCAvailable = No se puede obtener un CD disponible en el dominio {0}. Removiendo dominio de la sección DNS.
+    NoDCAvailable = No se puede obtener un DC disponible en el dominio {0}. Removiendo dominio de la sección DNS.
     Heading = Configuración de DNS
     DefinitionParagraph = El Sistema de Nombres de Dominio (DNS) es un sistema de nomenclatura jerárquico y descentralizado para computadoras, servicios u otros recursos conectados a Internet o a una red privada. Asocia varios tipos de información con nombres de dominio asignados a cada una de las entidades participantes. Más prominentemente, traduce nombres de dominio más fáciles de recordar a direcciones IP numéricas necesarias para localizar e identificar servicios y dispositivos de computadora dentro de los protocolos de red subyacentes.
     Paragraph = La siguiente sección proporciona una descripción general detallada de la configuración de infraestructura de DNS y su configuración dentro del entorno de Active Directory.
     NoCIMSession = La configuración de la infraestructura de DNS requiere una sesión CIM y no pudo ser recopilada. Verifica que la conectividad WinRM y CIM a los controladores de dominio esté disponible.
+    ErrorDNSInfo = Domain Name System Information
 '@
 
     # Get-AbrADDNSInfrastructure - Continue with the rest of the translations...
@@ -389,11 +477,11 @@
     RootHintsParagraph = La siguiente sección proporciona información detallada sobre la configuración de Sugerencias de Raíz para cada servidor DNS en el dominio {0}.
     ZoneScopeRecursion = Recursión de Alcance de Zona
     DirectoryPartitions = Particiones de Directorio
-    DCName = Nombre del CD
+    DCName = Nombre del DC
     BuildNumber = Número de Compilación
     IPv6 = IPv6
     DnsSec = DnsSec
-    ReadOnlyDC = CD de Solo Lectura
+    ReadOnlyDC = DC de Solo Lectura
     ListeningIP = IP de Escucha
     Name = Nombre
     State = Estado
@@ -425,12 +513,27 @@
     BestPractice = Mejores Prácticas:
     CorrectiveActions = Acciones Correctivas:
     Reference = Referencia:
-    ScavengingBP = Microsoft recomienda habilitar envejecimiento/limpieza en todos los servidores DNS. Sin embargo, con zonas integradas en AD, asegúrate de que la limpieza de DNS esté habilitada solo en un CD del sitio principal. Los resultados se replicarán a otros CDs.
+    ScavengingBP = Microsoft recomienda habilitar envejecimiento/limpieza en todos los servidores DNS. Sin embargo, con zonas integradas en AD, asegúrate de que la limpieza de DNS esté habilitada solo en un DC del sitio principal. Los resultados se replicarán a otros DCs.
     ForwarderMaxBP = Configura los servidores para usar no más de dos servidores DNS externos como Reenviadores. Usar más de dos reenviadores puede llevar a tiempos de resolución aumentados y problemas potenciales con el equilibrio de carga de consultas DNS. Se recomienda usar dos servidores DNS confiables y geográficamente diversos para asegurar redundancia y rendimiento óptimo.
     ForwarderRefURL = https://learn.microsoft.com/es-es/troubleshoot/windows-server/networking/forwarders-resolution-timeouts
     ForwarderMinBP = Por razones de redundancia, se debe configurar más de un servidor de reenvío.
     RootHintsMissingCA = Una instalación predeterminada del rol de servidor DNS debe tener sugerencias de raíz a menos que el servidor tenga una zona raíz - .(raíz). Si el servidor tiene una zona raíz, elimínala. Si el servidor no tiene una zona raíz y no hay servidores raíz listados en la pestaña Sugerencias de Raíz de las propiedades del servidor DNS, el servidor puede estar perdiendo el archivo cache.dns en el directorio %systemroot%\\system32\\dns, desde donde se carga la lista de servidores raíz.
     RootHintsDuplicateCA = Se encontró dirección IP duplicada en la tabla de servidores de sugerencias de raíz de DNS. La consola de DNS no muestra los servidores de Sugerencias de Raíz duplicados; solo puedes verlos usando cmdlets de PowerShell de DNS. Aunque existe una utilidad dnscmd para reemplazar el archivo de Sugerencias de Raíz, usar PowerShell es la mejor forma de remediar este problema.
+    ErrorInfrastructureSummarySection = DNS Infrastructure Summary Section:
+    ErrorDirectoryPartitionsItemSection = Directory Partitions Item Section:
+    ErrorDirectoryPartitionsTableSection = Directory Partitions Table Section:
+    ErrorDirectoryPartitionsSection = Directory Partitions Section:
+    ErrorRRLItem = Response Rate Limiting (RRL) Item
+    ErrorRRLTable = Response Rate Limiting (RRL) Table
+    ErrorScavengingItem = Scavenging Item
+    ErrorScavengingTable = Scavenging Table
+    ErrorForwarderItem = Forwarder Item
+    ErrorForwarderTable = Forwarder Table
+    ErrorRootHintsTable = Root Hints Table
+    ErrorRootHintsSection = Root Hints Section
+    ErrorZoneScopeRecursionItem = Zone Scope Recursion Item
+    ErrorZoneScopeRecursionTable = Zone Scope Recursion Table
+    ErrorDNSInfrastructureSection = DNS Infrastructure Section
 '@
 
     # Get-AbrADDNSZone
@@ -472,7 +575,26 @@
     HealthCheck = Verificación de Salud:
     BestPractice = Mejores Prácticas:
     ZoneTransferBP = Configura todas las zonas de DNS para permitir transferencias de zona solo desde direcciones IP de confianza. Esto asegura que solo servidores DNS autorizados puedan recibir datos de zona, reduciendo el riesgo de acceso no autorizado o fuga de datos. Es una mejor práctica especificar las direcciones IP de los servidores DNS secundarios autorizados a recibir transferencias de zona.
-    ZoneAgingBP = Microsoft recomienda habilitar envejecimiento/limpieza en todos los servidores DNS. Sin embargo, con zonas integradas en AD, asegúrate de que la limpieza de DNS esté habilitada solo en un CD del sitio principal. Los resultados se replicarán a otros CDs.
+    ZoneAgingBP = Microsoft recomienda habilitar envejecimiento/limpieza en todos los servidores DNS. Sin embargo, con zonas integradas en AD, asegúrate de que la limpieza de DNS esté habilitada solo en un DC del sitio principal. Los resultados se replicarán a otros DCs.
+    ErrorDNSZoneItem = Domain Name System Zone Item
+    NoDelegationInfo = Sección de Zonas DNS {0}: No se encontró información de Delegación de Zona, deshabilitando esta sección.
+    ErrorZoneDelegationItem = Zone Delegation Item
+    NoDelegationInfoDC = Sección de Zonas DNS: No se encontró información de Delegación de Zona en {0}, deshabilitando esta sección.
+    ErrorZoneDelegationTable = Zone Delegation Table
+    ErrorZoneTransferPSSession = DNS Zones Transfers Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorZoneTransfersItem = Zone Transfers Item
+    NoZoneTransferInfo = Sección de Zonas DNS: No se encontró información de Transferencia de Zona en {0}, deshabilitando esta sección.
+    ErrorZoneTransfersTable = Zone Transfers Table
+    ErrorReverseLookupZoneItem = Reverse Lookup Zone Configuration Item
+    NoReverseLookupZoneInfo = Sección de Zonas DNS: No se encontró información de zona de búsqueda inversa en {0}, deshabilitando esta sección.
+    ErrorReverseLookupZoneTable = Reverse Lookup Zone Configuration Table
+    ErrorConditionalForwarderItem = Conditional Forwarder Item
+    NoConditionalForwarderInfo = Sección de Zonas DNS: No se encontró información de zona de reenviador condicional en {0}, deshabilitando esta sección.
+    ErrorConditionalForwarderTable = Conditional Forwarder Table
+    ErrorZoneScopeAgingItem = Zone Scope Aging Item
+    NoZoneAgingInfo = Sección de Zonas DNS: No se encontró información de propiedad de envejecimiento de zona en {0}, deshabilitando esta sección.
+    ErrorZoneScopeAgingTable = Zone Scope Aging Table
+    ErrorGlobalDNSZoneInfo = Global DNS Zone Information
 '@
 
     # Continuing with remaining sections...
@@ -563,7 +685,7 @@
     ValidityPeriod = Período de Validez
     ACL = Lista de Control de Acceso (ACL)
     ACLTable = Lista de Control de Acceso
-    DCName = Nombre del CD
+    DCName = Nombre del DC
     Owner = Propietario
     Group = Grupo
     AccessRights = Derechos de Acceso
@@ -672,22 +794,23 @@
     # Get-AbrDomainSection
     GetAbrDomainSection = ConvertFrom-StringData @'
     Collecting = Recopilando información de Dominio desde {0}.
+    CollectingDomain = Recopilando información de Dominio desde {0}.
     Paragraph = Esta sección proporciona una descripción general de la configuración del dominio de Active Directory, incluyendo configuraciones clave y detalles operacionales.
     SectionTitle = Configuración del Dominio de AD
     DefinitionText = Un dominio de Active Directory es una colección de objetos dentro de una red de Microsoft Active Directory. Un objeto puede ser un usuario individual, un grupo o un componente de hardware como una computadora o impresora. Cada dominio contiene una base de datos con información de identidad de objetos. Los dominios de Active Directory se pueden identificar usando un nombre DNS, que puede ser el mismo que el nombre de dominio público de una organización, un subdominio o una versión alternativa (que puede terminar en .local).
     ParagraphDetail = La siguiente tabla proporciona un desglose detallado de los atributos de configuración del dominio de Active Directory.
     HealthChecks = Verificaciones de Salud
     DomainControllersSection = Controladores de Dominio
-    DCDefinitionText = Un controlador de dominio (CD) es una computadora servidor que responde solicitudes de autenticación de seguridad dentro de un dominio de red de computadoras. Es un servidor de red responsable de permitir el acceso del anfitrión a recursos del dominio. Autentica usuarios, almacena información de cuenta de usuario e implementa la política de seguridad para un dominio.
+    DCDefinitionText = Un controlador de dominio (DC) es una computadora servidor que responde solicitudes de autenticación de seguridad dentro de un dominio de red de computadoras. Es un servidor de red responsable de permitir el acceso del anfitrión a recursos del dominio. Autentica usuarios, almacena información de cuenta de usuario e implementa la política de seguridad para un dominio.
     DCParagraphDetail = La siguiente sección presenta una descripción general profunda de los controladores de dominio de Active Directory, incluyendo su configuración y detalles clave.
     DCParagraphSummary = La siguiente sección proporciona un resumen de la configuración y detalles clave de los controladores de dominio de Active Directory.
     RolesSection = Roles
     RolesParagraph = La siguiente sección proporciona una descripción general detallada de los roles y funciones instalados en controladores de dominio en {0}.
-    DCDiagSection = Diagnóstico de CD
-    DCDiagParagraph = La siguiente sección proporciona un resumen del Diagnóstico de CD de Active Directory.
+    DCDiagSection = Diagnóstico de DC
+    DCDiagParagraph = La siguiente sección proporciona un resumen del Diagnóstico de DC de Active Directory.
     InfraServicesSection = Servicios de Infraestructura
     InfraServicesParagraph = La siguiente sección proporciona una descripción general detallada del estado y configuración de servicios de infraestructura en los controladores de dominio.
-    NoDCAvailable = No se puede obtener un CD disponible en el dominio {0}. Removiendo dominio de la sección de Dominio.
+    NoDCAvailable = No se puede obtener un DC disponible en el dominio {0}. Removiendo dominio de la sección de Dominio.
     WinRMErrorDCDiag = Error: La conexión al servidor remoto {0} falló: WinRM no puede completar la operación. (Información de DCDiag)
     WinRMErrorInfraService = Error: La conexión al servidor remoto {0} falló: WinRM no puede completar la operación. (ADInfrastructureService)
     DomainExcluded = {0} deshabilitado en variable Exclude.Domain
@@ -695,6 +818,7 @@
     ReplicationParagraph = La siguiente sección proporciona una descripción general de las conexiones de replicación de Active Directory y estado entre controladores de dominio en este dominio.
     GPOSection = Política de Grupo
     GPOParagraph = La siguiente sección proporciona una descripción general de los Objetos de Política de Grupo (GPO) configurados y aplicados dentro de este dominio.
+    ErrorADDomain = Active Directory Domain
 '@
 
     # Get-AbrADDomain
@@ -726,6 +850,8 @@
     Reference = Referencia:
     RIDBestPractice = El porcentaje de RID Emitido excede el 80%. Se recomienda evaluar la utilización de RID para prevenir posible agotamiento y asegurar la estabilidad del dominio. El Identificador Relativo (RID) es un componente crucial en el SID (Identificador de Seguridad) para objetos dentro del dominio. El agotamiento del grupo de RID puede llevar a la incapacidad de crear nuevos principales de seguridad, como cuentas de usuario o computadora. El monitoreo regular y la gestión proactiva del grupo de RID son esenciales para mantener la salud del dominio y evitar disrupciones.
     RIDReference = https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managing-rid-pool-depletion/ba-p/399736
+    TableName = Resumen del Dominio
+    ErrorSection = Sección de Resumen del Dominio de AD:
 '@
 
     # Get-AbrADFSMO
@@ -742,6 +868,9 @@
     Reference = Referencia:
     InfraMasterBP = El rol maestro de infraestructura en el dominio {0} debe ser mantenido por un controlador de dominio que no sea un servidor de catálogo global. El maestro de infraestructura es responsable de actualizar referencias de objetos en su dominio a objetos en otros dominios. Si el maestro de infraestructura se ejecuta en un servidor de catálogo global, no funcionará correctamente porque el catálogo global contiene una réplica parcial de cada objeto en el bosque, y no actualizará las referencias. Este problema no afecta bosques que tienen un único dominio.
     InfraMasterRef = http://go.microsoft.com/fwlink/?LinkId=168841
+    TableName = Roles FSMO
+    ErrorFSMOItem = Flexible Single Master Operations
+    ErrorPSSession = FSMO Roles Section: New-PSSession: Unable to connect to {0}: {1}
 '@
 
     # Get-AbrADTrust
@@ -783,6 +912,12 @@
     BestPractice = Mejor Práctica:
     AESBP = Asegúrate de que la encriptación Kerberos AES esté habilitada en todas las confianzas de Active Directory. La encriptación RC4 se considera débil y vulnerable a varios ataques. Habilitar la encriptación AES en confianzas mejora la seguridad de Kerberos y se alinea con estándares de seguridad modernos. Referencia: https://techcommunity.microsoft.com/t5/itops-talk-blog/tough-questions-answered-can-i-disable-rc4-etype-for-kerberos-on/ba-p/382718
     TrustDiagramSection = Diagrama de Dominios y Confianzas
+    ErrorTrustItem = Trust Item
+    ErrorTrustDiagramGraph = Domain and Trusts Diagram Graph:
+    ErrorTrustDiagramSection = Domain and Trusts Diagram Section:
+    NoTrustInfo = No se encontró información de confianza de dominio en {0}, deshabilitando esta sección.
+    ErrorTrustTable = Trust Table
+    ErrorTrustSection = Trust Section
 '@
 
     # Continue with remaining sections...
@@ -816,6 +951,20 @@
     ServiceTGTLifetime = Tiempo de Vida de TGT del Servicio (mins)
     ComputerTGTLifetime = Tiempo de Vida de TGT de la Computadora (mins)
     PolicyBP = Las Políticas de Autenticación deben estar configuradas en modo Aplicar para restringir activamente los tiempos de vida de TGT de Kerberos e inicio de sesión de cuenta. Las políticas en modo auditoría solo registran eventos sin aplicar restricciones.
+    ErrorSiloItem = Authentication Policy Silo Item
+    SiloTableName = Silo de Política de Autenticación
+    SilosTableName = Silos de Políticas de Autenticación
+    ErrorSiloMemberItem = Authentication Policy Silo Member Item
+    SiloMembersTableName = Miembros del Silo de Política de Autenticación
+    ErrorSiloMembersTable = Authentication Policy Silo Members Table
+    ErrorSilosSectionA = Authentication Policy Silos Section
+    NoSiloInfo = No se encontró información de Silos de Política de Autenticación en {0}, deshabilitando esta sección.
+    ErrorPolicyItem = Authentication Policy Item
+    PolicyTableName = Política de Autenticación
+    PoliciesTableName = Políticas de Autenticación
+    ErrorPoliciesSection = Authentication Policies Section
+    NoPolicyInfo = No se encontró información de Políticas de Autenticación en {0}, deshabilitando esta sección.
+    NoAuthPolicyOrSiloInfo = No se encontró información de Política de Autenticación o Silo en {0}, deshabilitando esta sección.
 '@
 
     # Get-AbrADDomainObject
@@ -985,6 +1134,45 @@
     GMSAInactiveBP = *Verifica regularmente y elimina cuentas de servicio administradas grupales inactivas de Active Directory. Las cuentas inactivas pueden ser un riesgo de seguridad ya que pueden ser explotadas por actores maliciosos. Asegurar que solo cuentas activas y necesarias existan ayuda a mantener un entorno seguro y reduce el riesgo de acceso no autorizado o escalada de privilegios.
     GMSANoHostComputersBP = **No se ha definido "Computadoras Anfitrión"; por favor valida que gMSA esté actualmente en uso. Si no, se recomienda eliminar estos recursos no utilizados de Active Directory.
     GMSANoRetrieveManagedPasswordBP = ***No se ha definido "Recuperar Contraseña Administrada"; por favor valida que gMSA esté actualmente en uso. Si no, se recomienda eliminar estos recursos no utilizados de Active Directory.
+    PrivilegedGroupMembersTableName = Miembros del Grupo Privilegiado:
+    GMSATableName = gMSA
+    MembersLabel = Miembros
+    TypeLabelUser = USUARIO
+    TypeLabelComputer = COMPUTADORA
+    TypeLabelGroup = GRUPO
+    TypeLabelFSP = ENTIDAD DE SEGURIDAD EXTERNA
+    ErrorDomainObjectStats = Domain Object Stats
+    ErrorUserObjectCountChart = User Object Count Chart
+    ErrorStatusOfUserAccounts = Status of User Accounts
+    ErrorStatusOfUsersAccountsChart = Status of Users Accounts Chart
+    ErrorUsersObjectsTable = Users Objects Table
+    ErrorUsersObjectsSection = Users Objects Section
+    ErrorGroupCategoryObjectChart = Group Category Object Chart
+    ErrorGroupScopesObjectChart = Group Scopes Object Chart
+    ErrorGroupsObjectsTable = Groups Objects Table
+    ErrorGroupsObjectsSection = Groups Objects Section
+    ErrorPrivilegedGroup = Privileged Group in Active Directory
+    ErrorPrivilegedGroupNonDefaultTable = Privileged Group (Non-Default) Table
+    ErrorPrivilegedGroupNonDefaultSection = Privileged Group (Non-Default) Section
+    ErrorEmptyGroupsObjectsTable = Empty Groups Objects Table
+    ErrorEmptyGroupsObjectsSection = Empty Groups Objects Section
+    ErrorCircularGroupMembershipTable = Circular Group Membership Table
+    ErrorCircularGroupMembershipSection = Circular Group Membership Section
+    ErrorPreWin2000 = Pre-Windows 2000 Compatible Access
+    ErrorComputersObjectCountChart = Computers Object Count Chart
+    ErrorStatusOfComputerAccounts = Status of Computer Accounts
+    ErrorStatusOfComputersAccountsChart = Status of Computers Accounts Chart
+    ErrorOperatingSystemsInAD = Operating Systems in Active Directory
+    ErrorComputersPasswordNotRequired = Computers with Password-Not-Required
+    ErrorComputersObjectsTable = Computers Objects Table
+    ErrorComputersObjectsSection = Computers Objects Section
+    ErrorDefaultDomainPasswordPolicy = Default Domain Password Policy
+    ErrorFGPP = Fine Grained Password Policies
+    ErrorWindowsLAPS = Windows LAPS
+    ErrorGMSAItem = Group Managed Service Accounts Item
+    ErrorGMSASection = Group Managed Service Accounts Section
+    ErrorFSPItem = Foreign Security Principals Item
+    ErrorFSPSection = Foreign Security Principals Section
 '@
 
     # Get-AbrADHardening
@@ -1028,6 +1216,8 @@
     LDAPSigningBP = La aplicación de firmas LDAP no se configura en este controlador de dominio. La firma LDAP es una función de seguridad que protege la integridad y confidencialidad de las comunicaciones LDAP requiriendo firma de datos. Configura la firma LDAP para requerir firma en todos los controladores de dominio.
     LDAPCBBindingBP = La aplicación de vinculación de canal de LDAP no se configura en este controlador de dominio. La vinculación de canal de LDAP es una función de seguridad que protege contra ataques de intermediario vinculando la sesión LDAP al canal TLS, asegurando la autenticidad e integridad de las comunicaciones LDAP. Configura la vinculación de canal de LDAP en todos los controladores de dominio.
     NTLMv1BP = La autenticación NTLMv1 está habilitada en este controlador de dominio. NTLMv1 es un protocolo de autenticación obsoleto que es vulnerable a ataques de captura y retransmisión de credenciales. Deshabilita NTLMv1 en todos los sistemas; ha sido superado por NTLMv2, que ofrece protecciones de seguridad significativamente mejoradas.
+    ErrorADHardeningItem = ADHardening Item
+    ErrorADHardeningSection = ADHardening Section
 '@
 
     # Get-AbrADDomainLastBackup
@@ -1046,6 +1236,8 @@
     BackupBP1 = Asegúrate de que haya un respaldo reciente de Active Directory (<180 días).
     BackupBP2 = Los respaldos regulares son cruciales para la recuperación ante desastres y el mantenimiento de la integridad de tu entorno de Active Directory.
     BackupBP3 = Considera configurar cronogramas de respaldo automatizados y verifica regularmente el estado del respaldo para prevenir pérdida de datos.
+    ErrorDomainLastBackupItem = Domain Last Backup Item
+    ErrorDomainLastBackupTable = Domain Last Backup Table
 '@
 
     # Get-AbrADDuplicateSPN
@@ -1061,6 +1253,8 @@
     HealthCheck = Verificación de Salud:
     CorrectiveActions = Acciones Correctivas:
     SPNBP = Asegúrate de que no haya SPN duplicados (otros que krbtgt). Los SPN duplicados pueden causar problemas de autenticación y deben resolverse rápidamente. Usa el comando `setspn -X` para identificar SPN duplicados. Elimina o reasigna SPN duplicados según sea necesario para mantener un entorno de AD saludable.
+    ErrorSPNItem = SPN Item
+    ErrorSPNTable = SPN Table
 '@
 
     # Get-AbrADDuplicateObject
@@ -1077,11 +1271,13 @@
     HealthCheck = Verificación de Salud:
     CorrectiveActions = Acciones Correctivas:
     DuplicateObjectBP = Asegúrate de que no haya objetos duplicados en Active Directory. Los objetos duplicados pueden causar varios problemas tales como problemas de autenticación, conflictos de replicación y gastos administrativos adicionales. Se recomienda auditar y limpiar regularmente cualquier objeto duplicado para mantener un entorno de Active Directory saludable y eficiente.
+    ErrorDuplicateObjectItem = Duplicate Object Item
+    ErrorDuplicateObjectTable = Duplicate Object Table
 '@
 
     # Get-AbrADDCRoleFeature
     GetAbrADDCRoleFeature = ConvertFrom-StringData @'
-    Collecting = Recopilando información de Rol y Características de CD de Active Directory de {0}.
+    Collecting = Recopilando información de Rol y Características de DC de Active Directory de {0}.
     Name = Nombre
     Parent = Padre
     Description = Descripción
@@ -1089,6 +1285,9 @@
     HealthCheck = Verificación de Salud:
     BestPractices = Mejores Prácticas:
     RoleBP = Los Controladores de Dominio deben tener software y agentes limitados instalados incluyendo roles y servicios. El código no esencial ejecutándose en Controladores de Dominio es un riesgo para el entorno empresarial de Active Directory. Un Controlador de Dominio debe ejecutar solo software requerido, servicios y roles críticos para la operación esencial.
+    ErrorPSSession = Roles Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorRoleFeatureSection = Roles {0} Section:
+    ErrorRolesSection = Roles Section:
 '@
 
     # Get-AbrADDCDiag
@@ -1100,11 +1299,14 @@
     Description = Descripción
     TableName = Estado de Prueba de DCDiag
     NoData = No se encontró información de DCDiag en {0}, deshabilitando esta sección.
+    ErrorDCDiagTestSection = Active Directory DCDiag {0} Section:
+    ErrorDCDiagSection = Active Directory DCDiag Section:
+    ErrorInvokeDcDiag = Invoke-DcDiag - Failed to get DCDiag for {0} with error:
 '@
 
     # Get-AbrADInfrastructureService
     GetAbrADInfrastructureService = ConvertFrom-StringData @'
-    Collecting = Recopilando información de Servicios de Infraestructura de CD de Active Directory de {0}.
+    Collecting = Recopilando información de Servicios de Infraestructura de DC de Active Directory de {0}.
     DisplayName = Nombre Mostrado
     ShortName = Nombre Corto
     Status = Estado
@@ -1114,6 +1316,9 @@
     CorrectiveActions = Acciones Correctivas:
     SpoolerBP = El servicio Print Spooler tiene vulnerabilidades conocidas que pueden ser explotadas por atacantes para obtener acceso no autorizado o ejecutar código malicioso. Deshabilitar este servicio en Controladores de Dominio y otros servidores críticos que no requieren servicios de impresión puede reducir la superficie de ataque y mejorar la postura de seguridad general de tu entorno de Active Directory.
     DHCPServerBP = De acuerdo con las mejores prácticas de seguridad, los servicios de Servidor DHCP deben ejecutarse en un servidor dedicado separado de los controladores de dominio para minimizar riesgos de seguridad, reducir contención de recursos y asegurar rendimiento óptimo de ambos servicios DHCP y Active Directory.
+    ErrorPSSession = Domain Controller Infrastructure Services Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorDCInfraServicesItem = Domain Controller Infrastructure Services Item
+    ErrorDCInfraServicesTable = Domain Controller Infrastructure Services Table
 '@
 
     # Get-AbrADDFSHealth
@@ -1121,7 +1326,7 @@
     Collecting = Recopilando información de Salud de DFS de Dominio de AD en {0}.
     SysvolReplicationTitle = Estado de Replicación de Sysvol
     SysvolReplicationParagraph = La siguiente sección proporciona el estado de replicación de la carpeta SYSVOL para el dominio {0}.
-    DCName = Nombre del CD
+    DCName = Nombre del DC
     ReplicationStatus = Estado de Replicación
     GPOCount = Conteo de GPO
     SysvolCount = Conteo de Sysvol
@@ -1132,7 +1337,7 @@
     SysvolReplicationNoData = No se encontró información de DFS en {0}, deshabilitando esta sección.
     SysvolReplicationHealthCheck = Verificación de Salud:
     SysvolReplicationCorrectiveActions = Acciones Correctivas:
-    SysvolReplicationBP = SYSVOL es un directorio especial que reside en cada controlador de dominio (CD) dentro de un dominio. El directorio comprende carpetas que almacenan objetos de Política de Grupo (GPO) y scripts de inicio de sesión que los clientes necesitan acceder y sincronizar entre CDs. Para que estos scripts de inicio de sesión y GPO funcionen correctamente, SYSVOL debe replicarse con precisión y rapidez en todo el dominio. Asegúrate de que se implemente una replicación correcta de SYSVOL para asegurar contenido idéntico de GPO/SYSVOL para el controlador de dominio en todos los dominios de Active Directory.
+    SysvolReplicationBP = SYSVOL es un directorio especial que reside en cada controlador de dominio (DC) dentro de un dominio. El directorio comprende carpetas que almacenan objetos de Política de Grupo (GPO) y scripts de inicio de sesión que los clientes necesitan acceder y sincronizar entre DCs. Para que estos scripts de inicio de sesión y GPO funcionen correctamente, SYSVOL debe replicarse con precisión y rapidez en todo el dominio. Asegúrate de que se implemente una replicación correcta de SYSVOL para asegurar contenido idéntico de GPO/SYSVOL para el controlador de dominio en todos los dominios de Active Directory.
     SysvolContentTitle = Estado de Contenido de Sysvol
     SysvolContentParagraph = La siguiente sección proporciona el estado de salud de SYSVOL para el dominio {0}.
     SysvolContentNoData = No se encontró información de carpeta SYSVOL en {0}, deshabilitando esta sección.
@@ -1148,6 +1353,14 @@
     ContentCorrectiveActions = Acciones Correctivas:
     ContentSysvolBP = Revisa los archivos y extensiones listados arriba y asegúrate de que sean necesarios para la operación de tu dominio. Elimina cualquier archivo que no sea requerido o que parezca sospechoso. Monitorea regularmente la carpeta Sysvol para mantener un entorno de Active Directory saludable y seguro.
     ContentNetlogonBP = Revisa los archivos y extensiones listados arriba y asegúrate de que sean necesarios para la operación de tu dominio. Elimina cualquier archivo que no sea requerido o que parezca sospechoso. Monitorea regularmente la carpeta Netlogon para mantener un entorno de Active Directory saludable y seguro.
+    ErrorSysvolReplicationStatusItemSection = Sysvol Replication Status Item Section:
+    ErrorSysvolReplicationStatusTableSection = Sysvol Replication Status Table Section:
+    ErrorSysvolContentPSSession = Sysvol Content Status Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorSysvolHealthSection = Sysvol Health {0} Section:
+    ErrorSysvolHealthTableSection = Sysvol Health Table Section:
+    ErrorNetlogonContentPSSession = Netlogon Content Status Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorNetlogonHealthSection = Netlogon Health {0} Section:
+    ErrorNetlogonContentStatusSection = Netlogon Content Status Section:
 '@
 
     # Get-AbrADKerberosAudit
@@ -1179,6 +1392,10 @@
     AdminHealthCheck = Verificación de Salud:
     AdminBestPractice = Mejor Práctica:
     AdminBP = Microsoft recomienda usar una contraseña única y compleja para la cuenta de Administrador integrada y rotarla regularmente (al menos cada 90 días). Considera renombrar la cuenta y deshabilitarla cuando no esté activamente en uso para reducir el riesgo de ataques de fuerza bruta o relleno de credenciales dirigidos a esta cuenta bien conocida.
+    ErrorUnconstrainedKerberosItem = Unconstrained Kerberos delegation
+    ErrorKRBTGTAccountItem = KRBTGT account Item
+    ErrorAdminAccountItem = ADMIN account Item
+    ErrorUnconstrainedKerberosSection = Unconstrained Kerberos delegation Section
 '@
 
     # Get-AbrADSiteReplication
@@ -1211,6 +1428,15 @@
     ReplicationStatusBestPractices = Mejores Prácticas:
     ReplicationStatusBP = Los fallos de replicación pueden llevar a inconsistencias de objetos, credenciales obsoletas, fallos en la aplicación de Política de Grupo e problemas de autenticación en todo el entorno. Investiga y resuelve cualquier error de replicación rápidamente usando herramientas como repadmin /showrepl o la Herramienta de Estado de Replicación de Active Directory para prevenir mayor divergencia entre controladores de dominio.
     AutoGeneratedValue = <generado automáticamente>
+    ErrorSiteReplicationConnectionItem = Site Replication Connection Item
+    ErrorSiteReplicationConnectionSection = Site Replication Connection Section
+    SiteLabel = Sitio:
+    FromLabel = Desde:
+    ToLabel = Hacia:
+    ErrorReplicationConnection = Replication Connection
+    ErrorPSSession = Replication Status Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorReplicationStatus = Replication Status
+    ErrorSiteReplicationStatus = Site Replication Status
 '@
 
     # Get-AbrADOU
@@ -1235,6 +1461,10 @@
     GPOBlockedHealthCheck = Verificación de Salud:
     GPOBlockedCorrectiveActions = Acciones Correctivas:
     GPOBlockedBP = Revisa el uso de políticas aplicadas y herencia de política bloqueada en Active Directory. Las políticas aplicadas aseguran que Objetos de Política de Grupo (GPO) específicos se apliquen y no puedan ser anulados por otros GPO. La herencia de política bloqueada previene que GPO de contenedores padres se apliquen a la Unidad Organizativa (OU). Aunque estas configuraciones pueden ser útiles para mantener la aplicación de política estricta, también pueden llevar a resultados inesperados y complicar la solución de problemas. Asegúrate de que el uso de estas configuraciones se alinee con la estrategia de gestión de políticas de tu organización y no cause inadvertidamente problemas.
+    ErrorOUItem = Organizational Unit Item
+    ErrorBlockedInheritanceGPOItem = Blocked Inheritance GPO Item
+    ErrorBlockedInheritanceGPOSection = Blocked Inheritance GPO Section
+    ErrorOUSection = Organizational Unit Section
 '@
 
     # Get-AbrADSecurityAssessment
@@ -1291,6 +1521,19 @@
     PrivilegedUsersReference = Referencia:
     PrivilegedUsersReferenceURL = https://www.stigviewer.com/stig/active_directory_domain/2017-12-15/finding/V-36435
     ServiceAccountsAdminCountNote = ** Los Atacantes están más interesados en Cuentas de Servicio que son miembros de grupos altamente privilegiados como Domain Admins. Una forma rápida de verificar esto es enumerar todas las cuentas de usuario con el atributo AdminCount igual a 1. Esto significa que un atacante puede simplemente pedir al Active Directory todas las cuentas de usuario con un SPN y con AdminCount=1. Asegúrate de que no haya cuentas privilegiadas que tengan SPN asignado a ellas.
+    ErrorAccountSecurityAssessmentItem = Account Security Assessment Item
+    ErrorUserAccountSecurityAssessmentChart = User Account Security Assessment Chart
+    NoUserInfo = No se encontró información de usuarios del dominio en {0}, deshabilitando esta sección.
+    ErrorAccountSecurityAssessmentTable = Account Security Assessment Table
+    ErrorPrivilegedUsersAssessmentItem = Privileged Users Assessment Item
+    NoPrivilegedUserInfo = No se encontró información de Evaluación de Usuarios Privilegiados en {0}, deshabilitando esta sección.
+    ErrorPrivilegedUsersTable = Privileged Users Table
+    ErrorInactivePrivilegedAccountsItem = Inactive Privileged Accounts Item
+    NoInactivePrivilegedInfo = No se encontró información de Cuentas Privilegiadas Inactivas en {0}, deshabilitando esta sección.
+    ErrorInactivePrivilegedAccountsTable = Inactive Privileged Accounts Table
+    ErrorServiceAccountsAssessmentItem = Service Accounts Assessment Item
+    NoServiceAccountsInfo = No se encontró información de Evaluación de Cuentas de Servicio en {0}, deshabilitando esta sección.
+    ErrorServiceAccountsAssessmentTable = Service Accounts Assessment Table
 '@
 
     # Get-AbrADGPO
@@ -1388,6 +1631,23 @@
     GPOSettingsParagraph = La siguiente sección proporciona detalles sobre recursos de configuración de Política de Grupo, incluyendo filtros WMI, el repositorio de Almacenamiento Central y scripts anexados a GPO.
     GPOHealthTitle = Salud de GPO
     GPOHealthParagraph = La siguiente sección destaca Objetos de Política de Grupo que pueden requerir atención, incluyendo GPO sin vincular, vacíos, aplicados y huérfanos.
+    ErrorGPOItem = Group Policy Objects
+    ErrorWMIFiltersItem = WMI Filters
+    ErrorWMIFiltersPSSession = WMI Filters Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorGPOCentralStore = GPO Central Store
+    ErrorGPOLogonLogoffItem = GPO with Logon/Logoff Script Item
+    ErrorGPOLogonLogoffSection = GPO with Logon/Logoff Script Section
+    ErrorGPOStartupShutdownItem = GPO with Computer Startup/Shutdown Item
+    ErrorGPOStartupShutdownSection = GPO with Computer Startup/Shutdown Section
+    ErrorUnlinkedGPOItem = Unlinked Group Policy Objects Item
+    ErrorUnlinkedGPOSection = Unlinked Group Policy Objects Section
+    ErrorEmptyGPOItem = Empty Group Policy Objects Item
+    ErrorEmptyGPOSection = Empty Group Policy Objects Section
+    ErrorEnforcedGPOItem = Enforced Group Policy Objects Item
+    ErrorEnforcedGPOTable = Enforced Group Policy Objects Table
+    ErrorOrphanedGPOPSSession = Orphaned GPO Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorOrphanedGPOItem = Orphaned GPO
+    ErrorGPOSection = Group Policy Objects Section
 '@
     # Get-AbrADDomainController
     GetAbrADDomainController = ConvertFrom-StringData @'
@@ -1397,7 +1657,7 @@
     BestPractices = Mejores Prácticas:
     CorrectiveActions = Acciones Correctivas:
     SecurityBestPractices = Mejores Prácticas de Seguridad:
-    DCName = Nombre del CD
+    DCName = Nombre del DC
     Status = Estado
     Online = En Línea
     Offline = Fuera de Línea
@@ -1503,6 +1763,47 @@
     MissingUpdatesParagraph = La siguiente tabla proporciona un resumen de actualizaciones de Windows pendientes o faltantes detectadas en Controladores de Dominio en el dominio {0}.
     MissingUpdatesBestPractice = Es crítico instalar actualizaciones de seguridad para proteger tus sistemas de ataques maliciosos. Aplicar regularmente actualizaciones asegura que tus sistemas estén protegidos contra vulnerabilidades recién descubiertos. Además, instalar actualizaciones de software proporciona acceso a nuevas características y mejoras, mejorando el rendimiento y estabilidad general del sistema. Descuidar las actualizaciones puede dejar tus sistemas expuestos a amenazas potenciales y explotación. Por lo tanto, es en tu mejor interés mantener un entorno actualizado instalando rápidamente todas las actualizaciones recomendadas.
     DCObjectChart = Gráfico de Objeto de Controlador de Dominio
+    ErrorNetworkInterfacesInfo = No se puede obtener información de interfaces de red de {0}
+    ErrorDCNetSettingsPSSession = DC Net Settings Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorDCItem = Domain Controller Item
+    UnableToCollect = No se puede recopilar información de {0}.
+    ErrorDCTable = Domain Controller Table
+    ErrorGeneralInfoSection = General Information Section
+    ErrorPartitionsSection = Partitions Section
+    ErrorNetworkingSettingsSection = Networking Settings Section
+    ErrorHardwareInventoryTable = Hardware Inventory Table
+    ErrorDCHardwareSection = Domain Controller Hardware Section
+    ErrorDCSection = Domain Controller Section
+    ErrorDNSIPConfigPSSession = DNS IP Configuration Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorDNSIPConfigTableSection = Domain Controller DNS IP Configuration Table Section:
+    ErrorDNSIPConfigItem = DNS IP Configuration Item
+    ErrorDNSIPConfigSection = Domain Controller DNS IP Configuration Section:
+    ErrorNTDSPSSession = NTDS Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorNTDSItem = NTDS Item
+    ErrorNTDSSection = NTDS section
+    ErrorTimeSourcePSSession = Time Source Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorTimeSourceItem = Time Source Item
+    ErrorTimeSourceTable = Time Source Table
+    ErrorTimeSource = Time Source
+    ErrorSRVRecordsStatusItem = SRV Records Status Item
+    ErrorSRVRecordsStatusTable = SRV Records Status Table
+    ErrorSRVRecordsStatus = SRV Records Status
+    ErrorFileSharesPSSession = Domain Controllers File Shares Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorFileSharesItem = File Shares Item
+    ErrorFileSharesTable = File Shares Table
+    ErrorInstalledSoftwarePSSession = Domain Controller Installed Software Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorInstalledSoftwareTable = Installed Software Table
+    ErrorInstalledSoftwareSection = Installed Software Section
+    ErrorMissingPatchPSSession = Domain Controller Pending Missing Patch Section: New-PSSession: Unable to connect to {0}: {1}
+    ErrorMissingPatchTable = Installed Software Table
+    ErrorMissingPatchSection = Domain Controller Section
+'@
+
+    # Get-AbrDiagrammer
+    GetAbrDiagrammer = ConvertFrom-StringData @'
+    GettingDiagram = Getting {0} diagram from {1}.
+    ErrorExportDiagram = Unable to export the {0} Diagram:
+    ErrorGetDiagram = Unable to get the {0} Diagram:
 '@
 
 }

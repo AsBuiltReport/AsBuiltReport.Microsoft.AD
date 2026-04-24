@@ -75,7 +75,7 @@ function Get-AbrADTrust {
                                     }
                                     $TrustInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
-                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Trust Item)"
+                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADTrust.ErrorTrustItem))"
                                 }
                             }
 
@@ -123,7 +123,7 @@ function Get-AbrADTrust {
                                     try {
                                         $Graph = Get-AbrDiagrammer -DiagramType 'Trusts' -DiagramOutput base64 -DomainController $ValidDCFromDomain
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "Domain and Trusts Diagram Graph: $($_.Exception.Message)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADTrust.ErrorTrustDiagramGraph) $($_.Exception.Message)"
                                     }
 
                                     if ($Graph) {
@@ -135,19 +135,19 @@ function Get-AbrADTrust {
                                         }
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning -Message "Domain and Trusts Diagram Section: $($_.Exception.Message)"
+                                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADTrust.ErrorTrustDiagramSection) $($_.Exception.Message)"
                                 }
                             }
                         }
                     } else {
-                        Write-PScriboMessage -Message "No Domain Trust information found in $($Domain.DNSRoot), Disabling this section."
+                        Write-PScriboMessage -Message ($reportTranslate.GetAbrADTrust.NoTrustInfo -f $Domain.DNSRoot)
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Trust Table)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADTrust.ErrorTrustTable))"
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Trust Section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADTrust.ErrorTrustSection))"
         }
     }
 

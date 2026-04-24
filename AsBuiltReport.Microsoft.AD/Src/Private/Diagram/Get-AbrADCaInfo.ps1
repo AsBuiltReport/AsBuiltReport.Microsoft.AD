@@ -5,7 +5,7 @@ function Get-AbrADCAInfo {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        0.9.12
+        Version:        1.0.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -43,7 +43,7 @@ function Get-AbrADCAInfo {
                     $TempCAInfo = [PSCustomObject]@{
                         Name = Remove-SpecialCharacter -String "$($rootCA.Name)RootCA" -SpecialChars '\-. '
                         CAName = $rootCA.Name
-                        Label = Add-NodeIcon -Name $rootCA.Name -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo
+                        Label = Add-NodeIcon -Name $rootCA.Name -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo -FontColor $Fontcolor
                         AditionalInfo = $AditionalInfo
                         IsRoot = $true
                     }
@@ -64,7 +64,7 @@ function Get-AbrADCAInfo {
                         $TempCAInfo = [PSCustomObject]@{
                             Name = Remove-SpecialCharacter -String $RootCAName -SpecialChars '\-. '
                             CAName = $RootCAName
-                            Label = Add-NodeIcon -Name $RootCAName -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo
+                            Label = Add-NodeIcon -Name $RootCAName -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor
                             AditionalInfo = $AditionalInfo
                             IsRoot = $true
                         }
@@ -86,7 +86,7 @@ function Get-AbrADCAInfo {
                     $TempCAInfo = [PSCustomObject]@{
                         Name = Remove-SpecialCharacter -String $subordinateCA.Name -SpecialChars '\-. '
                         CAName = $subordinateCA.Name
-                        Label = Add-NodeIcon -Name $subordinateCA.dNSHostName -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo
+                        Label = Add-NodeIcon -Name $subordinateCA.dNSHostName -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -Rows $AditionalInfo -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor
                         AditionalInfo = $AditionalInfo
                         IsRoot = $false
                     }

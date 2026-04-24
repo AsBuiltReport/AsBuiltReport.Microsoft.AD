@@ -65,10 +65,10 @@ function Get-AbrADDomainObject {
                     $ADObjects = $Users + $GroupObj
 
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Object Stats)"
+                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorDomainObjectStats) $($_.Exception.Message)"
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Object Stats)"
+                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorDomainObjectStats) $($_.Exception.Message)"
             }
             try {
                 Section -Style Heading4 $reportTranslate.GetAbrADDomainObject.UserObjectsSection {
@@ -94,7 +94,7 @@ function Get-AbrADDomainObject {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
                             $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title "$($reportTranslate.GetAbrADDomainObject.UserObjectsSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (User Object Count Chart)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorUserObjectCountChart) $($_.Exception.Message)"
                         }
 
                         if ($OutObj) {
@@ -170,7 +170,7 @@ function Get-AbrADDomainObject {
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of User Accounts)"
+                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorStatusOfUserAccounts) $($_.Exception.Message)"
                             }
                         }
 
@@ -186,7 +186,7 @@ function Get-AbrADDomainObject {
                             $sampleData = $OutObj
                             $Chart = New-PieChart -Values $sampleData.$($reportTranslate.GetAbrADDomainObject.Total) -Labels $sampleData.$($reportTranslate.GetAbrADDomainObject.Category) -Title "$($reportTranslate.GetAbrADDomainObject.StatusOfUsersSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 800 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of Users Accounts Chart)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorStatusOfUsersAccountsChart) $($_.Exception.Message)"
                         }
                     }
                     if ($OutObj) {
@@ -223,7 +223,7 @@ function Get-AbrADDomainObject {
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Users Objects Table)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorUsersObjectsTable) $($_.Exception.Message)"
                                     }
                                 }
 
@@ -241,7 +241,7 @@ function Get-AbrADDomainObject {
                             }
 
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Users Objects Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorUsersObjectsSection) $($_.Exception.Message)"
                         }
                     }
                     Show-AbrDebugExecutionTime -End -TitleMessage 'User Objects'
@@ -272,7 +272,7 @@ function Get-AbrADDomainObject {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
                             $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title $reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Category Object Chart)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorGroupCategoryObjectChart) $($_.Exception.Message)"
                         }
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection {
@@ -306,7 +306,7 @@ function Get-AbrADDomainObject {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
                             $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title $reportTranslate.GetAbrADDomainObject.GroupScopesSubSection -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Scopes Object Chart)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorGroupScopesObjectChart) $($_.Exception.Message)"
                         }
                         if ($OutObj) {
                             Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDomainObject.GroupScopesSubSection {
@@ -335,7 +335,7 @@ function Get-AbrADDomainObject {
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Groups Objects Table)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorGroupsObjectsTable) $($_.Exception.Message)"
                                     }
                                 }
 
@@ -353,7 +353,7 @@ function Get-AbrADDomainObject {
                             }
 
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Groups Objects Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorGroupsObjectsSection) $($_.Exception.Message)"
                         }
                     }
                     if ($GroupOBj) {
@@ -379,7 +379,7 @@ function Get-AbrADDomainObject {
                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                             }
                                         } catch {
-                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group in Active Directory item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorPrivilegedGroup) $($_.Exception.Message)"
                                         }
                                     }
 
@@ -438,7 +438,7 @@ function Get-AbrADDomainObject {
                                             if ($Group = ($GroupOBj | Where-Object { $_.SID -like $GroupSID })) {
                                                 $GroupObjects = $Group.Members
                                                 if ($GroupObjFilter = $ADObjects | Where-Object { $_.distinguishedName -in $GroupObjects }) {
-                                                    Section -ExcludeFromTOC -Style NOTOCHeading4 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) Members)" {
+                                                    Section -ExcludeFromTOC -Style NOTOCHeading4 "$($Group.Name) ($(($GroupObjects | Measure-Object).count) $($reportTranslate.GetAbrADDomainObject.MembersLabel))" {
                                                         $OutObj = [System.Collections.Generic.List[object]]::new()
                                                         foreach ($GroupObject in $GroupObjFilter) {
                                                             try {
@@ -454,7 +454,7 @@ function Get-AbrADDomainObject {
                                                                 }
                                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                                             } catch {
-                                                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group in Active Directory item)"
+                                                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorPrivilegedGroup) $($_.Exception.Message)"
 
                                                             }
                                                         }
@@ -472,7 +472,7 @@ function Get-AbrADDomainObject {
                                                         }
 
                                                         $TableParams = @{
-                                                            Name = "$($Group.Name) - $($Domain.DNSRoot.ToString().ToUpper())"
+                                                            Name = "$($reportTranslate.GetAbrADDomainObject.PrivilegedGroupMembersTableName) $($Group.Name) - $($Domain.DNSRoot.ToString().ToUpper())"
                                                             List = $false
                                                             ColumnWidths = 50, 20, 15, 15
                                                         }
@@ -520,13 +520,13 @@ function Get-AbrADDomainObject {
                                                 }
                                             }
                                         } catch {
-                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group in Active Directory item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorPrivilegedGroup) $($_.Exception.Message)"
                                         }
                                     }
                                 }
 
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group in Active Directory)"
+                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorPrivilegedGroup) $($_.Exception.Message)"
                             }
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Privileged Groups (Built-in)'
                         }
@@ -545,7 +545,7 @@ function Get-AbrADDomainObject {
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         } catch {
-                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group (Non-Default) Table)"
+                                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorPrivilegedGroupNonDefaultTable) $($_.Exception.Message)"
                                         }
                                     }
                                 }
@@ -576,7 +576,7 @@ function Get-AbrADDomainObject {
                             }
 
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Privileged Group (Non-Default) Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorPrivilegedGroupNonDefaultSection) $($_.Exception.Message)"
                         }
                     }
                     if ($HealthCheck.Domain.BestPractice -and ($EmptyGroupOBj)) {
@@ -594,7 +594,7 @@ function Get-AbrADDomainObject {
                                                 }
                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                             } catch {
-                                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Empty Groups Objects Table)"
+                                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorEmptyGroupsObjectsTable) $($_.Exception.Message)"
                                             }
                                         }
                                     }
@@ -620,7 +620,7 @@ function Get-AbrADDomainObject {
                             }
 
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Empty Groups Objects Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorEmptyGroupsObjectsSection) $($_.Exception.Message)"
                         }
                     }
                     if ($HealthCheck.Domain.BestPractice -and $InfoLevel.Domain -ge 2) {
@@ -648,7 +648,7 @@ function Get-AbrADDomainObject {
                                                 }
                                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                             } catch {
-                                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Circular Group Membership Table)"
+                                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorCircularGroupMembershipTable) $($_.Exception.Message)"
                                             }
                                         }
                                     }
@@ -686,7 +686,7 @@ function Get-AbrADDomainObject {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Circular Group Membership Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorCircularGroupMembershipSection) $($_.Exception.Message)"
                         }
                     }
                     if ($HealthCheck.Domain.Security) {
@@ -699,15 +699,15 @@ function Get-AbrADDomainObject {
                                     foreach ($MemberDN in $GroupMembers) {
                                         try {
                                             if ($MemberUser = $Users | Where-Object { $_.DistinguishedName -eq $MemberDN }) {
-                                                $MemberName = "$($MemberUser.SamAccountName) (USER)"
+                                                $MemberName = "$($MemberUser.SamAccountName) ($($reportTranslate.GetAbrADDomainObject.TypeLabelUser))"
                                             } elseif ($MemberComputer = $Computers | Where-Object { $_.DistinguishedName -eq $MemberDN }) {
-                                                $MemberName = "$($MemberComputer.Name) (COMPUTER)"
+                                                $MemberName = "$($MemberComputer.Name) ($($reportTranslate.GetAbrADDomainObject.TypeLabelComputer))"
                                             } elseif ($MemberGroup = $GroupOBj | Where-Object { $_.DistinguishedName -eq $MemberDN }) {
-                                                $MemberName = "$($MemberGroup.Name) (GROUP)"
+                                                $MemberName = "$($MemberGroup.Name) ($($reportTranslate.GetAbrADDomainObject.TypeLabelGroup))"
                                             } elseif ($MemberFSP = $FSP | Where-Object { $_.DistinguishedName -eq $MemberDN }) {
-                                                $MemberName = "$($MemberFSP.'msds-principalname') (FOREIGN SECURITY PRINCIPAL)"
+                                                $MemberName = "$($MemberFSP.'msds-principalname') ($($reportTranslate.GetAbrADDomainObject.TypeLabelFSP))"
                                             } elseif ($MemberDN -match 'ForeignSecurityPrincipals') {
-                                                $MemberName = "$(($MemberDN -split ',')[0] -replace '^CN=') (FOREIGN SECURITY PRINCIPAL)"
+                                                $MemberName = "$(($MemberDN -split ',')[0] -replace '^CN=') ($($reportTranslate.GetAbrADDomainObject.TypeLabelFSP))"
                                             } else {
                                                 $MemberName = ($MemberDN -split ',')[0] -replace '^CN='
                                             }
@@ -717,7 +717,7 @@ function Get-AbrADDomainObject {
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         } catch {
-                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Pre-Windows 2000 Compatible Access Group Member)"
+                                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorPreWin2000) $($_.Exception.Message)"
                                         }
                                     }
                                     if ($OutObj) {
@@ -745,7 +745,7 @@ function Get-AbrADDomainObject {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Pre-Windows 2000 Compatible Access Group Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorPreWin2000) $($_.Exception.Message)"
                         }
                         Show-AbrDebugExecutionTime -End -TitleMessage 'Pre-Windows 2000 Compatible Access Group'
                     }
@@ -776,7 +776,7 @@ function Get-AbrADDomainObject {
                         $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
                         $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title "$($reportTranslate.GetAbrADDomainObject.ComputersCount)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                     } catch {
-                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers Object Count Chart)"
+                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorComputersObjectCountChart) $($_.Exception.Message)"
                     }
                     if ($OutObj) {
                         Section -ExcludeFromTOC -Style NOTOCHeading4 $reportTranslate.GetAbrADDomainObject.ComputersSubSection {
@@ -838,7 +838,7 @@ function Get-AbrADDomainObject {
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of Computer Accounts)"
+                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorStatusOfComputerAccounts) $($_.Exception.Message)"
                             }
                         }
 
@@ -854,7 +854,7 @@ function Get-AbrADDomainObject {
                             $sampleData = $OutObj
                             $Chart = New-PieChart -Values $sampleData.$($reportTranslate.GetAbrADDomainObject.Total) -Labels $sampleData.$($reportTranslate.GetAbrADDomainObject.Category) -Title "$($reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Status of Computers Accounts Chart)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorStatusOfComputersAccountsChart) $($_.Exception.Message)"
                         }
 
                         if ($OutObj) {
@@ -910,7 +910,7 @@ function Get-AbrADDomainObject {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Operating Systems in Active Directory)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorOperatingSystemsInAD) $($_.Exception.Message)"
                         }
                         Show-AbrDebugExecutionTime -End -TitleMessage 'Operating Systems Count'
                     }
@@ -951,14 +951,14 @@ function Get-AbrADDomainObject {
                                         Text $reportTranslate.GetAbrADDomainObject.PasswordNotRequiredBP
                                     }
                                 } catch {
-                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers with Password-Not-Required table)"
+                                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorComputersPasswordNotRequired) $($_.Exception.Message)"
                                 }
                             }
                             Show-AbrDebugExecutionTime -End -TitleMessage 'Computers with Password-Not-Required Attribute Set'
                         }
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers with Password-Not-Required section)"
+                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorComputersPasswordNotRequired) $($_.Exception.Message)"
                 }
                 if ($InfoLevel.Domain -ge 4) {
                     try {
@@ -979,7 +979,7 @@ function Get-AbrADDomainObject {
                                     }
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 } catch {
-                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers Objects Table)"
+                                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorComputersObjectsTable) $($_.Exception.Message)"
                                 }
                             }
 
@@ -997,7 +997,7 @@ function Get-AbrADDomainObject {
                         }
 
                     } catch {
-                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Computers Objects Section)"
+                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorComputersObjectsSection) $($_.Exception.Message)"
                     }
                 }
                 Show-AbrDebugExecutionTime -End -TitleMessage 'Computer Objects'
@@ -1051,7 +1051,7 @@ function Get-AbrADDomainObject {
                             }
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Default Domain Password Policy)"
+                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorDefaultDomainPasswordPolicy) $($_.Exception.Message)"
                     }
                     Show-AbrDebugExecutionTime -End -TitleMessage 'Default Domain Password Policy'
                 }
@@ -1123,7 +1123,7 @@ function Get-AbrADDomainObject {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Fined Grained Password Policies)"
+                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorFGPP) $($_.Exception.Message)"
             }
 
             try {
@@ -1192,7 +1192,7 @@ function Get-AbrADDomainObject {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Windows LAPS)"
+                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorWindowsLAPS) $($_.Exception.Message)"
             }
 
             try {
@@ -1231,7 +1231,7 @@ function Get-AbrADDomainObject {
                                     $GMSAInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                 } catch {
-                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Managed Service Accounts Item)"
+                                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorGMSAItem) $($_.Exception.Message)"
                                 }
                             }
 
@@ -1264,7 +1264,7 @@ function Get-AbrADDomainObject {
                                 foreach ($Account in $GMSAInfo) {
                                     Section -Style NOTOCHeading4 -ExcludeFromTOC "$($Account.$($reportTranslate.GetAbrADDomainObject.GMSAName))" {
                                         $TableParams = @{
-                                            Name = "gMSA - $($Account.$($reportTranslate.GetAbrADDomainObject.GMSAName))"
+                                            Name = "$($reportTranslate.GetAbrADDomainObject.GMSATableName) - $($Account.$($reportTranslate.GetAbrADDomainObject.GMSAName))"
                                             List = $true
                                             ColumnWidths = 40, 60
                                         }
@@ -1299,7 +1299,7 @@ function Get-AbrADDomainObject {
                                 }
                             } else {
                                 $TableParams = @{
-                                    Name = "gMSA - $($Domain.DNSRoot.ToString().ToUpper())"
+                                    Name = "$($reportTranslate.GetAbrADDomainObject.GMSATableName) - $($Domain.DNSRoot.ToString().ToUpper())"
                                     List = $false
                                     Columns = $reportTranslate.GetAbrADDomainObject.GMSAName, $reportTranslate.GetAbrADDomainObject.GMSALogonCount, $reportTranslate.GetAbrADDomainObject.GMSALockedOut, $reportTranslate.GetAbrADDomainObject.GMSALastLogonDate, $reportTranslate.GetAbrADDomainObject.GMSAPasswordLastSet, $reportTranslate.GetAbrADDomainObject.GMSAEnabled
                                     ColumnWidths = 25, 15, 15, 15, 15, 15
@@ -1323,7 +1323,7 @@ function Get-AbrADDomainObject {
                         }
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Group Managed Service Accounts Section)"
+                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorGMSASection) $($_.Exception.Message)"
                 }
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)
@@ -1349,7 +1349,7 @@ function Get-AbrADDomainObject {
                                     $FSPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
 
                                 } catch {
-                                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Foreign Security Principals Item)"
+                                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorFSPItem) $($_.Exception.Message)"
                                 }
                             }
 
@@ -1366,7 +1366,7 @@ function Get-AbrADDomainObject {
                         }
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Foreign Security Principals Section)"
+                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorFSPSection) $($_.Exception.Message)"
                 }
             } catch {
                 Write-PScriboMessage -IsWarning $($_.Exception.Message)

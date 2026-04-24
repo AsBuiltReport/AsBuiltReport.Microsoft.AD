@@ -60,7 +60,7 @@ function Get-AbrDHCPinAD {
                             }
                             $DCHPInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DHCP Item)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrDHCPinAD.ErrorDHCPItem))"
                         }
                     }
 
@@ -75,12 +75,12 @@ function Get-AbrDHCPinAD {
                     $DCHPInfo | Sort-Object -Property $reportTranslate.GetAbrDHCPinAD.ServerName | Table @TableParams
                 }
             } else {
-                Write-PScriboMessage -Message "No DHCP Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
+                Write-PScriboMessage -Message ($reportTranslate.GetAbrDHCPinAD.NoDHCPInfo -f $ForestInfo.toUpper())
                 Paragraph $reportTranslate.GetAbrDHCPinAD.NotFound
                 BlankLine
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DHCP Table)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrDHCPinAD.ErrorDHCPTable))"
         }
     }
 

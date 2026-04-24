@@ -33,7 +33,7 @@ function Get-AbrADDCRoleFeature {
                 if (-not $_.Exception.MessageId) {
                     $ErrorMessage = $_.FullyQualifiedErrorId
                 } else { $ErrorMessage = $_.Exception.MessageId }
-                Write-PScriboMessage -IsWarning -Message "Roles Section: New-PSSession: Unable to connect to $($DC): $ErrorMessage"
+                Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrADDCRoleFeature.ErrorPSSession -f $DC, $ErrorMessage)
             }
             if ($Features) {
                 Section -ExcludeFromTOC -Style NOTOCHeading5 $($DC.ToString().ToUpper().Split('.')[0]) {
@@ -47,7 +47,7 @@ function Get-AbrADDCRoleFeature {
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "Roles $($Feature.DisplayName) Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDCRoleFeature.ErrorRoleFeatureSection -f $Feature.DisplayName) $($_.Exception.Message)"
                         }
                     }
 
@@ -78,7 +78,7 @@ function Get-AbrADDCRoleFeature {
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "Roles Section: $($_.Exception.Message)"
+            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDCRoleFeature.ErrorRolesSection) $($_.Exception.Message)"
         }
     }
     end {
