@@ -41,8 +41,8 @@ function Start-AsBuiltReportMSAD {
     }
 
     $gliderMod = Get-Module -ListAvailable -Name GliderUI |
-        Sort-Object Version -Descending |
-        Select-Object -First 1
+    Sort-Object Version -Descending |
+    Select-Object -First 1
 
     if ($null -eq $gliderMod -or $gliderMod.Version -lt $requiredGliderUIVersion) {
         $found = if ($null -eq $gliderMod) { 'not installed' } else { "v$($gliderMod.Version)" }
@@ -55,7 +55,7 @@ function Start-AsBuiltReportMSAD {
     # Thread-safe store shared between the main runspace and the report runspace
     $syncHash = [Hashtable]::Synchronized(@{
             CancelRequested = $false
-            IsBusy          = $false
+            IsBusy = $false
         })
 
     # ── UI Helper Functions ─────────────────────────────────────────────────────
@@ -318,11 +318,11 @@ function Start-AsBuiltReportMSAD {
 
     # ── Options Controls ────────────────────────────────────────────────────────
     # Options matching AsBuiltReport.Microsoft.AD.json > Options
-    $swDiagrams       = [ToggleSwitch]::new(); $swDiagrams.IsChecked = $true
+    $swDiagrams = [ToggleSwitch]::new(); $swDiagrams.IsChecked = $true
     $swExportDiagrams = [ToggleSwitch]::new(); $swExportDiagrams.IsChecked = $true
-    $swTimestamp= [ToggleSwitch]::new(); $swTimestamp.IsChecked = $false
-    $swWinRMSSL       = [ToggleSwitch]::new(); $swWinRMSSL.IsChecked = $false
-    $swWinRMFallback  = [ToggleSwitch]::new(); $swWinRMFallback.IsChecked = $true
+    $swTimestamp = [ToggleSwitch]::new(); $swTimestamp.IsChecked = $false
+    $swWinRMSSL = [ToggleSwitch]::new(); $swWinRMSSL.IsChecked = $false
+    $swWinRMFallback = [ToggleSwitch]::new(); $swWinRMFallback.IsChecked = $true
 
     $cboDiagramTheme = [ComboBox]::new()
     $cboDiagramTheme.Width = 120
@@ -345,7 +345,7 @@ function Start-AsBuiltReportMSAD {
 
     $cboLvlForest = New-LevelCombo; $cboLvlForest.SelectedIndex = 2   # default 2 per JSON
     $cboLvlDomain = New-LevelCombo; $cboLvlDomain.SelectedIndex = 2   # default 2 per JSON
-    $cboLvlDNS    = New-LevelCombo; $cboLvlDNS.SelectedIndex = 1      # default 1 per JSON
+    $cboLvlDNS = New-LevelCombo; $cboLvlDNS.SelectedIndex = 1      # default 1 per JSON
 
     # ── Progress Bar & Log ──────────────────────────────────────────────────────
     $progressBar = [ProgressBar]::new()
@@ -428,27 +428,27 @@ function Start-AsBuiltReportMSAD {
     $generateCallback.DisabledControlsWhileProcessing = $btnGenerate
 
     $generateCallback.ArgumentList = @{
-        SyncHash         = $syncHash
-        Server           = $txtServer
-        Username         = $txtUser
-        Password         = $txtPass
-        ReportName       = $txtReportName
-        OutPath          = $txtOutput
-        FmtHTML          = $chkHTML
-        FmtWord          = $chkWord
-        FmtText          = $chkText
-        Lang             = $cboLang
-        DiagramTheme     = $cboDiagramTheme
-        PSDefaultAuth    = $cboPSDefaultAuth
-        Diagrams         = $swDiagrams
-        ExportDiagrams   = $swExportDiagrams
-        Timestamp        = $swTimestamp
-        WinRMSSL         = $swWinRMSSL
-        WinRMFallback    = $swWinRMFallback
-        LvlForest        = $cboLvlForest
-        LvlDomain        = $cboLvlDomain
-        LvlDNS           = $cboLvlDNS
-        Verbose          = $chkVerbose
+        SyncHash = $syncHash
+        Server = $txtServer
+        Username = $txtUser
+        Password = $txtPass
+        ReportName = $txtReportName
+        OutPath = $txtOutput
+        FmtHTML = $chkHTML
+        FmtWord = $chkWord
+        FmtText = $chkText
+        Lang = $cboLang
+        DiagramTheme = $cboDiagramTheme
+        PSDefaultAuth = $cboPSDefaultAuth
+        Diagrams = $swDiagrams
+        ExportDiagrams = $swExportDiagrams
+        Timestamp = $swTimestamp
+        WinRMSSL = $swWinRMSSL
+        WinRMFallback = $swWinRMFallback
+        LvlForest = $cboLvlForest
+        LvlDomain = $cboLvlDomain
+        LvlDNS = $cboLvlDNS
+        Verbose = $chkVerbose
         # ConfigPath and AbrConfigPath are late-bound below after TextBox creation
     }
 
@@ -501,82 +501,82 @@ function Start-AsBuiltReportMSAD {
                 [int]$LvlDNS
             )
             return [ordered]@{
-                Report      = [ordered]@{
-                    Name                = $ReportName
-                    Version             = '1.0'
-                    Status              = 'Released'
-                    Language            = $Lang
-                    ShowCoverPageImage  = $true
+                Report = [ordered]@{
+                    Name = $ReportName
+                    Version = '1.0'
+                    Status = 'Released'
+                    Language = $Lang
+                    ShowCoverPageImage = $true
                     ShowTableOfContents = $true
-                    ShowHeaderFooter    = $true
-                    ShowTableCaptions   = $true
+                    ShowHeaderFooter = $true
+                    ShowTableCaptions = $true
                 }
-                Options     = [ordered]@{
-                    ShowExecutionTime       = $false
-                    ShowDefinitionInfo      = $false
+                Options = [ordered]@{
+                    ShowExecutionTime = $false
+                    ShowDefinitionInfo = $false
                     PSDefaultAuthentication = $PSDefaultAuthentication
-                    Exclude                 = [ordered]@{ Domains = @(); DCs = @() }
-                    Include                 = [ordered]@{ Domains = @() }
-                    WinRMSSL                = $WinRMSSL
-                    WinRMFallbackToNoSSL    = $WinRMFallbackToNoSSL
-                    WinRMSSLPort            = 5986
-                    WinRMPort               = 5985
-                    EnableDiagrams          = $EnableDiagrams
-                    EnableDiagramDebug      = $false
-                    DiagramTheme            = $Theme
-                    DiagramObjDebug         = $false
-                    DiagramWaterMark        = ''
-                    DiagramType             = [ordered]@{
+                    Exclude = [ordered]@{ Domains = @(); DCs = @() }
+                    Include = [ordered]@{ Domains = @() }
+                    WinRMSSL = $WinRMSSL
+                    WinRMFallbackToNoSSL = $WinRMFallbackToNoSSL
+                    WinRMSSLPort = 5986
+                    WinRMPort = 5985
+                    EnableDiagrams = $EnableDiagrams
+                    EnableDiagramDebug = $false
+                    DiagramTheme = $Theme
+                    DiagramObjDebug = $false
+                    DiagramWaterMark = ''
+                    DiagramType = [ordered]@{
                         CertificateAuthority = $true
-                        Forest               = $true
-                        Replication          = $true
-                        Sites                = $true
-                        SitesInventory       = $true
-                        Trusts               = $true
+                        Forest = $true
+                        Replication = $true
+                        Sites = $true
+                        SitesInventory = $true
+                        Trusts = $true
                     }
-                    ExportDiagrams          = $ExportDiagrams
-                    ExportDiagramsFormat    = @('pdf')
-                    EnableDiagramSignature  = $false
-                    SignatureAuthorName     = ''
-                    SignatureCompanyName    = ''
-                    JobsTimeOut             = 900
-                    DCStatusPingCount       = 2
+                    ExportDiagrams = $ExportDiagrams
+                    ExportDiagramsFormat = @('pdf')
+                    EnableDiagramSignature = $false
+                    SignatureAuthorName = ''
+                    SignatureCompanyName = ''
+                    JobsTimeOut = 900
+                    DCStatusPingCount = 2
                 }
-                InfoLevel   = [ordered]@{
+                InfoLevel = [ordered]@{
                     Forest = $LvlForest
                     Domain = $LvlDomain
-                    DNS    = $LvlDNS
+                    DNS = $LvlDNS
                 }
                 HealthCheck = [ordered]@{
-                    Domain           = [ordered]@{
-                        GMSA            = $true
-                        GPO             = $true
-                        Backup          = $true
-                        DFS             = $true
-                        SPN             = $true
+                    Domain = [ordered]@{
+                        GMSA = $true
+                        GPO = $true
+                        Backup = $true
+                        DFS = $true
+                        SPN = $true
                         DuplicateObject = $true
-                        Security        = $true
-                        BestPractice    = $true
+                        Security = $true
+                        BestPractice = $true
                     }
                     DomainController = [ordered]@{
-                        Diagnostic   = $true
-                        Services     = $true
-                        Software     = $true
+                        Diagnostic = $true
+                        Services = $true
+                        Software = $true
                         BestPractice = $true
                     }
-                    Site             = [ordered]@{
-                        Replication  = $true
+                    Site = [ordered]@{
+                        Replication = $true
                         BestPractice = $true
                     }
-                    DNS              = [ordered]@{
-                        Aging        = $true
-                        DP           = $true
-                        Zones        = $true
+                    DNS = [ordered]@{
+                        Aging = $true
+                        DP = $true
+                        Zones = $true
                         BestPractice = $true
                     }
-                    CA               = [ordered]@{
-                        Status       = $true
-                        Statistics   = $true
+                    CA = [ordered]@{
+                        Status = $true
+                        Statistics = $true
                         BestPractice = $true
                     }
                 }
@@ -584,13 +584,13 @@ function Start-AsBuiltReportMSAD {
         }
 
         # ── Collect values ────────────────────────────────────────────────────────
-        $server       = $ui.Server.Text.Trim()
-        $username     = $ui.Username.Text.Trim()
-        $password     = $ui.Password.Text
-        $reportName   = $ui.ReportName.Text.Trim()
-        $outPath      = $ui.OutPath.Text.Trim()
-        $lang         = [string]$ui.Lang.SelectedItem
-        $configPath   = $ui.ConfigPath.Text.Trim()
+        $server = $ui.Server.Text.Trim()
+        $username = $ui.Username.Text.Trim()
+        $password = $ui.Password.Text
+        $reportName = $ui.ReportName.Text.Trim()
+        $outPath = $ui.OutPath.Text.Trim()
+        $lang = [string]$ui.Lang.SelectedItem
+        $configPath = $ui.ConfigPath.Text.Trim()
         $abrConfigPath = $ui.AbrConfigPath.Text.Trim()
 
         $formats = @()
@@ -599,18 +599,18 @@ function Start-AsBuiltReportMSAD {
         if ($ui.FmtText.IsChecked -eq $true) { $formats += 'Text' }
         if ($formats.Count -eq 0) { $formats = @('Html') }
 
-        $enableDiagrams   = [bool]$ui.Diagrams.IsChecked
-        $exportDiagrams   = [bool]$ui.ExportDiagrams.IsChecked
-        $addTimestamp     = [bool]$ui.Timestamp.IsChecked
-        $winRMSSL         = [bool]$ui.WinRMSSL.IsChecked
-        $winRMFallback    = [bool]$ui.WinRMFallback.IsChecked
-        $psDefaultAuth    = [string]$ui.PSDefaultAuth.SelectedItem
-        $diagramTheme     = [string]$ui.DiagramTheme.SelectedItem
+        $enableDiagrams = [bool]$ui.Diagrams.IsChecked
+        $exportDiagrams = [bool]$ui.ExportDiagrams.IsChecked
+        $addTimestamp = [bool]$ui.Timestamp.IsChecked
+        $winRMSSL = [bool]$ui.WinRMSSL.IsChecked
+        $winRMFallback = [bool]$ui.WinRMFallback.IsChecked
+        $psDefaultAuth = [string]$ui.PSDefaultAuth.SelectedItem
+        $diagramTheme = [string]$ui.DiagramTheme.SelectedItem
 
         # Parse InfoLevel (first char = number)
         $lvlForest = [int]([string]$ui.LvlForest.SelectedItem).Substring(0, 1)
         $lvlDomain = [int]([string]$ui.LvlDomain.SelectedItem).Substring(0, 1)
-        $lvlDNS    = [int]([string]$ui.LvlDNS.SelectedItem).Substring(0, 1)
+        $lvlDNS = [int]([string]$ui.LvlDNS.SelectedItem).Substring(0, 1)
 
         # ── Validation ────────────────────────────────────────────────────────────
         if ([string]::IsNullOrWhiteSpace($server)) {
@@ -697,11 +697,11 @@ function Start-AsBuiltReportMSAD {
             $credential = [PSCredential]::new($username, $securePassword)
 
             $params = @{
-                Report               = 'Microsoft.AD'
-                Target               = $server
-                Credential           = $credential
-                OutputFolderPath     = $outPath
-                Format               = $formats
+                Report = 'Microsoft.AD'
+                Target = $server
+                Credential = $credential
+                OutputFolderPath = $outPath
+                Format = $formats
                 ReportConfigFilePath = $reportConfigFilePath
                 AsBuiltConfigFilePath = $abrConfigPath
             }
@@ -827,70 +827,70 @@ function Start-AsBuiltReportMSAD {
     $abrConfigPathRow.Children.Add($btnBrowseAbrConfig)
 
     # Late-bind after TextBox objects exist
-    $generateCallback.ArgumentList['ConfigPath']    = $txtConfigPath
+    $generateCallback.ArgumentList['ConfigPath'] = $txtConfigPath
     $generateCallback.ArgumentList['AbrConfigPath'] = $txtAbrConfigPath
 
     # ── AsBuiltReport Global Settings (AsBuiltReport.json editor) ────────────────
-    $txtAbrCoFullName  = [TextBox]::new(); $txtAbrCoFullName.Width = 298;  $txtAbrCoFullName.Watermark = 'e.g. Acme Corporation'
+    $txtAbrCoFullName = [TextBox]::new(); $txtAbrCoFullName.Width = 298; $txtAbrCoFullName.Watermark = 'e.g. Acme Corporation'
     $txtAbrCoShortName = [TextBox]::new(); $txtAbrCoShortName.Width = 298; $txtAbrCoShortName.Watermark = 'e.g. ACME'
-    $txtAbrCoContact   = [TextBox]::new(); $txtAbrCoContact.Width = 298;   $txtAbrCoContact.Watermark = 'Contact person'
-    $txtAbrCoPhone     = [TextBox]::new(); $txtAbrCoPhone.Width = 298;     $txtAbrCoPhone.Watermark = 'e.g. +1-800-555-0100'
-    $txtAbrCoAddress   = [TextBox]::new(); $txtAbrCoAddress.Width = 298;   $txtAbrCoAddress.Watermark = 'Street, City, Country'
-    $txtAbrCoEmail     = [TextBox]::new(); $txtAbrCoEmail.Width = 298;     $txtAbrCoEmail.Watermark = 'company@example.com'
-    $txtAbrRptAuthor   = [TextBox]::new(); $txtAbrRptAuthor.Width = 298;   $txtAbrRptAuthor.Watermark = 'Report author'
-    $txtAbrMailServer  = [TextBox]::new(); $txtAbrMailServer.Width = 298;  $txtAbrMailServer.Watermark = 'smtp.example.com'
-    $txtAbrMailPort    = [TextBox]::new(); $txtAbrMailPort.Width = 298;    $txtAbrMailPort.Watermark = '587'
-    $txtAbrMailFrom    = [TextBox]::new(); $txtAbrMailFrom.Width = 298;    $txtAbrMailFrom.Watermark = 'from@example.com'
-    $txtAbrMailTo      = [TextBox]::new(); $txtAbrMailTo.Width = 298;      $txtAbrMailTo.Watermark = 'to@example.com, other@example.com'
-    $txtAbrMailBody    = [TextBox]::new(); $txtAbrMailBody.Width = 298;    $txtAbrMailBody.Watermark = 'Email body text'
-    $swAbrMailUseSSL   = [ToggleSwitch]::new(); $swAbrMailUseSSL.IsChecked = $true
-    $swAbrMailCreds    = [ToggleSwitch]::new(); $swAbrMailCreds.IsChecked = $true
-    $txtAbrFolderPath  = [TextBox]::new(); $txtAbrFolderPath.Width = 298;  $txtAbrFolderPath.Watermark = '.\AsBuiltReport'
+    $txtAbrCoContact = [TextBox]::new(); $txtAbrCoContact.Width = 298; $txtAbrCoContact.Watermark = 'Contact person'
+    $txtAbrCoPhone = [TextBox]::new(); $txtAbrCoPhone.Width = 298; $txtAbrCoPhone.Watermark = 'e.g. +1-800-555-0100'
+    $txtAbrCoAddress = [TextBox]::new(); $txtAbrCoAddress.Width = 298; $txtAbrCoAddress.Watermark = 'Street, City, Country'
+    $txtAbrCoEmail = [TextBox]::new(); $txtAbrCoEmail.Width = 298; $txtAbrCoEmail.Watermark = 'company@example.com'
+    $txtAbrRptAuthor = [TextBox]::new(); $txtAbrRptAuthor.Width = 298; $txtAbrRptAuthor.Watermark = 'Report author'
+    $txtAbrMailServer = [TextBox]::new(); $txtAbrMailServer.Width = 298; $txtAbrMailServer.Watermark = 'smtp.example.com'
+    $txtAbrMailPort = [TextBox]::new(); $txtAbrMailPort.Width = 298; $txtAbrMailPort.Watermark = '587'
+    $txtAbrMailFrom = [TextBox]::new(); $txtAbrMailFrom.Width = 298; $txtAbrMailFrom.Watermark = 'from@example.com'
+    $txtAbrMailTo = [TextBox]::new(); $txtAbrMailTo.Width = 298; $txtAbrMailTo.Watermark = 'to@example.com, other@example.com'
+    $txtAbrMailBody = [TextBox]::new(); $txtAbrMailBody.Width = 298; $txtAbrMailBody.Watermark = 'Email body text'
+    $swAbrMailUseSSL = [ToggleSwitch]::new(); $swAbrMailUseSSL.IsChecked = $true
+    $swAbrMailCreds = [ToggleSwitch]::new(); $swAbrMailCreds.IsChecked = $true
+    $txtAbrFolderPath = [TextBox]::new(); $txtAbrFolderPath.Width = 298; $txtAbrFolderPath.Watermark = '.\AsBuiltReport'
 
     $loadAbrFields = {
         param ([hashtable]$j)
-        $txtAbrCoFullName.Text  = if ($j.Company.FullName)    { $j.Company.FullName }    else { '' }
-        $txtAbrCoShortName.Text = if ($j.Company.ShortName)   { $j.Company.ShortName }   else { '' }
-        $txtAbrCoContact.Text   = if ($j.Company.Contact)     { $j.Company.Contact }     else { '' }
-        $txtAbrCoPhone.Text     = if ($j.Company.Phone)       { $j.Company.Phone }       else { '' }
-        $txtAbrCoAddress.Text   = if ($j.Company.Address)     { $j.Company.Address }     else { '' }
-        $txtAbrCoEmail.Text     = if ($j.Company.Email)       { $j.Company.Email }       else { '' }
-        $txtAbrRptAuthor.Text   = if ($j.Report.Author)       { $j.Report.Author }       else { '' }
-        $txtAbrMailServer.Text  = if ($j.Email.Server)        { $j.Email.Server }        else { '' }
-        $txtAbrMailPort.Text    = if ($j.Email.Port)          { $j.Email.Port }          else { '' }
-        $txtAbrMailFrom.Text    = if ($j.Email.From)          { $j.Email.From }          else { '' }
-        $txtAbrMailTo.Text      = if ($j.Email.To)            { ($j.Email.To -join ', ') } else { '' }
-        $txtAbrMailBody.Text    = if ($j.Email.Body)          { $j.Email.Body }          else { '' }
-        $swAbrMailUseSSL.IsChecked  = if ($null -ne $j.Email.UseSSL)      { [bool]$j.Email.UseSSL }      else { $true }
-        $swAbrMailCreds.IsChecked   = if ($null -ne $j.Email.Credentials) { [bool]$j.Email.Credentials } else { $true }
-        $txtAbrFolderPath.Text  = if ($j.UserFolder.Path) { $j.UserFolder.Path } else {
+        $txtAbrCoFullName.Text = if ($j.Company.FullName) { $j.Company.FullName }    else { '' }
+        $txtAbrCoShortName.Text = if ($j.Company.ShortName) { $j.Company.ShortName }   else { '' }
+        $txtAbrCoContact.Text = if ($j.Company.Contact) { $j.Company.Contact }     else { '' }
+        $txtAbrCoPhone.Text = if ($j.Company.Phone) { $j.Company.Phone }       else { '' }
+        $txtAbrCoAddress.Text = if ($j.Company.Address) { $j.Company.Address }     else { '' }
+        $txtAbrCoEmail.Text = if ($j.Company.Email) { $j.Company.Email }       else { '' }
+        $txtAbrRptAuthor.Text = if ($j.Report.Author) { $j.Report.Author }       else { '' }
+        $txtAbrMailServer.Text = if ($j.Email.Server) { $j.Email.Server }        else { '' }
+        $txtAbrMailPort.Text = if ($j.Email.Port) { $j.Email.Port }          else { '' }
+        $txtAbrMailFrom.Text = if ($j.Email.From) { $j.Email.From }          else { '' }
+        $txtAbrMailTo.Text = if ($j.Email.To) { ($j.Email.To -join ', ') } else { '' }
+        $txtAbrMailBody.Text = if ($j.Email.Body) { $j.Email.Body }          else { '' }
+        $swAbrMailUseSSL.IsChecked = if ($null -ne $j.Email.UseSSL) { [bool]$j.Email.UseSSL }      else { $true }
+        $swAbrMailCreds.IsChecked = if ($null -ne $j.Email.Credentials) { [bool]$j.Email.Credentials } else { $true }
+        $txtAbrFolderPath.Text = if ($j.UserFolder.Path) { $j.UserFolder.Path } else {
             if ($IsWindows) { [System.IO.Path]::Combine($env:USERPROFILE, 'Documents', 'AsBuiltReport') } else { [System.IO.Path]::Combine($env:HOME, 'AsBuiltReport') }
         }
     }
 
     $buildAbrConfig = {
-        $toList  = ([string]$txtAbrMailTo.Text).Trim() -split '\s*,\s*' | Where-Object { $_ -ne '' }
+        $toList = ([string]$txtAbrMailTo.Text).Trim() -split '\s*,\s*' | Where-Object { $_ -ne '' }
         $portRaw = ([string]$txtAbrMailPort.Text).Trim()
         $portVal = if ($portRaw -match '^\d+$') { [int]$portRaw } else { $null }
         return [ordered]@{
-            Company    = [ordered]@{
-                FullName  = ([string]$txtAbrCoFullName.Text).Trim()
-                Phone     = ([string]$txtAbrCoPhone.Text).Trim()
-                Address   = ([string]$txtAbrCoAddress.Text).Trim()
+            Company = [ordered]@{
+                FullName = ([string]$txtAbrCoFullName.Text).Trim()
+                Phone = ([string]$txtAbrCoPhone.Text).Trim()
+                Address = ([string]$txtAbrCoAddress.Text).Trim()
                 ShortName = ([string]$txtAbrCoShortName.Text).Trim()
-                Contact   = ([string]$txtAbrCoContact.Text).Trim()
-                Email     = ([string]$txtAbrCoEmail.Text).Trim()
+                Contact = ([string]$txtAbrCoContact.Text).Trim()
+                Email = ([string]$txtAbrCoEmail.Text).Trim()
             }
-            Email      = [ordered]@{
+            Email = [ordered]@{
                 Credentials = [bool]$swAbrMailCreds.IsChecked
-                Body        = ([string]$txtAbrMailBody.Text).Trim()
-                From        = ([string]$txtAbrMailFrom.Text).Trim()
-                UseSSL      = [bool]$swAbrMailUseSSL.IsChecked
-                Server      = ([string]$txtAbrMailServer.Text).Trim()
-                To          = if ($toList.Count -gt 0) { @($toList) } else { @() }
-                Port        = $portVal
+                Body = ([string]$txtAbrMailBody.Text).Trim()
+                From = ([string]$txtAbrMailFrom.Text).Trim()
+                UseSSL = [bool]$swAbrMailUseSSL.IsChecked
+                Server = ([string]$txtAbrMailServer.Text).Trim()
+                To = if ($toList.Count -gt 0) { @($toList) } else { @() }
+                Port = $portVal
             }
-            Report     = [ordered]@{ Author = ([string]$txtAbrRptAuthor.Text).Trim() }
+            Report = [ordered]@{ Author = ([string]$txtAbrRptAuthor.Text).Trim() }
             UserFolder = [ordered]@{ Path = ([string]$txtAbrFolderPath.Text).Trim() }
         }
     }.GetNewClosure()
@@ -898,12 +898,12 @@ function Start-AsBuiltReportMSAD {
 
     $validateAbrRequired = {
         $missing = @()
-        if ([string]::IsNullOrWhiteSpace($txtAbrCoFullName.Text))  { $missing += 'Full Name' }
+        if ([string]::IsNullOrWhiteSpace($txtAbrCoFullName.Text)) { $missing += 'Full Name' }
         if ([string]::IsNullOrWhiteSpace($txtAbrCoShortName.Text)) { $missing += 'Short Name' }
-        if ([string]::IsNullOrWhiteSpace($txtAbrCoContact.Text))   { $missing += 'Contact' }
-        if ([string]::IsNullOrWhiteSpace($txtAbrCoEmail.Text))     { $missing += 'Email' }
-        if ([string]::IsNullOrWhiteSpace($txtAbrRptAuthor.Text))   { $missing += 'Author' }
-        if ([string]::IsNullOrWhiteSpace($txtAbrFolderPath.Text))  { $missing += 'Path' }
+        if ([string]::IsNullOrWhiteSpace($txtAbrCoContact.Text)) { $missing += 'Contact' }
+        if ([string]::IsNullOrWhiteSpace($txtAbrCoEmail.Text)) { $missing += 'Email' }
+        if ([string]::IsNullOrWhiteSpace($txtAbrRptAuthor.Text)) { $missing += 'Author' }
+        if ([string]::IsNullOrWhiteSpace($txtAbrFolderPath.Text)) { $missing += 'Path' }
         if ($missing.Count -gt 0) {
             return "⚠ Required fields missing: $($missing -join ', ')"
         }
@@ -1052,63 +1052,63 @@ function Start-AsBuiltReportMSAD {
             [int]$LvlForest, [int]$LvlDomain, [int]$LvlDNS
         )
         return [ordered]@{
-            Report      = [ordered]@{
-                Name                = $ReportName
-                Version             = '1.0'
-                Status              = 'Released'
-                Language            = $Lang
-                ShowCoverPageImage  = $true
+            Report = [ordered]@{
+                Name = $ReportName
+                Version = '1.0'
+                Status = 'Released'
+                Language = $Lang
+                ShowCoverPageImage = $true
                 ShowTableOfContents = $true
-                ShowHeaderFooter    = $true
-                ShowTableCaptions   = $true
+                ShowHeaderFooter = $true
+                ShowTableCaptions = $true
             }
-            Options     = [ordered]@{
-                ShowExecutionTime       = $false
-                ShowDefinitionInfo      = $false
+            Options = [ordered]@{
+                ShowExecutionTime = $false
+                ShowDefinitionInfo = $false
                 PSDefaultAuthentication = $PSDefaultAuthentication
-                Exclude                 = [ordered]@{ Domains = @(); DCs = @() }
-                Include                 = [ordered]@{ Domains = @() }
-                WinRMSSL                = $WinRMSSL
-                WinRMFallbackToNoSSL    = $WinRMFallbackToNoSSL
-                WinRMSSLPort            = 5986
-                WinRMPort               = 5985
-                EnableDiagrams          = $EnableDiagrams
-                EnableDiagramDebug      = $false
-                DiagramTheme            = $Theme
-                DiagramObjDebug         = $false
-                DiagramWaterMark        = ''
-                DiagramType             = [ordered]@{
+                Exclude = [ordered]@{ Domains = @(); DCs = @() }
+                Include = [ordered]@{ Domains = @() }
+                WinRMSSL = $WinRMSSL
+                WinRMFallbackToNoSSL = $WinRMFallbackToNoSSL
+                WinRMSSLPort = 5986
+                WinRMPort = 5985
+                EnableDiagrams = $EnableDiagrams
+                EnableDiagramDebug = $false
+                DiagramTheme = $Theme
+                DiagramObjDebug = $false
+                DiagramWaterMark = ''
+                DiagramType = [ordered]@{
                     CertificateAuthority = $true
-                    Forest               = $true
-                    Replication          = $true
-                    Sites                = $true
-                    SitesInventory       = $true
-                    Trusts               = $true
+                    Forest = $true
+                    Replication = $true
+                    Sites = $true
+                    SitesInventory = $true
+                    Trusts = $true
                 }
-                ExportDiagrams          = $ExportDiagrams
-                ExportDiagramsFormat    = @('pdf')
-                EnableDiagramSignature  = $false
-                SignatureAuthorName     = ''
-                SignatureCompanyName    = ''
-                JobsTimeOut             = 900
-                DCStatusPingCount       = 2
+                ExportDiagrams = $ExportDiagrams
+                ExportDiagramsFormat = @('pdf')
+                EnableDiagramSignature = $false
+                SignatureAuthorName = ''
+                SignatureCompanyName = ''
+                JobsTimeOut = 900
+                DCStatusPingCount = 2
             }
-            InfoLevel   = [ordered]@{
+            InfoLevel = [ordered]@{
                 Forest = $LvlForest
                 Domain = $LvlDomain
-                DNS    = $LvlDNS
+                DNS = $LvlDNS
             }
             HealthCheck = [ordered]@{
-                Domain           = [ordered]@{
-                    GMSA            = $true; GPO = $true; Backup = $true; DFS = $true
-                    SPN             = $true; DuplicateObject = $true; Security = $true; BestPractice = $true
+                Domain = [ordered]@{
+                    GMSA = $true; GPO = $true; Backup = $true; DFS = $true
+                    SPN = $true; DuplicateObject = $true; Security = $true; BestPractice = $true
                 }
                 DomainController = [ordered]@{
                     Diagnostic = $true; Services = $true; Software = $true; BestPractice = $true
                 }
-                Site             = [ordered]@{ Replication = $true; BestPractice = $true }
-                DNS              = [ordered]@{ Aging = $true; DP = $true; Zones = $true; BestPractice = $true }
-                CA               = [ordered]@{ Status = $true; Statistics = $true; BestPractice = $true }
+                Site = [ordered]@{ Replication = $true; BestPractice = $true }
+                DNS = [ordered]@{ Aging = $true; DP = $true; Zones = $true; BestPractice = $true }
+                CA = [ordered]@{ Status = $true; Statistics = $true; BestPractice = $true }
             }
         }
     }
@@ -1143,7 +1143,7 @@ function Start-AsBuiltReportMSAD {
                     -LvlForest (Get-LevelVal $cboLvlForest) `
                     -LvlDomain (Get-LevelVal $cboLvlDomain) `
                     -LvlDNS (Get-LevelVal $cboLvlDNS)
-                $configObj| ConvertTo-Json -Depth 6 | Set-Content -Path $destPath -Encoding UTF8
+                $configObj | ConvertTo-Json -Depth 6 | Set-Content -Path $destPath -Encoding UTF8
                 $syncHash.lblConfigStatus.Text = "✅ Config saved: $(Split-Path $destPath -Leaf)"
             } catch {
                 $syncHash.lblConfigStatus.Text = "❌ Save failed: $_"
@@ -1164,20 +1164,20 @@ function Start-AsBuiltReportMSAD {
             }
             try {
                 $j = Get-Content -Path $srcPath -Raw | ConvertFrom-Json
-                if ($j.Report.Name)    { $txtReportName.Text = $j.Report.Name }
+                if ($j.Report.Name) { $txtReportName.Text = $j.Report.Name }
                 if ($j.Report.Language) { $idx = $cboLang.Items.IndexOf($j.Report.Language); if ($idx -ge 0) { $cboLang.SelectedIndex = $idx } }
-                if ($null -ne $j.Options.EnableDiagrams)        { $swDiagrams.IsChecked = [bool]$j.Options.EnableDiagrams }
-                if ($null -ne $j.Options.ExportDiagrams)        { $swExportDiagrams.IsChecked = [bool]$j.Options.ExportDiagrams }
-                if ($null -ne $j.Options.ShowExecutionTime)     { Out-Null }
-                if ($null -ne $j.Options.ShowDefinitionInfo)    { Out-Null }
-                if ($null -ne $j.Options.WinRMSSL){ $swWinRMSSL.IsChecked = [bool]$j.Options.WinRMSSL }
-                if ($null -ne $j.Options.WinRMFallbackToNoSSL)  { $swWinRMFallback.IsChecked = [bool]$j.Options.WinRMFallbackToNoSSL }
+                if ($null -ne $j.Options.EnableDiagrams) { $swDiagrams.IsChecked = [bool]$j.Options.EnableDiagrams }
+                if ($null -ne $j.Options.ExportDiagrams) { $swExportDiagrams.IsChecked = [bool]$j.Options.ExportDiagrams }
+                if ($null -ne $j.Options.ShowExecutionTime) { Out-Null }
+                if ($null -ne $j.Options.ShowDefinitionInfo) { Out-Null }
+                if ($null -ne $j.Options.WinRMSSL) { $swWinRMSSL.IsChecked = [bool]$j.Options.WinRMSSL }
+                if ($null -ne $j.Options.WinRMFallbackToNoSSL) { $swWinRMFallback.IsChecked = [bool]$j.Options.WinRMFallbackToNoSSL }
                 if ($j.Options.DiagramTheme) { $idx = $cboDiagramTheme.Items.IndexOf($j.Options.DiagramTheme); if ($idx -ge 0) { $cboDiagramTheme.SelectedIndex = $idx } }
                 if ($j.Options.PSDefaultAuthentication) { $idx = $cboPSDefaultAuth.Items.IndexOf($j.Options.PSDefaultAuthentication); if ($idx -ge 0) { $cboPSDefaultAuth.SelectedIndex = $idx } }
                 if ($null -ne $j.InfoLevel.Forest) { $cboLvlForest.SelectedIndex = [int]$j.InfoLevel.Forest }
                 if ($null -ne $j.InfoLevel.Domain) { $cboLvlDomain.SelectedIndex = [int]$j.InfoLevel.Domain }
-                if ($null -ne $j.InfoLevel.DNS)    { $cboLvlDNS.SelectedIndex    = [int]$j.InfoLevel.DNS }
-                $syncHash.lblConfigStatus.Text= "✅ Config loaded: $(Split-Path $srcPath -Leaf)"
+                if ($null -ne $j.InfoLevel.DNS) { $cboLvlDNS.SelectedIndex = [int]$j.InfoLevel.DNS }
+                $syncHash.lblConfigStatus.Text = "✅ Config loaded: $(Split-Path $srcPath -Leaf)"
             } catch {
                 $syncHash.lblConfigStatus.Text = "❌ Load failed: $_"
             }
