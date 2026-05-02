@@ -49,7 +49,7 @@ function Get-AbrDiagForest {
 
                                 Node -Name $ForestInfo.Name -Attributes @{Label = $ForestInfo.Label; shape = 'plain'; fillColor = 'transparent' }
 
-                                Node -Name NoDomain @{Label = $reportTranslate.NewADDiagram.fNoChildDomains; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = 'gray' }
+                                Node -Name NoDomain @{Label = $reportTranslate.NewADDiagram.fNoChildDomains; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
 
                                 Edge -From $ForestInfo.Name -To NoDomain @{minlen = 2 }
 
@@ -57,7 +57,7 @@ function Get-AbrDiagForest {
                         }
                     }
                 } else {
-                    Node -Name NoDomain @{Label = $reportTranslate.NewADDiagram.fNoChildDomains; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '15'; height = '13'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = 'gray' }
+                    Node -Name NoDomain @{Label = $reportTranslate.NewADDiagram.fNoChildDomains; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '15'; height = '13'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
                 }
             }
         } catch {

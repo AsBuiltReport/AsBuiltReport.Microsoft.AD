@@ -5,7 +5,7 @@ function Get-AbrADDomainObject {
     .DESCRIPTION
 
     .NOTES
-        Version:        0.9.12
+        Version:        1.0.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -92,7 +92,7 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
-                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title "$($reportTranslate.GetAbrADDomainObject.UserObjectsSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title "$($reportTranslate.GetAbrADDomainObject.UserObjectsSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue -LabelFontColor Black -LabelFontSize 14 -LabelBold
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorUserObjectCountChart) $($_.Exception.Message)"
                         }
@@ -184,7 +184,7 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $OutObj
-                            $Chart = New-PieChart -Values $sampleData.$($reportTranslate.GetAbrADDomainObject.Total) -Labels $sampleData.$($reportTranslate.GetAbrADDomainObject.Category) -Title "$($reportTranslate.GetAbrADDomainObject.StatusOfUsersSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 800 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.$($reportTranslate.GetAbrADDomainObject.Total) -Labels $sampleData.$($reportTranslate.GetAbrADDomainObject.Category) -Title "$($reportTranslate.GetAbrADDomainObject.StatusOfUsersSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 800 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue -LabelFontColor Black -LabelFontSize 14 -LabelBold
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorStatusOfUsersAccountsChart) $($_.Exception.Message)"
                         }
@@ -270,7 +270,7 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title $reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title $reportTranslate.GetAbrADDomainObject.GroupCategoriesSubSection -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue -LabelFontColor Black -LabelFontSize 14 -LabelBold
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorGroupCategoryObjectChart) $($_.Exception.Message)"
                         }
@@ -304,7 +304,7 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title $reportTranslate.GetAbrADDomainObject.GroupScopesSubSection -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title $reportTranslate.GetAbrADDomainObject.GroupScopesSubSection -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue -LabelFontColor Black -LabelFontSize 14 -LabelBold
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorGroupScopesObjectChart) $($_.Exception.Message)"
                         }
@@ -774,7 +774,7 @@ function Get-AbrADDomainObject {
                     }
                     try {
                         $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Name'
-                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title "$($reportTranslate.GetAbrADDomainObject.ComputersCount)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title "$($reportTranslate.GetAbrADDomainObject.ComputersCount)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue -LabelFontColor Black -LabelFontSize 14 -LabelBold
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorComputersObjectCountChart) $($_.Exception.Message)"
                     }
@@ -852,7 +852,7 @@ function Get-AbrADDomainObject {
                         }
                         try {
                             $sampleData = $OutObj
-                            $Chart = New-PieChart -Values $sampleData.$($reportTranslate.GetAbrADDomainObject.Total) -Labels $sampleData.$($reportTranslate.GetAbrADDomainObject.Category) -Title "$($reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                            $Chart = New-PieChart -Values $sampleData.$($reportTranslate.GetAbrADDomainObject.Total) -Labels $sampleData.$($reportTranslate.GetAbrADDomainObject.Category) -Title "$($reportTranslate.GetAbrADDomainObject.StatusOfComputerAccountsSection)" -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue -LabelFontColor Black -LabelFontSize 14 -LabelBold
                         } catch {
                             Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDomainObject.ErrorStatusOfComputersAccountsChart) $($_.Exception.Message)"
                         }
@@ -888,7 +888,7 @@ function Get-AbrADDomainObject {
                                     $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                 }
                                 if ($HealthCheck.Domain.Security) {
-                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2003*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2008*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 95*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 7*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 8 *' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 98*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*XP*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* Vista*' } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainObject.OperatingSystem
+                                    $OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2003*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2008*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 95*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 7*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 8*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 10*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 98*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*XP*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* Vista*' } | Set-Style -Style Critical -Property $reportTranslate.GetAbrADDomainObject.OperatingSystem
                                 }
 
                                 $TableParams = @{
@@ -900,7 +900,7 @@ function Get-AbrADDomainObject {
                                     $TableParams['Caption'] = "- $($TableParams.Name)"
                                 }
                                 $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDomainObject.OperatingSystem | Table @TableParams
-                                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2003*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2008*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 95*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 7*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 8 *' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 98*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*XP*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* Vista*' })) {
+                                if ($HealthCheck.Domain.Security -and ($OutObj | Where-Object { $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2003*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2008*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* NT*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*2000*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 95*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 7*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 8*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 10*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* 98*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '*XP*' -or $_.$($reportTranslate.GetAbrADDomainObject.OperatingSystem) -like '* Vista*' })) {
                                     Paragraph $reportTranslate.GetAbrADDomainObject.HealthCheck -Bold -Underline
                                     BlankLine
                                     Paragraph {

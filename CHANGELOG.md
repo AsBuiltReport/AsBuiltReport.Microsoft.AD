@@ -11,14 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add support for GliderUI graphical interface to generate reports via an intuitive user interface instead of command-line execution. The GUI enables users to select target domains, customize report options (InfoLevel, HealthChecks, diagram settings), and initiate report generation with a streamlined, user-friendly experience, reducing friction for non-technical stakeholders.
+- Add support for GliderUI graphical interface to generate reports via an intuitive user interface instead of command-line execution
+- Add Windows 10* to the unsupported operating systems list in the Health Check section to reflect the end of support for Windows 10 and encourage users to upgrade to supported operating systems for better security and performance
 
 ### :arrows_clockwise: Changed
 
 - Improved multi-language support by refactoring localization strings and enhancing documentation clarity in MicrosoftAD.psd1 for English and Spanish languages.
   This includes improved grammar, punctuation, and readability across various best practice descriptions related to Active Directory configurations
 - Bump module version to `1.0.0`
-- Upgrade AsBuiltReport.Diagram module to version `1.0.6`
+- Upgrade AsBuiltReport.Diagram module to version `1.0.7`
 - Upgrade AsBuiltReport.Chart module to version `0.3.1`
 
 ## :bug: Fixed

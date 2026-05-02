@@ -62,7 +62,7 @@ function Get-AbrDiagTrust {
                         }
                     }
                 } else {
-                    Node -Name NoTrusts @{Label = $reportTranslate.NewADDiagram.NoTrusts; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = 'gray' }
+                    Node -Name NoTrusts @{Label = $reportTranslate.NewADDiagram.NoTrusts; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
                 }
             }
         } catch {

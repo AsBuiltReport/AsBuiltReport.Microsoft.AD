@@ -81,7 +81,7 @@ function Get-AbrADSecurityAssessment {
 
                     try {
                         $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Category'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } }
-                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Category -Title $reportTranslate.GetAbrADSecurityAssessment.UserAccountTitle -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 600 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                        $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Category -Title $reportTranslate.GetAbrADSecurityAssessment.UserAccountTitle -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 600 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue -LabelFontColor Black -LabelFontSize 14 -LabelBold
                     } catch {
                         Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADSecurityAssessment.ErrorUserAccountSecurityAssessmentChart))"
                     }
