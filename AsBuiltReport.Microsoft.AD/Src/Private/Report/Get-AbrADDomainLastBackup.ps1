@@ -49,7 +49,7 @@ function Get-AbrADDomainLastBackup {
                                     $OutObj | Where-Object { [int]$_.$($reportTranslate.GetAbrADDomainLastBackup.LastBackupInDays) -gt 180 } | Set-Style -Style Warning -Property $reportTranslate.GetAbrADDomainLastBackup.LastBackupInDays
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Last Backup Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADDomainLastBackup.ErrorDomainLastBackupItem))"
                             }
                         }
 
@@ -78,7 +78,7 @@ function Get-AbrADDomainLastBackup {
                     Write-PScriboMessage -Message ($reportTranslate.GetAbrADDomainLastBackup.NoData -f $Domain.DNSRoot)
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Last Backup Table)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADDomainLastBackup.ErrorDomainLastBackupTable))"
             }
         }
     }

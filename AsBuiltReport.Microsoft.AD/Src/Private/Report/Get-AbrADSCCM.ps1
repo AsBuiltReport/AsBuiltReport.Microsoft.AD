@@ -42,7 +42,7 @@ function Get-AbrADSCCM {
                             }
                             $SCCMInfo.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.SCCMception.Message) (SCCM Item)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADSCCM.ErrorSCCMItem) $($_.Exception.Message)"
                         }
                     }
 
@@ -74,12 +74,12 @@ function Get-AbrADSCCM {
                     }
                 }
             } else {
-                Write-PScriboMessage -Message "No SCCM Infrastructure information found in $($ForestInfo.toUpper()), Disabling this section."
+                Write-PScriboMessage -Message ($reportTranslate.GetAbrADSCCM.NoSCCMInfo -f $ForestInfo.toUpper())
                 Paragraph $reportTranslate.GetAbrADSCCM.NotFound
                 BlankLine
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.SCCMception.Message) (SCCM Table)"
+            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADSCCM.ErrorSCCMTable) $($_.Exception.Message)"
         }
     }
 

@@ -5,7 +5,7 @@ function Get-AbrADTrustsInfo {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        0.9.12
+        Version:        1.0.0
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -71,9 +71,9 @@ function Get-AbrADTrustsInfo {
                     }
                     $TempTrustsInfo = [PSCustomObject]@{
                         Name = Remove-SpecialCharacter -String "$($Trust.Target)Trusts" -SpecialChars '\-. '
-                        Label = Add-NodeIcon -Name $Trust.Target -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -RowsOrdered $AditionalInfo
+                        Label = Add-NodeIcon -Name $Trust.Target -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -RowsOrdered $AditionalInfo -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor
                         Source = $Trust.CanonicalName.split('/')[0]
-                        SourceLabel = Add-NodeIcon -Name $Trust.CanonicalName.split('/')[0] -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug
+                        SourceLabel = Add-NodeIcon -Name $Trust.CanonicalName.split('/')[0] -IconType 'AD_Domain' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor
                         Direction = $TrustDirectionID[[int]$Trust.TrustDirection]
                     }
                     $TrustsInfo.Add($TempTrustsInfo)

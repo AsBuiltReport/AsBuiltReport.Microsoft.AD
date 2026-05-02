@@ -54,7 +54,7 @@ function Get-AbrDNSSection {
                                 Write-PScriboMessage -Message ([string]::Format($reportTranslate.GetAbrDNSSection.ExcludedDomain, $DomainInfo.DNSRoot))
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Domain Name System Information)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrDNSSection.ErrorDNSInfo))"
                         }
                     } else {
                         Write-PScriboMessage -IsWarning -Message ([string]::Format($reportTranslate.GetAbrDNSSection.NoDCAvailable, $DomainInfo.DNSRoot))

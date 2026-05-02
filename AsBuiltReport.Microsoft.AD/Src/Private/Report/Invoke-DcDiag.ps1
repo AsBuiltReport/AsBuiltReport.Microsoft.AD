@@ -25,7 +25,7 @@ function Invoke-DcDiag {
     try {
         $result = Invoke-CommandWithTimeout -Session $DCPssSessionDCDiag -ScriptBlock { dcdiag /c /s:$using:DomainController }
     } catch {
-        Write-PScriboMessage -Message "Invoke-DcDiag - Failed to get DCDiag for $DomainController with error: $($_.Exception.Message)"
+        Write-PScriboMessage -Message "$($reportTranslate.GetAbrADDCDiag.ErrorInvokeDcDiag -f $DomainController) $($_.Exception.Message)"
         return
     }
 

@@ -47,7 +47,7 @@ function Get-AbrADDNSInfrastructure {
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "DNS Infrastructure Summary Section: $($_.Exception.Message)"
+                                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorInfrastructureSummarySection) $($_.Exception.Message)"
                             }
                         }
                     }
@@ -93,7 +93,7 @@ function Get-AbrADDNSInfrastructure {
                                                         }
                                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                                     } catch {
-                                                        Write-PScriboMessage -IsWarning -Message "Directory Partitions Item Section: $($_.Exception.Message)"
+                                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorDirectoryPartitionsItemSection) $($_.Exception.Message)"
                                                     }
                                                 }
                                                 $TableParams = @{
@@ -107,13 +107,13 @@ function Get-AbrADDNSInfrastructure {
                                                 $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDNSInfrastructure.Name | Table @TableParams
                                             }
                                         } catch {
-                                            Write-PScriboMessage -IsWarning -Message "Directory Partitions Table Section: $($_.Exception.Message)"
+                                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorDirectoryPartitionsTableSection) $($_.Exception.Message)"
                                         }
                                     }
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "Directory Partitions Section: $($_.Exception.Message)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorDirectoryPartitionsSection) $($_.Exception.Message)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -140,7 +140,7 @@ function Get-AbrADDNSInfrastructure {
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         } catch {
-                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Response Rate Limiting (RRL) Item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorRRLItem) $($_.Exception.Message)"
                                         }
                                     }
                                 }
@@ -156,7 +156,7 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDNSInfrastructure.DCName | Table @TableParams
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Response Rate Limiting (RRL) Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorRRLTable) $($_.Exception.Message)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -189,7 +189,7 @@ function Get-AbrADDNSInfrastructure {
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         } catch {
-                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Scavenging Item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorScavengingItem) $($_.Exception.Message)"
                                         }
                                     }
                                 }
@@ -217,7 +217,7 @@ function Get-AbrADDNSInfrastructure {
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Scavenging Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorScavengingTable) $($_.Exception.Message)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -241,7 +241,7 @@ function Get-AbrADDNSInfrastructure {
                                         }
                                         $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Forwarder Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorForwarderItem) $($_.Exception.Message)"
                                     }
                                 }
                             }
@@ -285,7 +285,7 @@ function Get-AbrADDNSInfrastructure {
                             }
                         }
                     } catch {
-                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Forwarder Table)"
+                        Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorForwarderTable) $($_.Exception.Message)"
                     }
                     #---------------------------------------------------------------------------------------------#
                     #                                 DNS Root Hints Section                                      #
@@ -383,13 +383,13 @@ function Get-AbrADDNSInfrastructure {
                                                 }
                                             }
                                         } catch {
-                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Root Hints Table)"
+                                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorRootHintsTable) $($_.Exception.Message)"
                                         }
                                     }
                                 }
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Root Hints Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorRootHintsSection) $($_.Exception.Message)"
                         }
                     }
                     #---------------------------------------------------------------------------------------------#
@@ -415,7 +415,7 @@ function Get-AbrADDNSInfrastructure {
                                             }
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         } catch {
-                                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Scope Recursion Item)"
+                                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorZoneScopeRecursionItem) $($_.Exception.Message)"
                                         }
                                     }
                                 }
@@ -431,13 +431,13 @@ function Get-AbrADDNSInfrastructure {
                                 $OutObj | Sort-Object -Property $reportTranslate.GetAbrADDNSInfrastructure.DCName | Table @TableParams
                             }
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Zone Scope Recursion Table)"
+                            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorZoneScopeRecursionTable) $($_.Exception.Message)"
                         }
                     }
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (DNS Infrastructure Section)"
+            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADDNSInfrastructure.ErrorDNSInfrastructureSection) $($_.Exception.Message)"
         }
     }
 

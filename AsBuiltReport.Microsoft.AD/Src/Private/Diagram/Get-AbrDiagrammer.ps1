@@ -61,7 +61,7 @@ function Get-AbrDiagrammer {
     )
 
     begin {
-        Write-PScriboMessage -Message "Getting $($DiagramType) diagram from $DomainController ."
+        Write-PScriboMessage -Message ($reportTranslate.GetAbrDiagrammer.GettingDiagram -f $DiagramType, $DomainController)
     }
 
     process {
@@ -136,7 +136,7 @@ function Get-AbrDiagrammer {
                                 if (Test-Path -Path $FilePath -PathType Leaf) {
                                     $FilePath
                                 } else {
-                                    Write-PScriboMessage -IsWarning -Message "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
+                                    Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrDiagrammer.ErrorExportDiagram -f $DiagramType) $($_.Exception.Message)"
                                 }
                             } else {
                                 Write-Information "Saved '$FileName' diagram to '$($OutputFolderPath)'." -InformationAction Continue
@@ -145,10 +145,10 @@ function Get-AbrDiagrammer {
                     }
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "Unable to export the $DiagramType Diagram: $($_.Exception.Message)"
+                Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrDiagrammer.ErrorExportDiagram -f $DiagramType) $($_.Exception.Message)"
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "Unable to get the $DiagramType Diagram: $($_.Exception.Message)"
+            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrDiagrammer.ErrorGetDiagram -f $DiagramType) $($_.Exception.Message)"
         }
     }
     end {}

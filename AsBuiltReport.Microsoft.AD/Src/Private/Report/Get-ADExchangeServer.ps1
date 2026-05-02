@@ -59,7 +59,7 @@ function Get-ADExchangeServer {
                 ServerRoles = $roles;
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "ExchangeServer: [$($server.Name)]. $($_.Exception.Message)"
+            Write-PScriboMessage -IsWarning -Message "$($reportTranslate.GetAbrADExchange.ErrorExchangeServerItem -f $server.Name) $($_.Exception.Message)"
         }
     }
 }

@@ -52,7 +52,7 @@ function Get-AbrADOU {
                             }
                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Organizational Unit Item)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADOU.ErrorOUItem))"
                         }
                     }
 
@@ -94,7 +94,7 @@ function Get-AbrADOU {
                                             $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                                         }
                                     } catch {
-                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Blocked Inheritance GPO Item)"
+                                        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADOU.ErrorBlockedInheritanceGPOItem))"
                                     }
                                 }
                             }
@@ -124,7 +124,7 @@ function Get-AbrADOU {
                             }
 
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Blocked Inheritance GPO Section)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADOU.ErrorBlockedInheritanceGPOSection))"
                         }
                     }
                 }
@@ -132,7 +132,7 @@ function Get-AbrADOU {
                 Write-PScriboMessage -Message ($reportTranslate.GetAbrADOU.OUNoData -f $Domain.DNSRoot)
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Organizational Unit Section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADOU.ErrorOUSection))"
         }
     }
 

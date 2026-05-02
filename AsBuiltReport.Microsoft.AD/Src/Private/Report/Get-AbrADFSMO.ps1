@@ -45,7 +45,7 @@ function Get-AbrADFSMO {
                                 }
                                 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj))
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Flexible Single Master Operations)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADFSMO.ErrorFSMOItem))"
                             }
 
                             if ($HealthCheck.Domain.BestPractice) {
@@ -55,7 +55,7 @@ function Get-AbrADFSMO {
                             }
 
                             $TableParams = @{
-                                Name = "FSMO Roles - $($Domain.DNSRoot)"
+                                Name = "$($reportTranslate.GetAbrADFSMO.TableName) - $($Domain.DNSRoot)"
                                 List = $true
                                 ColumnWidths = 40, 60
                             }
@@ -81,12 +81,12 @@ function Get-AbrADFSMO {
                         if (-not $_.Exception.MessageId) {
                             $ErrorMessage = $_.FullyQualifiedErrorId
                         } else { $ErrorMessage = $_.Exception.MessageId }
-                        Write-PScriboMessage -IsWarning -Message "FSMO Roles Section: New-PSSession: Unable to connect to $($Domain.DNSRoot): $ErrorMessage"
+                        Write-PScriboMessage -IsWarning -Message ($reportTranslate.GetAbrADFSMO.ErrorPSSession -f $Domain.DNSRoot, $ErrorMessage)
                     }
                 }
             }
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Flexible Single Master Operations)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADFSMO.ErrorFSMOItem))"
         }
     }
     end {

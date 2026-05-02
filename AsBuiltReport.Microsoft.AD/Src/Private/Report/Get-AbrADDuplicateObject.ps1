@@ -47,7 +47,7 @@ function Get-AbrADDuplicateObject {
                                     $OutObj | Set-Style -Style Warning
                                 }
                             } catch {
-                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Duplicate Object Item)"
+                                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADDuplicateObject.ErrorDuplicateObjectItem))"
                             }
                         }
 
@@ -72,7 +72,7 @@ function Get-AbrADDuplicateObject {
                     Write-PScriboMessage -Message ($reportTranslate.GetAbrADDuplicateObject.NoData -f $Domain.DNSRoot)
                 }
             } catch {
-                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Duplicate Object Table)"
+                Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADDuplicateObject.ErrorDuplicateObjectTable))"
             }
         }
     }

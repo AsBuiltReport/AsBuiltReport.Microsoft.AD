@@ -1,352 +1,871 @@
-# Copilot Instructions for AsBuiltReport.Microsoft.AD
+# AsBuiltReport.Microsoft.AD - Copilot Instructions
 
-## What This Project Does
+**Project Overview:** AsBuiltReport.Microsoft.AD is a PowerShell module that generates comprehensive as-built documentation for Microsoft Active Directory (AD) infrastructure in Word/HTML/Text formats. It's part of the larger AsBuiltReport ecosystem and works in conjunction with AsBuiltReport.Core.
 
-A PowerShell module that generates As-Built documentation reports for Microsoft Active Directory environments (Forest, Domains, Domain Controllers, DNS, PKI/CA). It produces HTML/Word/Text output via the **PScribo** library, with optional network topology diagrams via **Diagrammer.Core**.
+---
 
-## Runtime Requirements
+## 1. PROJECT STRUCTURE
 
-- **Must run as Administrator** — `#Requires -RunAsAdministrator` is enforced in the entry point.
-- **Target must be an FQDN** — IP addresses are explicitly rejected; always pass a fully-qualified domain name for `-Target`.
-- **Cannot run in PowerShell ISE** — detected and blocked at startup; use the PowerShell console or terminal.
-- **PowerShell 7+ recommended** — required for tests; the module itself targets Windows PowerShell 5.1+ on Windows only.
-- **Reporting machine must be domain-joined** — required for the PKI/CA section (`Get-ComputerADDomain` check).
-- **WinRM must be enabled on DCs** — all remote data collection goes through WinRM; CIMSession is supplementary.
-
-## Testing
-
-Run all Pester tests (requires PowerShell 7+, Windows):
-```powershell
-cd Tests
-.\Invoke-Tests.ps1
-```
-
-Run with code coverage:
-```powershell
-.\Invoke-Tests.ps1 -CodeCoverage
-```
-
-Run a single test file directly:
-```powershell
-Invoke-Pester -Path .\Tests\AsBuiltReport.Microsoft.AD.Tests.ps1 -Output Detailed
-```
-
-Run PSScriptAnalyzer lint locally:
-```powershell
-Invoke-ScriptAnalyzer -Path .\AsBuiltReport.Microsoft.AD\Src -Settings .\.github\workflows\PSScriptAnalyzerSettings.psd1 -Recurse
-```
-
-PSScriptAnalyzer enforces: `UseCorrectCasing`, `PSUseConsistentWhitespace`, `PSAvoidUsingCmdletAliases`, `AvoidUsingDoubleQuotesForConstantString`, `PSAvoidExclaimOperator`. Errors fail CI; warnings do not.
-
-## Architecture
-
-### Module Layout
-
+### Top-Level Directory Layout
 ```
 AsBuiltReport.Microsoft.AD/
-  AsBuiltReport.Microsoft.AD.psm1   # Dot-sources all Src/Public and Src/Private *.ps1 files
-  AsBuiltReport.Microsoft.AD.json   # Default report config (InfoLevel, HealthCheck, Options)
-  AsBuiltReport.Microsoft.AD.psd1   # Module manifest
-  AsBuiltReport.Microsoft.AD.Style.ps1  # PScribo document styling
-  Src/
-    Public/
-      Invoke-AsBuiltReport.Microsoft.AD.ps1  # Entry point; sets up sessions, calls Section functions
-    Private/
-      Get-Abr*Section.ps1   # Top-level section orchestrators
-      Get-AbrAD*.ps1        # Report content generators (one per AD topic)
-      Get-AbrDiag*.ps1      # Diagram generators
-      ConvertTo-*.ps1       # Data conversion helpers
-      Get-Valid*.ps1        # Session/DC validation helpers
-  Language/
-    en-US/MicrosoftAD.psd1  # English string resources
-    es-ES/MicrosoftAD.psd1  # Spanish string resources
+├── .github/                          # CI/CD workflows and PR templates
+│   ├── workflows/                    # GitHub Actions workflows
+│   │   ├── Pester.yml               # Unit testing pipeline
+│   │   ├── PSScriptAnalyzer.yml     # Linting/code analysis
+│   │   ├── CodeQL.yml               # Security scanning
+│   │   ├── Release.yml              # Publishing to PSGallery + social media
+│   │   └── Stale.yml                # Issue/PR housekeeping
+│   └── PULL_REQUEST_TEMPLATE.md
+├── .vscode/                          # VS Code settings for PowerShell formatting
+│   └── settings.json                # Formatting rules, rulers @ 115 chars
+├── AsBuiltReport.Microsoft.AD/       # MAIN MODULE DIRECTORY
+│   ├── AsBuiltReport.Microsoft.AD.psm1        # Module manifest (14 lines - loads all functions)
+│   ├── AsBuiltReport.Microsoft.AD.psd1        # Module declaration (v0.9.11)
+│   ├── AsBuiltReport.Microsoft.AD.json        # Default report config (InfoLevels, HealthChecks)
+│   ├── AsBuiltReport.Microsoft.AD.Style.ps1  # Document styling (20.8 KB)
+│   ├── Src/
+│   │   ├── Public/
+│   │   │   └── Invoke-AsBuiltReport.Microsoft.AD.ps1  # ENTRY POINT (291 lines)
+│   │   └── Private/
+│   │       ├── Get-Abr*.ps1         # 52x data gathering functions
+│   │       ├── ConvertTo-*.ps1      # Format/conversion helpers
+│   │       ├── Convert-*.ps1        # Data transformation utilities
+│   │       ├── Get-*Diagram.ps1     # Visualization generation
+│   │       └── Utility functions    # Session management, timeout handling, etc.
+│   ├── Language/                    # Localization files
+│   │   ├── en-US/MicrosoftAD.psd1  # English strings (hash of all messages)
+│   │   └── es-ES/MicrosoftAD.psd1  # Spanish localization
+│   └── icons/                       # Image assets for reports
+├── Tests/
+│   ├── Invoke-Tests.ps1             # Test runner script (204 lines)
+│   ├── AsBuiltReport.Microsoft.AD.Tests.ps1  # Pester unit tests
+│   ├── LocalizationData.Tests.ps1   # Localization validation
+│   └── README.md
+├── Samples/                         # Example HTML reports
+├── README.md                        # Project documentation
+├── CONTRIBUTING.md                  # Contribution guidelines
+├── CODE_OF_CONDUCT.md              # Community standards
+├── LICENSE                         # License file
+├── CHANGELOG.md                    # Version history
+├── SECURITY.md                     # Security policy
+└── Todo.md                         # Development roadmap
 ```
 
-### Data Flow
+### Key Directories
+- **Src/Public**: Only `Invoke-AsBuiltReport.Microsoft.AD` - the single exported public function
+- **Src/Private**: 88 total functions (52 Get-Abr* for data gathering, rest are utilities)
+- **Language**: Localization for multi-language support (en-US, es-ES)
+- **Tests**: Pester tests + custom test runner supporting code coverage
 
-1. `Invoke-AsBuiltReport.Microsoft.AD` (Public) connects via PSSession/CIMSession to a target DC, discovers the forest/domain topology, then calls each `Get-Abr*Section` function.
-2. Section functions (e.g., `Get-AbrDomainSection`, `Get-AbrForestSection`, `Get-AbrDNSSection`, `Get-AbrPKISection`) gate execution with `$InfoLevel.*` checks and iterate over domains/DCs.
-3. Content functions (e.g., `Get-AbrADDomain`, `Get-AbrADDomainController`) collect AD data via `Invoke-CommandWithTimeout` (remote PSSession) and write output using PScribo DSL (`Section`, `Table`, `Paragraph`, `BlankLine`).
-4. The PScribo document is assembled in memory and exported to the requested format by the AsBuiltReport.Core framework.
+### File Count Summary
+- **Total .ps1 files**: 94
+- **Public functions**: 1 (exported)
+- **Private functions**: ~88 + utilities
+- **Data gathering functions (Get-Abr*)**: 52
 
-### Key Script-Scoped Variables
+---
 
-These are set by `Invoke-AsBuiltReport.Microsoft.AD` and used across all Private functions:
+## 2. BUILD, TEST, LINT COMMANDS
 
-| Variable | Purpose |
-|---|---|
-| `$script:TempPssSession` | Primary PSSession to initial target DC |
-| `$script:TempCIMSession` | CIMSession to initial DC |
-| `$script:InfoLevel` | Hash from JSON config — controls section depth (0–3) |
-| `$script:Options` | Hash from JSON config — WinRM, exclusions, diagram settings |
-| `$script:ADSystem` | `Get-ADForest` result for the target forest |
-| `$script:ForestInfo` | Root domain FQDN (uppercased) |
-| `$script:OrderedDomains` | Root domain first, then child domains |
-| `$script:DCStatus` | ArrayList tracking reachability status per DC |
-| `$reportTranslate` | Localized string resources loaded from `Language/` |
+### Test Execution
 
-## Key Conventions
-
-### Function Naming
-
-- `Get-AbrAD*` — collects and renders a specific AD topic (domain info, DC info, GPO, trust, etc.)
-- `Get-Abr*Section` — top-level orchestrators that call multiple `Get-AbrAD*` functions inside `Section {}` blocks
-- `Get-AbrDiag*` — generate infrastructure diagrams
-- `ConvertTo-*` — data transformation helpers (e.g., `ConvertTo-TextYN`, `ConvertTo-HashToYN`, `ConvertTo-FileSizeString`)
-- `Get-Valid*` — session/connectivity helpers (`Get-ValidDCfromDomain`, `Get-ValidPSSession`, `Get-ValidCIMSession`)
-
-### Building Report Tables
-
-Every content function uses this pattern:
+**Local Test Execution:**
 ```powershell
-$OutObj = [System.Collections.ArrayList]::new()
+.\Tests\Invoke-Tests.ps1                              # Basic run
+.\Tests\Invoke-Tests.ps1 -CodeCoverage -OutputFormat NUnitXml  # With coverage
+```
+
+**Test Runner Details** (`Tests/Invoke-Tests.ps1`):
+- Uses **Pester 5.0.0+** for testing framework
+- Supports output formats: Console, NUnitXml, JUnitXml
+- Includes code coverage analysis (JaCoCo format)
+- Code coverage threshold: 50% minimum (warning at <50%)
+- Coverage files tracked: `*.psm1`, `Src/Public/*.ps1`, `Src/Private/*.ps1`
+- Test results: `Tests/testResults.xml`
+- Coverage output: `Tests/coverage.xml`
+
+### Code Analysis
+
+**PSScriptAnalyzer** (`PSScriptAnalyzerSettings.psd1`):
+- Linting tool configured in CI/CD
+- Custom rules enforced:
+  - `PSAvoidExclaimOperator` - no `!` operator
+  - `AvoidUsingDoubleQuotesForConstantString` - use single quotes for constants
+  - `UseCorrectCasing` - enforce proper case
+  - `PSAvoidUsingCmdletAliases` - no aliases
+  - `PSUseConsistentWhitespace` - whitespace consistency
+- Excluded rules:
+  - `PSUseToExportFieldsInManifest`
+  - `PSAvoidUsingWriteHost` (needed for reports)
+
+### CI/CD Pipelines
+
+**Pester Tests Workflow** (`.github/workflows/Pester.yml`):
+- Triggers: push (main/dev/master), PR, manual
+- Runs on: Windows (pwsh + powershell 5.1)
+- Auto-installs: Pester 5.0.0+, PScribo 0.11.1+, PSScriptAnalyzer 1.0.0+, AsBuiltReport.Core 1.6.2+
+- Uploads test results as artifacts
+- Uploads code coverage to Codecov
+
+**PSScriptAnalyzer Workflow** (`.github/workflows/PSScriptAnalyzer.yml`):
+- Uses external action: `alagoutte/github-action-psscriptanalyzer@master`
+- Fails on errors, comments inline
+- Settings: `.github/workflows/PSScriptAnalyzerSettings.psd1`
+
+**CodeQL Workflow** (`.github/workflows/CodeQL.yml`):
+- Security scanning for PowerShell
+
+**Release Workflow** (`.github/workflows/Release.yml`):
+- Triggers on release published
+- Tests module manifest
+- Publishes to PowerShell Gallery (`Publish-Module`)
+- Posts release announcements to Twitter & Bluesky
+
+**No Build/Invoke-Build found**: This is a pure PowerShell module (no compilation).
+
+---
+
+## 3. ARCHITECTURE
+
+### High-Level Data Flow
+
+```
+Invoke-AsBuiltReport.Microsoft.AD (Entry Point)
+    ↓
+    [Input: Target DC, Credentials]
+    ↓
+    [Validate: Requirements, Features, Modules]
+    ↓
+    [Connection: PSSession + CIMSession to DC]
+    ↓
+    [Process Per Forest/Domain]
+    ├── Get-AbrForestSection (Forest-level data)
+    ├── Get-AbrDomainSection (Per-domain data)
+    ├── Get-AbrDnsSection (DNS configuration)
+    └── Get-AbrPKISection (Certificate Authority)
+    ↓
+    [Diagram Generation: Forest, Replication, Trusts, Sites, CA]
+    ↓
+    [Session Cleanup: Remove PSSession, CIMSession]
+    ↓
+    [Output: HTML/Word/Text Report]
+```
+
+### Main Entry Point
+
+**File**: `AsBuiltReport.Microsoft.AD/Src/Public/Invoke-AsBuiltReport.Microsoft.AD.ps1` (291 lines)
+
+**Signature**:
+```powershell
+function Invoke-AsBuiltReport.Microsoft.AD {
+    [CmdletBinding()]
+    param (
+        [String[]] $Target,              # Domain controller(s) FQDN
+        [PSCredential] $Credential       # Credentials for remote session
+    )
+    #Requires -RunAsAdministrator
+}
+```
+
+**Key Responsibilities**:
+1. Validate prerequisites (Windows PS >= 5.1, admin rights, not ISE)
+2. Check installed modules & warn on outdated versions
+3. Validate OS features (RSAT tools on workstation, features on server)
+4. Load report config (JSON), InfoLevels, HealthChecks, Options
+5. Establish PSSession + CIMSession to DC via WinRM
+6. Collect forest/domain/DNS/PKI data via section functions
+7. Generate diagrams (if enabled)
+8. Build report using PScribo
+9. Cleanup sessions
+
+**Critical Design Pattern**:
+- **$Target** must be FQDN (not IP) - WinRM limitation
+- Must run **-RunAsAdministrator**
+- Must run from PowerShell 7+, **NOT** PowerShell ISE
+- WinRM must be enabled on DC
+- Uses **$Options** hash from config for behavior control
+
+### Core Section Builders
+
+These functions call data gatherers and structure output via PScribo's **Section** cmdlet:
+
+1. **Get-AbrForestSection**: Forest topology, schema, tombstone lifetime, global catalogs
+2. **Get-AbrDomainSection**: Per-domain configuration, trusts, replication, GPOs, OUs
+3. **Get-AbrDnsSection**: DNS zones, scavenging, delegation
+4. **Get-AbrPKISection**: Certificate authorities, templates, security
+
+### Data Gathering Functions (Get-Abr*)
+
+**Pattern**: Each function collects specific AD object data via remote PSSession:
+
+Example: `Get-AbrADForest` (80 lines)
+- Uses `Invoke-CommandWithTimeout` to run remote cmdlets
+- Parses schema version to determine Windows Server version
+- Detects anonymous access via dsHeuristics
+- Returns object with translated property names
+- Applies HealthCheck styling if enabled
+
+**All 52 Get-Abr* functions follow this pattern:**
+- Accept parameters (Domain, ValidDcFromDomain, etc.)
+- Start: Log collection message, start timing
+- Process: Remote invocation via session, data transformation
+- Output: `[System.Collections.ArrayList]` of objects
+- HealthCheck: Conditionally apply styling (Warning/Critical)
+- Return: Table/list output via PScribo's **Table** cmdlet
+
+### InfoLevel Architecture
+
+**Default Config** (`AsBuiltReport.Microsoft.AD.json`):
+```json
+"InfoLevel": {
+    "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",
+    "Forest": 2,
+    "Domain": 2,
+    "DNS": 1,
+    "CA": 0
+}
+```
+
+**Usage Pattern**:
+```powershell
+if ($InfoLevel.Forest -ge 1) { ... show basic info }
+if ($InfoLevel.Forest -ge 2) { ... show advanced details }
+if ($InfoLevel.Forest -ge 3) { ... show comprehensive tables }
+```
+
+Enables **progressive disclosure** - users control report verbosity.
+
+### HealthCheck Architecture
+
+**Default Config**:
+```json
+"HealthCheck": {
+    "Domain": {
+        "GMSA": true,           # Group Managed Service Accounts
+        "GPO": true,            # Group Policy Objects
+        "Backup": true,         # Domain backup status
+        "DFS": true,            # DFS health
+        "SPN": true,            # Service Principal Names
+        "DuplicateObject": true,
+        "Security": true,
+        "BestPractice": true
+    },
+    "DomainController": { ... },
+    "Site": { ... },
+    "DNS": { ... },
+    "CA": { ... }
+}
+```
+
+**Styling Application**:
+```powershell
+if ($HealthCheck.Domain.Security) {
+    $OutObj | Where-Object { $_.AnonymousAccess -eq 'Enabled' } | 
+        Set-Style -Style Critical -Property AnonymousAccess
+    $OutObj | Where-Object { $_.TombstoneLifetime -lt 180 } | 
+        Set-Style -Style Warning -Property TombstoneLifetime
+}
+```
+
+Objects marked as Warning/Critical get colored highlighting in reports.
+
+### Connection Management
+
+**Session Establishment** (in main entry point):
+```powershell
+$TempPssSession = Get-ValidPSSession -ComputerName $System -SessionName $System
+$TempCIMSession = Get-ValidCIMSession -ComputerName $System -SessionName $System
+```
+
+**Remote Command Execution**:
+```powershell
+Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock { Get-ADForest }
+```
+
+**Cleanup**:
+```powershell
+foreach ($PSSession in $PSSTable | Where { $_.Status -ne 'Offline' }) {
+    Remove-PSSession -Id $PSSession.id
+}
+```
+
+### Diagram Generation
+
+**Diagrammer Integration**:
+- Uses `Diagrammer.Core` module for topology visualization
+- Types: Forest, Replication, Sites, SitesInventory, Trusts, CertificateAuthority
+- Controlled by `$Options.EnableDiagrams`, `$Options.DiagramType.*`
+- Outputs: PDF/PNG (configurable via `$Options.ExportDiagramsFormat`)
+- Theme: White/Dark (via `$Options.DiagramTheme`)
+
+---
+
+## 4. KEY CONVENTIONS AND PATTERNS
+
+### Function Naming Convention
+
+**Public Functions**:
+- `Invoke-AsBuiltReport.Microsoft.AD` - single entry point (uses dot notation)
+
+**Private Functions** - Three categories:
+
+1. **Data Gatherers** (`Get-Abr*`):
+   - `Get-AbrADForest` - retrieves Forest info
+   - `Get-AbrADDomain` - retrieves Domain info
+   - `Get-AbrADDomainController` - DC inventory
+   - `Get-AbrADCA*` - CA-specific data
+   - Pattern: Get-Abr[Section][Subsection]
+
+2. **Section Builders** (`Get-Abr*Section`):
+   - `Get-AbrForestSection` - orchestrates Forest section
+   - `Get-AbrDomainSection` - orchestrates Domain section
+   - `Get-AbrDnsSection` - orchestrates DNS section
+   - `Get-AbrPKISection` - orchestrates PKI section
+   - Pattern: Get-Abr[Section]Section
+
+3. **Diagram Builders** (`Get-AbrDiag*`):
+   - `Get-AbrDiagrammer` - main diagram orchestration
+   - `Get-AbrDiagForest`, `Get-AbrDiagReplication`, etc.
+   - Pattern: Get-AbrDiag[DiagramType]
+
+4. **Utility Functions** (various):
+   - `Convert-IpAddressToMaskLength` - IP/CIDR conversion
+   - `ConvertTo-HashToYN` - bool → Yes/No conversion
+   - `Invoke-CommandWithTimeout` - remote execution with timeout
+   - `Get-ValidPSSession` - session validation/creation
+   - `Test-WinRM` - WinRM connectivity check
+
+### Data Structure Patterns
+
+**Standard Data Object**:
+```powershell
 $inObj = [ordered] @{
-    $reportTranslate.FunctionName.FieldKey = $value
-    # ...
+    'Property Name' = $Value
+    'Health Check Property' = $CheckResult
 }
 $OutObj.Add([pscustomobject](ConvertTo-HashToYN $inObj)) | Out-Null
-
-$TableParams = @{
-    Name = "Table Title - $Domain"
-    List = $true          # or $false for horizontal tables
-    ColumnWidths = 40, 60
-}
-if ($Report.ShowTableCaptions) {
-    $TableParams['Caption'] = "- $($TableParams.Name)"
-}
-$OutObj | Table @TableParams
 ```
 
-### Localized Strings
+**Conversion Helper Usage**:
+```powershell
+# ConvertTo-HashToYN: Converts boolean $true/$false → "Yes"/"No"
+$inObj | ConvertTo-HashToYN
+```
 
-All user-visible strings — table column headers, section headings, paragraph text, health check messages — must come from `$reportTranslate.<FunctionName>.<Key>`. Add new strings to both `Language/en-US/MicrosoftAD.psd1` and `Language/es-ES/MicrosoftAD.psd1`. String keys use PascalCase and match the function name as a top-level key.
+**Style Application**:
+```powershell
+$OutObj | Set-Style -Style Critical -Property $PropertyName
+$OutObj | Set-Style -Style Warning -Property $PropertyName
+```
 
-### InfoLevel and HealthCheck Gating
+### Report Section Structure
 
-- `$InfoLevel.Domain` (0=Disabled, 1=Enabled, 2=Adv Summary, 3=Detailed) controls whether a section runs and how much detail it shows.
-- `$HealthCheck.Domain.BestPractice` (boolean) controls whether health check styling/paragraphs are added to existing tables.
-- Pattern for health checks:
+**PScribo Section Hierarchy**:
+```powershell
+Section -Style Heading1 "Forest Name" {
+    Paragraph "Introduction..."
+    BlankLine
+    
+    Section -Style Heading2 "Subsection Title" {
+        if ($Options.ShowDefinitionInfo) {
+            Paragraph "Definition text..."
+        }
+        
+        # Call data gatherer
+        Get-AbrADForest
+        
+        if ($InfoLevel.Forest -ge 2) {
+            # Advanced details
+            Get-AbrADSite
+        }
+    }
+}
+```
+
+**PScribo Elements Used**:
+- `Section` - create section with heading levels (Heading1-Heading4)
+- `Table` - display data in tabular format
+- `Paragraph` - text with styling (Bold, Underline, Colors)
+- `BlankLine` - spacing
+- `PageBreak` - force page break in Word/PDF
+
+### Translation/Localization Pattern
+
+**Property Names Use Translated Strings**:
+```powershell
+# From Language/en-US/MicrosoftAD.psd1
+@{
+    GetAbrADForest = @{
+        Collecting = 'Collecting Active Directory forest information.'
+        ForestName = 'Forest Name'
+        ForestFunctionalLevel = 'Forest Functional Level'
+        ...
+    }
+}
+
+# In function:
+$reportTranslate.GetAbrADForest.Collecting  # Loaded at module init
+```
+
+**Multi-Language Support**:
+- Each culture has its own .psd1 file (en-US, es-ES, etc.)
+- Strings loaded into `$reportTranslate` hash at module load
+- Property names in output tables are localized
+
+### HealthCheck Patterns
+
+**Pre-Check Pattern** (e.g., RID Pool):
 ```powershell
 if ($HealthCheck.Domain.BestPractice) {
-    $OutObj | Set-Style -Style Warning -Property $reportTranslate.FunctionName.FieldKey
-}
-```
-
-### Remote Execution
-
-Always use `Invoke-CommandWithTimeout` (not `Invoke-Command` directly) for remote PSSession calls. This respects `$Options.JobsTimeOut`:
-```powershell
-$Result = Invoke-CommandWithTimeout -Session $TempPssSession -ScriptBlock {
-    Get-ADDomain -Identity $using:Domain
-}
-```
-
-### Error Handling Pattern
-
-```powershell
-begin {
-    Write-PScriboMessage -Message ($reportTranslate.FunctionName.Collecting -f $Domain)
-    Show-AbrDebugExecutionTime -Start -TitleMessage 'Section Title'
-}
-process {
-    try {
-        # ... collect and render ...
-    } catch {
-        Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Context Description)"
-    }
-}
-end {
-    Show-AbrDebugExecutionTime -End -TitleMessage 'Section Title'
-}
-```
-
-Use `Write-PScriboMessage` (not `Write-Host`) for module logging. `Write-Host` is only allowed in the Public entry point (`Invoke-AsBuiltReport.Microsoft.AD.ps1`) for top-level user-facing progress messages.
-
-### DC Connectivity Check
-
-Before running per-DC logic, always check WinRM reachability:
-```powershell
-if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
-    # ... per-DC work ...
-}
-```
-
-### Configuration JSON
-
-`AsBuiltReport.Microsoft.AD.json` defines defaults for `Report`, `Options`, `InfoLevel`, and `HealthCheck`. New configurable options must be added here with sensible defaults.
-
----
-
-## Session Management
-
-### Three Parallel Session Tables
-
-All remote connectivity is tracked in three `[System.Collections.ArrayList]` caches (passed as `[ref]` throughout):
-
-| Variable | Cache Contents | Helper |
-|---|---|---|
-| `$DCStatus` | WinRM reachability per DC | `Get-DCWinRMState` |
-| `$PSSTable` | PSSession objects per DC | `Get-ValidPSSession` |
-| `$CIMTable` | CIMSession objects per DC | `Get-ValidCIMSession` |
-
-Each entry in these lists is a hashtable with at minimum: `DCName`, `Status` (`Online`/`Offline`), `Protocol`, and `Id`.
-
-### `Get-DCWinRMState` — Reachability Gate
-
-Always called **before** establishing a PSSession or CIMSession. It:
-1. Checks `$DCStatus` cache first (avoids repeated Test-WSMan calls).
-2. Falls back to `Test-WSMan` if not cached, respecting `$Options.WinRMSSL`, `$Options.WinRMSSLPort`, and `$Options.WinRMFallbackToNoSSL`.
-3. Records result in `$DCStatus` and returns `$true`/`$false`.
-4. Ping count controlled by `$Options.DCStatusPingCount` (default: 2).
-
-```powershell
-# Always gate DC-specific work:
-if (Get-DCWinRMState -ComputerName $DC -DCStatus ([ref]$DCStatus)) {
-    # safe to proceed
-}
-```
-
-### `Get-ValidPSSession` — PSSession Pool
-
-Manages a pool of reusable PSSessions. Behaviour:
-- If a cached `Online` session exists for the DC, returns it immediately without creating a new one.
-- If `$Options.WinRMSSL` is set, tries SSL first (`$Options.WinRMSSLPort`); if it fails and `$Options.WinRMFallbackToNoSSL` is `$true`, retries on plain WinRM (`$Options.WinRMPort`).
-- For the **initial forest connection** (`-InitialForrestConnection $true`), failure throws a terminating error. For per-DC connections, failure is non-terminating (logged as a warning).
-- Authentication method is `$Options.PSDefaultAuthentication` (default: `Negotiate`).
-
-```powershell
-$DCPssSession = Get-ValidPSSession -ComputerName $DC -SessionName $DC -PSSTable ([ref]$PSSTable)
-```
-
-### `Get-ValidCIMSession` — CIMSession Pool
-
-Mirrors `Get-ValidPSSession` but for CIM. SSL uses `New-CimSessionOption -UseSsl`; plain uses `New-CimSession` with `$Options.PSDefaultAuthentication`. CIMSession entries carry an additional `InstanceId` field.
-
-### `Get-ValidDCfromDomain` — Domain DC Discovery
-
-Queries `Get-ADDomain` (via the primary `$TempPssSession`) to get `ReplicaDirectoryServers`, then iterates them through `Get-DCWinRMState` and returns the first reachable DC's FQDN. Used at the start of each domain loop to obtain the `$ValidDC` variable passed to all content functions.
-
-```powershell
-if ($ValidDC = Get-ValidDCfromDomain -Domain $Domain -DCStatus ([ref]$DCStatus)) {
-    # use $ValidDC as the -Server parameter for AD cmdlets
-}
-```
-
----
-
-## Diagram Generation
-
-### Overview
-
-Diagrams are generated via the **Diagrammer.Core** / **Diagrammer.Microsoft.AD** ecosystem (PSGraph + Graphviz). The pipeline is:
-
-```
-Get-AbrDiagrammer          # thin wrapper, reads $Options, calls New-AbrADDiagram
-  └─ New-AbrADDiagram      # builds Graphviz DOT graph, exports to file or base64
-       └─ Get-AbrDiag*     # per-diagram-type data collectors (called inside New-AbrADDiagram)
-```
-
-### Diagram Types
-
-Six types are supported (controlled by `$Options.DiagramType.*` booleans in the JSON config):
-
-| Type | JSON Key | What it shows |
-|---|---|---|
-| `Forest` | `DiagramType.Forest` | Forest topology with domains |
-| `Sites` | `DiagramType.Sites` | AD site links and connections |
-| `SitesInventory` | `DiagramType.SitesInventory` | Sites with DC inventory per site |
-| `Trusts` | `DiagramType.Trusts` | Domain trust relationships |
-| `CertificateAuthority` | `DiagramType.CertificateAuthority` | PKI CA hierarchy |
-| `Replication` | `DiagramType.Replication` | DC replication topology |
-
-### How `Get-AbrDiagrammer` Works
-
-1. Reads `$Options.DiagramTheme` (`White`/`Black`/`Neon`) and `$Options.ExportDiagramsFormat` (array: `pdf`, `png`, `svg`, `jpg`, `base64`).
-2. Passes an existing `$TempPssSession` as `-PSSessionObject` (no credential re-prompt).
-3. For `base64` format: returns the base64 string directly (used to embed diagrams inline in HTML reports).
-4. For file formats: saves to `$OutputFolderPath` as `AsBuiltReport.Microsoft.AD-(<DiagramType>).<ext>` and returns the file path when `-ExportPath` is set.
-5. Optional features toggled via `$Options`: `EnableDiagramDebug` (red edge/subgraph outlines), `EnableDiagramSignature` (footer with `SignatureAuthorName`/`SignatureCompanyName`), `DiagramWaterMark`.
-
-### Embedding a Diagram in the Report
-
-The typical pattern in a Section function:
-```powershell
-if ($Options.EnableDiagrams -and $Options.DiagramType.Forest) {
-    $DiagramFile = Get-AbrDiagrammer -DiagramType 'Forest' -DiagramOutput 'base64' -PSSessionObject $TempPssSession
-    if ($DiagramFile) {
-        Image -Base64 $DiagramFile -Text 'Forest Diagram' -Percent 100 -Align 'Center'
-        BlankLine
+    if ([math]::Truncate($CompleteSIDS / $RIDsRemaining) -gt 80) {
+        $OutObj | Set-Style -Style Warning -Property RIDProperty
+        Paragraph "Health check message about RID pool..."
     }
 }
 ```
 
-### `New-AbrADDiagram` Internals
+**28 Functions Use HealthCheck** out of 52 data gatherers (~54%):
+- Focus on security, best practices, service health
+- Each check compares values against thresholds
+- Styling applied: Warning, Critical, or Success
 
-- Requires **admin** privileges (checks `WindowsPrincipal` role).
-- Builds a `Graph {}` block (PSGraph DSL) with node/edge default styles derived from `$DiagramTheme`.
-- Icon images are loaded from `AsBuiltReport.Microsoft.AD/icons/` via `$script:IconPath`.
-- The `$reportTranslate.NewADDiagram.*` keys supply graph label strings (supports `en-US`/`es-ES`).
-- `$Options.DiagramObjDebug` enables verbose object-level debug output.
-- Does **not** use `$TempPssSession` directly — it creates its own internal `$DiagramTempPssSession` or accepts one via `-PSSessionObject`.
+### Configuration-Driven Behavior
 
-### Adding a New Diagram Type
+**Options Hash Controls**:
+```json
+"Options": {
+    "ShowExecutionTime": false,        # Show timing info
+    "ShowDefinitionInfo": false,       # Show definition text
+    "PSDefaultAuthentication": "Negotiate",
+    "Exclude": { "Domains": [], "DCs": [] },
+    "Include": { "Domains": [] },      # Only these domains
+    "WinRMSSL": false,
+    "WinRMFallbackToNoSSL": true,
+    "WinRMSSLPort": 5986,
+    "WinRMPort": 5985,
+    "EnableDiagrams": true,
+    "DiagramTheme": "White",
+    "JobsTimeOut": 900                 # 15-minute timeout
+}
+```
 
-1. Add a new `Get-AbrDiag<Type>.ps1` in `Src/Private/` following the existing `Get-AbrDiagForest.ps1` / `Get-AbrDiagSite.ps1` pattern.
-2. Add the type string to the `ValidateSet` in both `Get-AbrDiagrammer` and `New-AbrADDiagram`.
-3. Add a `$MainGraphLabel` switch case in `New-AbrADDiagram`'s `begin` block.
-4. Add the corresponding boolean key to `Options.DiagramType` in `AsBuiltReport.Microsoft.AD.json`.
-5. Add localized label strings to both `Language/` psd1 files under the `NewADDiagram` key.
+**Usage Example**:
+```powershell
+if ($Options.ShowDefinitionInfo) {
+    Paragraph $reportTranslate.GetAbrForestSection.DefinitionText
+}
+
+$TimeoutSeconds = $Options.JobsTimeOut
+```
+
+### Error Handling & Timeouts
+
+**Invoke-CommandWithTimeout Pattern**:
+```powershell
+function Invoke-CommandWithTimeout {
+    param(
+        [System.Management.Automation.Runspaces.PSSession]$Session,
+        [scriptblock]$ScriptBlock,
+        [int]$TimeoutSeconds = $Options.JobsTimeOut
+    )
+    
+    # Run as background job with timeout
+    $job = Invoke-Command -Session $Session -AsJob -ScriptBlock $ScriptBlock
+    Wait-Job $job -Timeout $TimeoutSeconds
+    Receive-Job $job
+}
+```
+
+**Try-Catch in Data Gatherers**:
+```powershell
+try {
+    Get-AbrADForest
+} catch {
+    Write-PScriboMessage -IsWarning $_.Exception.Message
+}
+```
+
+### Sensitive Data Handling
+
+**No explicit redaction observed**, but patterns suggest:
+- Credentials passed via `$PSCredential` object (not stored)
+- Session-based execution (no inline secrets)
+- Remote execution prevents data capture on local disk
+- Output tables contain parsed, non-sensitive data
+
+**Recommendation**: Follow AD best practices - restrict report access, don't email to untrusted parties.
 
 ---
 
-## PKI / Certificate Authority Section
+## 5. CONFIGURATION
 
-### Prerequisites
+### Primary Config File
 
-The PKI section only runs when **all** of the following are true:
-- `$InfoLevel.CA -ge 1`
-- The machine running the report is joined to a domain that is **part of the target forest** (`Get-ComputerADDomain` result must be in `$ADSystem.Domains`)
-- `Get-CertificationAuthority -Enterprise` returns at least one CA (uses the **PSPKI** module)
+**File**: `AsBuiltReport.Microsoft.AD/AsBuiltReport.Microsoft.AD.json`
 
-If the reporting machine's domain is not in the forest, a warning is logged and the section is skipped entirely.
-
-### CA Data Source
-
-The PKI section does **not** use PSSession/CIMSession for CA data. It uses **PSPKI** module cmdlets directly on the machine running the report:
-- `Get-CertificationAuthority -Enterprise` — discovers all enterprise CAs
-- `Get-CertificationAuthority -Enterprise -ComputerName $CA` — per-CA object
-- `Get-CACryptographyConfig -CertificationAuthority $CA`
-- `Get-CATemplate`, `Get-CARoleServiceStatus`, `Get-CRLDistributionPoint`, `Get-AuthorityInformationAccess`
-
-The `$script:CAs` variable is set in `Get-AbrPKISection` and used by all CA sub-functions.
-
-### Section Structure (`Get-AbrPKISection`)
-
-```
-PKI (Heading1)                       ← only when $InfoLevel.CA -ge 1
-  Get-AbrADCASummary                 ← always (CA name, server, type, service status)
-  Get-AbrADCARoot                    ← InfoLevel.CA -ge 2
-  Get-AbrADCASubordinate             ← InfoLevel.CA -ge 2
-  foreach accessible CA:
-    <CA DisplayName> Details (Heading2)
-      Get-AbrADCASecurity            ← always
-      Get-AbrADCACryptographyConfig  ← always
-      Get-AbrADCAAIA                 ← InfoLevel.CA -ge 2
-      Get-AbrADCACRLSetting          ← InfoLevel.CA -ge 2
-      Get-AbrADCATemplate            ← InfoLevel.CA -ge 2
-      Get-AbrADCAKeyRecoveryAgent    ← always
+**Structure**:
+```json
+{
+    "Report": {
+        "Name": "Microsoft Active Directory As Built Report",
+        "Version": "1.0",
+        "Status": "Released",
+        "ShowCoverPageImage": true,
+        "ShowTableOfContents": true,
+        "ShowHeaderFooter": true,
+        "ShowTableCaptions": true
+    },
+    "Options": { ... },           // Execution behavior
+    "InfoLevel": { ... },         // Report verbosity
+    "HealthCheck": { ... }        // Health check toggles
+}
 ```
 
-### HealthCheck Styles for CA
+### Configuration Usage
 
-| Check | Config Key | Style Applied |
-|---|---|---|
-| CA service not Running | `HealthCheck.CA.Status` | `Critical` on Status column |
-| CA statistics thresholds | `HealthCheck.CA.Statistics` | `Warning` |
-| Best practice settings | `HealthCheck.CA.BestPractice` | `Warning` |
+Users provide config via **-ReportConfig parameter** to AsBuiltReport.Core:
 
-Style values are `Warning` (yellow), `Critical` (red), and `Info` (blue) — passed to `Set-Style -Style <value> -Property <translated-key>`.
+```powershell
+$ReportConfig = Get-Content 'config.json' | ConvertFrom-Json
 
-### Adding New CA Content
+New-AsBuiltReport -Report Microsoft.AD `
+    -Target 'DC01.contoso.com' `
+    -ReportConfig $ReportConfig `
+    -Credential $cred `
+    -Format HTML
+```
 
-CA functions receive `$CA` (a PSPKI `CertificationAuthority` object) as their only parameter. The `$ForestInfo` script variable provides the forest name for table naming. Follow the same `$inObj` → `ConvertTo-HashToYN` → `Table` pattern as all other content functions.
+**Module Loads**:
+```powershell
+$script:Report = $ReportConfig.Report
+$script:InfoLevel = $ReportConfig.InfoLevel
+$script:Options = $ReportConfig.Options
+```
+
+### Module Manifest
+
+**File**: `AsBuiltReport.Microsoft.AD/AsBuiltReport.Microsoft.AD.psd1`
+
+**Key Settings**:
+- **Version**: 0.9.11
+- **PowerShellVersion**: 5.1 (minimum, actually PS7 required)
+- **CompatiblePSEditions**: Desktop, Core
+- **GUID**: 0a3e1c04-13b8-418f-89bc-a5a18da07394
+
+**Required Modules**:
+- AsBuiltReport.Core (v1.6.2+)
+- AsBuiltReport.Chart (v0.2.0+)
+- Diagrammer.Core (v0.2.38+)
+- PSPKI (v4.3.0+)
+
+---
+
+## 6. EXISTING AI CONFIGS
+
+**None Found**. No existing files:
+- `.cursorrules` ✗
+- `.clinerules` ✗
+- `.windsurfrules` ✗
+- `CLAUDE.md` ✗
+- `AGENTS.md` ✗
+- `CONVENTIONS.md` ✗
+
+---
+
+## 7. README AND CONTRIBUTING
+
+### README Key Points
+
+**Project Purpose**:
+- Community-maintained, no Microsoft sponsorship
+- Generates as-built documentation for AD (Word/HTML/Text)
+- Supports AD 2012/2016/2019/2022/2025
+- **PowerShell 7+ required** (not PS 5.1!)
+- Windows only (RSAT dependency)
+
+**Supported Features**:
+- Forest topology & schema info
+- Domain configuration & replication
+- DNS zones & scavenging
+- PKI/Certificate Authority details
+- Diagrams (Forest, Replication, Trusts, Sites, CA)
+- Health checks for security/best practices
+- Multi-language support (en-US, es-ES)
+
+**Key Disclaimer**:
+> This assessment is not exhaustive. All recommendations should be reviewed and implemented by qualified personnel. The author(s) assume no liability for any damages.
+
+### CONTRIBUTING Guidelines
+
+**Process**:
+1. Fork repo, clone, add remote upstream
+2. Create topic branch off dev/main
+3. Make changes following project conventions
+4. Commit with clear messages
+5. Pull upstream dev before pushing
+6. Open PR with clear description
+
+**Requirements**:
+- Follow existing code conventions (indentation, comments)
+- Include test coverage (reference Pester tests)
+- Respect git commit message guidelines
+- No copyrighted content
+- Agree to project license
+
+**Key Restriction**:
+- Ask before embarking on large features/refactoring
+- Don't use issue tracker for personal support
+
+---
+
+## 8. CODE CONVENTIONS SUMMARY
+
+### PowerShell Code Style
+
+**Enforced via VSCode + PSScriptAnalyzer**:
+
+**Formatting** (`.vscode/settings.json`):
+- Tab size: 4 spaces (insert spaces, not tabs)
+- Line length: 115 characters (ruler configured)
+- Trim trailing whitespace: enabled
+- Code folding: enabled
+- Brace style:
+  - Opening brace on same line: `if (...) {`
+  - New line after opening brace: `{\n    ...`
+  - New line after closing brace: disabled
+- Whitespace:
+  - Before open brace: enabled
+  - Before open paren: enabled
+  - Around operators: enabled
+  - After separator (;): enabled
+  - Around pipe: enabled
+
+**Linting** (`PSScriptAnalyzerSettings.psd1`):
+- No single-character variable names
+- No double quotes for constant strings
+- Case sensitivity enforced
+- No aliases (full cmdlet names)
+- Consistent whitespace
+
+### Naming Conventions
+
+**Variables**:
+- PascalCase for scripts/function names: `$ValidDcFromDomain`
+- $script: prefix for module-level vars: `$script:Report`, `$script:InfoLevel`
+- Hungarian notation for collections: `$PSSTable`, `$DCStatus` (plural hint)
+
+**Functions**:
+- Verb-Noun format: `Get-AbrADForest`, `Invoke-CommandWithTimeout`
+- Approved verbs: Get, New, Invoke, Test, Convert
+- Hierarchy: `Get-[Abr][Component][Action]`
+
+**Constants**:
+- `[ordered]` for hash ordering
+- `[System.Collections.ArrayList]` for dynamic arrays (preferred over `@()`)
+- `[pscustomobject]` for object creation
+
+### Error Handling
+
+- Use **try-catch** blocks
+- Write warnings via `Write-PScriboMessage -IsWarning`
+- Write errors via `Write-Error` or `throw`
+- Log activity via `Write-PScriboMessage`
+- Show timing via `Show-AbrDebugExecutionTime`
+
+### Documentation
+
+- SYNOPSIS, DESCRIPTION, NOTES (version, author, twitter, github)
+- .EXAMPLE, .LINK for help
+- Inline comments for complex logic
+- Parameter documentation with `[Parameter(...)]` attributes
+
+---
+
+## 9. CRITICAL DEVELOPMENT NOTES
+
+### Must-Know Limitations
+
+1. **WinRM Requirements**:
+   - Target must be FQDN (not IP)
+   - WinRM must be enabled on DC
+   - Domain-joined machine required to run module
+   - PowerShell 7+ on Windows only
+
+2. **Execution Context**:
+   - Must run `-RunAsAdministrator`
+   - Cannot run inside PowerShell ISE
+   - Remote execution via PSSession (not local cmdlets)
+
+3. **Session Timeout**:
+   - Default timeout: 900 seconds (15 minutes)
+   - Configurable via `$Options.JobsTimeOut`
+   - Long operations may timeout on slow links
+
+### Development Workflow
+
+1. **Make changes** to `.ps1` files in `Src/Public` or `Src/Private`
+2. **Run tests** locally: `.\Tests\Invoke-Tests.ps1`
+3. **Check linting**: PSScriptAnalyzer via VSCode
+4. **Push to dev branch** (not master)
+5. **CI/CD runs** Pester + PSScriptAnalyzer
+6. **Create PR** to merge into master
+
+### Debugging Tips
+
+**Execution Timing**:
+```powershell
+if ($Options.ShowExecutionTime) {
+    Show-AbrDebugExecutionTime -Start/Stop -TitleMessage 'Section Name'
+}
+```
+
+**Logging Messages**:
+```powershell
+Write-PScriboMessage -Message "Collecting..."
+Write-PScriboMessage -IsWarning "Warning message"
+```
+
+**Remote Session Debugging**:
+```powershell
+$session = Get-PSSession -Name 'DC01.contoso.com'
+Invoke-Command -Session $session -ScriptBlock { Get-ADForest }
+```
+
+### Performance Considerations
+
+- Remote data collection happens sequentially (per domain)
+- Large forests (100+ domains) may take 30+ minutes
+- CPU-intensive: Schema analysis, trust enumeration
+- Network: WinRM traffic, potentially large XML responses
+- Disk: HTML/DOCX output can be 50+ MB with diagrams
+
+### Testing Strategy
+
+**Unit Tests** (`Tests/AsBuiltReport.Microsoft.AD.Tests.ps1`):
+- Module manifest validation
+- Function availability
+- Module dependency versions
+- Export validation
+
+**Integration Tests** (Not present):
+- Would require live AD environment
+- Manual testing against test domains recommended
+
+**Code Coverage**:
+- Current: Unknown (50% threshold enforced)
+- Recommendation: Add more tests for edge cases
+
+---
+
+## 10. PROJECT-SPECIFIC GUIDANCE FOR AI ASSISTANTS
+
+### When Making Code Changes
+
+1. **Respect InfoLevel checks**: Wrap new sections with `if ($InfoLevel.Component -ge N)`
+2. **Add HealthCheck conditionals**: Wrap checks with `if ($HealthCheck.Component.Feature)`
+3. **Use localization strings**: Reference `$reportTranslate.FunctionName.PropertyName`
+4. **Follow try-catch pattern**: Every data gatherer in try-catch with `-IsWarning`
+5. **Apply Set-Style**: Mark warning/critical objects for report highlighting
+6. **Use OrderedDictionary**: `[ordered] @{}` for property ordering
+7. **Pass sessions as parameters**: Don't assume `$TempPssSession` global exists
+8. **Document with `.SYNOPSIS`**: All functions need help documentation
+9. **Return objects not strings**: Build arrays of `[pscustomobject]` for Table output
+10. **Test with `-CodeCoverage`**: Ensure new code is covered by tests
+
+### Common Tasks
+
+**Add a new health check:**
+1. Add boolean to `AsBuiltReport.Microsoft.AD.json` under `HealthCheck.Component.NewCheck`
+2. In Get-Abr* function: `if ($HealthCheck.Component.NewCheck) { ... Set-Style ... }`
+3. Add test case to `Tests/AsBuiltReport.Microsoft.AD.Tests.ps1`
+
+**Add new report section:**
+1. Create `Get-AbrNewSection` function in `Src/Private/`
+2. Create `Get-AbrNewSectionData` data gatherer
+3. Call from main entry point: `if ($InfoLevel.NewComponent -ge 1) { Get-AbrNewSection }`
+4. Add InfoLevel config: `"NewComponent": 1` to JSON
+5. Add translations to `Language/en-US/MicrosoftAD.psd1` and `es-ES/`
+
+**Fix a timeout issue:**
+1. Increase `$Options.JobsTimeOut` in JSON (default 900)
+2. Or reduce data scope (disable HealthChecks or lower InfoLevel)
+3. Or optimize remote query (use `-Filter` with better conditions)
+
+### Module Dependencies to Understand
+
+- **AsBuiltReport.Core**: Framework for report generation, parameter validation
+- **PScribo**: Document markup (Section, Table, Paragraph, Set-Style)
+- **ActiveDirectory**: AD cmdlets (Get-ADForest, Get-ADDomain, etc.) - Microsoft module
+- **PSPKI**: PKI cmdlets (Get-CertificationAuthority) - community module
+- **Diagrammer.Core**: Diagram generation for topology visualization
+- **GroupPolicy**: GPO retrieval (Get-GPO, Get-GPOReport)
+- **DnsServer**: DNS zone enumeration
+
+---
+
+## 11. QUICK REFERENCE
+
+### Module Entry Point
+- **Location**: `AsBuiltReport.Microsoft.AD/Src/Public/Invoke-AsBuiltReport.Microsoft.AD.ps1`
+- **Exports**: Single public function (dot-notation name)
+- **Parameters**: `$Target` (FQDN array), `$Credential` (PSCredential)
+- **Returns**: Report file (HTML/Word/Text) via PScribo
+
+### Main Directories
+| Directory | Purpose | Files |
+|-----------|---------|-------|
+| `Src/Public` | Exported functions | 1 file (entry point) |
+| `Src/Private` | Internal functions | 88 functions |
+| `Language` | Localization | .psd1 per culture |
+| `Tests` | Unit/integration tests | Pester framework |
+| `.github/workflows` | CI/CD pipelines | 5 YAML files |
+
+### Key Files
+| File | Purpose | Size |
+|------|---------|------|
+| `AsBuiltReport.Microsoft.AD.psm1` | Module loader | 14 lines |
+| `AsBuiltReport.Microsoft.AD.psd1` | Manifest | ~100 lines |
+| `AsBuiltReport.Microsoft.AD.json` | Config template | 89 lines |
+| `AsBuiltReport.Microsoft.AD.Style.ps1` | Report styling | 20 KB |
+
+### Test Commands
+```powershell
+# Basic test run
+.\Tests\Invoke-Tests.ps1
+
+# With coverage
+.\Tests\Invoke-Tests.ps1 -CodeCoverage -OutputFormat NUnitXml
+
+# Output formats
+.\Tests\Invoke-Tests.ps1 -OutputFormat JUnitXml
+.\Tests\Invoke-Tests.ps1 -OutputFormat Console
+```
+
+### Required Modules (Minimum Versions)
+```powershell
+AsBuiltReport.Core        1.6.2+
+AsBuiltReport.Chart       0.2.0+
+Diagrammer.Core           0.2.38+
+PSPKI                     4.3.0+
+Pester                    5.0.0+
+PScribo                   0.11.1+
+PSScriptAnalyzer          1.0.0+
+```
+
+### Function Categories
+| Category | Count | Examples |
+|----------|-------|----------|
+| Get-Abr* (data gathering) | 52 | Get-AbrADForest, Get-AbrADDomain |
+| Get-Abr*Section (orchestration) | 4 | Get-AbrForestSection, Get-AbrDNSSection |
+| Get-AbrDiag* (diagrams) | 8 | Get-AbrDiagrammer, Get-AbrDiagForest |
+| Utility (conversion, helpers) | 24+ | ConvertTo-HashToYN, Invoke-CommandWithTimeout |
+
+---
+
+**Document Version**: 1.0  
+**Last Updated**: 2024  
+**Project Version**: 0.9.11  
+**Target PowerShell**: 7+  
+**Platform**: Windows Only
+

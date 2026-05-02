@@ -51,7 +51,7 @@ function Get-AbrADReportBrief {
                     }
                     $OutObj | Table @TableParams
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Report Brief - Report Overview)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADReportBrief.ErrorReportOverview))"
                 }
 
                 BlankLine
@@ -79,7 +79,7 @@ function Get-AbrADReportBrief {
                     }
                     $OutObj | Table @TableParams
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Report Brief - Forest Summary)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADReportBrief.ErrorForestSummary))"
                 }
 
                 BlankLine
@@ -103,7 +103,7 @@ function Get-AbrADReportBrief {
                             }
                             $OutObj.Add([pscustomobject]$inObj)
                         } catch {
-                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Report Brief - Domain Summary - $Domain)"
+                            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADReportBrief.ErrorDomainSummaryItem))"
                         }
                     }
 
@@ -121,7 +121,7 @@ function Get-AbrADReportBrief {
                         $OutObj | Table @TableParams
                     }
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Report Brief - Domain Summary)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADReportBrief.ErrorDomainSummary))"
                 }
 
                 BlankLine
@@ -162,12 +162,12 @@ function Get-AbrADReportBrief {
                     }
                     $OutObj | Table @TableParams
                 } catch {
-                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Report Brief - Report Scope)"
+                    Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADReportBrief.ErrorReportScope))"
                 }
             }
             PageBreak
         } catch {
-            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) (Report Brief Section)"
+            Write-PScriboMessage -IsWarning -Message "$($_.Exception.Message) ($($reportTranslate.GetAbrADReportBrief.ErrorReportBriefSection))"
         }
     }
 

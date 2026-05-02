@@ -243,6 +243,19 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.local' -Username 'administrator@contoso.local' -Password 'P@ssw0rd' -Format Html,Word -OutputFolderPath 'C:\Users\Jon\Documents' -SendEmail
 ```
 
+## :computer: GUI Examples
+
+The Microsoft AD As Built Report GUI can be used to generate reports without using the console. The GUI provides the same functionality as the console, but with a user-friendly interface. To launch the GUI, run the following command in a PowerShell terminal window:
+
+```powershell
+# Launch the Microsoft AD As Built Report GUI
+PS C:\> Start-AsBuiltReportMSAD
+```
+
+**Beta** versions of the GUI may contain bugs and issues. If you encounter any problems while using the GUI, please report them on the project's GitHub Issues page.
+
+![alt text](Samples/Sample-Gui.png)
+
 ## :x: Known Issues
 - **PSWriteWord Module Conflict**: PScribo and the EvotecIT "PSWriteWord" project use conflicting cmdlets. The PSWriteWord module must be uninstalled before generating reports.
 - **WinRM Dependency**: This report relies heavily on remote connections via WinRM. A Windows 10 client is recommended as a jumpbox for optimal connectivity.
