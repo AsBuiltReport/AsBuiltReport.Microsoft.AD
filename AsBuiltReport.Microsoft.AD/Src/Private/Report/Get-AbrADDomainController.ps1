@@ -1,4 +1,4 @@
-﻿function Get-AbrADDomainController {
+function Get-AbrADDomainController {
     <#
     .SYNOPSIS
     Used by As Built Report to retrieve Microsoft AD Domain Controller information.
