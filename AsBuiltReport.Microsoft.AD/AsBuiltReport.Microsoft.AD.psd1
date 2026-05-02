@@ -62,7 +62,7 @@
         },
         @{
             ModuleName = 'AsBuiltReport.Diagram';
-            ModuleVersion = '1.0.6'
+            ModuleVersion = '1.0.7'
         }
     )
 

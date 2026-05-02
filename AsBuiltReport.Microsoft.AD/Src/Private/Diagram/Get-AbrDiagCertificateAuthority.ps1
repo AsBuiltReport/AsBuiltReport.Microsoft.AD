@@ -61,7 +61,7 @@ function Get-AbrDiagCertificateAuthority {
                         }
                     }
                 } else {
-                    Node -Name NoDomain @{Label = $reportTranslate.NewADDiagram.NoCA; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '5'; height = '3'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = 'gray' }
+                    Node -Name NoDomain @{Label = $reportTranslate.NewADDiagram.NoCA; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '5'; height = '3'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
                 }
             }
         } catch {

@@ -379,7 +379,7 @@ function New-AbrADDiagram {
             $script:NodeDebug = @{color = 'black'; style = 'red' }
             $script:IconDebug = $true
         } else {
-            $SubGraphDebug = @{style = 'invis'; color = 'gray' }
+            $SubGraphDebug = @{style = 'invis'; color = $Edgecolor }
             $script:NodeDebug = @{color = 'transparent'; style = 'transparent' }
         }
 
@@ -496,9 +496,9 @@ function New-AbrADDiagram {
                 if ($Signature) {
                     Write-Verbose 'Generating diagram signature'
                     if ($CustomSignatureLogo) {
-                        $Signature = (Add-HtmlSignatureTable -ImagesObj $Images -Rows "Author: $($AuthorName)", "Company: $($CompanyName)" -TableBorder 2 -CellBorder 0 -Align 'left' -Logo $CustomSignatureLogo -IconDebug $IconDebug)
+                        $Signature = (Add-HtmlSignatureTable -ImagesObj $Images -Rows "Author: $($AuthorName)", "Company: $($CompanyName)" -TableBorderColor $Edgecolor -TableBorder 2 -CellBorder 0 -Align 'left' -Logo $CustomSignatureLogo -IconDebug $IconDebug -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor)
                     } else {
-                        $Signature = (Add-HtmlSignatureTable -ImagesObj $Images -Rows "Author: $($AuthorName)", "Company: $($CompanyName)" -TableBorder 2 -CellBorder 0 -Align 'left' -Logo 'AD_LOGO_Footer' -IconDebug $IconDebug)
+                        $Signature = (Add-HtmlSignatureTable -ImagesObj $Images -Rows "Author: $($AuthorName)", "Company: $($CompanyName)" -TableBorderColor $Edgecolor -TableBorder 2 -CellBorder 0 -Align 'left' -Logo 'AD_LOGO_Footer' -IconDebug $IconDebug -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor)
                     }
                 } else {
                     Write-Verbose $reportTranslate.NewADDiagram.diagramSignature

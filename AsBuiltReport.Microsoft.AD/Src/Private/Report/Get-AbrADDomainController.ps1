@@ -123,7 +123,7 @@
             }
             try {
                 $sampleData = $inObj.GetEnumerator() | Select-Object @{ Name = 'Name'; Expression = { $_.key } }, @{ Name = 'Value'; Expression = { $_.value } } | Sort-Object -Property 'Category'
-                $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'DC vs GC Distribution' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue
+                $Chart = New-PieChart -Values $sampleData.Value -Labels $sampleData.Name -Title 'DC vs GC Distribution' -EnableLegend -LegendOrientation Horizontal -LegendAlignment UpperCenter -Width 600 -Height 400 -Format base64 -TitleFontSize 20 -TitleFontBold -EnableCustomColorPalette -CustomColorPalette $AbrCustomPalette -EnableChartBorder -ChartBorderStyle DenselyDashed -ChartBorderColor DarkBlue -LabelFontColor Black -LabelFontSize 14 -LabelBold
             } catch {
                 Write-PScriboMessage -IsWarning $_.Exception.Message
             }

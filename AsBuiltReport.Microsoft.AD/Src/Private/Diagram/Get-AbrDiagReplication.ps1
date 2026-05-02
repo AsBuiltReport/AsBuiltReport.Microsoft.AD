@@ -49,7 +49,7 @@ function Get-AbrDiagReplication {
                                         ($ReplInfo | Where-Object { ($_.FromServer -eq $DC -and $_.FromSite -eq $Site) -or ($_.ToServer -eq $DC -and $_.ToSite -eq $Site) })
                                     } | Select-Object -Unique
 
-                                    SubGraph $SiteNodeName -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $Site -IconType 'AD_Site' -IconDebug $IconDebug -SubgraphLabel -IconWidth 35 -IconHeight 35 -Fontsize 18 -FontName 'Segoe UI' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 18; penwidth = 1.5; labelloc = 't'; style = 'dashed,rounded'; color = 'gray' } {
+                                    SubGraph $SiteNodeName -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $Site -IconType 'AD_Site' -IconDebug $IconDebug -SubgraphLabel -IconWidth 35 -IconHeight 35 -Fontsize 18 -FontName 'Segoe UI' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 18; penwidth = 1.5; labelloc = 't'; style = 'dashed,rounded'; color = $Edgecolor } {
                                         foreach ($DC in $SiteDCs) {
                                             $DCNodeName = Remove-SpecialCharacter -String $DC -SpecialChars '\-. '
                                             Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
@@ -63,7 +63,7 @@ function Get-AbrDiagReplication {
                                     -not ($ReplInfo | Where-Object { ($_.FromServer -eq $DC -and $_.FromSite -ne 'Unknown') -or ($_.ToServer -eq $DC -and $_.ToSite -ne 'Unknown') })
                                 }
                                 if ($UnknownSiteDCs) {
-                                    SubGraph UnknownSite -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $reportTranslate.NewADDiagram.replUnknownSite -IconType 'AD_Site' -IconDebug $IconDebug -SubgraphLabel -IconWidth 35 -IconHeight 35 -Fontsize 18 -FontName 'Segoe UI' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 18; penwidth = 1.5; labelloc = 't'; style = 'dashed,rounded'; color = 'gray' } {
+                                    SubGraph UnknownSite -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $reportTranslate.NewADDiagram.replUnknownSite -IconType 'AD_Site' -IconDebug $IconDebug -SubgraphLabel -IconWidth 35 -IconHeight 35 -Fontsize 18 -FontName 'Segoe UI' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 18; penwidth = 1.5; labelloc = 't'; style = 'dashed,rounded'; color = $Edgecolor } {
                                         foreach ($DC in $UnknownSiteDCs) {
                                             $DCNodeName = Remove-SpecialCharacter -String $DC -SpecialChars '\-. '
                                             Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
@@ -97,7 +97,7 @@ function Get-AbrDiagReplication {
                     }
                 } else {
                     Write-Verbose ($reportTranslate.NewADDiagram.emptyReplication)
-                    Node -Name NoReplication @{Label = $reportTranslate.NewADDiagram.NoReplication; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = 'gray' }
+                    Node -Name NoReplication @{Label = $reportTranslate.NewADDiagram.NoReplication; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
                 }
             }
         } catch {
