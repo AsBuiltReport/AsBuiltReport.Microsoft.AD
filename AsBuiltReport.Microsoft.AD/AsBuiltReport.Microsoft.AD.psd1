@@ -54,11 +54,11 @@
     RequiredModules = @(
         @{
             ModuleName = 'AsBuiltReport.Core';
-            ModuleVersion = '1.6.2'
+            ModuleVersion = '1.6.3'
         },
         @{
             ModuleName = 'AsBuiltReport.Chart';
-            ModuleVersion = '0.3.1'
+            ModuleVersion = '0.3.2'
         },
         @{
             ModuleName = 'AsBuiltReport.Diagram';
@@ -117,7 +117,7 @@
             ProjectUri = 'https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD'
 
             # A URL to an icon representing this module.
-            IconUri = 'https://github.com/AsBuiltReport.png'
+            PackageIcon = 'https://github.com/AsBuiltReport.png'
 
             # ReleaseNotes of this module
             ReleaseNotes = 'https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/CHANGELOG.md'
