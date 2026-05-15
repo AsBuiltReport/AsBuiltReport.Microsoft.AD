@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add cmdlet Get-AbrAdLog to collect report diagnostic log
 
+### Fixed
+
+- Add validation for ADSystem before accessing RootDomain to prevent errors
+- Add success message logging for completed commands in Invoke-CommandWithTimeout function
+- Update localization files to include NoData messages and improve key matching in tests
+
 ## [1.0.0] - 2026-05-02
 
 ### Added
