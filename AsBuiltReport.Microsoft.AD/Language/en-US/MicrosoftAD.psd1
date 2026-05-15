@@ -41,6 +41,7 @@
     SystemsUnreachable = The following systems could not be contacted:
     DomainControllers = Domain Controllers
     Domains = Domains
+    NoData = No data returned (Get-ADForest returned $null)
 '@
 
     # InvokeAsBuiltReportMicrosoftAD
