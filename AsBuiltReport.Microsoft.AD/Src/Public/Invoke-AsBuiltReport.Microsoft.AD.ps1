@@ -141,7 +141,11 @@ function Invoke-AsBuiltReport.Microsoft.AD {
             throw ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ForestError -f $System, $_.Exception.Message)
         }
 
-        $script:ForestInfo = $ADSystem.RootDomain.toUpper()
+        if (-not $ADSystem) {
+            throw ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.ForestError -f $System, $reportTranslate.InvokeAsBuiltReportMicrosoftAD.NoData)
+        } else {
+            $script:ForestInfo = $ADSystem.RootDomain.toUpper()
+        }
         $RootDomains = $ADSystem.RootDomain
         $ChildDomains = [System.Collections.Generic.List[object]]::new()
         if ($Options.Include.Domains) {
