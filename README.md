@@ -256,6 +256,15 @@ PS C:\> Start-AsBuiltReportMSAD
 
 ![alt text](Samples/Sample-Gui.png)
 
+### :memo: Log Collection
+
+The `Get-AbrAdLog` cmdlet can be used to collect AsBuiltReport.Microsoft.AD logs for troubleshooting purposes. This cmdlet collects the logs and diagnostic information from the powershell host running the report and saves them to a specified output folder.
+
+```powershell
+# Collect powershell host logs and diagnostic information. Save logs to 'C:\Users\Jon\Desktop\'.
+PS C:\> Get-AbrAdLog -OutputFolderPath 'C:\Users\Jon\Desktop\' -IncludeErrorDetails
+```
+
 ## :x: Known Issues
 - **PSWriteWord Module Conflict**: PScribo and the EvotecIT "PSWriteWord" project use conflicting cmdlets. The PSWriteWord module must be uninstalled before generating reports.
 - **WinRM Dependency**: This report relies heavily on remote connections via WinRM. A Windows 10 client is recommended as a jumpbox for optimal connectivity.
