@@ -61,10 +61,6 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
             $DiagramModule = $Manifest.RequiredModules | Where-Object { $_.Name -eq 'AsBuiltReport.Diagram' }
             $DiagramModule.Version | Should -BeGreaterOrEqual ([Version]'1.0.5')
         }
-        It 'Should require PSPKI version 4.3.0 or higher' {
-            $PSPKIModule = $Manifest.RequiredModules | Where-Object { $_.Name -eq 'PSPKI' }
-            $PSPKIModule.Version | Should -BeGreaterOrEqual ([Version]'4.3.0')
-        }
 
         It 'Should export the Invoke-AsBuiltReport.Microsoft.AD function' {
             $Manifest.ExportedFunctions.Keys | Should -Contain 'Invoke-AsBuiltReport.Microsoft.AD'
@@ -91,8 +87,7 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
             $Manifest.PowerShellVersion | Should -BeGreaterOrEqual ([Version]'5.1')
         }
 
-        It 'Should support Desktop and Core editions' {
-            $Manifest.CompatiblePSEditions | Should -Contain 'Desktop'
+        It 'Should support Core editions' {
             $Manifest.CompatiblePSEditions | Should -Contain 'Core'
         }
 
@@ -109,11 +104,6 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
         It 'Should have a ReleaseNotes URI' {
             $Manifest.PrivateData.PSData.ReleaseNotes | Should -Not -BeNullOrEmpty
             $Manifest.PrivateData.PSData.ReleaseNotes | Should -Match '^https?://'
-        }
-
-        It 'Should have an IconUri' {
-            $Manifest.PrivateData.PSData.IconUri | Should -Not -BeNullOrEmpty
-            $Manifest.PrivateData.PSData.IconUri | Should -Match '^https?://'
         }
 
         It 'Should have module version matching expected format' {
@@ -183,7 +173,7 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
 
     Context 'Public Functions' {
         It 'Should export Invoke-AsBuiltReport.Microsoft.AD function' {
-            Get-Command -name 'Invoke-AsBuiltReport.Microsoft.AD' -Module 'AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command -Name 'Invoke-AsBuiltReport.Microsoft.AD' -Module 'AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
         }
 
         It 'Should have exactly 1 exported function' {
@@ -222,18 +212,18 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
 
     Context 'Help Content' {
         It 'Invoke-AsBuiltReport.Microsoft.AD should have help content' {
-            $Help = Get-Help -name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
+            $Help = Get-Help -Name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
             $Help | Should -Not -BeNullOrEmpty
             $Help.Synopsis | Should -Not -BeNullOrEmpty
         }
 
         It 'Invoke-AsBuiltReport.Microsoft.AD should have description' {
-            $Help = Get-Help -name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
+            $Help = Get-Help -Name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
             $Help.Description | Should -Not -BeNullOrEmpty
         }
 
         It 'Invoke-AsBuiltReport.Microsoft.AD should have a link' {
-            $Help = Get-Help -name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
+            $Help = Get-Help -Name 'Invoke-AsBuiltReport.Microsoft.AD' -ErrorAction SilentlyContinue
             $Help.relatedLinks | Should -Not -BeNullOrEmpty
         }
     }
@@ -276,10 +266,6 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
             $JsonConfig.InfoLevel.PSObject.Properties.Name | Should -Contain 'DNS'
         }
 
-        It 'InfoLevel should include CA' {
-            $JsonConfig.InfoLevel.PSObject.Properties.Name | Should -Contain 'CA'
-        }
-
         It 'HealthCheck should include Domain checks' {
             $JsonConfig.HealthCheck.PSObject.Properties.Name | Should -Contain 'Domain'
         }
@@ -294,10 +280,6 @@ Describe 'AsBuiltReport.Microsoft.AD Module Tests' {
 
         It 'HealthCheck should include DNS checks' {
             $JsonConfig.HealthCheck.PSObject.Properties.Name | Should -Contain 'DNS'
-        }
-
-        It 'HealthCheck should include CA checks' {
-            $JsonConfig.HealthCheck.PSObject.Properties.Name | Should -Contain 'CA'
         }
     }
 

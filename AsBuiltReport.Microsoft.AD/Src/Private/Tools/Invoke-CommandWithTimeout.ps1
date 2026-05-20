@@ -75,5 +75,6 @@ function Invoke-CommandWithTimeout {
     Remove-Job -Job $job -ErrorAction SilentlyContinue
 
     # Return the job results
+    Write-PScriboMessage -Message "Command '$ScriptBlock' completed successfully."
     return $results
 }

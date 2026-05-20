@@ -12,15 +12,15 @@ BeforeAll {
 
         foreach ($line in $content) {
             # Match section headers like: GetAbrAzTenant = ConvertFrom-StringData @'
-            if ($line -match '^\s*(\w+)\s*=\s*ConvertFrom-StringData') {
+            if ($line -match '^\s*([\w-]+)\s*=\s*ConvertFrom-StringData') {
                 $currentSection = $Matches[1]
             }
-            # Match key-value pairs within sections
-            elseif ($currentSection -and $line -match '^\s+(\w+)\s*=' -and $line -notmatch "^'@") {
+            # Match key-value pairs within sections (allow dashes and dots in keys)
+            elseif ($currentSection -and $line -match '^\s+([\w.-]+)\s*=' -and $line -notmatch "^\s*'@") {
                 $keys += "$currentSection.$($Matches[1])"
             }
             # End of section
-            elseif ($line -match "^'@") {
+            elseif ($line -match "^\s*'@") {
                 $currentSection = $null
             }
         }
