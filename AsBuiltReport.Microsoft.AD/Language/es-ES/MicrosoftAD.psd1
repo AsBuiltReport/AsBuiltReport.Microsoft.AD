@@ -42,6 +42,7 @@
     DomainControllers = Controladores de Dominio
     Domains = Dominios
     NoData = No hay datos disponibles (Get-ADForest devolvió $null)
+    RunAsAdministrator = Please run the report with Run As Administrator priviledges.
 '@
 
     # ConvertToTextYN
