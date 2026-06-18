@@ -11,13 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add cmdlet Get-AbrAdLog to collect report diagnostic log
+- Add cmdlet `Get-AbrAdLog` to collect report diagnostic log
+
+### Changed
+
+- Bump module version to `1.0.1`
+- Upgrade AsBuiltReport.Diagram module to version `1.0.8`
+- Upgrade AsBuiltReport.Chart module to version `0.3.3`
 
 ### Fixed
 
 - Add validation for ADSystem before accessing RootDomain to prevent errors
-- Add success message logging for completed commands in Invoke-CommandWithTimeout function
+- Add success message logging for completed commands in `Invoke-CommandWithTimeout` function
 - Update localization files to include NoData messages and improve key matching in tests
+- Fix [255](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/255)
 
 ## [1.0.0] - 2026-05-02
 

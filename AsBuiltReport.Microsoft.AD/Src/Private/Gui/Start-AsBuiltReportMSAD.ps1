@@ -1,5 +1,3 @@
-#Requires -RunAsAdministrator
-
 using namespace GliderUI
 using namespace GliderUI.Avalonia
 using namespace GliderUI.Avalonia.Controls
@@ -30,6 +28,13 @@ function Start-AsBuiltReportMSAD {
 
     if ($PSVersionTable.PSVersion.Major -lt 7 -or ($PSVersionTable.PSVersion.Major -eq 7 -and $PSVersionTable.PSVersion.Minor -lt 4)) {
         throw "Start-AsBuiltReportMSAD requires PowerShell 7.4+. Current version: $($PSVersionTable.PSVersion)"
+    }
+
+    $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+    if (-not $IsAdmin) {
+        Write-Error -Message 'Please run the report with Run As Administrator priviledges.'
+        break
     }
 
     # ── Bootstrap GliderUI ──────────────────────────────────────────────────────

@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        1.0.0
+        Version:        1.0.1
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -22,8 +22,14 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         [PSCredential] $Credential
     )
 
-    #Requires -RunAsAdministrator
     #Requires -Version 7.4
+
+    $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+    if (-not $IsAdmin) {
+        Write-Error -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.RunAsAdministrator
+        break
+    }
 
     if ($psISE) {
         Write-Error -Message $reportTranslate.InvokeAsBuiltReportMicrosoftAD.PwshISE

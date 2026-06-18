@@ -89,6 +89,8 @@ A Microsoft AD As Built Report can be generated with Active Directory Enterprise
 Due to a limitation of the WinRM component, a domain-joined machine is needed, also it is required to use the FQDN of the DC instead of it's IP address.
 [Reference](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_troubleshooting?view=powershell-7.1#how-to-use-an-ip-address-in-a-remote-command)
 
+- The report must be run in a console with administrator privileges (“Run as Administrator”).
+
 ## :package: Module Installation
 
 ### PowerShell v5.x running on a Domain Controller server
