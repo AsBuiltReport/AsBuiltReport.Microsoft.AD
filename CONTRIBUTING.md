@@ -1,142 +1,222 @@
-# Contributing to this project
+# Contributing to AsBuiltReport
 
-Please take a moment to review this document in order to make the contribution
-process easy and effective for everyone involved.
+Your contribution is welcomed and appreciated! Thank you for taking the time to contribute to this project.
 
-Following these guidelines helps to communicate that you respect the time of
-the developers managing and developing this open source project. In return,
-they should reciprocate that respect in addressing your issue or assessing
-patches and features.
+Please take a moment to review this document to make the contribution process easy and effective for everyone involved.
 
+Following these guidelines helps to communicate that you respect the time of the developers managing and developing this open source project. In return, they should reciprocate that respect in addressing your issue or assessing patches and features.
 
-## Using the issue tracker
+## Ways to Contribute
 
-The issue tracker is the preferred channel for [bug reports](#bugs),
-[features requests](#features) and [submitting pull
-requests](#pull-requests), but please respect the following restrictions:
+Contributing to this project is as easy as:
 
-* Please **do not** use the issue tracker for personal support requests (use
-  [Stack Overflow](http://stackoverflow.com) or Veeam Forum).
+- Reporting bugs and issues
+- Proposing new features
+- Discussing the current state of the code
+- Submitting fixes and improvements
+- Creating new report modules
+- Improving documentation
 
-* Please **do not** derail or troll issues. Keep the discussion on topic and
-  respect the opinions of others.
+For comprehensive contribution guidelines, please visit our [Developer Guide](https://www.asbuiltreport.com/dev-guide/contributing).
 
+## Getting Started
 
-<a name="bugs"></a>
-## Bug reports
+### Prerequisites
 
-A bug is a _demonstrable problem_ that is caused by the code in the repository.
-Good bug reports are extremely helpful - thank you!
+- A [GitHub account](https://github.com/signup/free)
+- Git installed on your local machine
+- PowerShell 5.1 or PowerShell 7+
+- [Visual Studio Code](https://code.visualstudio.com/) (recommended)
 
-Guidelines for bug reports:
+### Learning Resources
 
-1. **Use the GitHub issue search** &mdash; check if the issue has already been
-   reported.
+If you're new to Git and GitHub:
 
-2. **Check if the issue has been fixed** &mdash; try to reproduce it using the
-   latest `master` or development branch in the repository.
+- [GitHub's guide on Forking](https://docs.github.com/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks)
+- [GitHub's guide on Contributing to Open Source](https://docs.github.com/get-started/exploring-projects-on-github/finding-ways-to-contribute-to-open-source-on-github)
+- [Understanding the GitHub Flow](https://docs.github.com/get-started/quickstart/github-flow)
 
-3. **Isolate the problem** &mdash; create a [reduced test
-   case](http://css-tricks.com/reduced-test-cases/) and a live example.AsBuiltReport.Microsoft.AD
+## Using the Issue Tracker
 
-A good bug report shouldn't leave others needing to chase you up for more
-information. Please try to be as detailed as possible in your report. What is
-your environment? What steps will reproduce the issue? What browser(s) and OS
-experience the problem? What would you expect to be the outcome? All these
-details will help people to fix any potential bugs.
+The issue tracker is the preferred channel for bug reports, feature requests, and submitting pull requests. Please respect the following:
 
-Example:
+- **Do not** use the issue tracker for personal support requests. Use our [Discussion Board](https://github.com/orgs/AsBuiltReport/discussions) instead.
+- **Do not** derail or troll issues. Keep discussions on topic and respect the opinions of others.
+- Search existing issues (both open and closed) before creating a new one to avoid duplicates.
 
-> Short and descriptive example bug report title
->
-> A summary of the issue and the browser/OS environment in which it occurs. If
-> suitable, include the steps required to reproduce the bug.
->
-> 1. This is the first step
-> 2. This is the second step
-> 3. Further steps, etc.
->
-> `<url>` - a link to the reduced test case
->
-> Any other information you want to share that is relevant to the issue being
-> reported. This might include the lines of code that you have identified as
-> causing the bug, and potential solutions (and your opinions on their
-> merits).
+## Reporting Bugs
 
+A bug is a demonstrable problem that is caused by the code in the repository. Good bug reports are extremely helpful!
 
-<a name="features"></a>
-## Feature requests
+### Before Submitting a Bug Report
 
-Feature requests are welcome. But take a moment to find out whether your idea
-fits with the scope and aims of the project. It's up to *you* to make a strong
-case to convince the project's developers of the merits of this feature. Please
-provide as much detail and context as possible.
+Please perform the following due diligence:
 
+1. **Read the documentation** - Check the `README` in the AsBuiltReport.Microsoft.Azure repository, including Supported Versions, System Requirements, and Module Installation sections.
+2. **Update to the latest version** - Your issue may already be fixed in the most recent release.
+3. **Check dependencies** - Try upgrading or downgrading vendor PowerShell modules if applicable.
+4. **Use the `-Verbose` parameter** - This may help identify the issue.
+5. **Test with InfoLevels** - Set all InfoLevels to 0 in your report config, then gradually increase them to isolate the problem.
+6. **Try older versions** - If you're on the latest release, try rolling back to see if the problem exists in earlier versions.
+7. **Search existing issues** - Make sure it's not a known issue.
 
-<a name="pull-requests"></a>
-## Pull requests
+### What to Include in Bug Reports
 
-Good pull requests - patches, improvements, new features - are a fantastic
-help. They should remain focused in scope and avoid containing unrelated
-commits.
+A good bug report should include:
 
-**Please ask first** before embarking on any significant pull request (e.g.
-implementing features, refactoring code, porting to a different language),
-otherwise you risk spending a lot of time working on something that the
-project's developers might not want to merge into the project.
+- A quick summary and/or background of the issue
+- Software versions:
+  - AsBuiltReport module versions (e.g., AsBuiltReport.Core v1.4.3)
+  - PowerShell version (e.g., Windows PowerShell 5.1 or PowerShell 7.4)
+  - Operating System (e.g., Windows Server 2022)
+- Steps to reproduce:
+  - Be specific
+  - Provide the full command line you executed
+  - Include sample code if applicable
+  - Upload screenshots if helpful
+- What you expected to happen
+- What actually happened
+- Additional notes (why you think this might be happening, troubleshooting steps you've tried)
 
-Please adhere to the coding conventions used throughout a project (indentation,
-accurate comments, etc.) and any other requirements (such as test coverage).
+## Feature Requests
 
-Follow this process if you'd like your work considered for inclusion in the
-project:
+Feature requests are welcome! Please provide as much detail and context as possible about:
 
-1. [Fork](http://help.github.com/fork-a-repo/) the project, clone your fork,
-   and configure the remotes:
+- The problem you're trying to solve
+- Why this feature would be valuable
+- How you envision it working
+- Any examples from other tools or projects
 
+It's up to you to make a strong case for the merits of this feature. Keep in mind that features should fit within the scope and aims of the project.
+
+## Pull Requests
+
+Good pull requests (patches, improvements, new features) are a fantastic help. They should remain focused in scope and avoid containing unrelated commits.
+
+**Please ask first** before embarking on any significant pull request (e.g., implementing features, refactoring code), otherwise you risk spending time on something that might not be merged.
+
+### Creating Quality Pull Requests
+
+A good quality pull request will have:
+
+- **A meaningful title** describing what change you're making (not just "Fix issue #5")
+  - Use present tense and imperative mood: "Add support for Server 2022" not "Added support"
+  - "Fix connection timeout" not "Fixed for connection issue"
+- **A clear description** summarizing the changes and their benefits
+  - Reference related issues (e.g., "Fix #11")
+  - First sentence should explain the benefit to end users
+- **Focused scope** - Avoid PRs with too many changes; split large features into smaller PRs
+- **Updated documentation**:
+  - Update `CHANGELOG.md` with add/remove/fix/change information
+  - Update `README.md` with new features, instructions, parameters, or examples
+- **Well-written commits** that tell the story of the development
+- **Code quality** meeting project best practices
+
+### Submitting Pull Requests
+
+Always create pull requests against the `dev` branch:
+
+1. Fork the AsBuiltReport repository
+
+2. Clone your fork and add the upstream remote:
    ```bash
-   # Clone your fork of the repo into the current directory
-   git clone https://github.com/<your-username>/AsBuiltReport.Microsoft.AD
-   # Navigate to the newly cloned directory
-   cd AsBuiltReport.Microsoft.AD
-   # Assign the original repo to a remote called "upstream"
-   git remote add upstream https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD
+   git clone https://github.com/<your-username>/AsBuiltReport.Microsoft.Azure
+   cd AsBuiltReport.Microsoft.Azure
+   git remote add upstream https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.Azure
    ```
 
-2. If you cloned a while ago, get the latest changes from upstream:
-
+3. Create a new feature branch from `dev`:
    ```bash
-   git checkout <dev-branch>
-   git pull upstream <dev-branch>
+   git checkout dev
+   git pull upstream dev
+   git checkout -b <feature-branch-name>
    ```
 
-3. Create a new topic branch (off the main project development branch) to
-   contain your feature, change, or fix:
+4. Make your changes and commit with clear messages
 
+5. Update documentation (`CHANGELOG.md` and `README.md`)
+
+6. Squash commits into one or two succinct commits if needed:
    ```bash
-   git checkout -b <topic-branch-name>
+   git rebase -i HEAD~n  # n being the number of commits to rebase
    ```
 
-4. Commit your changes in logical chunks. Please adhere to these [git commit
-   message guidelines](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
-   or your code is unlikely be merged into the main project. Use Git's
-   [interactive rebase](https://help.github.com/articles/interactive-rebase)
-   feature to tidy up your commits before making them public.
-
-5. Locally merge (or rebase) the upstream development branch into your topic branch:
-
+7. Ensure your branch is up to date with upstream:
    ```bash
-   git pull [--rebase] upstream <dev-branch>
+   git fetch upstream
+   git rebase upstream/dev
    ```
 
-6. Push your topic branch up to your fork:
-
+8. Push your branch to your fork:
    ```bash
-   git push origin <topic-branch-name>
+   git push --force origin <feature-branch-name>
    ```
 
-7. [Open a Pull Request](https://help.github.com/articles/using-pull-requests/)
-    with a clear title and description.
+9. [Open a Pull Request](https://help.github.com/articles/using-pull-requests/) against the `dev` branch
 
-**IMPORTANT**: By submitting a patch, you agree to allow the project owner to
-license your work under the same license as that used by the project.
+Pull requests will be reviewed as soon as possible. Please follow the PR template provided in the repository.
+
+## Code Contributions
+
+### Code Editor
+
+We highly recommend using [Visual Studio Code](https://code.visualstudio.com/) for development.
+
+### Coding Standards
+
+Code contributors should follow the [PowerShell Best Practices and Style Guide](https://github.com/PoshCode/PowerShellPracticeAndStyle) to ensure consistency.
+
+Use [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) to check code quality.
+
+### DO
+
+- Use PascalCasing for all public member, type, and namespace names
+- Use custom label headers within tables for readability
+- Favor readability over brevity
+- Use PSCustomObjects to store data for PScribo tables:
+  ```powershell
+  $myObject = [PSCustomObject]@{
+      Name = 'Value'
+      Property = 'Value'
+  }
+
+  $TableParams = @{
+      Name = 'Table Name'
+      List = $true
+      ColumnWidths = 40, 60
+  }
+
+  if ($Report.ShowTableCaptions) {
+      $TableParams['Caption'] = "- $($TableParams.Name)"
+  }
+
+  $myObject | Table @TableParams
+  ```
+- Set ColumnWidths for all tables (list tables typically use 40, 60)
+- Sort primary object properties in alphanumeric order
+- Perform all safe commands (Get-*, API calls) at the start of scripts
+- Use comments in English to explain reasoning, not to describe commands
+- Maintain a changelog following [Keep a Changelog](https://keepachangelog.com/) guidelines
+
+### DO NOT
+
+- Include functions within report scripts (create separate files in `\Src\Private`)
+- Submit unrelated changes in the same pull request
+
+## Version Control Branching
+
+- Always create a new branch for your work
+- Base your branch off `dev`
+- Avoid submitting unrelated changes (bug fixes & new features) in the same branch
+
+## Questions and Discussion
+
+If you have questions or want to discuss contributions:
+
+- Raise an issue in the AsBuiltReport.Microsoft.Azure [repository](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.Azure)
+- Email us at support@asbuiltreport.com
+- Visit our website at [www.asbuiltreport.com](https://www.asbuiltreport.com)
+
+## License
+
+By submitting a patch, you agree to allow the project owner to license your work under the [MIT License](https://www.asbuiltreport.com/about/license/).
