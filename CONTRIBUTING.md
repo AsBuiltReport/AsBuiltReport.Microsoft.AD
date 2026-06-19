@@ -52,7 +52,7 @@ A bug is a demonstrable problem that is caused by the code in the repository. Go
 
 Please perform the following due diligence:
 
-1. **Read the documentation** - Check the `README` in the AsBuiltReport.Microsoft.Azure repository, including Supported Versions, System Requirements, and Module Installation sections.
+1. **Read the documentation** - Check the `README` in the AsBuiltReport.Microsoft.AD repository, including Supported Versions, System Requirements, and Module Installation sections.
 2. **Update to the latest version** - Your issue may already be fixed in the most recent release.
 3. **Check dependencies** - Try upgrading or downgrading vendor PowerShell modules if applicable.
 4. **Use the `-Verbose` parameter** - This may help identify the issue.
@@ -120,9 +120,9 @@ Always create pull requests against the `dev` branch:
 
 2. Clone your fork and add the upstream remote:
    ```bash
-   git clone https://github.com/<your-username>/AsBuiltReport.Microsoft.Azure
-   cd AsBuiltReport.Microsoft.Azure
-   git remote add upstream https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.Azure
+   git clone https://github.com/<your-username>/AsBuiltReport.Microsoft.AD
+   cd AsBuiltReport.Microsoft.AD
+   git remote add upstream https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD
    ```
 
 3. Create a new feature branch from `dev`:
@@ -213,7 +213,7 @@ Use [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) to check 
 
 If you have questions or want to discuss contributions:
 
-- Raise an issue in the AsBuiltReport.Microsoft.Azure [repository](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.Azure)
+- Raise an issue in the AsBuiltReport.Microsoft.AD [repository](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD)
 - Email us at support@asbuiltreport.com
 - Visit our website at [www.asbuiltreport.com](https://www.asbuiltreport.com)
 
