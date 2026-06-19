@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add success message logging for completed commands in `Invoke-CommandWithTimeout` function
 - Update localization files to include NoData messages and improve key matching in tests
 - Fix [255](https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/issues/255)
+- Fix non-printable ASCII characters from a string
 
 ## [1.0.0] - 2026-05-02
 
