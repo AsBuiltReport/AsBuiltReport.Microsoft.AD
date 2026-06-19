@@ -1,4 +1,4 @@
-Thanks for helping make AsBuiltReport.Veeam.VBR safe for everyone.
+Thanks for helping make AsBuiltReport.Microsoft.Windows safe for everyone.
 
 ## Security
 
