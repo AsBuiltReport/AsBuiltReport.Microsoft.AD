@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade AsBuiltReport.Diagram module to version `1.0.8`
 - Upgrade AsBuiltReport.Chart module to version `0.3.3`
 - Set an option to enable/disable the main logo of the diagrams
+- Update github actions to latest releases
 
 ### Fixed
 
