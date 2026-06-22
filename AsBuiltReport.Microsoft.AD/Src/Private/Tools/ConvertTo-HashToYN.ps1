@@ -3,10 +3,13 @@ function ConvertTo-HashToYN {
     .SYNOPSIS
         Used by As Built Report to convert array content true or false automatically to Yes or No.
     .DESCRIPTION
-
+        Used by As Built Report to convert array content true or false automatically to Yes or No.
+        Now also strips non-printable ASCII characters from string values while creating the array hash.
+		This is required for Word Document Output as PSCribo cannot create Word documents with non-ASCII characters
     .NOTES
-        Version:        0.2.0
+        Version:        0.1.1
         Author:         Jonathan Colon
+        Changes:        0.1.1 - Updated to include non-unicode character string cleaning. Graham Flynn - 30/07/2025
 
     .EXAMPLE
 
@@ -22,14 +25,31 @@ function ConvertTo-HashToYN {
     )
 
     $result = [ordered] @{}
+
     foreach ($i in $TEXT.GetEnumerator()) {
         try {
-            $result.add($i.Key, (ConvertTo-TextYN $i.Value))
+            $valueToProcess = $i.Value
+
+            # Check if the value is a string before attempting to clean it
+            if ($valueToProcess -is [string]) {
+                $valueToProcess = $valueToProcess | Remove-NonPrintableAscii
+            }
+
+            $convertedValue = ConvertTo-TextYN $valueToProcess
+
+            $result.add($i.Key, $convertedValue)
         } catch {
-            $result.add($i.Key, ($i.Value))
+            # If ConvertTo-TextYN fails, still try to clean the original value if it's a string
+            $originalValue = $i.Value
+            if ($originalValue -is [string]) {
+                $originalValue = $originalValue | Remove-NonPrintableAscii
+            }
+            $result.add($i.Key, ($originalValue)) # Add the (potentially cleaned) original value
         }
     }
     if ($result) {
-        $result
-    } else { $TEXT }
+        return $result
+    } else {
+        return $TEXT
+    }
 } # end

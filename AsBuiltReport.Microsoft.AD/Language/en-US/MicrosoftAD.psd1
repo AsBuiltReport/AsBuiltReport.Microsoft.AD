@@ -37,11 +37,12 @@
     DiagramExportError = Unable to export the diagram {0}: {1}
     ClearPSSession = Clearing PSSession with ID {0}
     ClearCIMSession = Clearing CIM session with ID {0}
-    FinishedReport = - Finished generating the report for the forest {0}:
+    FinishedReport = - Finished generating the report for the forest: {0}
     SystemsUnreachable = The following systems could not be contacted:
     DomainControllers = Domain Controllers
     Domains = Domains
-'@
+    NoData = No data returned (Get-ADForest returned $null)
+    RunAsAdministrator = Please run the report with Run As Administrator priviledges.
 
     # InvokeAsBuiltReportMicrosoftAD
     ConvertToTextYN = ConvertFrom-StringData @'

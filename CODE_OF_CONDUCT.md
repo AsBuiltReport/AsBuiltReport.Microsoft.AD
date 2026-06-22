@@ -1,4 +1,6 @@
-# Contributor Covenant Code of Conduct
+# Code of Conduct
+
+The AsBuiltReport project is committed to fostering an open and welcoming environment for all contributors, users, and community members.
 
 ## Our Pledge
 
@@ -36,6 +38,15 @@ Examples of unacceptable behavior include:
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
 
+## Technical Disagreements
+
+Technical disagreements are a normal part of open source development. When disagreements arise:
+
+* Focus on the technical merits of the solution
+* Assume good intentions from all parties
+* Seek to understand different perspectives
+* Escalate to maintainers if consensus cannot be reached
+
 ## Enforcement Responsibilities
 
 Community leaders are responsible for clarifying and enforcing our standards of
@@ -50,8 +61,14 @@ decisions when appropriate.
 
 ## Scope
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
+This Code of Conduct applies within all AsBuiltReport community spaces, including:
+
+* GitHub repositories (issues, pull requests, discussions)
+* Official social media channels
+* Community chat platforms
+* Project events and meetups
+
+It also applies when an individual is officially representing the AsBuiltReport community in public spaces.
 Examples of representing our community include using an official e-mail address,
 posting via an official social media account, or acting as an appointed
 representative at an online or offline event.
@@ -60,7 +77,8 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
-rebelinux@gmail.com.
+support@asbuiltreport.com.
+
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
@@ -106,7 +124,7 @@ Violating these terms may lead to a permanent ban.
 ### 4. Permanent Ban
 
 **Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior,  harassment of an
+standards, including sustained inappropriate behavior, harassment of an
 individual, or aggression toward or disparagement of classes of individuals.
 
 **Consequence**: A permanent ban from any sort of public interaction within

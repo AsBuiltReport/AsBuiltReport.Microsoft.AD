@@ -12,7 +12,7 @@
     RootModule = 'AsBuiltReport.Microsoft.AD.psm1'
 
     # Version number of this module.
-    ModuleVersion = '1.0.0'
+    ModuleVersion = '1.0.1'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -54,15 +54,15 @@
     RequiredModules = @(
         @{
             ModuleName = 'AsBuiltReport.Core';
-            ModuleVersion = '1.6.2'
+            ModuleVersion = '1.6.4'
         },
         @{
             ModuleName = 'AsBuiltReport.Chart';
-            ModuleVersion = '0.3.1'
+            ModuleVersion = '0.3.3'
         },
         @{
             ModuleName = 'AsBuiltReport.Diagram';
-            ModuleVersion = '1.0.7'
+            ModuleVersion = '1.0.8'
         }
     )
 
@@ -82,7 +82,7 @@
     # NestedModules = @()
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-    FunctionsToExport = @('Invoke-AsBuiltReport.Microsoft.AD', 'Start-AsBuiltReportMSAD')
+    FunctionsToExport = @('Invoke-AsBuiltReport.Microsoft.AD', 'Start-AsBuiltReportMSAD', 'Get-AbrAdLog')
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
     # CmdletsToExport = '*'
@@ -117,7 +117,7 @@
             ProjectUri = 'https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD'
 
             # A URL to an icon representing this module.
-            IconUri = 'https://github.com/AsBuiltReport.png'
+            PackageIcon = 'https://github.com/AsBuiltReport.png'
 
             # ReleaseNotes of this module
             ReleaseNotes = 'https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/CHANGELOG.md'

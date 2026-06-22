@@ -89,6 +89,9 @@ A Microsoft AD As Built Report can be generated with Active Directory Enterprise
 Due to a limitation of the WinRM component, a domain-joined machine is needed, also it is required to use the FQDN of the DC instead of it's IP address.
 [Reference](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_troubleshooting?view=powershell-7.1#how-to-use-an-ip-address-in-a-remote-command)
 
+> [!WARNING]
+> The report must be run in a console with administrator privileges (“Run as Administrator”).
+
 ## :package: Module Installation
 
 ### PowerShell v5.x running on a Domain Controller server
@@ -255,6 +258,15 @@ PS C:\> Start-AsBuiltReportMSAD
 **Beta** versions of the GUI may contain bugs and issues. If you encounter any problems while using the GUI, please report them on the project's GitHub Issues page.
 
 ![alt text](Samples/Sample-Gui.png)
+
+### :memo: Log Collection
+
+The `Get-AbrAdLog` cmdlet can be used to collect AsBuiltReport.Microsoft.AD logs for troubleshooting purposes. This cmdlet collects the logs and diagnostic information from the powershell host running the report and saves them to a specified output folder.
+
+```powershell
+# Collect powershell host logs and diagnostic information. Save logs to 'C:\Users\Jon\Desktop\'.
+PS C:\> Get-AbrAdLog -OutputFolderPath 'C:\Users\Jon\Desktop\' -IncludeErrorDetails
+```
 
 ## :x: Known Issues
 - **PSWriteWord Module Conflict**: PScribo and the EvotecIT "PSWriteWord" project use conflicting cmdlets. The PSWriteWord module must be uninstalled before generating reports.
