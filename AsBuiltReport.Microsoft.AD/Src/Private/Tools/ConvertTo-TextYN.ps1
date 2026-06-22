@@ -20,6 +20,7 @@ function ConvertTo-TextYN {
             Position = 0,
             Mandatory)]
         [AllowEmptyString()]
+        [AllowNull()]
         [string] $TEXT
     )
 

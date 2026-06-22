@@ -115,6 +115,10 @@ function Get-AbrDiagrammer {
                 $DiagramParams.Add('CompanyName', $Options.SignatureCompanyName)
             }
 
+            if ($Options.DisableDiagramMainLogo) {
+                $DiagramParams.Add('DisableMainDiagramLogo', $True)
+            }
+
             try {
                 foreach ($Format in $DiagramFormat) {
                     if ($Format -eq 'base64') {

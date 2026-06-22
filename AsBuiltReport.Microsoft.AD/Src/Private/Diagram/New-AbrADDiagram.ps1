@@ -53,6 +53,8 @@ function New-AbrADDiagram {
         Control to enable subgraph debugging ( Subgraph Lines ).
     .PARAMETER EnableErrorDebug
         Control to enable error debugging.
+    .PARAMETER DisableMainDiagramLogo
+        Switch to disable rendering the main diagram logo.
     .PARAMETER AuthorName
         Allow to set footer signature Author Name.
     .PARAMETER CompanyName
@@ -154,6 +156,12 @@ function New-AbrADDiagram {
         )]
         [ValidateSet('left-to-right', 'top-to-bottom')]
         [string] $Direction = 'top-to-bottom',
+
+        [Parameter(
+            Mandatory = $false,
+            HelpMessage = 'Disable the Main Diagram Logo'
+        )]
+        [Switch] $DisableMainDiagramLogo,
 
         [Parameter(
             Mandatory = $false,
@@ -510,8 +518,15 @@ function New-AbrADDiagram {
 
                     Write-Verbose $reportTranslate.NewADDiagram.genDiagramSignature
 
+                    # Subgraph MainGraph used to draw the main drawboard.
+                    if ($DisableMainDiagramLogo) {
+                        $FormatedMainLogo = ''
+                    } else {
+                        $FormatedMainLogo = Add-HtmlLabel -ImagesObj $Images -Label $MainGraphLabel -IconType $CustomLogo -IconDebug $IconDebug -IconWidth 250 -IconHeight 80 -Fontsize 24 -FontName 'Segoe UI Bold' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor
+                    }
+
                     # Main Graph SubGraph
-                    SubGraph MainGraph -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $MainGraphLabel -IconType $CustomLogo -IconDebug $IconDebug -IconWidth 250 -IconHeight 80 -Fontsize 24 -FontName 'Segoe UI Bold' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 22; penwidth = 0; labelloc = 't'; labeljust = 'c' } {
+                    SubGraph MainGraph -Attributes @{Label = $FormatedMainLogo; fontsize = 22; penwidth = 0; labelloc = 't'; labeljust = 'c' } {
                         Write-Verbose $reportTranslate.NewADDiagram.genDiagramMain
 
                         $script:ForestRoot = $ADSystem.Name.ToString().ToUpper()

@@ -45,7 +45,8 @@
         "SignatureAuthorName": "",
         "SignatureCompanyName": "",
         "JobsTimeOut": 900,
-        "DCStatusPingCount": 2
+        "DCStatusPingCount": 2,
+        "DisableDiagramMainLogo": false
     },
     "InfoLevel": {
         "_comment_": "0 = Disabled, 1 = Enabled, 2 = Adv Summary, 3 = Detailed",

@@ -26,7 +26,7 @@ function Get-AbrAdLog {
         Saves a full diagnostic JSON (with stack traces) to C:\Logs and returns the
         object to the pipeline.
     .NOTES
-        Version:        0.1.0
+        Version:        1.0.1
         Author:         Jonathan Colon
         Github:         rebelinux
     .LINK
