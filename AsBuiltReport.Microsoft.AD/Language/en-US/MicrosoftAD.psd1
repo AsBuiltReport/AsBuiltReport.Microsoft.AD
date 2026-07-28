@@ -43,6 +43,7 @@
     Domains = Domains
     NoData = No data returned (Get-ADForest returned $null)
     RunAsAdministrator = Please run the report with Run As Administrator priviledges.
+'@
 
     # InvokeAsBuiltReportMicrosoftAD
     ConvertToTextYN = ConvertFrom-StringData @'

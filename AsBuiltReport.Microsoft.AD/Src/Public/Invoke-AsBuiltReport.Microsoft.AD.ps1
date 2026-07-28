@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Microsoft.AD {
     .DESCRIPTION
         Documents the configuration of Microsoft AD in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        1.0.1
+        Version:        1.0.2
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -172,7 +172,9 @@ function Invoke-AsBuiltReport.Microsoft.AD {
         Write-Host ($reportTranslate.InvokeAsBuiltReportMicrosoftAD.GettingForestInfo -f $RootDomains)
 
         if ($ChildDomains) {
-            $OrderedDomains.Add($ChildDomains)
+            foreach ($ChildDomain in $ChildDomains) {
+                $OrderedDomains.Add($ChildDomain)
+            }
             Write-Host ("  $($reportTranslate.InvokeAsBuiltReportMicrosoftAD.DiscoveringChildDomains)" -f $RootDomains, ($OrderedDomains -join ', '))
         }
 
