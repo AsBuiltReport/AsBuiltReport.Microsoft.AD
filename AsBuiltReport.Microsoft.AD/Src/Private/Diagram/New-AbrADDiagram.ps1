@@ -533,29 +533,30 @@ function New-AbrADDiagram {
 
                         # Call Forest Diagram
                         if ($DiagramType -eq 'Forest') {
-                            if ($ForestInfo = Get-AbrDiagForest | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) {
+                            if ($ForestInfo = Get-AbrDiagForest) {
                                 $ForestInfo
                             } else { Write-Warning $reportTranslate.NewADDiagram.emptyForest }
                         } elseif ($DiagramType -eq 'CertificateAuthority') {
                             $CAInfo = Get-AbrDiagCertificateAuthority
-                            if ($CAInfo = Get-AbrDiagCertificateAuthority | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) {
+                            if ($CAInfo = Get-AbrDiagCertificateAuthority) {
                                 $CAInfo
                             } else { Write-Warning $reportTranslate.NewADDiagram.emptyForest }
                         } elseif ($DiagramType -eq 'Sites') {
-                            if ($SitesInfo = Get-AbrDiagSite | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) {
+                            if ($SitesInfo = Get-AbrDiagSite) {
                                 $SitesInfo
                             } else { Write-Warning $reportTranslate.NewADDiagram.emptySites }
                         } elseif ($DiagramType -eq 'SitesInventory') {
-                            if ($SitesInfo = Get-AbrDiagSiteInventory | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) {
+                            if ($SitesInfo = Get-AbrDiagSiteInventory) {
                                 $SitesInfo
                             } else { Write-Warning $reportTranslate.NewADDiagram.emptySites }
                         } elseif ($DiagramType -eq 'Trusts') {
-                            if ($TrustsInfo = Get-AbrDiagTrust | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) {
+                            if ($TrustsInfo = Get-AbrDiagTrust) {
                                 $TrustsInfo
                             } else { Write-Warning $reportTranslate.NewADDiagram.emptyTrusts }
                         } elseif ($DiagramType -eq 'Replication') {
-                            if ($ReplInfo = Get-AbrDiagReplication | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) {
+                            if ($ReplInfo = Get-AbrDiagReplication) {
                                 $ReplInfo
+                                $ReplInfo | Out-File ./Data.txt
                             } else { Write-Warning $reportTranslate.NewADDiagram.emptyReplication }
                         }
                     }
@@ -572,7 +573,9 @@ function New-AbrADDiagram {
         #Export Diagram
         foreach ($OutputFormat in $Format) {
 
-            $OutputDiagram = Export-AbrDiagram -GraphObj ($Graph | Select-String -Pattern '"([A-Z])\w+"\s\[label="";style="invis";shape="point";]' -NotMatch) -ErrorDebug $EnableErrorDebug -Format $OutputFormat -Filename $Filename -OutputFolderPath $OutputFolderPath -WaterMarkText $WaterMarkText -WaterMarkColor $WaterMarkColor -IconPath $IconPath -Verbose:$Verbose -Rotate $Rotate
+            $filterPattern = $Graph | Select-String -Pattern '(?s)"?\w+"?\s+\[\s*label="";\s*shape="point";\s*style="invis";\s*\]', '(?s)"?\w+"?\s+\[\s*label="";\s*style="invis";\s*shape="point";\s*\]', '(?s)"?\w+"?\s+\[\s*shape="point";\s*label="";\s*style="invis";\s*\]', '(?s)"?\w+"?\s+\[\s*shape="point";\s*style="invis";\s*label="";\s*\]', '(?s)"?\w+"?\s+\[\s*style="invis";\s*label="";\s*shape="point";\s*\]', '(?s)"?\w+"?\s+\[\s*style="invis";\s*shape="point";\s*label="";\s*\]' -NotMatch
+
+            $OutputDiagram = Export-AbrDiagram -GraphObj $filterPattern -ErrorDebug $EnableErrorDebug -Format $OutputFormat -Filename $Filename -OutputFolderPath $OutputFolderPath -WaterMarkText $WaterMarkText -WaterMarkColor $WaterMarkColor -IconPath $IconPath -Verbose:$Verbose -Rotate $Rotate
 
             if ($OutputDiagram) {
                 if ($OutputFormat -ne 'Base64') {
