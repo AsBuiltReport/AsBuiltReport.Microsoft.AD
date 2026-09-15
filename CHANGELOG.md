@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [1.0.3] - 2026-09-14
+
+### Changed
+
+- Bump module version to `1.0.3`
+- Upgrade AsBuiltReport.Diagram module to version `1.0.11`
+
+### Fixed
+
+- Fix for hidden nodes in diagrams not being filtered out correctly, which could lead to incomplete or inaccurate visual representations of the Active Directory structure in the generated reports.
+
 ## [1.0.2] - 2026-07-27
 
 ### Changed
