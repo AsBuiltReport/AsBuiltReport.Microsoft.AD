@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Bump module version to `1.0.3`
-- Upgrade AsBuiltReport.Diagram module to version `1.0.12`
+- Upgrade AsBuiltReport.Diagram module to version `1.0.11`
 
 ### Fixed
 
