@@ -116,9 +116,7 @@ function Get-AbrDiagrammer {
                 $ADSystem = Invoke-CommandWithTimeout -Session $DiagramTempPssSession `
                     -ScriptBlock { Get-ADForest -ErrorAction Stop }
                 $ForestRoot = $ADSystem.Name.ToString().ToUpper()
-                if (-not $PSSessionObject) {
-                    Remove-PSSession -Session $DiagramTempPssSession
-                }
+
                 $script:ForestRoot = $ForestRoot
 
                 $DiagramParams = @{
@@ -203,6 +201,10 @@ function Get-AbrDiagrammer {
                 }
                 if (-not $DiagramGraph) {
                     return
+                }
+
+                if (-not $PSSessionObject) {
+                    Remove-PSSession -Session $DiagramTempPssSession
                 }
 
                 $DiagramParams.add('InputObject', $DiagramGraph)
