@@ -5,7 +5,7 @@ function Get-AbrADTrustsInfo {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        1.0.0
+        Version:        1.0.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux

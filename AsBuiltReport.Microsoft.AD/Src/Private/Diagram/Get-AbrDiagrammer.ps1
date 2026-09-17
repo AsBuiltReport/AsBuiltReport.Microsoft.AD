@@ -181,6 +181,10 @@ function Get-AbrDiagrammer {
                     $NodeFontcolor = 'Black'
                 }
 
+                if ($DiagramType -eq 'Sites') {
+                    $DiagramParams.Add('MainGraphAttributes', @{'concentrate' = 'true' })
+                }
+
                 if ($SubGraphDebug.style -eq 'dashed') {
                     $DiagramParams.Add('DraftMode', $true)
                 }
