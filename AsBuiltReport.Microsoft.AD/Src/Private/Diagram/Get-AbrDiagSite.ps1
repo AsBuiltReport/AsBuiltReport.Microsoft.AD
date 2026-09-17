@@ -5,7 +5,7 @@ function Get-AbrDiagSite {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        1.0.0
+        Version:        1.0.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -37,29 +37,29 @@ function Get-AbrDiagSite {
                             if ($SitesInfo.Site) {
                                 foreach ($SitesObj in $SitesInfo) {
                                     $Site = Remove-SpecialCharacter -String "$($SitesObj.Name)" -SpecialChars '\-. '
-                                    Node -Name $Site -Attributes @{Label = $SitesObj.Name; penwidth = 1; width = 2; height = .5; fillColor = '#99ceff' }
+                                    Add-NodeIcon -Name $Site -FontBold -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = $SitesObj.Name; shape = 'rectangle'; labelloc = 'c'; penwidth = 0; fillColor = '#b14b5a' }
                                     foreach ($Link in $SitesObj.SiteLink) {
                                         # Start - Information for each SiteLink. Example: "Name: (Pharmax-to-Acad) SiteLink (Cost: 10) (Frequency: 15 minutes)"
                                         $SiteLink = Remove-SpecialCharacter -String $Link.Name -SpecialChars '\-. '
-                                        Node -Name $SiteLink -Attributes @{Label = (Add-HtmlTable -Name SiteLink -ALIGN 'Center' -IconDebug $IconDebug -Rows ($Link.AditionalInfo.GetEnumerator() | ForEach-Object { "$($_.key): $($_.value)" }) -ColumnSize 1 -FontSize 12 -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor); shape = 'plain'; fillColor = 'transparent' }
-                                        Edge -From $Site -To $SiteLink @{minlen = 2; arrowtail = 'none'; arrowhead = 'none' }
+                                        Add-NodeIcon -Name $SiteLink -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = (Add-HtmlTable -Name SiteLink -Align 'Center' -IconDebug $IconDebug -Rows ($Link.AditionalInfo.GetEnumerator() | ForEach-Object { "$($_.key): $($_.value)" }) -ColumnSize 1 -FontSize 12 -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor); shape = 'plain'; fillColor = 'transparent' }
+                                        Add-NodeEdge -From $Site -To $SiteLink -EdgeLength 2 -EdgeStyle 'dashed' -EdgeColor $Edgecolor -EdgeThickness 1 -Arrowtail none -Arrowhead none
                                         # End - Information for each SiteLink
                                         foreach ($SiteLinkSite in $Link.Sites) {
                                             # Start - Information for each connected Site. Example: "Name: (Pharmax)"
                                             $SiteIncluded = Remove-SpecialCharacter -String $SiteLinkSite -SpecialChars '\-. '
-                                            Node -Name $SiteIncluded -Attributes @{Label = $SiteLinkSite; penwidth = 1; width = 2; height = .5; fillColor = '#b2b2b2'; color = '#3b3b3b'; fontsize = 18 }
-                                            Edge -From $SiteLink -To $SiteIncluded @{minlen = 2; arrowtail = 'none'; arrowhead = 'normal' }
+                                            Add-NodeIcon -Name $SiteIncluded -FontBold -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = $SiteLinkSite; shape = 'rectangle'; labelloc = 'c'; penwidth = 0; fillColor = '#b2b2b2'; color = '#3b3b3b'; fontsize = 18 }
+                                            Add-NodeEdge -From $SiteLink -To $SiteIncluded -EdgeLength 2 -EdgeStyle 'dashed' -EdgeColor $Edgecolor -EdgeThickness 1 -Arrowtail none -Arrowhead normal
                                         }
                                     }
                                 }
                             } else {
                                 $Site = Remove-SpecialCharacter -String "$($SitesInfo.Name)" -SpecialChars '\-. '
-                                Node -Name $Site -Attributes @{Label = $SitesInfo.Name; penwidth = 1; width = 2; height = .5 }
+                                Add-NodeIcon -Name $Site -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = $SitesInfo.Name; penwidth = 1; width = 2; height = .5 }
                             }
                         }
                     }
                 } else {
-                    Node -Name NoSites -Attributes @{Label = $reportTranslate.NewADDiagram.NoSites; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 0 }
+                    Add-NodeIcon -Name 'NoSites' -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = $reportTranslate.NewADDiagram.NoSites; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 0 }
                 }
             }
         } catch {

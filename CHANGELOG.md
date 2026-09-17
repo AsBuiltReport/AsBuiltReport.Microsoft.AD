@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
+## [1.0.4] - Unreleased
+
+### Changed
+
+- Bump module version to `1.0.4`
+- Upgrade AsBuiltReport.Diagram module to version `1.0.12`
+- Refactor Get-AbrDiagrammer function to improve diagram generation logic and remove New-AbrADDiagram script
+- Migrate diagram code to use the AsBuiltReport.Diagram cmdlets
+
 ## [1.0.3] - 2026-09-14
 
 ### Changed

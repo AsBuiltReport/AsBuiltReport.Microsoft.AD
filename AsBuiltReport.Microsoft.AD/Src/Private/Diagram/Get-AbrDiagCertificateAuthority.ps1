@@ -5,7 +5,7 @@ function Get-AbrDiagCertificateAuthority {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        1.0.0
+        Version:        1.0.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -44,24 +44,24 @@ function Get-AbrDiagCertificateAuthority {
 
                                 $CARootNodes = Add-HtmlNodeTable -Name CARootNodes -ImagesObj $Images -inputObject ($CAInfo | Where-Object { $_.IsRoot }).CAName -Align 'Center' -iconType 'AD_Certificate' -ColumnSize 4 -IconDebug $IconDebug -MultiIcon -AditionalInfo ($CAInfo | Where-Object { $_.IsRoot }).AditionalInfo -FontSize 18 -TableBorderColor $Edgecolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor
 
-                                Node -Name 'RootCA' -Attributes @{Label = (Add-HtmlSubGraph -Name RootCA -ImagesObj $Images -TableArray $CARootNodes -Align 'Center' -IconDebug $IconDebug -Label $CALabel -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -IconType 'AD_PKI_Logo' -FontColor $Fontcolor -FontSize 24 -FontBold -TableBorderColor $Edgecolor -TableBackgroundColor $MainGraphBGColor); shape = 'plain'; fillColor = 'transparent'; fontsize = 18; fontname = 'Segoe Ui' }
+                                Add-NodeIcon -Name 'RootCA' -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = (Add-HtmlSubGraph -Name RootCA -ImagesObj $Images -TableArray $CARootNodes -Align 'Center' -IconDebug $IconDebug -Label $CALabel -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -IconType 'AD_PKI_Logo' -FontColor $Fontcolor -FontSize 24 -FontBold -TableBorderColor $Edgecolor -TableBackgroundColor $MainGraphBGColor); shape = 'plain'; fillColor = 'transparent'; fontsize = 18; fontname = 'Segoe Ui' }
                             }
 
                             if ($CAInfo | Where-Object { -not $_.IsRoot }) {
 
                                 $CASubordinateNodes = Add-HtmlNodeTable -Name CASubordinateNodes -ImagesObj $Images -inputObject ($CAInfo | Where-Object { -not $_.IsRoot }).CAName -Align 'Center' -iconType 'AD_Certificate' -ColumnSize 4 -IconDebug $IconDebug -MultiIcon -AditionalInfo ($CAInfo | Where-Object { -not $_.IsRoot }).AditionalInfo -FontSize 18 -TableBorderColor $Edgecolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor
 
-                                Node -Name 'SubordinateCA' -Attributes @{Label = (Add-HtmlSubGraph -Name SubordinateCA -ImagesObj $Images -TableArray $CASubordinateNodes -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.caEntSubCA -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -IconType 'AD_PKI_Logo' -FontColor $Fontcolor -FontSize 24 -FontBold -TableBorderColor $Edgecolor -TableBackgroundColor $MainGraphBGColor); shape = 'plain'; fillColor = 'transparent'; fontsize = 18; fontname = 'Segoe Ui' }
+                                Add-NodeIcon -Name 'SubordinateCA' -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = (Add-HtmlSubGraph -Name SubordinateCA -ImagesObj $Images -TableArray $CASubordinateNodes -Align 'Center' -IconDebug $IconDebug -Label $reportTranslate.NewADDiagram.caEntSubCA -LabelPos 'top' -TableStyle 'dashed,rounded' -TableBorder '1' -ColumnSize 3 -IconType 'AD_PKI_Logo' -FontColor $Fontcolor -FontSize 24 -FontBold -TableBorderColor $Edgecolor -TableBackgroundColor $MainGraphBGColor); shape = 'plain'; fillColor = 'transparent'; fontsize = 18; fontname = 'Segoe Ui' }
 
                             }
 
                             if ($CARootNodes -and $CASubordinateNodes) {
-                                Edge -From RootCA -To SubordinateCA @{minlen = 2 }
+                                Add-NodeEdge -From 'RootCA' -To 'SubordinateCA' -EdgeLength 2 -EdgeStyle 'dashed' -EdgeColor $Edgecolor -EdgeThickness 2 -Arrowhead 'normal' -Arrowtail 'dot'
                             }
                         }
                     }
                 } else {
-                    Node -Name NoDomain @{Label = $reportTranslate.NewADDiagram.NoCA; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '5'; height = '3'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
+                    Add-NodeIcon -Name 'NoDomain' -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = $reportTranslate.NewADDiagram.NoCA; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '5'; height = '3'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
                 }
             }
         } catch {
