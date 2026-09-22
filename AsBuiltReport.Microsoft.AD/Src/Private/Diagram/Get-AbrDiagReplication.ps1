@@ -5,7 +5,7 @@ function Get-AbrDiagReplication {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        1.0.0
+        Version:        1.0.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -52,7 +52,7 @@ function Get-AbrDiagReplication {
                                     SubGraph $SiteNodeName -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $Site -IconType 'AD_Site' -IconDebug $IconDebug -SubgraphLabel -IconWidth 35 -IconHeight 35 -Fontsize 18 -FontName 'Segoe UI' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 18; penwidth = 1.5; labelloc = 't'; style = 'dashed,rounded'; color = $Edgecolor } {
                                         foreach ($DC in $SiteDCs) {
                                             $DCNodeName = Remove-SpecialCharacter -String $DC -SpecialChars '\-. '
-                                            Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
+                                            Add-NodeIcon -Name $DCNodeName -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
                                         }
                                     }
                                 }
@@ -66,7 +66,7 @@ function Get-AbrDiagReplication {
                                     SubGraph UnknownSite -Attributes @{Label = (Add-HtmlLabel -ImagesObj $Images -Label $reportTranslate.NewADDiagram.replUnknownSite -IconType 'AD_Site' -IconDebug $IconDebug -SubgraphLabel -IconWidth 35 -IconHeight 35 -Fontsize 18 -FontName 'Segoe UI' -FontColor $Fontcolor -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor); fontsize = 18; penwidth = 1.5; labelloc = 't'; style = 'dashed,rounded'; color = $Edgecolor } {
                                         foreach ($DC in $UnknownSiteDCs) {
                                             $DCNodeName = Remove-SpecialCharacter -String $DC -SpecialChars '\-. '
-                                            Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
+                                            Add-NodeIcon -Name $DCNodeName -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
                                         }
                                     }
                                 }
@@ -74,7 +74,7 @@ function Get-AbrDiagReplication {
                                 # No site information - draw all DCs without grouping
                                 foreach ($DC in $AllDCs) {
                                     $DCNodeName = Remove-SpecialCharacter -String $DC -SpecialChars '\-. '
-                                    Node -Name $DCNodeName -Attributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
+                                    Add-NodeIcon -Name $DCNodeName -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = (Add-NodeIcon -Name ($DC.Split('.')[0].ToUpper()) -IconType 'AD_DC' -Align 'Center' -ImagesObj $Images -IconDebug $IconDebug -FontSize 18 -TableBackgroundColor $MainGraphBGColor -CellBackgroundColor $MainGraphBGColor -FontColor $Fontcolor); shape = 'plain'; fillColor = 'transparent' }
                                 }
                             }
 
@@ -89,7 +89,7 @@ function Get-AbrDiagReplication {
                                     if (-not $DrawnEdges.Contains($EdgeKey)) {
                                         $DrawnEdges.Add($EdgeKey) | Out-Null
                                         $EdgeColor = if ($Repl.FromSite -eq $Repl.ToSite) { 'darkgreen' } else { 'darkblue' }
-                                        Edge -From $FromNodeName -To $ToNodeName @{minlen = 2; label = $Repl.TransportProtocol; fontsize = 16; fontname = 'Segoe UI'; color = $EdgeColor; penwidth = 1.5 }
+                                        Add-NodeEdge -From $FromNodeName -To $ToNodeName -EdgeLength 2 -EdgeLabel $Repl.TransportProtocol -EdgeLabelFontSize 16 -EdgeLabelFontColor $Fontcolor -EdgeColor $EdgeColor -EdgeStyle 'dashed' -Arrowhead 'normal' -Arrowtail 'dot' -GraphvizAttributes @{fontname = 'Segoe UI'; penwidth = 1.5 }
                                     }
                                 }
                             }
@@ -97,7 +97,7 @@ function Get-AbrDiagReplication {
                     }
                 } else {
                     Write-Verbose ($reportTranslate.NewADDiagram.emptyReplication)
-                    Node -Name NoReplication @{Label = $reportTranslate.NewADDiagram.NoReplication; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
+                    Add-NodeIcon -Name 'NoReplication' -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = $reportTranslate.NewADDiagram.NoReplication; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
                 }
             }
         } catch {

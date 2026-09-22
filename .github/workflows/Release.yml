@@ -33,13 +33,3 @@ jobs:
         shell: pwsh
         run: |
           Publish-Module -Path ./AsBuiltReport.Microsoft.AD -NuGetApiKey ${{ secrets.PSGALLERY_API_KEY }} -Verbose
-  bsky-post:
-    needs: publish-to-gallery
-    runs-on: ubuntu-latest
-    steps:
-      - uses: zentered/bluesky-post-action@v0.4.0
-        with:
-          post: "[New Release] ${{ github.event.repository.name }} ${{ github.event.release.tag_name }}! Check out what's new! ${{ github.event.release.html_url }} #Microsoft #ActiveDirectory #AsBuiltReport #PowerShell #MicrosoftMVP #MVPBuzz #cybersecurity #infosec"
-        env:
-          BSKY_IDENTIFIER: ${{ secrets.BSKY_IDENTIFIER }}
-          BSKY_PASSWORD: ${{ secrets.BSKY_PASSWORD }}

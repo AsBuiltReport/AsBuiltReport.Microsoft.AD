@@ -5,7 +5,7 @@ function Get-AbrDiagForest {
     .DESCRIPTION
         Build a diagram of the configuration of Microsoft Active Directory to a supported formats using Psgraph.
     .NOTES
-        Version:        1.0.0
+        Version:        1.0.4
         Author:         Jonathan Colon
         Twitter:        @jcolonfzenpr
         Github:         rebelinux
@@ -37,27 +37,27 @@ function Get-AbrDiagForest {
                             if ($ForestInfo.ChildDomain ) {
 
                                 $ForestRootDomain = Remove-SpecialCharacter -String "$($ForestInfo[0].RootDomain)ChildDomain" -SpecialChars '\-. '
-                                Node -Name $ForestRootDomain -Attributes @{Label = ($ForestInfo[0]).RootDomainLabel; shape = 'plain'; fillColor = 'transparent' }
+                                Add-NodeIcon -Name $ForestRootDomain -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = ($ForestInfo[0]).RootDomainLabel; shape = 'plain'; fillColor = 'transparent' }
 
                                 foreach ($ForestObj in $ForestInfo) {
                                     $ParentDomain = Remove-SpecialCharacter -String "$($ForestObj.ParentDomain)" -SpecialChars '\-. '
-                                    Node -Name $ForestObj.Name -Attributes @{Label = $ForestObj.Label; shape = 'plain'; fillColor = 'transparent' }
-                                    Edge -From $ParentDomain -To $ForestObj.Name @{minlen = 2 }
+                                    Add-NodeIcon -Name $ForestObj.Name -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = $ForestObj.Label; shape = 'plain'; fillColor = 'transparent' }
+                                    Add-NodeEdge -From $ParentDomain -To $ForestObj.Name -EdgeLength 2 -EdgeStyle 'dashed' -EdgeColor $Edgecolor -EdgeThickness 2 -Arrowhead 'normal' -Arrowtail 'dot'
                                 }
 
                             } else {
 
-                                Node -Name $ForestInfo.Name -Attributes @{Label = $ForestInfo.Label; shape = 'plain'; fillColor = 'transparent' }
+                                Add-NodeIcon -Name $ForestInfo.Name -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = $ForestInfo.Label; shape = 'plain'; fillColor = 'transparent' }
 
-                                Node -Name NoDomain @{Label = $reportTranslate.NewADDiagram.fNoChildDomains; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
+                                Add-NodeIcon -Name 'NoDomain' -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = $reportTranslate.NewADDiagram.fNoChildDomains; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '3'; height = '2'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
 
-                                Edge -From $ForestInfo.Name -To NoDomain @{minlen = 2 }
+                                Add-NodeEdge -From $ForestInfo.Name -To 'NoDomain' -EdgeLength 2 -EdgeStyle 'dashed' -EdgeColor $Edgecolor -EdgeThickness 2 -Arrowhead 'normal' -Arrowtail 'dot'
 
                             }
                         }
                     }
                 } else {
-                    Node -Name NoDomain @{Label = $reportTranslate.NewADDiagram.fNoChildDomains; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '15'; height = '13'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
+                    Add-NodeIcon -Name 'NoDomain' -IconType 'NoIcon' -ImagesObj $Images -NodeObject -GraphvizAttributes @{Label = $reportTranslate.NewADDiagram.fNoChildDomains; shape = 'rectangle'; labelloc = 'c'; fixedsize = $true; width = '15'; height = '13'; fillColor = 'transparent'; penwidth = 1.5; style = 'dashed'; color = $Edgecolor }
                 }
             }
         } catch {
