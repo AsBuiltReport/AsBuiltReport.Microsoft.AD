@@ -1,15 +1,15 @@
 <!-- ********** DO NOT EDIT THESE LINKS ********** -->
 <p align="center">
-    <a href="https://www.asbuiltreport.com/" alt="AsBuiltReport"></a>
-            <img src='https://avatars.githubusercontent.com/u/42958564' width="8%" height="8%" /></a>
+    <a href="https://www.asbuiltreport.com/">
+        <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/repo-banners/AsBuiltReport.Microsoft.AD.png" alt="AsBuiltReport.Microsoft.AD" width="880"></a>
 </p>
 <p align="center">
     <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/" alt="PowerShell Gallery Version">
-        <img src="https://img.shields.io/powershellgallery/v/AsBuiltReport.Microsoft.AD.svg" /></a>
+        <img src="https://img.shields.io/powershellgallery/v/AsBuiltReport.Microsoft.AD.svg?color=1F5FD0" /></a>
     <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/" alt="PS Gallery Downloads">
-        <img src="https://img.shields.io/powershellgallery/dt/AsBuiltReport.Microsoft.AD.svg" /></a>
+        <img src="https://img.shields.io/powershellgallery/dt/AsBuiltReport.Microsoft.AD.svg?color=012456" /></a>
     <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Microsoft.AD/" alt="PS Platform">
-        <img src="https://img.shields.io/powershellgallery/p/AsBuiltReport.Microsoft.AD.svg" /></a>
+        <img src="https://img.shields.io/powershellgallery/p/AsBuiltReport.Microsoft.AD.svg?color=FFD02B" /></a>
 </p>
 <p align="center">
     <a href="https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/graphs/commit-activity" alt="GitHub Last Commit">
@@ -17,11 +17,7 @@
     <a href="https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/master/LICENSE" alt="GitHub License">
         <img src="https://img.shields.io/github/license/AsBuiltReport/AsBuiltReport.Microsoft.AD.svg" /></a>
     <a href="https://github.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/graphs/contributors" alt="GitHub Contributors">
-        <img src="https://img.shields.io/github/contributors/AsBuiltReport/AsBuiltReport.Microsoft.AD.svg"/></a>
-</p>
-<p align="center">
-    <a href="https://twitter.com/AsBuiltReport" alt="Twitter">
-            <img src="https://img.shields.io/twitter/follow/AsBuiltReport.svg?style=social"/></a>
+        <img src="https://img.shields.io/github/contributors/AsBuiltReport/AsBuiltReport.Microsoft.AD.svg?color=012456"/></a>
 </p>
 <!-- ********** DO NOT EDIT THESE LINKS ********** -->
 
@@ -30,25 +26,23 @@
 
 #### This project is community maintained and has no sponsorship from Microsoft, its employees or any of its affiliates.
 
-# Microsoft AD As Built Report
-
 Microsoft AD As Built Report is a PowerShell module which works in conjunction with [AsBuiltReport.Core](https://github.com/AsBuiltReport/AsBuiltReport.Core).
 
 [AsBuiltReport](https://github.com/AsBuiltReport/AsBuiltReport) is an open-sourced community project which utilizes PowerShell to produce as-built documentation in multiple document formats for multiple vendors and technologies.
 
 Please refer to the AsBuiltReport [website](https://www.asbuiltreport.com) for more detailed information about this project.
 
-# :books: Sample Reports
+# <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/sample-reports.svg" alt="" width="28" height="28" align="top"> Sample Reports
 
 ## Sample Report - Default Style with EnableHealthCheck
 
 Sample Microsoft AD As Built report HTML file: [Sample Microsoft AD As-Built Report.html](https://htmlpreview.github.io/?https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Microsoft.AD/dev/Samples/Sample%20Microsoft%20AD%20As%20Built%20Report.html)
 
-# :beginner: Getting Started
+# <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/getting-started.svg" alt="" width="28" height="28" align="top"> Getting Started
 
 Below are the instructions on how to install, configure and generate a Microsoft AD As Built report.
 
-## :floppy_disk: Supported Versions
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/supported-versions.svg" alt="" width="24" height="24" align="top"> Supported Versions
 <!-- ********** Update supported AD versions ********** -->
 The Microsoft AD As Built Report supports the following Active Directory versions;
 
@@ -63,7 +57,7 @@ This report is compatible with the following PowerShell versions;
 | :--------------------: | :----------------: |
 |          :x:           | :white_check_mark: |
 
-## :wrench: System Requirements
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/system-requirements.svg" alt="" width="24" height="24" align="top"> System Requirements
 <!-- ********** Update system requirements ********** -->
 PowerShell 7.4+, and the following PowerShell modules are required for generating a Microsoft AD As Built report.
 
@@ -82,7 +76,7 @@ PowerShell 7.4+, and the following PowerShell modules are required for generatin
 
 This report is not supported on Linux or macOS because the ActiveDirectory and GroupPolicy modules depend on the .NET Framework. These modules are Windows-only until Microsoft migrates them to PowerShell Core. Therefore, only PowerShell 7.4+ on Windows is supported for generating this report.
 
-### :closed_lock_with_key: Required Privileges
+### <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/required-privileges.svg" alt="" width="20" height="20" align="top"> Required Privileges
 
 A Microsoft AD As Built Report can be generated with Active Directory Enterprise Forest level privileges. Since this report relies extensively on the WinRM component, you should make sure that it is enabled and configured. [Reference](https://docs.microsoft.com/en-us/windows/win32/winrm/installation-and-configuration-for-windows-remote-management)
 
@@ -92,7 +86,7 @@ Due to a limitation of the WinRM component, a domain-joined machine is needed, a
 > [!WARNING]
 > The report must be run in a console with administrator privileges (“Run as Administrator”).
 
-## :package: Module Installation
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/module-installation.svg" alt="" width="24" height="24" align="top"> Module Installation
 
 ### PowerShell v5.x running on a Domain Controller server
 <!-- ********** Add installation for any additional PowerShell module(s) ********** -->
@@ -137,7 +131,7 @@ If you are unable to use the PowerShell Gallery, you can still install the modul
 
 _Note: You are not limited to installing the module to those example paths, you can add a new entry to the environment variable PSModulePath if you want to use another path._
 
-## :pencil2: Configuration
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/configuration.svg" alt="" width="24" height="24" align="top"> Configuration
 
 The Microsoft AD As Built Report utilises a JSON file to allow configuration of report information, options, detail and healthchecks.
 
@@ -226,7 +220,7 @@ The table below outlines the default and maximum **InfoLevel** settings for each
 
 The **Healthcheck** schema is used to toggle health checks on or off.
 
-## :computer: Examples
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/examples.svg" alt="" width="24" height="24" align="top"> Examples
 
 There are a few examples listed below on running the AsBuiltReport script against a Microsoft Active Directory Domain Controller target. Refer to the `README.md` file in the main AsBuiltReport project repository for more examples.
 
@@ -246,7 +240,7 @@ PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.loc
 PS C:\> New-AsBuiltReport -Report Microsoft.AD -Target 'admin-dc-01v.contoso.local' -Username 'administrator@contoso.local' -Password 'P@ssw0rd' -Format Html,Word -OutputFolderPath 'C:\Users\Jon\Documents' -SendEmail
 ```
 
-## :computer: GUI Examples
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/examples.svg" alt="" width="24" height="24" align="top"> GUI Examples
 
 The Microsoft AD As Built Report GUI can be used to generate reports without using the console. The GUI provides the same functionality as the console, but with a user-friendly interface. To launch the GUI, run the following command in a PowerShell terminal window:
 
@@ -259,7 +253,7 @@ PS C:\> Start-AsBuiltReportMSAD
 
 ![alt text](Samples/Sample-Gui.png)
 
-### :memo: Log Collection
+### <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/log-collection.svg" alt="" width="20" height="20" align="top"> Log Collection
 
 The `Get-AbrAdLog` cmdlet can be used to collect AsBuiltReport.Microsoft.AD logs for troubleshooting purposes. This cmdlet collects the logs and diagnostic information from the powershell host running the report and saves them to a specified output folder.
 
@@ -268,7 +262,7 @@ The `Get-AbrAdLog` cmdlet can be used to collect AsBuiltReport.Microsoft.AD logs
 PS C:\> Get-AbrAdLog -OutputFolderPath 'C:\Users\Jon\Desktop\' -IncludeErrorDetails
 ```
 
-## :x: Known Issues
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/known-issues.svg" alt="" width="24" height="24" align="top"> Known Issues
 - **PSWriteWord Module Conflict**: PScribo and the EvotecIT "PSWriteWord" project use conflicting cmdlets. The PSWriteWord module must be uninstalled before generating reports.
 - **WinRM Dependency**: This report relies heavily on remote connections via WinRM. A Windows 10 client is recommended as a jumpbox for optimal connectivity.
 - **DNS Service Requirements**: To extract DNS service configuration, install PowerShell management modules on servers hosting DNS services (RSAT-DNS-Server and RSAT-AD-PowerShell).
